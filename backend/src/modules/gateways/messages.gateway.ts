@@ -1,4 +1,4 @@
-import { Module, WebSocketGateway } from '@nestjs/websockets'
+import { WebSocketGateway } from '@nestjs/common'
 
 @WebSocketGateway({ namespace: 'messages' })
 export class MessagesGateway {}

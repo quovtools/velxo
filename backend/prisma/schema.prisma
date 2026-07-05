@@ -432,7 +432,7 @@ model wallet {
   updatedAt     DateTime @updatedAt
 
   user          users                @relation(fields: [userId], references: [id], onDelete: Cascade)
-  transactions  walletTransactions[]
+  transactions  walletTransactions[] @relation("WalletTransactions")
 
   @@index([userId])
   @@map("wallets")
@@ -450,7 +450,7 @@ model walletTransactions {
   metadata    Json?
   createdAt   DateTime @default(now())
 
-  wallet      wallet   @relation(fields: [walletId], references: [id], onDelete: Cascade)
+  walletRelation wallet @relation("WalletTransactions", fields: [walletId], references: [id], onDelete: Cascade)
 
   @@index([walletId])
   @@index([createdAt])

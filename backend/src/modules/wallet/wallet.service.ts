@@ -15,7 +15,7 @@ export class WalletService {
     const wallet = await this.prisma.wallet.findUnique({ where: { userId } })
     if (!wallet || wallet.balance < dto.amount) throw new NotFoundException('Insufficient balance')
     const withdrawal = await this.prisma.withdrawalRequests.create({ data: { ...dto, sellerId: userId, netAmount: dto.amount } })
-    await this.prisma.walletTransactions.create({ data: { walletId: wallet.id, type: 'DEBIT', amount: dto.amount, description: 'Withdrawal', relatedId: withdrawal.id } })
+    await this.prisma.walletTransactions.create({ data: { walletId: wallet.id, type: 'DEBIT', amount: dto.amount, description: 'Withdrawal', relatedId: withdrawal.id, balanceAfter: wallet.balance - dto.amount } })
     return { success: true, data: withdrawal }
   }
 }
