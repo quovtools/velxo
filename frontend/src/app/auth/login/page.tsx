@@ -39,7 +39,7 @@ export default function LoginPage() {
         </form>
         <div className="relative my-4"><div className="absolute inset-0 flex items-center"><div className="w-full border-t border-zinc-700" /></div><div className="relative flex justify-center text-sm"><span className="bg-zinc-950 px-2 text-zinc-400">or continue with</span></div></div>
         <Button variant="outline" className="w-full" onClick={handleGoogleLogin}>Google</Button>
-        <p className="text-center text-sm text-zinc-400">Don't have an account? <Link href="/auth/register" className="text-white underline">Sign up</Link></p>
+         <p className="text-center text-sm text-zinc-400">Don&apos;t have an account? <Link href="/auth/register" className="text-white underline">Sign up</Link></p>
       </div>
     </div>
   )
