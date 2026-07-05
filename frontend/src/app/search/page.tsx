@@ -5,7 +5,9 @@ import { Card } from '@/components/ui/card'
 import { Skeleton } from '@/components/ui/skeleton'
 import { Suspense } from 'react'
 
-function SearchResults({ query }: { query: string }) {
+function SearchResults() {
+  const searchParams = useSearchParams()
+  const query = searchParams.get('q') || ''
   const [listings, setListings] = useState<any[]>([])
   const [loading, setLoading] = useState(true)
 
@@ -53,15 +55,12 @@ function SearchResults({ query }: { query: string }) {
 }
 
 export default function SearchPage() {
-  const searchParams = useSearchParams()
-  const query = searchParams.get('q') || ''
-
   return (
     <div className="min-h-screen bg-zinc-950 text-white p-4">
       <div className="container mx-auto">
-        <h1 className="text-3xl font-bold mb-6">{query ? `Search: ${query}` : 'All Listings'}</h1>
+        <h1 className="text-3xl font-bold mb-6">Search Listings</h1>
         <Suspense fallback={<div className="grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-4">{Array.from({ length: 6 }).map((_, i) => <Skeleton key={i} className="h-64 w-full" />)}</div>}>
-          <SearchResults query={query} />
+          <SearchResults />
         </Suspense>
       </div>
     </div>
