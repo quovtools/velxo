@@ -170,7 +170,8 @@ model users {
 
   sellers          sellers?
   orders           orders[]
-  reviews          reviews[]
+  buyerReviews     reviews[] @relation("ReviewBuyer")
+  sellerReviews    reviews[] @relation("ReviewSeller")
   messages         messages[]
   disputes         disputes[]
   supportTickets   supportTickets[]
@@ -471,8 +472,8 @@ model reviews {
   updatedAt   DateTime @updatedAt
 
   order       orders    @relation(fields: [orderId], references: [id], onDelete: Cascade)
-  buyer       users     @relation(fields: [buyerId], references: [id])
-  seller      users     @relation(fields: [sellerId], references: [id])
+  buyer       users     @relation("ReviewBuyer", fields: [buyerId], references: [id])
+  seller      users     @relation("ReviewSeller", fields: [sellerId], references: [id])
 
   @@index([sellerId])
   @@index([rating])
