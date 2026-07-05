@@ -169,8 +169,8 @@ model users {
   deletedAt        DateTime?
 
   sellers          sellers?
+  sellerOrders     orders[] @relation("SellerOrders")
   buyerOrders      orders[] @relation("OrderBuyer")
-  sellerOrders     orders[] @relation("OrderSeller")
   buyerReviews     reviews[] @relation("ReviewBuyer")
   sellerReviews    reviews[] @relation("ReviewSeller")
   initiatedDisputes disputes[] @relation("DisputeInitiator")
@@ -213,7 +213,7 @@ model sellers {
 
   user            users           @relation(fields: [userId], references: [id], onDelete: Cascade)
   listings        listings[]
-  orders          orders[]
+  sellerOrders    orders[]        @relation("SellerOrders")
   commissions     commissions[]
   withdrawalRequests withdrawalRequests[]
 
@@ -317,7 +317,7 @@ model listings {
   subcategory    subcategories?  @relation(fields: [subcategoryId], references: [id])
   seller         sellers         @relation(fields: [sellerId], references: [id], onDelete: Cascade)
   orderItems     orderItems[]
-  reviews        reviews[]
+  listingReviews reviews[]        @relation("ListingReviews")
   fraudFlags     fraudFlags[]
 
   @@index([sellerId])
@@ -367,16 +367,17 @@ model orders {
   updatedAt       DateTime @updatedAt
 
   buyer           users            @relation("OrderBuyer", fields: [buyerId], references: [id])
-  seller          users            @relation("OrderSeller", fields: [sellerId], references: [id])
+  seller          users            @relation("SellerOrders", fields: [sellerId], references: [id])
   escrow          escrowTransactions?
   orderItems      orderItems[]
   disputes        disputes[]
   payments        payments[]
-  reviews         reviews[]
-  messages        messages[]
+  orderReviews    reviews[]        @relation("OrderReviews")
+  orderMessages   messages[]       @relation("OrderMessages")
+  orderNotifications notifications[] @relation("OrderNotifications")
+  orderFraudFlags fraudFlags[]     @relation("OrderFraudFlags")
   auditLogs       adminAuditLogs[] @relation("OrderAuditLog")
   commissions     commissions[]
-  notifications   notifications[]
 
   @@index([buyerId])
   @@index([sellerId])
@@ -454,6 +455,8 @@ model walletTransactions {
   createdAt   DateTime @default(now())
 
   wallet      wallet   @relation(fields: [walletId], references: [id], onDelete: Cascade)
+  withdrawalRequestId String?
+  withdrawalRequest  withdrawalRequests? @relation("WithdrawalTxns", fields: [withdrawalRequestId], references: [id])
 
   @@index([walletId])
   @@index([createdAt])
@@ -478,6 +481,7 @@ model reviews {
   order       orders    @relation(fields: [orderId], references: [id], onDelete: Cascade)
   buyer       users     @relation("ReviewBuyer", fields: [buyerId], references: [id])
   seller      users     @relation("ReviewSeller", fields: [sellerId], references: [id])
+  listing     listings  @relation("ListingReviews", fields: [listingId], references: [id])
 
   @@index([sellerId])
   @@index([rating])
@@ -505,6 +509,7 @@ model messages {
   id              String               @id @default(cuid())
   conversationId  String
   senderId        String
+  orderId         String?
   senderType      MessageSenderType    @default(BUYER)
   content         String
   attachments     String[]
@@ -517,6 +522,7 @@ model messages {
 
   conversation    conversations @relation(fields: [conversationId], references: [id], onDelete: Cascade)
   sender          users         @relation(fields: [senderId], references: [id])
+  order           orders?       @relation("OrderMessages", fields: [orderId], references: [id])
 
   @@index([conversationId])
   @@index([senderId])
@@ -619,8 +625,7 @@ model adminAuditLogs {
   metadata    Json?
   createdAt   DateTime @default(now())
 
-  actor       users         @relation("AdminAuditLogActor", fields: [actorId], references: [id])
-  order       orders? @relation("OrderAuditLog", fields: [entityId], map: "audit_order")
+  actor       users @relation("AdminAuditLogActor", fields: [actorId], references: [id])
 
   @@index([actorId])
   @@index([entityType, entityId])
@@ -645,7 +650,7 @@ model fraudFlags {
 
   user         users              @relation(fields: [userId], references: [id])
   listing      listings?          @relation(fields: [listingId], references: [id])
-  order        orders?            @relation(fields: [orderId], references: [id])
+  order        orders?            @relation("OrderFraudFlags", fields: [orderId], references: [id])
 
   @@index([userId])
   @@index([status])
