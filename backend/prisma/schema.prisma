@@ -51,10 +51,8 @@ enum PaymentStatus {
 }
 
 enum PaymentProvider {
-  STRIPE
-  PAYPAL
   FLUTTERWAVE
-  PAYSTACK
+  PAYMENT_IO
   CRYPTO
 }
 
@@ -703,7 +701,7 @@ model withdrawalRequests {
   amount       Decimal           @db.Decimal(12, 2)
   currency     String            @default("USD")
   status       WithdrawalStatus  @default(PENDING)
-  method       String            // bank, paypal, crypto
+  method       String            // bank, crypto, other
   destination  Json
   fee          Decimal           @default(0) @db.Decimal(12, 2)
   netAmount    Decimal           @db.Decimal(12, 2)

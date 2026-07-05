@@ -34,7 +34,7 @@ export default function CheckoutPage() {
               <p className="text-sm text-zinc-400">Total</p>
               <p className="text-2xl font-bold">${listing.price}</p>
             </div>
-            <Button className="w-full bg-white text-black hover:bg-zinc-200" onClick={() => alert('Payment integration: Stripe/PayPal/Flutterwave/Paystack/Crypto checkout would open here')}>
+            <Button className="w-full bg-white text-black hover:bg-zinc-200" onClick={() => alert('Payment integration: Flutterwave / Payment.io (crypto) checkout would open here')}>
               Pay Securely (Escrow Protected)
             </Button>
             <p className="text-xs text-zinc-500 text-center">Your payment is held securely in escrow until delivery is confirmed</p>

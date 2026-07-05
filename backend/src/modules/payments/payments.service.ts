@@ -6,7 +6,7 @@ export class PaymentsService {
   constructor(private readonly prisma: PrismaService) {}
 
   async createIntent(userId: string, dto: any) {
-    const payment = await this.prisma.payments.create({ data: { orderId: dto.orderId, provider: dto.provider || 'STRIPE', amount: dto.amount, currency: dto.currency || 'USD', status: 'PENDING' } })
+    const payment = await this.prisma.payments.create({ data: { orderId: dto.orderId,       provider: dto.provider || 'FLUTTERWAVE', amount: dto.amount, currency: dto.currency || 'USD', status: 'PENDING' } })
     return { success: true, data: payment }
   }
 }
