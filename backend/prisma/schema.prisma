@@ -327,7 +327,6 @@ model listings {
   @@index([platform])
   @@index([isFeatured])
   @@index([createdAt])
-  @@index([searchVector(ops: { op: "gin" })])
   @@map("listings")
 }
 
