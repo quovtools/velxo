@@ -1,5 +1,4 @@
 import { createBrowserClient } from '@supabase/ssr'
-import { createPagesBrowserClient } from '@supabase/auth-helpers-nextjs'
 
 export const supabase = createBrowserClient(
   process.env.NEXT_PUBLIC_SUPABASE_URL!,
