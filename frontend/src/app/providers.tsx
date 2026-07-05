@@ -1,4 +1,4 @@
-"use client"
+import { Toaster } from '@/components/ui/toast'
 import { QueryClient, QueryClientProvider } from '@tanstack/react-query'
 import { useState } from 'react'
 import { supabase } from '@/lib/supabase'
