@@ -213,7 +213,6 @@ model sellers {
 
   user            users           @relation(fields: [userId], references: [id], onDelete: Cascade)
   listings        listings[]
-  sellerOrders    orders[]        @relation("SellerOrders")
   commissions     commissions[]
   withdrawalRequests withdrawalRequests[]
 
@@ -374,6 +373,7 @@ model orders {
   payments        payments[]
   orderReviews    reviews[]        @relation("OrderReviews")
   commissions     commissions[]
+  orderFraudFlags fraudFlags[]    @relation("OrderFraudFlags")
 
   @@index([buyerId])
   @@index([sellerId])
