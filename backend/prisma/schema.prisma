@@ -466,6 +466,7 @@ model walletTransactions {
 model reviews {
   id          String   @id @default(cuid())
   orderId     String
+  listingId   String
   buyerId     String
   sellerId    String
   rating      Int
@@ -484,6 +485,7 @@ model reviews {
   listing     listings  @relation("ListingReviews", fields: [listingId], references: [id])
 
   @@index([sellerId])
+  @@index([listingId])
   @@index([rating])
   @@index([createdAt])
   @@map("reviews")
