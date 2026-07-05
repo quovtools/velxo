@@ -169,11 +169,13 @@ model users {
   deletedAt        DateTime?
 
   sellers          sellers?
-  orders           orders[]
+  buyerOrders      orders[] @relation("OrderBuyer")
+  sellerOrders     orders[] @relation("OrderSeller")
   buyerReviews     reviews[] @relation("ReviewBuyer")
   sellerReviews    reviews[] @relation("ReviewSeller")
+  initiatedDisputes disputes[] @relation("DisputeInitiator")
+  resolvedDisputes  disputes[] @relation("DisputeResolver")
   messages         messages[]
-  disputes         disputes[]
   supportTickets   supportTickets[]
   adminAuditLogs   adminAuditLogs[] @relation("AdminAuditLogActor")
   fraudFlags       fraudFlags[]
@@ -364,6 +366,8 @@ model orders {
   createdAt       DateTime @default(now())
   updatedAt       DateTime @updatedAt
 
+  buyer           users            @relation("OrderBuyer", fields: [buyerId], references: [id])
+  seller          users            @relation("OrderSeller", fields: [sellerId], references: [id])
   escrow          escrowTransactions?
   orderItems      orderItems[]
   disputes        disputes[]
@@ -555,8 +559,8 @@ model disputes {
   updatedAt       DateTime @updatedAt
 
   order           orders                @relation(fields: [orderId], references: [id])
-  initiator       users                 @relation(fields: [initiatedById], references: [id])
-  resolver        users?               @relation(fields: [resolvedBy], references: [id])
+  initiator       users                 @relation("DisputeInitiator", fields: [initiatedById], references: [id])
+  resolver        users?                @relation("DisputeResolver", fields: [resolvedBy], references: [id])
   messages        disputeMessages[]
 
   @@index([orderId])
