@@ -1,0 +1,360 @@
+# PROJECT: Velxo — Production-Ready Gaming Marketplace
+
+## ROLE & OBJECTIVE
+You are the lead architect and senior full-stack engineer for Velxo (https://velxo.shop), a multi-vendor gaming marketplace startup. Your task is to design, scaffold, and implement a complete, production-ready, scalable marketplace platform. Every decision must prioritize security, performance, scalability to millions of users, and a world-class developer experience.
+
+---
+
+## 1. BUSINESS OVERVIEW
+
+Velxo is a trusted marketplace connecting buyers and sellers of digital gaming products. It is NOT a simple e-commerce site — it is a secure escrow-backed marketplace with fraud detection, identity verification, dispute resolution, and AI-powered features.
+
+### Target Users
+- Buyers: Gamers purchasing accounts, coins, top-ups, gift cards, and services
+- Sellers: Verified vendors listing digital gaming products
+- Admins/Moderators: Platform managers handling disputes, fraud, and moderation
+- Super Admins: Platform owners managing the entire ecosystem
+
+### Competitive Advantage
+- Lower fees than Carry1st and Eldorado.gg
+- Faster checkout and modern UI
+- Stronger security with AI-powered fraud detection
+- Mobile-first design with real-time messaging
+- AI-assisted search and customer support
+
+---
+
+## 2. PRODUCTS & SERVICES
+
+The marketplace supports these listing types:
+
+| Category | Examples |
+|----------|----------|
+| **Gaming Accounts** | Free Fire, PUBG Mobile, COD Mobile, Fortnite, Valorant, Roblox, Minecraft, LoL, EA FC, Clash of Clans, Mobile Legends, Steam/Epic/PlayStation/Xbox/Nintendo accounts, Genshin Impact, and unlimited admin-addable games |
+| **Gaming Coins** | Free Fire Diamonds, PUBG UC, COD Points, Fortnite V-Bucks, Valorant Points, Robux, EA FC Coins, Mobile Legends Diamonds |
+| **Game Top-Ups** | In-game currency via Player ID/UID with order tracking |
+| **Gift Cards** | Steam, PlayStation, Xbox, Nintendo, Google Play, Apple, Amazon, Razer Gold, Riot Games, Battle.net |
+| **Digital Services** | Rank boosting, coaching, account recovery, Battle Pass gifting, custom services |
+
+### Account Listing Details
+Each account listing MUST include: rank, level, skins, inventory, linked accounts, login method, region, platform, screenshots, videos, and account history.
+
+---
+
+## 3. REVENUE MODEL
+
+Velxo earns through:
+1. Commission on every sale (configurable % by admin)
+2. Seller subscription plans
+3. Featured listings
+4. Sponsored products
+5. Homepage advertisements
+6. Premium seller badges
+7. Withdrawal fees
+8. Currency conversion fees
+9. Promotional campaigns
+10. Future advertising platform
+
+---
+
+## 4. MARKETPLACE FLOW (CRITICAL)
+
+1. Seller registers → verifies identity (if required)
+2. Seller creates listing
+3. Admin reviews listing (if moderation enabled)
+4. Listing goes public
+5. Buyer purchases → payment held in escrow
+6. Seller delivers product
+7. Buyer confirms delivery
+8. Funds released to seller (commission auto-deducted)
+9. Buyer leaves review
+10. Dispute/refund path available at any step
+
+---
+
+## 5. TRUST & SAFETY (NON-NEGOTIABLE)
+
+Implement:
+- Seller verification & identity verification
+- Fraud detection & suspicious activity monitoring
+- Escrow protection for ALL transactions
+- Secure end-to-end messaging
+- Buyer protection program
+- Seller reputation system (ratings, reviews, history)
+- Reporting system for listings/users
+- Dispute management with moderator tools
+- Refund request workflow
+- Admin investigation dashboard
+- Audit logs for all financial transactions
+
+Goal: Make Velxo the SAFEST gaming marketplace in the world.
+
+---
+
+## 6. TECHNOLOGY STACK
+
+### FRONTEND
+- Next.js 15 (App Router)
+- React 19
+- TypeScript (strict mode)
+- Tailwind CSS
+- shadcn/ui components
+- Framer Motion (animations)
+- TanStack Query (React Query) for server state
+
+### BACKEND
+- Node.js
+- NestJS (preferred — modular architecture, DI, guards, interceptors)
+- TypeScript
+- REST API only
+- Production-ready, scalable, modular monolith (prepared for microservices)
+
+### DATABASE
+- Supabase PostgreSQL (primary database)
+- Connect via Prisma ORM (preferred) or Drizzle
+- Design schema for millions of users and high transaction volume
+
+### AUTHENTICATION (SUPABASE AUTH ONLY)
+- Sign Up / Sign In / Sign Out
+- Email verification
+- Password reset
+- Google OAuth
+- Discord OAuth
+- Session management with JWT
+- Protected routes
+- Role-Based Access Control: Buyer, Seller, Moderator, Admin, Super Admin
+- Backend MUST verify Supabase JWT access tokens on every protected API call
+- NO custom auth system
+
+### STORAGE (SUPABASE STORAGE)
+- User avatars
+- Seller verification documents
+- Product images & videos
+- Chat attachments
+- All other uploaded files
+
+### PAYMENTS
+- Stripe
+- PayPal
+- Flutterwave
+- Paystack
+- Cryptocurrency (BTC, ETH, USDT via a provider like Coinbase Commerce or BTCPay)
+
+### DEPLOYMENT
+- Frontend: Render
+- Backend: Render
+- Database: Supabase PostgreSQL
+
+---
+
+## 7. ARCHITECTURE RULES
+
+### Supabase Usage Boundaries
+Supabase is ONLY for:
+- Authentication (Auth)
+- PostgreSQL database
+- File storage
+
+ALL business logic MUST run in the custom NestJS backend. No Supabase Edge Functions, no database triggers for business logic, no Row-Level Security policies replacing API authorization.
+
+### Backend Responsibilities
+The NestJS backend handles ALL business logic:
+- Marketplace operations (listings, search, categories)
+- Orders & order lifecycle
+- Escrow management & fund holding
+- Wallet system (seller balances, withdrawals)
+- Real-time messaging system
+- Notifications (email, in-app, push)
+- Reviews & ratings
+- Admin dashboard & functions
+- Fraud detection engine
+- Analytics & reporting
+- Support ticket system
+- Payment processing orchestration
+- Commission calculation & payout scheduling
+
+---
+
+## 8. DATABASE DESIGN REQUIREMENTS
+
+Design a PostgreSQL schema that supports:
+
+### Core Entities
+- users (auth-linked, roles, profiles, KYC status)
+- sellers (verification status, subscription tier, reputation score)
+- listings (all product types, status, moderation flags)
+- categories & subcategories (hierarchical, admin-managed)
+- orders & order_items
+- escrow_transactions (immutable ledger)
+- wallets & wallet_transactions
+- reviews & ratings
+- messages & conversations
+- notifications
+- disputes & dispute_resolutions
+- support_tickets
+- admin_audit_logs
+- fraud_flags & fraud_investigations
+- payment_methods & payment_transactions
+- withdrawal_requests
+- commissions & platform_fees
+
+### Critical Constraints
+- All financial tables must be ACID-compliant
+- Use transactions for any money movement
+- Implement soft deletes where appropriate
+- Audit log every state change on orders and escrow
+- Index heavily on search fields (game name, rank, region, platform, price)
+- Prepare for full-text search on listings
+
+---
+
+## 9. API DESIGN REQUIREMENTS
+
+### RESTful Standards
+- Base path: `/api/v1/`
+- Resource-based URLs: `/listings`, `/orders`, `/users/me`, etc.
+- Standard HTTP methods (GET, POST, PATCH, DELETE)
+- Consistent response envelope: `{ success: boolean, data: any, message: string, meta?: object }`
+- Pagination on all list endpoints (cursor-based preferred for scale)
+- Rate limiting on all public endpoints
+- API versioning strategy
+
+### Authentication
+- All protected endpoints require `Authorization: Bearer <supabase_jwt>`
+- Backend validates JWT against Supabase public key
+- Roles enforced via NestJS Guards
+- Middleware to attach user context to requests
+
+### Key Endpoint Groups
+- `/auth/*` — session, profile (read-only from Supabase)
+- `/listings/*` — CRUD, search, filter, sort
+- `/orders/*` — create, track, confirm, cancel, refund
+- `/escrow/*` — status, release, dispute
+- `/wallet/*` — balance, transactions, withdraw
+- `/messages/*` — conversations, send, read status
+- `/reviews/*` — create, read, moderate
+- `/admin/*` — dashboard, moderation, analytics, disputes
+- `/payments/*` — webhooks, methods, transactions
+- `/notifications/*` — preferences, history
+- `/support/*` — tickets, responses
+
+---
+
+## 10. FRONTEND REQUIREMENTS
+
+### Pages & Routes (Next.js App Router)
+- `/` — Homepage with featured listings, categories, search hero
+- `/games/[slug]` — Game-specific marketplace page
+- `/listings/[id]` — Listing detail page with images, reviews, seller info
+- `/search` — Advanced search with filters (game, price, rank, region, platform)
+- `/sell` — Seller onboarding & listing creation wizard
+- `/checkout/[listingId]` — Secure checkout with escrow confirmation
+- `/orders` — Buyer order history & tracking
+- `/orders/[id]` — Order detail with delivery & confirmation
+- `/messages` — Real-time chat with sellers/buyers
+- `/wallet` — Balance, transactions, withdrawal
+- `/profile` — User profile & settings
+- `/seller/dashboard` — Seller analytics, listings, orders, earnings
+- `/admin` — Admin dashboard (protected, role-gated)
+- `/admin/moderation` — Listing & user moderation
+- `/admin/disputes` — Dispute management
+- `/admin/analytics` — Platform analytics
+- `/auth/login`, `/auth/register`, `/auth/reset-password`
+
+### UI/UX Standards
+- Mobile-first responsive design
+- Dark mode support (gaming aesthetic)
+- Fast page loads (< 2s initial, < 100ms navigation)
+- Skeleton loaders for all data-fetching states
+- Optimistic UI updates for messages, reviews, cart actions
+- Toast notifications for all user actions
+- Accessible (WCAG 2.1 AA minimum)
+
+---
+
+## 11. REAL-TIME FEATURES
+
+- **Messaging**: WebSocket-based real-time chat between buyers and sellers
+- **Notifications**: Real-time in-app notifications via WebSocket + push via Firebase/OneSignal
+- **Order Updates**: Live status updates on order tracking pages
+- **Admin Alerts**: Real-time fraud alerts and dispute notifications
+
+---
+
+## 12. SECURITY REQUIREMENTS
+
+- Input validation on ALL endpoints (class-validator + DTOs)
+- SQL injection prevention (Prisma parameterized queries)
+- XSS protection (Next.js built-in + CSP headers)
+- CSRF protection on state-changing operations
+- Rate limiting per IP and per user
+- Brute force protection on auth endpoints
+- File upload validation (type, size, scan for malware)
+- Sensitive data encryption at rest (KYC docs, payment info)
+- HTTPS everywhere
+- Security headers (HSTS, X-Frame-Options, etc.)
+- Dependency scanning in CI/CD
+
+---
+
+## 13. SCALABILITY CONSIDERATIONS
+
+- Database connection pooling (PgBouncer)
+- Redis for caching (session store, rate limiting, search results)
+- CDN for static assets and media (Cloudflare or Vercel Edge)
+- Background job processing (BullMQ + Redis) for:
+  - Email notifications
+  - Commission payouts
+  - Fraud analysis
+  - Report generation
+- Horizontal scaling of backend via Docker containers
+- Read replicas for analytics and reporting queries
+- Event-driven architecture for decoupled services (preparation for microservices)
+
+---
+
+## 14. DELIVERABLES EXPECTED
+
+When implementing this project, produce:
+
+1. **Complete NestJS backend** with modular architecture
+2. **Prisma schema** with all entities, relations, indexes, and constraints
+3. **REST API** with all endpoint groups, DTOs, guards, and services
+4. **Next.js frontend** with all pages, components, and API integration
+5. **Supabase integration** for auth and storage
+6. **Payment integration** (Stripe, PayPal, Flutterwave, Paystack, crypto)
+7. **Real-time messaging** via WebSocket
+8. **Admin dashboard** with analytics, moderation, and dispute tools
+9. **Docker setup** for backend deployment
+10. **Environment configuration** and deployment guides
+11. **Database seeding** scripts for development
+
+---
+
+## 15. CODING STANDARDS
+
+- TypeScript strict mode everywhere
+- ESLint + Prettier configured
+- Conventional commits
+- Feature-based folder structure in NestJS (`src/listings/`, `src/orders/`, etc.)
+- Repository pattern for database access
+- Service layer for business logic
+- Controller layer for HTTP handling
+- DTOs for all inputs/outputs
+- Custom exceptions and global exception filter
+- Comprehensive logging (Winston)
+- Unit tests for services (Jest)
+- E2E tests for critical flows
+
+---
+
+## CONTEXT SUMMARY
+
+You are building Velxo from scratch as a production-ready gaming marketplace. The platform connects buyers and sellers of digital gaming products with escrow protection, fraud detection, and AI-powered features. Use the exact technology stack specified. All business logic lives in the NestJS backend. Supabase handles only auth, database, and storage. Design for millions of users from day one. Security and trust are paramount.
+
+Start by analyzing the requirements, planning the database schema, then scaffold the project structure, and implement features incrementally. Always think about scalability, security, and the user experience.
+
+                               IMPORTANT NOTICE 
+
+                               
+Make sure you do everything in the prompt and create a to do list where i can track your progress 

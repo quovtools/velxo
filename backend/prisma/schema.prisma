@@ -1,0 +1,742 @@
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+enum Role {
+  BUYER
+  SELLER
+  MODERATOR
+  ADMIN
+  SUPER_ADMIN
+}
+
+enum ListingStatus {
+  DRAFT
+  PENDING_APPROVAL
+  ACTIVE
+  REJECTED
+  SUSPENDED
+  SOLD
+  EXPIRED
+}
+
+enum OrderStatus {
+  PENDING
+  PAID
+  IN_PROGRESS
+  DELIVERED
+  COMPLETED
+  CANCELLED
+  REFUNDED
+  DISPUTED
+}
+
+enum EscrowStatus {
+  HELD
+  RELEASED
+  REFUNDED
+  DISPUTED
+}
+
+enum PaymentStatus {
+  PENDING
+  COMPLETED
+  FAILED
+  REFUNDED
+}
+
+enum PaymentProvider {
+  STRIPE
+  PAYPAL
+  FLUTTERWAVE
+  PAYSTACK
+  CRYPTO
+}
+
+enum WithdrawalStatus {
+  PENDING
+  APPROVED
+  PROCESSING
+  COMPLETED
+  REJECTED
+  FAILED
+}
+
+enum DisputeStatus {
+  OPEN
+  UNDER_REVIEW
+  RESOLVED_BUYER
+  RESOLVED_SELLER
+  RESOLVED_PLATFORM
+  CLOSED
+}
+
+enum DisputeResolutionType {
+  REFUND_BUYER
+  RELEASE_TO_SELLER
+  SPLIT
+  OTHER
+}
+
+enum MessageSenderType {
+  BUYER
+  SELLER
+  ADMIN
+  SUPPORT
+  SYSTEM
+}
+
+enum NotificationType {
+  ORDER_STATUS
+  MESSAGE
+  DISPUTE
+  WITHDRAWAL
+  LISTING_APPROVED
+  LISTING_REJECTED
+  FRAUD_ALERT
+  SYSTEM
+}
+
+enum SupportTicketStatus {
+  OPEN
+  IN_PROGRESS
+  RESOLVED
+  CLOSED
+}
+
+enum SupportTicketCategory {
+  PAYMENT
+  DELIVERY
+  ACCOUNT
+  DISPUTE
+  OTHER
+}
+
+enum FraudFlagType {
+  SUSPICIOUS_LOGIN
+  RAPID_ORDERS
+  HIGH_VALUE_TRANSACTION
+  MULTIPLE_ACCOUNTS
+  CHARGEBACK_RISK
+  MANUAL_REVIEW
+}
+
+enum FraudFlagSeverity {
+  LOW
+  MEDIUM
+  HIGH
+  CRITICAL
+}
+
+enum AuditAction {
+  CREATE
+  UPDATE
+  DELETE
+  STATUS_CHANGE
+  PAYMENT
+  REFUND
+  ESCROW_RELEASE
+  WITHDRAWAL
+  ROLE_CHANGE
+  VERIFICATION_CHANGE
+}
+
+enum CommissionStatus {
+  PENDING
+  PAID
+}
+
+model users {
+  id               String   @id @default(cuid())
+  email            String   @unique
+  emailVerified    Boolean  @default(false)
+  phone            String?
+  phoneVerified    Boolean  @default(false)
+  passwordHash     String?
+  firstName        String?
+  lastName         String?
+  avatarUrl        String?
+  role             Role     @default(BUYER)
+  isActive         Boolean  @default(true)
+  isBanned         Boolean  @default(false)
+  banReason        String?
+  lastLoginAt      DateTime?
+  createdAt        DateTime @default(now())
+  updatedAt        DateTime @updatedAt
+  deletedAt        DateTime?
+
+  sellers          sellers?
+  orders           orders[]
+  reviews          reviews[]
+  messages         messages[]
+  disputes         disputes[]
+  supportTickets   supportTickets[]
+  adminAuditLogs   adminAuditLogs[] @relation("AdminAuditLogActor")
+  fraudFlags       fraudFlags[]
+  notifications    notifications[]
+  paymentMethods   paymentMethods[]
+  wallet           wallet?
+
+  @@index([email])
+  @@index([role])
+  @@index([createdAt])
+  @@map("users")
+}
+
+model sellers {
+  id              String   @id @default(cuid())
+  userId          String   @unique
+  storeName       String
+  storeDescription String?
+  isVerified      Boolean  @default(false)
+  verificationDocuments Json?
+  reputationScore Float    @default(0.0)
+  totalSales      Int      @default(0)
+  totalRevenue    Decimal  @default(0) @db.Decimal(12, 2)
+  averageRating   Float    @default(0.0)
+  responseRate    Float    @default(0.0)
+  responseTime    Int?
+  subscriptionTier String @default("FREE")
+  subscriptionEndsAt DateTime?
+  featuredUntil    DateTime?
+  isSuspended     Boolean  @default(false)
+  suspensionReason String?
+  verifiedAt      DateTime?
+  createdAt       DateTime @default(now())
+  updatedAt       DateTime @updatedAt
+
+  user            users           @relation(fields: [userId], references: [id], onDelete: Cascade)
+  listings        listings[]
+  orders          orders[]
+  commissions     commissions[]
+  withdrawalRequests withdrawalRequests[]
+
+  @@index([userId])
+  @@index([isVerified])
+  @@index([reputationScore])
+  @@index([totalSales])
+  @@map("sellers")
+}
+
+model categories {
+  id          String   @id @default(cuid())
+  name        String   @unique
+  slug        String   @unique
+  description String?
+  icon        String?
+  imageUrl    String?
+  sortOrder   Int      @default(0)
+  isActive    Boolean  @default(true)
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+
+  subcategories subcategories[]
+  listings      listings[]
+
+  @@index([slug])
+  @@index([sortOrder])
+  @@map("categories")
+}
+
+model subcategories {
+  id          String   @id @default(cuid())
+  categoryId  String
+  name        String
+  slug        String
+  description String?
+  icon        String?
+  sortOrder   Int      @default(0)
+  isActive    Boolean  @default(true)
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+
+  category    categories   @relation(fields: [categoryId], references: [id], onDelete: Cascade)
+  listings    listings[]
+
+  @@unique([categoryId, slug])
+  @@index([categoryId])
+  @@map("subcategories")
+}
+
+model listings {
+  id             String        @id @default(cuid())
+  sellerId       String
+  categoryId     String
+  subcategoryId  String?
+  title          String
+  description    String
+  price          Decimal       @db.Decimal(12, 2)
+  currency       String        @default("USD")
+  gameId         String?
+  gameName       String
+  sku            String?
+
+  status         ListingStatus @default(DRAFT)
+
+  rank           String?
+  level          Int?
+  skins          Json? // [{name, imageUrl, rarity}]
+  inventory      Json?
+  linkedAccounts Json?
+  loginMethod    String?
+  region         String?
+  platform       String?
+
+  playerId       String?
+  playerUid      String?
+  deliveryTime   Int? // minutes
+
+  images         String[]
+  videos         String[]
+  screenshots    String[]
+
+  isFeatured     Boolean       @default(false)
+  isSponsored    Boolean       @default(false)
+  isSold         Boolean       @default(false)
+  viewCount      Int           @default(0)
+  salesCount     Int           @default(0)
+
+  moderationNotes String?
+  moderatedAt    DateTime?
+  moderatedBy    String?
+
+  searchVector   Unsupported("tsvector")?
+  metadata       Json?
+
+  createdAt      DateTime @default(now())
+  updatedAt      DateTime @updatedAt
+  expiresAt      DateTime?
+
+  category       categories      @relation(fields: [categoryId], references: [id])
+  subcategory    subcategories?  @relation(fields: [subcategoryId], references: [id])
+  seller         sellers         @relation(fields: [sellerId], references: [id], onDelete: Cascade)
+  orderItems     orderItems[]
+  reviews        reviews[]
+  fraudFlags     fraudFlags[]
+
+  @@index([sellerId])
+  @@index([categoryId])
+  @@index([subcategoryId])
+  @@index([status])
+  @@index([price])
+  @@index([gameName])
+  @@index([region])
+  @@index([platform])
+  @@index([isFeatured])
+  @@index([createdAt])
+  @@index([searchVector(ops: { op: "gin" })])
+  @@map("listings")
+}
+
+model orders {
+  id              String      @id @default(cuid())
+  orderNumber     String      @unique @default(cuid())
+  buyerId         String
+  sellerId        String
+
+  status          OrderStatus @default(PENDING)
+
+  subtotal        Decimal     @db.Decimal(12, 2)
+  taxAmount       Decimal     @default(0) @db.Decimal(12, 2)
+  discountAmount  Decimal     @default(0) @db.Decimal(12, 2)
+  totalAmount     Decimal     @db.Decimal(12, 2)
+  commissionRate  Decimal     @default(0.10) @db.Decimal(5, 4)
+  commissionAmount Decimal    @db.Decimal(12, 2)
+  sellerPayout    Decimal     @db.Decimal(12, 2)
+
+  currency        String      @default("USD")
+
+  buyerNote       String?
+  sellerNote      String?
+  deliveryData    Json?
+
+  paidAt          DateTime?
+  deliveredAt     DateTime?
+  completedAt     DateTime?
+  cancelledAt     DateTime?
+  refundedAt      DateTime?
+
+  metadata        Json?
+
+  createdAt       DateTime @default(now())
+  updatedAt       DateTime @updatedAt
+
+  escrow          escrowTransactions?
+  orderItems      orderItems[]
+  disputes        disputes[]
+  payments        payments[]
+  reviews         reviews[]
+  messages        messages[]
+  auditLogs       adminAuditLogs[] @relation("OrderAuditLog")
+  commissions     commissions[]
+  notifications   notifications[]
+
+  @@index([buyerId])
+  @@index([sellerId])
+  @@index([status])
+  @@index([orderNumber])
+  @@index([createdAt])
+  @@map("orders")
+}
+
+model orderItems {
+  id           String   @id @default(cuid())
+  orderId      String
+  listingId    String
+  quantity     Int      @default(1)
+  unitPrice    Decimal  @db.Decimal(12, 2)
+  totalPrice   Decimal  @db.Decimal(12, 2)
+  createdAt    DateTime @default(now())
+
+  order        orders    @relation(fields: [orderId], references: [id], onDelete: Cascade)
+  listing      listings  @relation(fields: [listingId], references: [id])
+
+  @@index([orderId])
+  @@index([listingId])
+  @@map("order_items")
+}
+
+model escrowTransactions {
+  id              String       @id @default(cuid())
+  orderId         String       @unique
+  status          EscrowStatus @default(HELD)
+  amount          Decimal      @db.Decimal(12, 2)
+  currency        String       @default("USD")
+  releasedAt      DateTime?
+  refundedAt      DateTime?
+  disputedAt      DateTime?
+  metadata        Json?
+  createdAt       DateTime @default(now())
+  updatedAt       DateTime @updatedAt
+
+  order           orders       @relation(fields: [orderId], references: [id], onDelete: Cascade)
+
+  @@index([status])
+  @@index([createdAt])
+  @@map("escrow_transactions")
+}
+
+model wallet {
+  id            String   @id @default(cuid())
+  userId        String   @unique
+  balance       Decimal  @default(0) @db.Decimal(12, 2)
+  currency      String   @default("USD")
+  lockedBalance Decimal  @default(0) @db.Decimal(12, 2)
+  totalEarnings Decimal  @default(0) @db.Decimal(12, 2)
+  totalWithdrawn Decimal @default(0) @db.Decimal(12, 2)
+  createdAt     DateTime @default(now())
+  updatedAt     DateTime @updatedAt
+
+  user          users                @relation(fields: [userId], references: [id], onDelete: Cascade)
+  transactions  walletTransactions[]
+
+  @@index([userId])
+  @@map("wallets")
+}
+
+model walletTransactions {
+  id          String   @id @default(cuid())
+  walletId    String
+  type        String // CREDIT, DEBIT, HOLD, RELEASE, FEE, REFUND
+  amount      Decimal  @db.Decimal(12, 2)
+  currency    String   @default("USD")
+  balanceAfter Decimal @db.Decimal(12, 2)
+  description String
+  relatedId   String? // orderId, withdrawalId, etc.
+  metadata    Json?
+  createdAt   DateTime @default(now())
+
+  wallet      wallet   @relation(fields: [walletId], references: [id], onDelete: Cascade)
+
+  @@index([walletId])
+  @@index([createdAt])
+  @@map("wallet_transactions")
+}
+
+model reviews {
+  id          String   @id @default(cuid())
+  orderId     String
+  buyerId     String
+  sellerId    String
+  rating      Int
+  comment     String
+  isEdited    Boolean  @default(false)
+  isHidden    Boolean  @default(false)
+  helpfulCount Int     @default(0)
+  sellerResponse String?
+  sellerRespondedAt DateTime?
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+
+  order       orders    @relation(fields: [orderId], references: [id], onDelete: Cascade)
+  buyer       users     @relation(fields: [buyerId], references: [id])
+  seller      users     @relation(fields: [sellerId], references: [id])
+
+  @@index([sellerId])
+  @@index([rating])
+  @@index([createdAt])
+  @@map("reviews")
+}
+
+model conversations {
+  id             String   @id @default(cuid())
+  buyerId        String
+  sellerId       String
+  orderId        String?
+  isBlocked      Boolean  @default(false)
+  lastMessageAt  DateTime @default(now())
+  createdAt      DateTime @default(now())
+  updatedAt      DateTime @updatedAt
+
+  messages       messages[]
+
+  @@index([buyerId, sellerId])
+  @@map("conversations")
+}
+
+model messages {
+  id              String               @id @default(cuid())
+  conversationId  String
+  senderId        String
+  senderType      MessageSenderType    @default(BUYER)
+  content         String
+  attachments     String[]
+  isRead          Boolean              @default(false)
+  readAt          DateTime?
+  isDeleted       Boolean              @default(false)
+  metadata        Json?
+  createdAt       DateTime             @default(now())
+  updatedAt       DateTime             @updatedAt
+
+  conversation    conversations @relation(fields: [conversationId], references: [id], onDelete: Cascade)
+  sender          users         @relation(fields: [senderId], references: [id])
+
+  @@index([conversationId])
+  @@index([senderId])
+  @@index([isRead])
+  @@index([createdAt])
+  @@map("messages")
+}
+
+model notifications {
+  id        String            @id @default(cuid())
+  userId    String
+  type      NotificationType
+  title     String
+  body      String
+  data      Json?
+  isRead    Boolean           @default(false)
+  readAt    DateTime?
+  createdAt DateTime          @default(now())
+
+  user      users             @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@index([userId, isRead])
+  @@index([createdAt])
+  @@map("notifications")
+}
+
+model disputes {
+  id              String           @id @default(cuid())
+  orderId         String
+  initiatedById   String
+  status          DisputeStatus    @default(OPEN)
+  reason          String
+  evidence        Json?
+  resolutionType  DisputeResolutionType?
+  resolutionNotes String?
+  refundAmount    Decimal?         @db.Decimal(12, 2)
+  resolvedBy      String?
+  resolvedAt      DateTime?
+  createdAt       DateTime @default(now())
+  updatedAt       DateTime @updatedAt
+
+  order           orders                @relation(fields: [orderId], references: [id])
+  initiator       users                 @relation(fields: [initiatedById], references: [id])
+  resolver        users?               @relation(fields: [resolvedBy], references: [id])
+  messages        disputeMessages[]
+
+  @@index([orderId])
+  @@index([status])
+  @@index([createdAt])
+  @@map("disputes")
+}
+
+model disputeMessages {
+  id         String   @id @default(cuid())
+  disputeId  String
+  senderId   String
+  content    String
+  attachments String[]
+  isSystem   Boolean  @default(false)
+  createdAt  DateTime @default(now())
+
+  dispute    disputes @relation(fields: [disputeId], references: [id], onDelete: Cascade)
+
+  @@index([disputeId])
+  @@map("dispute_messages")
+}
+
+model supportTickets {
+  id          String              @id @default(cuid())
+  userId      String
+  subject     String
+  category    SupportTicketCategory
+  priority    String              @default("MEDIUM")
+  status      SupportTicketStatus @default(OPEN)
+  assigneeId  String?
+  tags        String[]
+  metadata    Json?
+  closedAt    DateTime?
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+
+  user        users               @relation(fields: [userId], references: [id])
+
+  @@index([userId])
+  @@index([status])
+  @@index([priority])
+  @@map("support_tickets")
+}
+
+model adminAuditLogs {
+  id          String        @id @default(cuid())
+  actorId     String
+  action      AuditAction
+  entityType  String
+  entityId    String
+  oldValue    Json?
+  newValue    Json?
+  ipAddress   String?
+  userAgent   String?
+  metadata    Json?
+  createdAt   DateTime @default(now())
+
+  actor       users         @relation("AdminAuditLogActor", fields: [actorId], references: [id])
+  order       orders? @relation("OrderAuditLog", fields: [entityId], map: "audit_order")
+
+  @@index([actorId])
+  @@index([entityType, entityId])
+  @@index([action])
+  @@index([createdAt])
+  @@map("admin_audit_logs")
+}
+
+model fraudFlags {
+  id           String             @id @default(cuid())
+  userId       String
+  listingId    String?
+  orderId      String?
+  type         FraudFlagType
+  severity     FraudFlagSeverity
+  status       String             @default("OPEN")
+  score        Float?
+  details      Json?
+  reviewedBy   String?
+  reviewedAt   DateTime?
+  createdAt    DateTime @default(now())
+
+  user         users              @relation(fields: [userId], references: [id])
+  listing      listings?          @relation(fields: [listingId], references: [id])
+  order        orders?            @relation(fields: [orderId], references: [id])
+
+  @@index([userId])
+  @@index([status])
+  @@index([severity])
+  @@index([createdAt])
+  @@map("fraud_flags")
+}
+
+model paymentMethods {
+  id           String   @id @default(cuid())
+  userId       String
+  provider     PaymentProvider
+  type         String   // card, bank, wallet, crypto
+  last4        String?
+  brand        String?
+  isDefault    Boolean  @default(false)
+  isActive     Boolean  @default(true)
+  metadata     Json?
+  createdAt    DateTime @default(now())
+  updatedAt    DateTime @updatedAt
+
+  user         users              @relation(fields: [userId], references: [id], onDelete: Cascade)
+  payments     payments[]
+
+  @@index([userId])
+  @@map("payment_methods")
+}
+
+model payments {
+  id           String         @id @default(cuid())
+  orderId      String
+  methodId     String?
+  provider     PaymentProvider
+  status       PaymentStatus  @default(PENDING)
+  amount       Decimal        @db.Decimal(12, 2)
+  currency     String         @default("USD")
+  providerTransactionId String?
+  metadata     Json?
+  errorMessage String?
+  paidAt       DateTime?
+  refundedAt   DateTime?
+  createdAt    DateTime  @default(now())
+  updatedAt    DateTime  @updatedAt
+
+  order        orders          @relation(fields: [orderId], references: [id], onDelete: Cascade)
+  method       paymentMethods? @relation(fields: [methodId], references: [id])
+
+  @@index([orderId])
+  @@index([status])
+  @@index([providerTransactionId])
+  @@map("payments")
+}
+
+model withdrawalRequests {
+  id           String            @id @default(cuid())
+  sellerId     String
+  amount       Decimal           @db.Decimal(12, 2)
+  currency     String            @default("USD")
+  status       WithdrawalStatus  @default(PENDING)
+  method       String            // bank, paypal, crypto
+  destination  Json
+  fee          Decimal           @default(0) @db.Decimal(12, 2)
+  netAmount    Decimal           @db.Decimal(12, 2)
+  processedBy  String?
+  notes        String?
+  completedAt  DateTime?
+  createdAt    DateTime @default(now())
+  updatedAt    DateTime @updatedAt
+
+  seller       sellers           @relation(fields: [sellerId], references: [id])
+  transactions walletTransactions[]
+
+  @@index([sellerId])
+  @@index([status])
+  @@index([createdAt])
+  @@map("withdrawal_requests")
+}
+
+model commissions {
+  id          String   @id @default(cuid())
+  orderId     String
+  sellerId    String
+  rate        Decimal  @db.Decimal(5, 4)
+  amount      Decimal  @db.Decimal(12, 2)
+  currency    String   @default("USD")
+  status      CommissionStatus @default(PENDING)
+  paidAt      DateTime?
+  dueAt       DateTime?
+  createdAt   DateTime @default(now())
+
+  order       orders   @relation(fields: [orderId], references: [id])
+  seller      sellers  @relation(fields: [sellerId], references: [id])
+
+  @@index([sellerId, status])
+  @@map("commissions")
+}
