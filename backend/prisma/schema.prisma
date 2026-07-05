@@ -451,8 +451,6 @@ model walletTransactions {
   createdAt   DateTime @default(now())
 
   wallet      wallet   @relation(fields: [walletId], references: [id], onDelete: Cascade)
-  relatedId   String?
-  metadata    Json?
 
   @@index([walletId])
   @@index([createdAt])
