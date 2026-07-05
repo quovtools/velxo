@@ -373,10 +373,6 @@ model orders {
   disputes        disputes[]
   payments        payments[]
   orderReviews    reviews[]        @relation("OrderReviews")
-  orderMessages   messages[]       @relation("OrderMessages")
-  orderNotifications notifications[] @relation("OrderNotifications")
-  orderFraudFlags fraudFlags[]     @relation("OrderFraudFlags")
-  auditLogs       adminAuditLogs[] @relation("OrderAuditLog")
   commissions     commissions[]
 
   @@index([buyerId])
@@ -455,8 +451,8 @@ model walletTransactions {
   createdAt   DateTime @default(now())
 
   wallet      wallet   @relation(fields: [walletId], references: [id], onDelete: Cascade)
-  withdrawalRequestId String?
-  withdrawalRequest  withdrawalRequests? @relation("WithdrawalTxns", fields: [withdrawalRequestId], references: [id])
+  relatedId   String?
+  metadata    Json?
 
   @@index([walletId])
   @@index([createdAt])
@@ -479,7 +475,7 @@ model reviews {
   createdAt   DateTime @default(now())
   updatedAt   DateTime @updatedAt
 
-  order       orders    @relation(fields: [orderId], references: [id], onDelete: Cascade)
+  order       orders    @relation("OrderReviews", fields: [orderId], references: [id], onDelete: Cascade)
   buyer       users     @relation("ReviewBuyer", fields: [buyerId], references: [id])
   seller      users     @relation("ReviewSeller", fields: [sellerId], references: [id])
   listing     listings  @relation("ListingReviews", fields: [listingId], references: [id])
@@ -511,7 +507,6 @@ model messages {
   id              String               @id @default(cuid())
   conversationId  String
   senderId        String
-  orderId         String?
   senderType      MessageSenderType    @default(BUYER)
   content         String
   attachments     String[]
@@ -524,7 +519,6 @@ model messages {
 
   conversation    conversations @relation(fields: [conversationId], references: [id], onDelete: Cascade)
   sender          users         @relation(fields: [senderId], references: [id])
-  order           orders?       @relation("OrderMessages", fields: [orderId], references: [id])
 
   @@index([conversationId])
   @@index([senderId])
@@ -723,7 +717,6 @@ model withdrawalRequests {
   updatedAt    DateTime @updatedAt
 
   seller       sellers           @relation(fields: [sellerId], references: [id])
-  transactions walletTransactions[]
 
   @@index([sellerId])
   @@index([status])
