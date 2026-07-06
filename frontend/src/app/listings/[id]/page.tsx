@@ -131,7 +131,6 @@ export default function ListingDetailPage() {
                 <div className="text-4xl font-bold text-blue-400 mb-2">
                   {formatPrice(product.price)}
                 </div>
-                <p className="text-zinc-400 text-sm">{product.currency}</p>
               </div>
 
               <Link href={`/sellers/${product.seller.id}`}>
