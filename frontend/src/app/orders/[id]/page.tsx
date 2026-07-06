@@ -147,15 +147,18 @@ export default function OrderDetailPage() {
         {/* Product Info */}
         {order.listing && (
           <Card className="p-6 bg-zinc-900 border-zinc-800 mb-8">
+        {/* Product Information */}
+        {order.listing && (
+          <Card className="p-6 bg-zinc-900 border-zinc-800 mb-8">
             <h2 className="text-lg font-semibold mb-4">Product Information</h2>
             <div className="flex gap-6">
-              {order.listing.image && (
-                <img src={order.listing.image} alt={order.listing.title} className="w-32 h-32 rounded-lg object-cover" />
+              {order.listing?.image && (
+                <img src={order.listing.image} alt={order.listing?.title} className="w-32 h-32 rounded-lg object-cover" />
               )}
               <div className="flex-1">
-                <h3 className="text-xl font-bold mb-2">{order.listing.title}</h3>
+                <h3 className="text-xl font-bold mb-2">{order.listing?.title}</h3>
                 <p className="text-zinc-400 mb-2">Quantity: {order.quantity}</p>
-                <p className="text-lg font-semibold">Unit Price: ${order.listing.price.toFixed(2)}</p>
+                <p className="text-lg font-semibold">Unit Price: ${order.listing?.price?.toFixed(2)}</p>
               </div>
             </div>
           </Card>
@@ -167,11 +170,12 @@ export default function OrderDetailPage() {
             <h2 className="text-lg font-semibold mb-4">Seller Information</h2>
             <div className="flex items-center gap-4">
               <div>
-                <p className="text-lg font-semibold">{order.seller.username}</p>
-                <p className="text-zinc-400">Rating: ⭐ {order.seller.rating.toFixed(1)}/5</p>
+                <p className="text-lg font-semibold">{order.seller?.username}</p>
+                <p className="text-zinc-400">Rating: ⭐ {order.seller?.rating?.toFixed(1)}/5</p>
               </div>
             </div>
           </Card>
+        )}
         )}
 
         {/* Price Breakdown */}

@@ -133,18 +133,18 @@ export default function ListingDetailPage() {
                 </div>
               </div>
 
-              <Link href={`/sellers/${product.seller.id}`}>
+              <Link href={`/sellers/${product.seller?.id}`}>
                 <div className="mb-6 p-4 bg-zinc-800 rounded-lg hover:bg-zinc-700 transition cursor-pointer">
                   <div className="flex items-center justify-between mb-2">
-                    <div className="font-semibold">{product.seller.storeName}</div>
-                    {product.seller.verificationStatus === 'verified' && (
+                    <div className="font-semibold">{product.seller?.storeName}</div>
+                    {product.seller?.verificationStatus === 'verified' && (
                       <CheckCircle className="w-4 h-4 text-green-400" />
                     )}
                   </div>
                   <div className="flex items-center gap-1">
                     <span className="text-yellow-400">★</span>
-                    <span className="text-sm">{product.seller.averageRating.toFixed(1)}</span>
-                    <span className="text-zinc-500 text-sm">({product.seller.completedOrders} sales)</span>
+                    <span className="text-sm">{product.seller?.averageRating?.toFixed(1)}</span>
+                    <span className="text-zinc-500 text-sm">({product.seller?.completedOrders} sales)</span>
                   </div>
                 </div>
               </Link>

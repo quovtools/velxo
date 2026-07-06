@@ -19,7 +19,7 @@ interface ListingDetail {
   game: string
   platform: string
   images: string[]
-  seller: {
+  seller?: {
     id: string
     storeName: string
     averageRating: number
@@ -123,10 +123,10 @@ export default function CheckoutPage() {
                 <h2 className="text-2xl font-bold mb-6">Seller Information</h2>
                 <div className="flex items-center justify-between mb-6 pb-6 border-b border-zinc-800">
                   <div>
-                    <h3 className="font-bold text-lg">{listing.seller.storeName}</h3>
+                    <h3 className="font-bold text-lg">{listing.seller?.storeName}</h3>
                     <div className="flex items-center gap-3 mt-2">
-                      <span className="text-yellow-400">⭐ {listing.seller.averageRating.toFixed(1)}</span>
-                      <span className="text-zinc-400">({listing.seller.completedOrders} sales)</span>
+                      <span className="text-yellow-400">⭐ {listing.seller?.averageRating?.toFixed(1)}</span>
+                      <span className="text-zinc-400">({listing.seller?.completedOrders} sales)</span>
                     </div>
                   </div>
                 </div>

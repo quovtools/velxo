@@ -1,249 +1,165 @@
 'use client'
 
 import Link from 'next/link'
+import { useState } from 'react'
 import { useRouter } from 'next/navigation'
 import { useAuth } from '@/hooks/useAuth'
 import { Button } from '@/components/ui/button'
-import {
-  DropdownMenu,
-  DropdownMenuContent,
-  DropdownMenuItem,
-  DropdownMenuLabel,
-  DropdownMenuSeparator,
-  DropdownMenuTrigger,
-} from '@/components/ui/dropdown-menu'
-import { Search, ShoppingCart, Bell, Menu, X, User, LogOut, Store } from 'lucide-react'
-import { useState } from 'react'
+import { Menu, X, Search, ShoppingBag, User, LogOut } from 'lucide-react'
+import Image from 'next/image'
 
 export function Header() {
-  const { user, isAuthenticated, logout } = useAuth()
-  const [mobileMenuOpen, setMobileMenuOpen] = useState(false)
   const router = useRouter()
+  const { user, isAuthenticated, logout } = useAuth()
+  const [menuOpen, setMenuOpen] = useState(false)
+
+  const handleLogout = () => {
+    logout()
+    setMenuOpen(false)
+  }
 
   return (
-    <header className="sticky top-0 z-50 w-full border-b border-zinc-800 bg-zinc-950/95 backdrop-blur supports-[backdrop-filter]:bg-zinc-950/60">
+    <header className="sticky top-0 z-50 bg-white border-b border-slate-200">
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-        <div className="flex items-center justify-between h-16">
+        <div className="flex items-center justify-between h-16 sm:h-20">
           {/* Logo */}
-          <Link href="/" className="flex items-center gap-2 font-bold text-xl">
-            <div className="w-8 h-8 bg-gradient-to-r from-blue-500 to-cyan-500 rounded-lg flex items-center justify-center">
-              <span className="text-white text-sm font-bold">V</span>
-            </div>
-            <span className="hidden sm:inline bg-gradient-to-r from-blue-400 to-cyan-400 bg-clip-text text-transparent">
-              Velxo
-            </span>
+          <Link href="/" className="flex-shrink-0 font-bold text-lg sm:text-xl text-blue-600 hover:text-blue-700 transition">
+            VELXO
           </Link>
 
-          {/* Search Bar - Desktop */}
-          <div className="hidden md:flex flex-1 mx-8">
-            <div className="w-full max-w-md relative">
-              <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-zinc-500" />
-              <input
-                type="text"
-                placeholder="Search games, accounts..."
-                className="w-full pl-10 pr-4 py-2 rounded-lg bg-zinc-900 border border-zinc-800 text-sm text-white placeholder-zinc-500 focus:outline-none focus:border-blue-500 focus:ring-1 focus:ring-blue-500"
-                onKeyDown={(e) => {
-                  if (e.key === 'Enter') {
-                    router.push(`/search?q=${(e.target as HTMLInputElement).value}`)
-                  }
-                }}
-              />
-            </div>
-          </div>
+          {/* Desktop Navigation */}
+          <nav className="hidden md:flex items-center gap-6">
+            <Link href="/search" className="text-slate-700 hover:text-blue-600 transition font-medium text-sm lg:text-base">
+              Browse
+            </Link>
+            <Link href="/help" className="text-slate-700 hover:text-blue-600 transition font-medium text-sm lg:text-base">
+              Help
+            </Link>
+            {isAuthenticated && user?.role === 'seller' && (
+              <Link href="/seller/dashboard" className="text-slate-700 hover:text-blue-600 transition font-medium text-sm lg:text-base">
+                Sell
+              </Link>
+            )}
+            {isAuthenticated && user?.role === 'admin' && (
+              <Link href="/admin/enhanced" className="text-slate-700 hover:text-blue-600 transition font-medium text-sm lg:text-base">
+                Admin
+              </Link>
+            )}
+          </nav>
 
-          {/* Right Section - Desktop */}
-          <div className="hidden sm:flex items-center gap-4">
-            {isAuthenticated && user ? (
-              <>
-                {/* Notifications */}
-                <button className="relative p-2 text-zinc-400 hover:text-white transition">
-                  <Bell className="w-5 h-5" />
-                  <span className="absolute top-1 right-1 w-2 h-2 bg-red-500 rounded-full" />
-                </button>
-
-                {/* Seller Dashboard */}
-                {user.role === 'seller' && (
-                  <Link href="/seller/dashboard">
-                    <Button variant="outline" size="sm" className="gap-2">
-                      <Store className="w-4 h-4" />
-                      Dashboard
-                    </Button>
-                  </Link>
-                )}
-
-                {/* Cart */}
-                <button className="relative p-2 text-zinc-400 hover:text-white transition">
-                  <ShoppingCart className="w-5 h-5" />
-                </button>
-
-                {/* User Menu */}
-                <DropdownMenu>
-                  <DropdownMenuTrigger asChild>
-                    <button className="p-2 text-zinc-400 hover:text-white transition">
-                      <User className="w-5 h-5" />
+          {/* Right Section */}
+          <div className="hidden md:flex items-center gap-4">
+            {isAuthenticated ? (
+              <div className="flex items-center gap-4">
+                <Link href="/orders">
+                  <Button variant="ghost" size="sm" className="text-slate-700">
+                    <ShoppingBag className="w-5 h-5" />
+                  </Button>
+                </Link>
+                <div className="relative group">
+                  <Button variant="ghost" size="sm" className="text-slate-700 flex items-center gap-2">
+                    <User className="w-5 h-5" />
+                    <span className="text-sm">{user?.email?.split('@')[0]}</span>
+                  </Button>
+                  <div className="absolute right-0 top-full hidden group-hover:block bg-white border border-slate-200 rounded-lg shadow-lg py-2 min-w-48">
+                    <Link href="/profile" className="block px-4 py-2 text-sm text-slate-700 hover:bg-slate-50">
+                      Profile
+                    </Link>
+                    <Link href="/wallet" className="block px-4 py-2 text-sm text-slate-700 hover:bg-slate-50">
+                      Wallet
+                    </Link>
+                    {user?.role === 'seller' && (
+                      <Link href="/seller/dashboard" className="block px-4 py-2 text-sm text-slate-700 hover:bg-slate-50">
+                        Dashboard
+                      </Link>
+                    )}
+                    <button onClick={handleLogout} className="w-full text-left px-4 py-2 text-sm text-red-600 hover:bg-slate-50 flex items-center gap-2">
+                      <LogOut className="w-4 h-4" /> Logout
                     </button>
-                  </DropdownMenuTrigger>
-                  <DropdownMenuContent align="end" className="w-56">
-                    <DropdownMenuLabel className="font-semibold">
-                      {user.firstName || user.email}
-                    </DropdownMenuLabel>
-                    <p className="text-xs text-zinc-500 px-2 -mt-1">{user.email}</p>
-                    <DropdownMenuSeparator />
-
-                    <Link href="/profile">
-                      <DropdownMenuItem>
-                        <User className="mr-2 h-4 w-4" />
-                        <span>Profile</span>
-                      </DropdownMenuItem>
-                    </Link>
-
-                    <Link href="/orders">
-                      <DropdownMenuItem>
-                        <ShoppingCart className="mr-2 h-4 w-4" />
-                        <span>Orders</span>
-                      </DropdownMenuItem>
-                    </Link>
-
-                    <Link href="/wallet">
-                      <DropdownMenuItem>
-                        <span className="mr-2 h-4 w-4">💰</span>
-                        <span>Wallet</span>
-                      </DropdownMenuItem>
-                    </Link>
-
-                    <Link href="/messages">
-                      <DropdownMenuItem>
-                        <span className="mr-2 h-4 w-4">💬</span>
-                        <span>Messages</span>
-                      </DropdownMenuItem>
-                    </Link>
-
-                    {user.role === 'seller' && (
-                      <>
-                        <DropdownMenuSeparator />
-                        <Link href="/listings/new">
-                          <DropdownMenuItem>
-                            <span className="mr-2 h-4 w-4">➕</span>
-                            <span>Create Listing</span>
-                          </DropdownMenuItem>
-                        </Link>
-                      </>
-                    )}
-
-                    {user.role === 'admin' && (
-                      <>
-                        <DropdownMenuSeparator />
-                        <Link href="/admin">
-                          <DropdownMenuItem>
-                            <span className="mr-2 h-4 w-4">⚙️</span>
-                            <span>Admin Dashboard</span>
-                          </DropdownMenuItem>
-                        </Link>
-                      </>
-                    )}
-
-                    <DropdownMenuSeparator />
-                    <DropdownMenuItem
-                      onClick={logout}
-                      className="text-red-400 focus:text-red-400 cursor-pointer"
-                    >
-                      <LogOut className="mr-2 h-4 w-4" />
-                      <span>Logout</span>
-                    </DropdownMenuItem>
-                  </DropdownMenuContent>
-                </DropdownMenu>
-              </>
+                  </div>
+                </div>
+              </div>
             ) : (
-              <>
+              <div className="flex items-center gap-3">
                 <Link href="/auth/login">
                   <Button variant="outline" size="sm">
-                    Sign In
+                    Login
                   </Button>
                 </Link>
                 <Link href="/auth/register">
-                  <Button size="sm" className="bg-blue-600 hover:bg-blue-700">
-                    Get Started
+                  <Button size="sm" className="bg-blue-600 hover:bg-blue-700 text-white">
+                    Sign Up
                   </Button>
                 </Link>
-              </>
+              </div>
             )}
           </div>
 
           {/* Mobile Menu Button */}
           <button
-            className="sm:hidden p-2 text-zinc-400 hover:text-white"
-            onClick={() => setMobileMenuOpen(!mobileMenuOpen)}
+            onClick={() => setMenuOpen(!menuOpen)}
+            className="md:hidden p-2 rounded-lg hover:bg-slate-100 transition"
           >
-            {mobileMenuOpen ? <X className="w-5 h-5" /> : <Menu className="w-5 h-5" />}
+            {menuOpen ? (
+              <X className="w-6 h-6 text-slate-900" />
+            ) : (
+              <Menu className="w-6 h-6 text-slate-900" />
+            )}
           </button>
         </div>
 
-        {/* Mobile Search */}
-        <div className="md:hidden pb-4">
-          <div className="relative">
-            <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-zinc-500" />
-            <input
-              type="text"
-              placeholder="Search..."
-              className="w-full pl-10 pr-4 py-2 rounded-lg bg-zinc-900 border border-zinc-800 text-sm text-white placeholder-zinc-500"
-            />
-          </div>
-        </div>
-
         {/* Mobile Menu */}
-        {mobileMenuOpen && (
-          <div className="md:hidden pb-4 space-y-2 border-t border-zinc-800">
-            {isAuthenticated && user ? (
-              <>
-                <Link href="/profile">
-                  <Button variant="ghost" className="w-full justify-start">
-                    Profile
-                  </Button>
-                </Link>
-                <Link href="/orders">
-                  <Button variant="ghost" className="w-full justify-start">
-                    Orders
-                  </Button>
-                </Link>
-                <Link href="/wallet">
-                  <Button variant="ghost" className="w-full justify-start">
-                    Wallet
-                  </Button>
-                </Link>
-                <Link href="/messages">
-                  <Button variant="ghost" className="w-full justify-start">
-                    Messages
-                  </Button>
-                </Link>
-                {user.role === 'seller' && (
-                  <Link href="/listings/new">
-                    <Button variant="ghost" className="w-full justify-start">
-                      Create Listing
-                    </Button>
-                  </Link>
-                )}
-                <button
-                  onClick={logout}
-                  className="w-full text-left text-red-400 px-4 py-2 rounded-lg hover:bg-red-500/10"
-                >
-                  Logout
-                </button>
-              </>
-            ) : (
-              <>
-                <Link href="/auth/login" className="block">
-                  <Button variant="outline" className="w-full">
-                    Sign In
-                  </Button>
-                </Link>
-                <Link href="/auth/register" className="block">
-                  <Button className="w-full bg-blue-600 hover:bg-blue-700">
-                    Get Started
-                  </Button>
-                </Link>
-              </>
+        {menuOpen && (
+          <nav className="md:hidden pb-4 space-y-2 border-t border-slate-200">
+            <Link href="/search" className="block px-4 py-2 rounded-lg hover:bg-slate-100 text-slate-700 font-medium">
+              Browse
+            </Link>
+            <Link href="/help" className="block px-4 py-2 rounded-lg hover:bg-slate-100 text-slate-700 font-medium">
+              Help
+            </Link>
+            {isAuthenticated && user?.role === 'seller' && (
+              <Link href="/seller/dashboard" className="block px-4 py-2 rounded-lg hover:bg-slate-100 text-slate-700 font-medium">
+                Seller Dashboard
+              </Link>
             )}
-          </div>
+            {isAuthenticated && user?.role === 'admin' && (
+              <Link href="/admin/enhanced" className="block px-4 py-2 rounded-lg hover:bg-slate-100 text-slate-700 font-medium">
+                Admin Panel
+              </Link>
+            )}
+            {isAuthenticated ? (
+              <div className="pt-2 border-t border-slate-200 space-y-2">
+                <Link href="/orders" className="block px-4 py-2 rounded-lg hover:bg-slate-100 text-slate-700 font-medium">
+                  Orders
+                </Link>
+                <Link href="/wallet" className="block px-4 py-2 rounded-lg hover:bg-slate-100 text-slate-700 font-medium">
+                  Wallet
+                </Link>
+                <Link href="/profile" className="block px-4 py-2 rounded-lg hover:bg-slate-100 text-slate-700 font-medium">
+                  Profile
+                </Link>
+                <button
+                  onClick={handleLogout}
+                  className="w-full text-left px-4 py-2 rounded-lg hover:bg-slate-100 text-red-600 font-medium flex items-center gap-2"
+                >
+                  <LogOut className="w-4 h-4" /> Logout
+                </button>
+              </div>
+            ) : (
+              <div className="pt-2 border-t border-slate-200 space-y-2">
+                <Link href="/auth/login">
+                  <Button variant="outline" className="w-full">
+                    Login
+                  </Button>
+                </Link>
+                <Link href="/auth/register">
+                  <Button className="w-full bg-blue-600 hover:bg-blue-700 text-white">
+                    Sign Up
+                  </Button>
+                </Link>
+              </div>
+            )}
+          </nav>
         )}
       </div>
     </header>
