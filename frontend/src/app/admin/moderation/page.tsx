@@ -1,180 +1,166 @@
 'use client';
 
-import React, { useState, useEffect } from 'react';
+import React, { useEffect, useState } from 'react';
+import { Eye, CheckCircle, XCircle, RefreshCw, AlertTriangle } from 'lucide-react';
 import { api } from '@/lib/api';
-import { useAuth } from '@/app/providers';
-import { ShieldCheck, Eye, Trash2, Check, X, AlertTriangle } from 'lucide-react';
-import Link from 'next/link';
 
-interface PendingListing {
+interface Listing {
   id: string;
   title: string;
-  price: string;
   gameName: string;
-  platform: string;
-  region: string;
-  rank: string;
-  seller: {
-    storeName: string;
-  };
+  price: number;
+  currency: string;
+  status: string;
+  createdAt: string;
+  seller?: { storeName: string; user?: { email: string } };
+  images?: string[];
 }
 
-export default function AdminModerationPage() {
-  const { role } = useAuth();
-  const [listings, setListings] = useState<PendingListing[]>([]);
+export default function ModerationPage() {
+  const [listings, setListings] = useState<Listing[]>([]);
   const [loading, setLoading] = useState(true);
-
-  // Reject modal state
+  const [actionLoading, setActionLoading] = useState<string | null>(null);
   const [rejectId, setRejectId] = useState<string | null>(null);
   const [rejectReason, setRejectReason] = useState('');
 
-  async function loadPending() {
+  const fetchListings = async () => {
+    setLoading(true);
     try {
-      const response = await api.get<{ success: boolean; data: PendingListing[] }>('/admin/listings/pending');
-      if (response.success) {
-        setListings(response.data || []);
-      }
-    } catch (e) {
-      console.error(e);
+      const res = await api.get<{ data: Listing[] }>('/admin/listings/pending');
+      setListings((res as any).data || []);
+    } catch {
+      setListings([]);
     } finally {
       setLoading(false);
     }
-  }
+  };
 
-  useEffect(() => {
-    if (role === 'ADMIN' || role === 'SUPER_ADMIN' || role === 'MODERATOR') {
-      loadPending();
-    }
-  }, [role]);
+  useEffect(() => { fetchListings(); }, []);
 
-  const handleApprove = async (id: string) => {
+  const approve = async (id: string) => {
+    setActionLoading(id);
     try {
-      const response = await api.patch<{ success: boolean }>(`/admin/listings/${id}/approve`);
-      if (response.success) {
-        alert('Listing approved and published successfully!');
-        await loadPending();
-      }
-    } catch (err: any) {
-      alert(err.message || 'Failed to approve listing');
+      await api.patch(`/admin/listings/${id}/approve`);
+      setListings(l => l.filter(x => x.id !== id));
+    } catch (e: any) {
+      alert(e.message || 'Failed to approve');
+    } finally {
+      setActionLoading(null);
     }
   };
 
-  const handleReject = async (e: React.FormEvent) => {
-    e.preventDefault();
-    if (!rejectId || !rejectReason) return;
-
+  const reject = async (id: string) => {
+    if (!rejectReason.trim()) return;
+    setActionLoading(id);
     try {
-      const response = await api.patch<{ success: boolean }>(`/admin/listings/${rejectId}/reject`, {
-        reason: rejectReason,
-      });
-
-      if (response.success) {
-        alert('Listing rejected successfully!');
-        setRejectId(null);
-        setRejectReason('');
-        await loadPending();
-      }
-    } catch (err: any) {
-      alert(err.message || 'Failed to reject listing');
+      await api.patch(`/admin/listings/${id}/reject`, { reason: rejectReason });
+      setListings(l => l.filter(x => x.id !== id));
+      setRejectId(null);
+      setRejectReason('');
+    } catch (e: any) {
+      alert(e.message || 'Failed to reject');
+    } finally {
+      setActionLoading(null);
     }
   };
-
-  if (role !== 'ADMIN' && role !== 'SUPER_ADMIN' && role !== 'MODERATOR') {
-    return <div className="text-center py-20 text-red-400 font-bold">Access Denied</div>;
-  }
 
   return (
-    <div className="space-y-8 my-6">
-      <div className="border-b border-borderBg pb-6">
-        <h1 className="text-3xl font-extrabold text-white flex items-center gap-2">
-          <Eye className="w-8 h-8 text-brand" />
-          Listings Moderation Queue
-        </h1>
-        <p className="text-gray-400 mt-2">Audit and review seller marketplace submissions for security validation.</p>
+    <div className="space-y-6">
+      <div className="flex items-center justify-between">
+        <div>
+          <h1 className="text-xl font-extrabold text-white flex items-center gap-2">
+            <Eye className="w-5 h-5 text-brand" /> Listings Moderation
+          </h1>
+          <p className="text-gray-400 text-sm mt-1">Review and approve or reject pending listings.</p>
+        </div>
+        <button onClick={fetchListings} className="flex items-center gap-2 text-sm text-gray-400 hover:text-white transition">
+          <RefreshCw className="w-4 h-4" /> Refresh
+        </button>
       </div>
 
       {loading ? (
-        <div className="text-center py-12 text-gray-500">Loading pending requests...</div>
+        <div className="text-center py-20 text-gray-500">Loading listings...</div>
       ) : listings.length === 0 ? (
-        <div className="text-center py-12 bg-cardBg border border-borderBg rounded-2xl">
-          <p className="text-gray-400">Queue is completely empty! No listings currently require auditing.</p>
+        <div className="text-center py-20 bg-cardBg border border-borderBg rounded-2xl">
+          <CheckCircle className="w-12 h-12 text-green-400 mx-auto mb-3" />
+          <p className="text-white font-bold">All clear!</p>
+          <p className="text-gray-400 text-sm mt-1">No listings pending review.</p>
         </div>
       ) : (
         <div className="space-y-4">
-          {listings.map((item) => (
-            <div key={item.id} className="bg-cardBg border border-borderBg rounded-2xl p-6 flex flex-col md:flex-row justify-between items-start md:items-center gap-4">
-              <div className="space-y-1">
-                <span className="bg-brand/10 text-brand-light text-xs font-semibold px-2 py-0.5 rounded border border-brand/20">
-                  {item.gameName}
-                </span>
-                <h3 className="font-bold text-lg text-white mt-1">{item.title}</h3>
-                <p className="text-xs text-gray-500">
-                  Seller: <span className="text-brand-light">{item.seller?.storeName}</span> • Platform: {item.platform} • Region: {item.region} • Rank: {item.rank || 'N/A'}
-                </p>
+          {listings.map(listing => (
+            <div key={listing.id} className="bg-cardBg border border-borderBg rounded-2xl p-6">
+              <div className="flex flex-col sm:flex-row sm:items-start gap-4">
+                {/* Thumbnail */}
+                {listing.images?.[0] ? (
+                  <img src={listing.images[0]} alt={listing.title} className="w-20 h-20 rounded-xl object-cover flex-shrink-0" />
+                ) : (
+                  <div className="w-20 h-20 rounded-xl bg-white/5 flex items-center justify-center flex-shrink-0">
+                    <AlertTriangle className="w-6 h-6 text-gray-500" />
+                  </div>
+                )}
+
+                {/* Info */}
+                <div className="flex-1 min-w-0">
+                  <h3 className="font-bold text-white truncate">{listing.title}</h3>
+                  <p className="text-sm text-gray-400 mt-0.5">{listing.gameName}</p>
+                  <div className="flex flex-wrap gap-3 mt-2 text-xs text-gray-500">
+                    <span>💰 {listing.currency} {Number(listing.price).toFixed(2)}</span>
+                    <span>🏪 {listing.seller?.storeName || 'Unknown store'}</span>
+                    <span>📧 {listing.seller?.user?.email || '—'}</span>
+                    <span>🕒 {new Date(listing.createdAt).toLocaleDateString()}</span>
+                  </div>
+                </div>
+
+                {/* Actions */}
+                <div className="flex gap-2 flex-shrink-0">
+                  <button
+                    onClick={() => approve(listing.id)}
+                    disabled={actionLoading === listing.id}
+                    className="flex items-center gap-1.5 bg-green-600 hover:bg-green-500 text-white text-xs font-bold px-4 py-2 rounded-xl transition disabled:opacity-50"
+                  >
+                    <CheckCircle className="w-3.5 h-3.5" />
+                    Approve
+                  </button>
+                  <button
+                    onClick={() => { setRejectId(listing.id); setRejectReason(''); }}
+                    disabled={actionLoading === listing.id}
+                    className="flex items-center gap-1.5 bg-red-700 hover:bg-red-600 text-white text-xs font-bold px-4 py-2 rounded-xl transition disabled:opacity-50"
+                  >
+                    <XCircle className="w-3.5 h-3.5" />
+                    Reject
+                  </button>
+                </div>
               </div>
 
-              <div className="flex items-center gap-6 w-full md:w-auto justify-between border-t border-borderBg pt-4 md:border-t-0 md:pt-0">
-                <div className="text-right">
-                  <p className="text-xs text-gray-500 font-bold">Price</p>
-                  <p className="text-xl font-black text-white">${Number(item.price).toFixed(2)}</p>
-                </div>
-                <div className="flex gap-2">
+              {/* Reject reason input */}
+              {rejectId === listing.id && (
+                <div className="mt-4 pt-4 border-t border-borderBg flex gap-3">
+                  <input
+                    autoFocus
+                    type="text"
+                    value={rejectReason}
+                    onChange={e => setRejectReason(e.target.value)}
+                    placeholder="Reason for rejection..."
+                    className="flex-1 bg-background border border-borderBg rounded-xl px-4 py-2 text-sm text-white placeholder-gray-500 focus:outline-none focus:border-red-500 transition"
+                  />
                   <button
-                    onClick={() => handleApprove(item.id)}
-                    className="bg-emerald-600 hover:bg-emerald-700 p-2.5 rounded-xl font-bold transition text-white"
-                    title="Approve"
+                    onClick={() => reject(listing.id)}
+                    disabled={!rejectReason.trim() || actionLoading === listing.id}
+                    className="bg-red-600 hover:bg-red-500 text-white text-sm font-bold px-4 py-2 rounded-xl transition disabled:opacity-50"
                   >
-                    <Check className="w-4 h-4" />
+                    Confirm
                   </button>
                   <button
-                    onClick={() => setRejectId(item.id)}
-                    className="bg-red-600 hover:bg-red-700 p-2.5 rounded-xl font-bold transition text-white"
-                    title="Reject"
+                    onClick={() => setRejectId(null)}
+                    className="text-gray-400 hover:text-white text-sm px-3 py-2 rounded-xl transition"
                   >
-                    <X className="w-4 h-4" />
+                    Cancel
                   </button>
                 </div>
-              </div>
+              )}
             </div>
           ))}
-        </div>
-      )}
-
-      {/* Reject Modal */}
-      {rejectId && (
-        <div className="fixed inset-0 bg-black/60 backdrop-blur-sm flex items-center justify-center z-50 p-4">
-          <div className="bg-cardBg border border-borderBg rounded-3xl max-w-md w-full p-8 space-y-6">
-            <h3 className="text-2xl font-extrabold text-white">Reject Submission</h3>
-
-            <form onSubmit={handleReject} className="space-y-4">
-              <div>
-                <label className="block text-xs font-bold text-gray-400 uppercase tracking-wider mb-2">Rejection Reason</label>
-                <textarea
-                  required
-                  className="w-full bg-background border border-borderBg rounded-xl px-4 py-2.5 text-sm text-white focus:outline-none focus:border-brand h-24"
-                  placeholder="Tell the seller why this offer was rejected..."
-                  value={rejectReason}
-                  onChange={(e) => setRejectReason(e.target.value)}
-                />
-              </div>
-
-              <div className="flex gap-3">
-                <button
-                  type="button"
-                  onClick={() => setRejectId(null)}
-                  className="flex-1 bg-background border border-borderBg py-3 rounded-xl font-bold transition text-gray-400 text-xs"
-                >
-                  Cancel
-                </button>
-                <button
-                  type="submit"
-                  className="flex-1 bg-red-600 hover:bg-red-700 py-3 rounded-xl font-bold transition text-white text-xs"
-                >
-                  Confirm Reject
-                </button>
-              </div>
-            </form>
-          </div>
         </div>
       )}
     </div>

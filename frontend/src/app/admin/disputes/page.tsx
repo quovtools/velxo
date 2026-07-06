@@ -1,128 +1,160 @@
 'use client';
 
-import React, { useState, useEffect } from 'react';
+import React, { useEffect, useState } from 'react';
+import { Scale, RefreshCw, Clock, CheckCircle } from 'lucide-react';
 import { api } from '@/lib/api';
-import { useAuth } from '@/app/providers';
-import { Scale, CheckCircle2, RefreshCw } from 'lucide-react';
 
 interface Dispute {
   id: string;
-  orderId: string;
   reason: string;
   status: string;
   createdAt: string;
-  order: {
-    totalAmount: string;
-    buyer: {
-      firstName: string;
-      lastName: string;
-    };
-    seller: {
-      storeName: string;
-    };
-  };
+  order?: { orderNumber: string; totalAmount: number; currency: string };
+  initiator?: { firstName: string; lastName: string; email: string };
 }
 
-export default function AdminDisputesPage() {
-  const { role } = useAuth();
+const statusColor: Record<string, string> = {
+  OPEN: 'bg-yellow-500/20 text-yellow-300',
+  UNDER_REVIEW: 'bg-blue-500/20 text-blue-300',
+  RESOLVED_BUYER: 'bg-green-500/20 text-green-300',
+  RESOLVED_SELLER: 'bg-purple-500/20 text-purple-300',
+  RESOLVED_PLATFORM: 'bg-gray-500/20 text-gray-300',
+  CLOSED: 'bg-gray-700/40 text-gray-400',
+};
+
+export default function DisputesPage() {
   const [disputes, setDisputes] = useState<Dispute[]>([]);
   const [loading, setLoading] = useState(true);
+  const [resolveId, setResolveId] = useState<string | null>(null);
+  const [resolution, setResolution] = useState('');
+  const [notes, setNotes] = useState('');
+  const [actionLoading, setActionLoading] = useState(false);
 
-  async function loadDisputes() {
+  const fetchDisputes = async () => {
+    setLoading(true);
     try {
-      const response = await api.get<{ success: boolean; data: Dispute[] }>('/disputes/open');
-      if (response.success) {
-        setDisputes(response.data || []);
-      }
-    } catch (e) {
-      console.error(e);
+      const res = await api.get<{ data: Dispute[] }>('/disputes/open');
+      setDisputes((res as any).data || []);
+    } catch {
+      setDisputes([]);
     } finally {
       setLoading(false);
     }
-  }
+  };
 
-  useEffect(() => {
-    if (role === 'ADMIN' || role === 'SUPER_ADMIN' || role === 'MODERATOR') {
-      loadDisputes();
-    }
-  }, [role]);
+  useEffect(() => { fetchDisputes(); }, []);
 
-  const handleArbitration = async (id: string, resolution: 'REFUND_BUYER' | 'RELEASE_TO_SELLER') => {
-    const confirmation = confirm(`Resolve dispute: execute ${resolution} on escrow hold?`);
-    if (!confirmation) return;
-
+  const resolve = async (id: string) => {
+    if (!resolution) return;
+    setActionLoading(true);
     try {
-      const response = await api.patch<{ success: boolean }>(`/disputes/${id}/resolve`, {
-        resolutionType: resolution,
-        resolutionNotes: `Arbitrated by platform support. Escrow assigned: ${resolution}.`,
-      });
-
-      if (response.success) {
-        alert('Dispute arbitrated and settled successfully!');
-        await loadDisputes();
-      }
-    } catch (err: any) {
-      alert(err.message || 'Failed to settle dispute');
+      await api.patch(`/disputes/${id}/resolve`, { resolutionType: resolution, resolutionNotes: notes });
+      setDisputes(d => d.filter(x => x.id !== id));
+      setResolveId(null);
+      setResolution('');
+      setNotes('');
+    } catch (e: any) {
+      alert(e.message || 'Failed to resolve dispute');
+    } finally {
+      setActionLoading(false);
     }
   };
 
-  if (role !== 'ADMIN' && role !== 'SUPER_ADMIN' && role !== 'MODERATOR') {
-    return <div className="text-center py-20 text-red-400 font-bold">Access Denied</div>;
-  }
-
   return (
-    <div className="space-y-8 my-6">
-      <div className="border-b border-borderBg pb-6">
-        <h1 className="text-3xl font-extrabold text-white flex items-center gap-2">
-          <Scale className="w-8 h-8 text-brand" />
-          Escrow Dispute Arbitrator
-        </h1>
-        <p className="text-gray-400 mt-2">Mediate transaction complaints, review statements, and distribute funds.</p>
+    <div className="space-y-6">
+      <div className="flex items-center justify-between">
+        <div>
+          <h1 className="text-xl font-extrabold text-white flex items-center gap-2">
+            <Scale className="w-5 h-5 text-brand" /> Dispute Court
+          </h1>
+          <p className="text-gray-400 text-sm mt-1">Arbitrate open buyer/seller disputes.</p>
+        </div>
+        <button onClick={fetchDisputes} className="flex items-center gap-2 text-sm text-gray-400 hover:text-white transition">
+          <RefreshCw className="w-4 h-4" /> Refresh
+        </button>
       </div>
 
       {loading ? (
-        <div className="text-center py-12 text-gray-500">Loading dispute logs...</div>
+        <div className="text-center py-20 text-gray-500">Loading disputes...</div>
       ) : disputes.length === 0 ? (
-        <div className="text-center py-12 bg-cardBg border border-borderBg rounded-2xl">
-          <p className="text-gray-400">Perfect record! No transaction complaints are currently active.</p>
+        <div className="text-center py-20 bg-cardBg border border-borderBg rounded-2xl">
+          <CheckCircle className="w-12 h-12 text-green-400 mx-auto mb-3" />
+          <p className="text-white font-bold">No open disputes</p>
+          <p className="text-gray-400 text-sm mt-1">All disputes have been resolved.</p>
         </div>
       ) : (
         <div className="space-y-4">
-          {disputes.map((d) => (
-            <div key={d.id} className="bg-cardBg border border-borderBg rounded-2xl p-6 flex flex-col md:flex-row justify-between items-start md:items-center gap-4">
-              <div className="space-y-1">
-                <div className="flex items-center gap-2">
-                  <span className="text-red-400 text-xs font-semibold px-2 py-0.5 rounded bg-red-950/20 border border-red-500/20">
-                    Dispute #{d.id.slice(-6).toUpperCase()}
-                  </span>
-                  <span className="text-xs text-gray-500">Filed {new Date(d.createdAt).toLocaleDateString()}</span>
+          {disputes.map(dispute => (
+            <div key={dispute.id} className="bg-cardBg border border-borderBg rounded-2xl p-6 space-y-4">
+              <div className="flex flex-col sm:flex-row sm:items-start gap-4">
+                <div className="flex-1 min-w-0 space-y-2">
+                  <div className="flex items-center gap-3 flex-wrap">
+                    <span className={`text-xs font-bold px-3 py-1 rounded-full ${statusColor[dispute.status] || 'bg-gray-700 text-gray-300'}`}>
+                      {dispute.status.replace('_', ' ')}
+                    </span>
+                    <span className="text-xs text-gray-500 flex items-center gap-1">
+                      <Clock className="w-3 h-3" />
+                      {new Date(dispute.createdAt).toLocaleDateString()}
+                    </span>
+                  </div>
+                  <p className="text-white font-semibold">{dispute.reason}</p>
+                  <div className="text-xs text-gray-500 space-y-1">
+                    {dispute.order && (
+                      <p>Order: <span className="text-gray-300">#{dispute.order.orderNumber}</span> —
+                        <span className="text-gray-300"> {dispute.order.currency} {Number(dispute.order.totalAmount).toFixed(2)}</span>
+                      </p>
+                    )}
+                    {dispute.initiator && (
+                      <p>Initiated by: <span className="text-gray-300">{dispute.initiator.firstName} {dispute.initiator.lastName} ({dispute.initiator.email})</span></p>
+                    )}
+                  </div>
                 </div>
-                <h3 className="font-bold text-lg text-white mt-1">Reason: {d.reason}</h3>
-                <p className="text-xs text-gray-500">
-                  Buyer: <span className="text-gray-300">{d.order?.buyer?.firstName} {d.order?.buyer?.lastName}</span> • Seller: <span className="text-brand-light">{d.order?.seller?.storeName}</span>
-                </p>
+
+                {dispute.status === 'OPEN' || dispute.status === 'UNDER_REVIEW' ? (
+                  <button
+                    onClick={() => { setResolveId(dispute.id); setResolution(''); setNotes(''); }}
+                    className="flex-shrink-0 bg-brand hover:bg-brand-dark text-white text-xs font-bold px-4 py-2 rounded-xl transition"
+                  >
+                    Resolve
+                  </button>
+                ) : null}
               </div>
 
-              <div className="flex items-center gap-6 w-full md:w-auto justify-between border-t border-borderBg pt-4 md:border-t-0 md:pt-0">
-                <div className="text-right">
-                  <p className="text-xs text-gray-500 font-bold">Escrow Hold</p>
-                  <p className="text-xl font-black text-white">${Number(d.order?.totalAmount || 0).toFixed(2)}</p>
-                </div>
-                <div className="flex gap-2">
-                  <button
-                    onClick={() => handleArbitration(d.id, 'RELEASE_TO_SELLER')}
-                    className="bg-emerald-600 hover:bg-emerald-700 text-xs font-bold py-2.5 px-4 rounded-xl transition text-white"
+              {/* Resolve panel */}
+              {resolveId === dispute.id && (
+                <div className="pt-4 border-t border-borderBg space-y-3">
+                  <select
+                    value={resolution}
+                    onChange={e => setResolution(e.target.value)}
+                    className="w-full bg-background border border-borderBg rounded-xl px-4 py-2.5 text-sm text-white focus:outline-none focus:border-brand transition"
                   >
-                    Release to Seller
-                  </button>
-                  <button
-                    onClick={() => handleArbitration(d.id, 'REFUND_BUYER')}
-                    className="bg-red-600 hover:bg-red-700 text-xs font-bold py-2.5 px-4 rounded-xl transition text-white"
-                  >
-                    Refund Buyer
-                  </button>
+                    <option value="">— Select resolution type —</option>
+                    <option value="REFUND_BUYER">Refund Buyer</option>
+                    <option value="RELEASE_TO_SELLER">Release to Seller</option>
+                    <option value="SPLIT">Split Payment</option>
+                    <option value="OTHER">Other</option>
+                  </select>
+                  <textarea
+                    value={notes}
+                    onChange={e => setNotes(e.target.value)}
+                    placeholder="Resolution notes (optional)..."
+                    rows={3}
+                    className="w-full bg-background border border-borderBg rounded-xl px-4 py-2.5 text-sm text-white placeholder-gray-500 focus:outline-none focus:border-brand transition resize-none"
+                  />
+                  <div className="flex gap-2">
+                    <button
+                      onClick={() => resolve(dispute.id)}
+                      disabled={!resolution || actionLoading}
+                      className="bg-brand hover:bg-brand-dark text-white text-sm font-bold px-5 py-2 rounded-xl transition disabled:opacity-50"
+                    >
+                      {actionLoading ? 'Resolving...' : 'Confirm Resolution'}
+                    </button>
+                    <button onClick={() => setResolveId(null)} className="text-gray-400 hover:text-white text-sm px-4 py-2 rounded-xl transition">
+                      Cancel
+                    </button>
+                  </div>
                 </div>
-              </div>
+              )}
             </div>
           ))}
         </div>
