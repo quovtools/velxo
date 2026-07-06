@@ -199,7 +199,7 @@ export default function OrderDetailPage() {
         {/* Actions */}
         {order.status === 'DELIVERED' && (
           <Card className="p-6 bg-zinc-900 border-zinc-800">
-            <p className="text-zinc-400 mb-4">Confirm that you've received the product to release funds to the seller.</p>
+            <p className="text-zinc-400 mb-4">Confirm that you&apos;ve received the product to release funds to the seller.</p>
             <button
               onClick={handleConfirmDelivery}
               disabled={confirmingDelivery}

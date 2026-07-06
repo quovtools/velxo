@@ -113,7 +113,7 @@ export default function CheckoutPage() {
                 <div>
                   <h3 className="font-bold text-green-400 mb-2">Escrow Protection</h3>
                   <p className="text-sm text-zinc-300">
-                    Your payment will be held securely by Velxo. The seller receives payment only after you confirm receipt of the product. If there's an issue, you're protected with our dispute resolution system.
+                    Your payment will be held securely by Velxo. The seller receives payment only after you confirm receipt of the product. If there&apos;s an issue, you&apos;re protected with our dispute resolution system.
                   </p>
                 </div>
               </div>
