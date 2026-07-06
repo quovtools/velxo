@@ -89,10 +89,10 @@ export default function ListingDetailPage() {
             <Card className="mt-8 p-6 border-zinc-700 bg-zinc-900/50">
               <h2 className="text-xl font-bold mb-4">Details</h2>
               <div className="grid grid-cols-2 gap-4">
-                {product.gameName && (
+                {product.game && (
                   <>
                     <div className="text-sm text-zinc-400">Game</div>
-                    <div className="font-semibold">{product.gameName}</div>
+                    <div className="font-semibold">{product.game}</div>
                   </>
                 )}
                 {product.platform && (
