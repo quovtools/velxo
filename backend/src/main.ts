@@ -38,6 +38,21 @@ async function bootstrap() {
     ],
   })
 
+  // Handle health checks at /api/v1 (Render pings this path)
+  const expressApp = app.getHttpAdapter().getInstance()
+  const healthPayload = JSON.stringify({
+    status: 'ok',
+    service: 'Velxo API',
+    version: '1.0.0',
+  })
+  expressApp.get('/api/v1', (_req, res) => {
+    res.setHeader('Content-Type', 'application/json')
+    res.status(200).send(healthPayload)
+  })
+  expressApp.head('/api/v1', (_req, res) => {
+    res.status(200).end()
+  })
+
   const port = process.env.PORT || 3001
   const nodeEnv = process.env.NODE_ENV || 'development'
   const apiUrl = nodeEnv === 'production' 
