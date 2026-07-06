@@ -1,6 +1,6 @@
 import { Injectable, NotFoundException } from '@nestjs/common'
 import { PrismaService } from '@/common/services/prisma.service'
-import { Decimal } from '@prisma/client'
+import { Prisma } from '@prisma/client'
 
 @Injectable()
 export class WalletService {

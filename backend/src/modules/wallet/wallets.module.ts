@@ -9,4 +9,4 @@ import { PrismaModule } from '../../common/services/prisma.module'
   providers: [WalletService],
   exports: [WalletService],
 })
-export class WalletModule {}
+export class WalletsModule {}
