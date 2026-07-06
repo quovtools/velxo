@@ -7,7 +7,7 @@ import { SellersModule } from './modules/sellers/sellers.module'
 import { ListingsModule } from './modules/listings/listings.module'
 import { OrdersModule } from './modules/orders/orders.module'
 import { EscrowModule } from './modules/escrow/escrow.module'
-import { WalletModule } from './modules/wallet/wallet.module'
+import { WalletsModule } from './modules/wallet/wallets.module'
 import { PaymentsModule } from './modules/payments/payments.module'
 import { MessagesModule } from './modules/messages/messages.module'
 import { ReviewsModule } from './modules/reviews/reviews.module'
@@ -26,7 +26,7 @@ import { AdminModule } from './modules/admin/admin.module'
     ListingsModule,
     OrdersModule,
     EscrowModule,
-    WalletModule,
+    WalletsModule,
     PaymentsModule,
     MessagesModule,
     ReviewsModule,
