@@ -1,130 +1,160 @@
-"use client"
-import { useState, useEffect } from 'react'
-import { useRouter } from 'next/navigation'
-import { Card } from '@/components/ui/card'
-import { Skeleton } from '@/components/ui/skeleton'
+'use client'
+
+import { useEffect } from 'react'
 import Link from 'next/link'
+import { useRouter } from 'next/navigation'
+import { useAuth } from '@/hooks/useAuth'
+import { useApi } from '@/hooks/useApi'
+import { Header } from '@/components/layout/header'
+import { Footer } from '@/components/layout/footer'
+import { Card } from '@/components/ui/card'
+import { Button } from '@/components/ui/button'
+import { formatPrice } from '@/lib/format'
+import { ShoppingBag, ChevronRight } from 'lucide-react'
 
 interface Order {
   id: string
   orderNumber: string
-  totalAmount: number
-  status: 'PENDING' | 'PAID' | 'DELIVERED' | 'COMPLETED' | 'CANCELLED' | 'DISPUTED'
-  createdAt: string
   listingId: string
-  listing?: { title: string; image: string }
+  totalAmount: number
+  status: string
+  escrowStatus: string
+  createdAt: string
+  listing?: {
+    title: string
+    game: string
+    price: number
+  }
+}
+
+const statusColors: Record<string, string> = {
+  pending: 'bg-yellow-500/20 text-yellow-400',
+  paid: 'bg-blue-500/20 text-blue-400',
+  in_progress: 'bg-purple-500/20 text-purple-400',
+  delivered: 'bg-cyan-500/20 text-cyan-400',
+  completed: 'bg-green-500/20 text-green-400',
+  disputed: 'bg-red-500/20 text-red-400',
+  cancelled: 'bg-gray-500/20 text-gray-400',
 }
 
 export default function OrdersPage() {
-  const [orders, setOrders] = useState<Order[]>([])
-  const [loading, setLoading] = useState(true)
-  const [filter, setFilter] = useState<string>('ALL')
   const router = useRouter()
+  const { isAuthenticated, isLoading } = useAuth()
+  const { data: ordersData, loading: ordersLoading } = useApi<{ orders: Order[] }>('/orders/me')
 
   useEffect(() => {
-    const fetchOrders = async () => {
-      try {
-        const token = localStorage.getItem('token')
-        if (!token) {
-          router.push('/auth/login')
-          return
-        }
-
-        const res = await fetch(`${process.env.NEXT_PUBLIC_API_URL || 'http://localhost:3001/api/v1'}/orders/me`, {
-          headers: { Authorization: `Bearer ${token}` },
-        })
-
-        if (res.ok) {
-          const data = await res.json()
-          setOrders(data.data || [])
-        }
-      } catch (error) {
-        console.error('Failed to fetch orders:', error)
-      } finally {
-        setLoading(false)
-      }
+    if (!isLoading && !isAuthenticated) {
+      router.push('/auth/login')
     }
+  }, [isAuthenticated, isLoading, router])
 
-    fetchOrders()
-  }, [router])
-
-  const filteredOrders = filter === 'ALL' ? orders : orders.filter(o => o.status === filter)
-
-  const getStatusColor = (status: string) => {
-    const colors: Record<string, string> = {
-      PENDING: 'bg-yellow-900/30 text-yellow-400 border-yellow-700',
-      PAID: 'bg-blue-900/30 text-blue-400 border-blue-700',
-      DELIVERED: 'bg-purple-900/30 text-purple-400 border-purple-700',
-      COMPLETED: 'bg-green-900/30 text-green-400 border-green-700',
-      CANCELLED: 'bg-red-900/30 text-red-400 border-red-700',
-      DISPUTED: 'bg-orange-900/30 text-orange-400 border-orange-700',
-    }
-    return colors[status] || 'bg-zinc-800 text-zinc-400'
+  if (isLoading || ordersLoading) {
+    return (
+      <>
+        <Header />
+        <div className="min-h-screen bg-black flex items-center justify-center">
+          <div className="animate-spin">Loading...</div>
+        </div>
+        <Footer />
+      </>
+    )
   }
 
+  const orders = ordersData?.orders || []
+
   return (
-    <div className="min-h-screen bg-zinc-950 text-white">
-      <div className="container mx-auto px-4 py-8">
-        <div className="mb-8">
-          <h1 className="text-4xl font-bold mb-2">My Orders</h1>
-          <p className="text-zinc-400">Track and manage all your purchases</p>
-        </div>
+    <>
+      <Header />
+      <main className="min-h-screen bg-black py-12">
+        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+          {/* Header */}
+          <h1 className="text-4xl font-black mb-8">Your Orders</h1>
 
-        {/* Filter Buttons */}
-        <div className="flex gap-2 mb-6 flex-wrap">
-          {['ALL', 'PENDING', 'PAID', 'DELIVERED', 'COMPLETED', 'CANCELLED', 'DISPUTED'].map(status => (
-            <button
-              key={status}
-              onClick={() => setFilter(status)}
-              className={`px-4 py-2 rounded-lg font-medium transition ${
-                filter === status
-                  ? 'bg-blue-600 text-white'
-                  : 'bg-zinc-800 text-zinc-300 hover:bg-zinc-700'
-              }`}
-            >
-              {status}
-            </button>
-          ))}
-        </div>
-
-        {/* Orders List */}
-        {loading ? (
-          <div className="space-y-4">
-            {Array.from({ length: 4 }).map((_, i) => (
-              <Skeleton key={i} className="h-28 w-full bg-zinc-800" />
+          {/* Filters */}
+          <div className="flex gap-4 mb-12 overflow-x-auto pb-2">
+            {['All', 'Pending', 'Processing', 'Completed', 'Cancelled'].map((filter) => (
+              <Button
+                key={filter}
+                variant="outline"
+                className="whitespace-nowrap"
+              >
+                {filter}
+              </Button>
             ))}
           </div>
-        ) : filteredOrders.length > 0 ? (
-          <div className="space-y-4">
-            {filteredOrders.map(order => (
-              <Link key={order.id} href={`/orders/${order.id}`}>
-                <Card className="p-6 bg-zinc-900 border-zinc-800 hover:border-blue-600 cursor-pointer transition">
-                  <div className="flex items-center justify-between gap-4">
-                    <div className="flex-1">
-                      <h3 className="text-lg font-semibold mb-1">Order #{order.orderNumber}</h3>
-                      <p className="text-sm text-zinc-400 mb-2">{order.listing?.title || 'Loading...'}</p>
-                      <p className="text-xs text-zinc-500">{new Date(order.createdAt).toLocaleString()}</p>
+
+          {/* Orders List */}
+          {ordersLoading ? (
+            <div className="text-center py-12">
+              <div className="animate-spin">Loading orders...</div>
+            </div>
+          ) : orders.length > 0 ? (
+            <div className="space-y-4">
+              {orders.map((order) => (
+                <Link key={order.id} href={`/orders/${order.id}`}>
+                  <Card className="border-zinc-800 bg-zinc-900/50 p-6 hover:border-blue-500 transition cursor-pointer group">
+                    <div className="flex items-center justify-between">
+                      {/* Left Content */}
+                      <div className="flex-1 min-w-0">
+                        <div className="flex items-center gap-4 mb-4">
+                          <div className="w-16 h-16 rounded-lg bg-gradient-to-br from-blue-600/20 to-purple-600/20 flex items-center justify-center flex-shrink-0">
+                            <ShoppingBag className="w-8 h-8 text-blue-400" />
+                          </div>
+                          <div className="flex-1 min-w-0">
+                            <h3 className="font-bold text-lg group-hover:text-blue-400 transition truncate">
+                              {order.listing?.title || 'Order'}
+                            </h3>
+                            <p className="text-sm text-zinc-400">
+                              Order #{order.orderNumber}
+                            </p>
+                            <p className="text-xs text-zinc-500 mt-1">
+                              {order.listing?.game} • {new Date(order.createdAt).toLocaleDateString()}
+                            </p>
+                          </div>
+                        </div>
+                      </div>
+
+                      {/* Right Content */}
+                      <div className="text-right">
+                        <div className="text-2xl font-black text-blue-400 mb-2">
+                          {formatPrice(order.totalAmount)}
+                        </div>
+                        <div className="flex items-center justify-end gap-2 mb-2">
+                          <span
+                            className={`text-xs font-bold px-3 py-1 rounded-full ${
+                              statusColors[order.status] || 'bg-gray-500/20 text-gray-400'
+                            }`}
+                          >
+                            {order.status}
+                          </span>
+                          <ChevronRight className="w-5 h-5 text-zinc-600 group-hover:text-blue-400 transition" />
+                        </div>
+                        <p className="text-xs text-zinc-500">
+                          Escrow: {order.escrowStatus}
+                        </p>
+                      </div>
                     </div>
-                    <div className="text-right">
-                      <p className="text-2xl font-bold mb-2">${order.totalAmount.toFixed(2)}</p>
-                      <span className={`inline-block px-3 py-1 rounded-full text-sm font-medium border ${getStatusColor(order.status)}`}>
-                        {order.status}
-                      </span>
-                    </div>
-                  </div>
-                </Card>
+                  </Card>
+                </Link>
+              ))}
+            </div>
+          ) : (
+            <Card className="border-zinc-800 bg-zinc-900/50 p-12 text-center">
+              <ShoppingBag className="w-16 h-16 text-zinc-600 mx-auto mb-4" />
+              <h3 className="text-2xl font-bold mb-2">No Orders Yet</h3>
+              <p className="text-zinc-400 mb-6">
+                Start shopping for gaming products today!
+              </p>
+              <Link href="/search">
+                <Button className="bg-blue-600 hover:bg-blue-700">
+                  Browse Listings
+                </Button>
               </Link>
-            ))}
-          </div>
-        ) : (
-          <Card className="p-8 bg-zinc-900 border-zinc-800 text-center">
-            <p className="text-zinc-400 mb-4">No orders found</p>
-            <Link href="/search" className="text-blue-400 hover:text-blue-300 font-medium">
-              Start shopping →
-            </Link>
-          </Card>
-        )}
-      </div>
-    </div>
+            </Card>
+          )}
+        </div>
+      </main>
+      <Footer />
+    </>
   )
 }

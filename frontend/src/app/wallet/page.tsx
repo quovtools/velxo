@@ -1,203 +1,193 @@
-"use client"
-import { useState, useEffect } from 'react'
+'use client'
+
+import { useEffect } from 'react'
 import { useRouter } from 'next/navigation'
+import { useAuth } from '@/hooks/useAuth'
+import { useApi } from '@/hooks/useApi'
+import { Header } from '@/components/layout/header'
+import { Footer } from '@/components/layout/footer'
+import { Button } from '@/components/ui/button'
 import { Card } from '@/components/ui/card'
-import { Skeleton } from '@/components/ui/skeleton'
+import { formatPrice } from '@/lib/format'
+import { ArrowDownLeft, ArrowUpRight, Plus, Send } from 'lucide-react'
 
 interface WalletData {
+  id: string
   balance: number
   escrowBalance: number
   pendingBalance: number
-  totalLifetime: number
+  totalEarnings: number
+  totalWithdrawals: number
 }
 
 interface Transaction {
   id: string
-  type: 'CREDIT' | 'DEBIT'
+  type: string
   amount: number
+  status: string
   description: string
   createdAt: string
-  relatedId?: string
 }
 
 export default function WalletPage() {
-  const [wallet, setWallet] = useState<WalletData | null>(null)
-  const [transactions, setTransactions] = useState<Transaction[]>([])
-  const [loading, setLoading] = useState(true)
-  const [withdrawAmount, setWithdrawAmount] = useState('')
-  const [processingWithdraw, setProcessingWithdraw] = useState(false)
   const router = useRouter()
+  const { isAuthenticated, isLoading } = useAuth()
+  const { data: walletData, loading: walletLoading } = useApi<WalletData>('/wallet')
+  const { data: transactionsData, loading: transLoading } = useApi<{ transactions: Transaction[] }>(
+    '/wallet/transactions'
+  )
 
   useEffect(() => {
-    const fetchWallet = async () => {
-      try {
-        const token = localStorage.getItem('token')
-        if (!token) {
-          router.push('/auth/login')
-          return
-        }
-
-        const res = await fetch(`${process.env.NEXT_PUBLIC_API_URL || 'http://localhost:3001/api/v1'}/wallet`, {
-          headers: { Authorization: `Bearer ${token}` },
-        })
-
-        if (res.ok) {
-          const data = await res.json()
-          setWallet(data.data)
-        }
-
-        const txRes = await fetch(`${process.env.NEXT_PUBLIC_API_URL || 'http://localhost:3001/api/v1'}/wallet/transactions`, {
-          headers: { Authorization: `Bearer ${token}` },
-        })
-
-        if (txRes.ok) {
-          const txData = await txRes.json()
-          setTransactions(txData.data || [])
-        }
-      } catch (error) {
-        console.error('Failed to fetch wallet:', error)
-      } finally {
-        setLoading(false)
-      }
+    if (!isLoading && !isAuthenticated) {
+      router.push('/auth/login')
     }
+  }, [isAuthenticated, isLoading, router])
 
-    fetchWallet()
-  }, [router])
-
-  const handleWithdraw = async () => {
-    if (!withdrawAmount || parseFloat(withdrawAmount) <= 0) {
-      alert('Please enter a valid amount')
-      return
-    }
-
-    try {
-      setProcessingWithdraw(true)
-      const token = localStorage.getItem('token')
-      const res = await fetch(`${process.env.NEXT_PUBLIC_API_URL || 'http://localhost:3001/api/v1'}/wallet/withdraw`, {
-        method: 'POST',
-        headers: {
-          Authorization: `Bearer ${token}`,
-          'Content-Type': 'application/json',
-        },
-        body: JSON.stringify({ amount: parseFloat(withdrawAmount) }),
-      })
-
-      if (res.ok) {
-        alert('Withdrawal request submitted! You will receive your funds within 24-48 hours.')
-        setWithdrawAmount('')
-        router.refresh()
-      } else {
-        alert('Failed to process withdrawal')
-      }
-    } catch (error) {
-      alert('Error processing withdrawal')
-    } finally {
-      setProcessingWithdraw(false)
-    }
-  }
-
-  if (loading) {
+  if (isLoading || walletLoading) {
     return (
-      <div className="min-h-screen bg-zinc-950 text-white">
-        <div className="container mx-auto px-4 py-8">
-          <Skeleton className="h-64 w-full bg-zinc-800 mb-8" />
-          <Skeleton className="h-96 w-full bg-zinc-800" />
+      <>
+        <Header />
+        <div className="min-h-screen bg-black flex items-center justify-center">
+          <div className="animate-spin">Loading...</div>
         </div>
-      </div>
+        <Footer />
+      </>
     )
   }
 
+  const transactions = transactionsData?.transactions || []
+
   return (
-    <div className="min-h-screen bg-zinc-950 text-white">
-      <div className="container mx-auto px-4 py-8 max-w-4xl">
-        <div className="mb-8">
-          <h1 className="text-4xl font-bold mb-2">My Wallet</h1>
-          <p className="text-zinc-400">Manage your funds and transactions</p>
-        </div>
+    <>
+      <Header />
+      <main className="min-h-screen bg-black py-12">
+        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+          {/* Header */}
+          <h1 className="text-4xl font-black mb-12">Wallet</h1>
 
-        {/* Balance Cards */}
-        {wallet && (
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-6 mb-8">
-            <Card className="p-6 bg-gradient-to-br from-blue-900/30 to-blue-800/10 border-blue-800">
-              <p className="text-zinc-400 text-sm mb-2">Available Balance</p>
-              <h2 className="text-4xl font-bold text-blue-400 mb-2">${wallet.balance.toFixed(2)}</h2>
-              <p className="text-xs text-zinc-500">Ready to withdraw</p>
-            </Card>
-
-            <Card className="p-6 bg-gradient-to-br from-purple-900/30 to-purple-800/10 border-purple-800">
-              <p className="text-zinc-400 text-sm mb-2">Total Lifetime Earnings</p>
-              <h2 className="text-4xl font-bold text-purple-400 mb-2">${wallet.totalLifetime.toFixed(2)}</h2>
-              <p className="text-xs text-zinc-500">All time</p>
-            </Card>
-
-            <Card className="p-6 bg-gradient-to-br from-yellow-900/30 to-yellow-800/10 border-yellow-800">
-              <p className="text-zinc-400 text-sm mb-2">In Escrow</p>
-              <h2 className="text-4xl font-bold text-yellow-400">${wallet.escrowBalance.toFixed(2)}</h2>
-              <p className="text-xs text-zinc-500">Held in escrow</p>
-            </Card>
-
-            <Card className="p-6 bg-gradient-to-br from-orange-900/30 to-orange-800/10 border-orange-800">
-              <p className="text-zinc-400 text-sm mb-2">Pending</p>
-              <h2 className="text-4xl font-bold text-orange-400">${wallet.pendingBalance.toFixed(2)}</h2>
-              <p className="text-xs text-zinc-500">Processing</p>
-            </Card>
-          </div>
-        )}
-
-        {/* Withdraw Section */}
-        <Card className="p-6 bg-zinc-900 border-zinc-800 mb-8">
-          <h2 className="text-lg font-semibold mb-4">Withdraw Funds</h2>
-          <div className="space-y-4">
-            <div>
-              <label className="block text-sm font-medium mb-2">Amount ($)</label>
-              <input
-                type="number"
-                value={withdrawAmount}
-                onChange={(e) => setWithdrawAmount(e.target.value)}
-                placeholder="0.00"
-                className="w-full bg-zinc-800 border border-zinc-700 rounded-lg px-4 py-2 text-white placeholder-zinc-600 focus:outline-none focus:border-blue-500"
-              />
-              {wallet && (
-                <p className="text-xs text-zinc-400 mt-2">
-                  Available: ${wallet.balance.toFixed(2)}
-                </p>
-              )}
-            </div>
-            <button
-              onClick={handleWithdraw}
-              disabled={processingWithdraw || !withdrawAmount}
-              className="w-full bg-green-600 hover:bg-green-700 disabled:bg-zinc-700 px-6 py-3 rounded-lg font-semibold transition"
-            >
-              {processingWithdraw ? 'Processing...' : 'Withdraw Now'}
-            </button>
-            <p className="text-xs text-zinc-400">
-              Withdrawals are processed within 24-48 hours to your registered bank account.
-            </p>
-          </div>
-        </Card>
-
-        {/* Transaction History */}
-        <Card className="p-6 bg-zinc-900 border-zinc-800">
-          <h2 className="text-lg font-semibold mb-4">Transaction History</h2>
-          {transactions.length > 0 ? (
-            <div className="space-y-3">
-              {transactions.map((tx) => (
-                <div key={tx.id} className="flex items-center justify-between p-4 bg-zinc-800 rounded-lg">
+          {/* Balance Cards */}
+          <div className="grid md:grid-cols-2 lg:grid-cols-4 gap-6 mb-12">
+            {[
+              {
+                label: 'Available Balance',
+                value: walletData?.balance || 0,
+                icon: '💵',
+                color: 'from-green-600 to-green-700',
+              },
+              {
+                label: 'Escrow Held',
+                value: walletData?.escrowBalance || 0,
+                icon: '🔒',
+                color: 'from-blue-600 to-blue-700',
+              },
+              {
+                label: 'Pending',
+                value: walletData?.pendingBalance || 0,
+                icon: '⏳',
+                color: 'from-yellow-600 to-yellow-700',
+              },
+              {
+                label: 'Total Earnings',
+                value: walletData?.totalEarnings || 0,
+                icon: '📈',
+                color: 'from-purple-600 to-purple-700',
+              },
+            ].map((card, i) => (
+              <Card key={i} className="border-zinc-800 bg-gradient-to-br from-zinc-900 to-zinc-950 p-6">
+                <div className="flex items-start justify-between mb-4">
                   <div>
-                    <p className="font-medium">{tx.description}</p>
-                    <p className="text-xs text-zinc-400">{new Date(tx.createdAt).toLocaleString()}</p>
+                    <p className="text-zinc-400 text-sm mb-1">{card.label}</p>
+                    <p className={`text-3xl font-black bg-gradient-to-r ${card.color} bg-clip-text text-transparent`}>
+                      {formatPrice(card.value)}
+                    </p>
                   </div>
-                  <p className={`font-bold text-lg ${tx.type === 'CREDIT' ? 'text-green-400' : 'text-red-400'}`}>
-                    {tx.type === 'CREDIT' ? '+' : '-'}${tx.amount.toFixed(2)}
-                  </p>
+                  <span className="text-2xl">{card.icon}</span>
                 </div>
-              ))}
-            </div>
-          ) : (
-            <p className="text-zinc-400">No transactions yet</p>
-          )}
-        </Card>
-      </div>
-    </div>
+              </Card>
+            ))}
+          </div>
+
+          {/* Actions */}
+          <div className="grid md:grid-cols-2 gap-6 mb-12">
+            <Button size="lg" className="bg-blue-600 hover:bg-blue-700 gap-2">
+              <Plus className="w-5 h-5" />
+              Add Funds
+            </Button>
+            <Button size="lg" variant="outline" className="gap-2">
+              <Send className="w-5 h-5" />
+              Withdraw Funds
+            </Button>
+          </div>
+
+          {/* Transaction History */}
+          <Card className="border-zinc-800 bg-zinc-900/50 p-8">
+            <h2 className="text-2xl font-bold mb-6">Transaction History</h2>
+
+            {transLoading ? (
+              <div className="text-center py-12">Loading...</div>
+            ) : transactions.length > 0 ? (
+              <div className="overflow-x-auto">
+                <table className="w-full">
+                  <thead>
+                    <tr className="border-b border-zinc-800">
+                      <th className="text-left py-4 px-4 text-sm font-semibold text-zinc-400">Type</th>
+                      <th className="text-left py-4 px-4 text-sm font-semibold text-zinc-400">Description</th>
+                      <th className="text-left py-4 px-4 text-sm font-semibold text-zinc-400">Amount</th>
+                      <th className="text-left py-4 px-4 text-sm font-semibold text-zinc-400">Status</th>
+                      <th className="text-left py-4 px-4 text-sm font-semibold text-zinc-400">Date</th>
+                    </tr>
+                  </thead>
+                  <tbody>
+                    {transactions.map((tx) => (
+                      <tr
+                        key={tx.id}
+                        className="border-b border-zinc-800 hover:bg-zinc-800/30 transition"
+                      >
+                        <td className="py-4 px-4">
+                          <div className="flex items-center gap-2">
+                            {tx.type.includes('deposit') || tx.type.includes('credit') ? (
+                              <ArrowDownLeft className="w-4 h-4 text-green-400" />
+                            ) : (
+                              <ArrowUpRight className="w-4 h-4 text-red-400" />
+                            )}
+                            <span className="text-sm font-medium capitalize">{tx.type}</span>
+                          </div>
+                        </td>
+                        <td className="py-4 px-4 text-sm text-zinc-300">{tx.description}</td>
+                        <td className="py-4 px-4 text-sm font-semibold">
+                          {tx.type.includes('deposit') || tx.type.includes('credit') ? '+' : '-'}
+                          {formatPrice(Math.abs(tx.amount))}
+                        </td>
+                        <td className="py-4 px-4">
+                          <span
+                            className={`text-xs font-bold px-2 py-1 rounded-full ${
+                              tx.status === 'completed'
+                                ? 'bg-green-500/20 text-green-400'
+                                : tx.status === 'pending'
+                                  ? 'bg-yellow-500/20 text-yellow-400'
+                                  : 'bg-red-500/20 text-red-400'
+                            }`}
+                          >
+                            {tx.status}
+                          </span>
+                        </td>
+                        <td className="py-4 px-4 text-sm text-zinc-400">
+                          {new Date(tx.createdAt).toLocaleDateString()}
+                        </td>
+                      </tr>
+                    ))}
+                  </tbody>
+                </table>
+              </div>
+            ) : (
+              <div className="text-center py-12">
+                <p className="text-zinc-400">No transactions yet</p>
+              </div>
+            )}
+          </Card>
+        </div>
+      </main>
+      <Footer />
+    </>
   )
 }
