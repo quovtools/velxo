@@ -29,22 +29,6 @@
 | `JWT_SECRET` | Secret used to sign/verify JWTs |
 | `JWT_EXPIRES_IN` | JWT TTL (e.g. `7d`, `1h`) |
 
-## Backend — Storage
-
-| Variable | Description |
-|----------|-------------|
-| `AWS_REGION` | AWS region for S3 or compatible storage |
-| `AWS_ACCESS_KEY_ID` | AWS access key |
-| `AWS_SECRET_ACCESS_KEY` | AWS secret key |
-| `AWS_S3_BUCKET` | S3 bucket name for media uploads |
-
-## Backend — Redis
-
-| Variable | Description |
-|----------|-------------|
-| `REDIS_HOST` | Redis host |
-| `REDIS_PORT` | Redis port |
-| `REDIS_PASSWORD` | Redis password (optional) |
 
 ## Backend — Payments
 
