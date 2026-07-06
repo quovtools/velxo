@@ -1,75 +1,111 @@
 import { useEffect, useState } from 'react'
 
-const API_BASE = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:3001/api/v1'
+const API_BASE = process.env.NEXT_PUBLIC_API_URL || 'https://velxo.onrender.com/api/v1'
 
-interface UseApiOptions {
+interface UseApiOptions<T = any> {
   method?: 'GET' | 'POST' | 'PUT' | 'PATCH' | 'DELETE'
   body?: Record<string, any>
   skip?: boolean
-  onSuccess?: (data: any) => void
+  onSuccess?: (data: T) => void
   onError?: (error: Error) => void
+  dependencies?: any[]
+}
+
+export interface ApiResponse<T = any> {
+  success: boolean
+  data?: T
+  message?: string
+  error?: string
+  timestamp: string
 }
 
 export function useApi<T = any>(
   path: string,
-  options: UseApiOptions = {}
+  options: UseApiOptions<T> = {}
 ) {
   const [data, setData] = useState<T | null>(null)
-  const [loading, setLoading] = useState(true)
+  const [loading, setLoading] = useState(!options.skip)
   const [error, setError] = useState<Error | null>(null)
 
   useEffect(() => {
-    if (options.skip) {
+    if (options.skip || !path) {
       setLoading(false)
       return
     }
 
+    const controller = new AbortController()
+    let isMounted = true
+
     const fetchData = async () => {
       try {
         setLoading(true)
-        const token = typeof window !== 'undefined' ? localStorage.getItem('token') : null
+        setError(null)
+
+        const token = typeof window !== 'undefined' ? localStorage.getItem('auth_token') : null
         const headers: Record<string, string> = {
           'Content-Type': 'application/json',
         }
-        if (token) headers['Authorization'] = `Bearer ${token}`
+        if (token) {
+          headers['Authorization'] = `Bearer ${token}`
+        }
 
         const res = await fetch(`${API_BASE}${path}`, {
           method: options.method || 'GET',
           headers,
           body: options.body ? JSON.stringify(options.body) : undefined,
+          signal: controller.signal,
         })
 
         if (!res.ok) {
           throw new Error(`API error: ${res.status}`)
         }
 
-        const result = await res.json()
-        setData(result)
-        options.onSuccess?.(result)
+        const result: ApiResponse<T> = await res.json()
+
+        if (isMounted) {
+          // Extract data from API response wrapper
+          if (result.success && result.data !== undefined) {
+            setData(result.data as T)
+            options.onSuccess?.(result.data as T)
+          } else if (!result.success) {
+            throw new Error(result.message || result.error || 'API request failed')
+          }
+        }
       } catch (err) {
+        if (err instanceof DOMException && err.name === 'AbortError') return
+
         const error = err instanceof Error ? err : new Error('Unknown error')
-        setError(error)
-        options.onError?.(error)
+        if (isMounted) {
+          setError(error)
+          options.onError?.(error)
+        }
       } finally {
-        setLoading(false)
+        if (isMounted) setLoading(false)
       }
     }
 
     fetchData()
-  }, [path, options])
 
-  return { data, loading, error }
+    return () => {
+      isMounted = false
+      controller.abort()
+    }
+  }, options.dependencies || [path, options.method, options.body])
+
+  return { data, loading, error, refetch: () => {} }
 }
 
 export async function apiCall<T = any>(
   path: string,
-  options: Omit<UseApiOptions, 'skip' | 'onSuccess' | 'onError'> = {}
+  options: Omit<UseApiOptions<T>, 'skip' | 'onSuccess' | 'onError' | 'dependencies'> = {}
 ): Promise<T> {
-  const token = typeof window !== 'undefined' ? localStorage.getItem('token') : null
+  const token = typeof window !== 'undefined' ? localStorage.getItem('auth_token') : null
   const headers: Record<string, string> = {
     'Content-Type': 'application/json',
   }
-  if (token) headers['Authorization'] = `Bearer ${token}`
+  if (token) {
+    headers['Authorization'] = `Bearer ${token}`
+  }
 
   const res = await fetch(`${API_BASE}${path}`, {
     method: options.method || 'GET',
@@ -81,5 +117,11 @@ export async function apiCall<T = any>(
     throw new Error(`API error: ${res.status}`)
   }
 
-  return res.json()
+  const result: ApiResponse<T> = await res.json()
+
+  if (result.success && result.data) {
+    return result.data as T
+  } else {
+    throw new Error(result.message || result.error || 'API request failed')
+  }
 }

@@ -6,8 +6,7 @@ import { useRouter } from 'next/navigation'
 import { useAuth } from '@/hooks/useAuth'
 import { Button } from '@/components/ui/button'
 import { Card } from '@/components/ui/card'
-import { Mail, Lock, User, AlertCircle } from 'lucide-react'
-import { Logo } from '@/components/layout/logo'
+import { AlertCircle, Eye, EyeOff, Loader2, CheckCircle2 } from 'lucide-react'
 
 export default function RegisterPage() {
   const [formData, setFormData] = useState({
@@ -17,223 +16,230 @@ export default function RegisterPage() {
     password: '',
     confirmPassword: '',
   })
+  const [showPassword, setShowPassword] = useState(false)
   const [error, setError] = useState('')
-  const [loading, setLoading] = useState(false)
-  const { register } = useAuth()
+  const [isLoading, setIsLoading] = useState(false)
   const router = useRouter()
+  const { register } = useAuth()
+
+  const passwordStrength = {
+    minLength: formData.password.length >= 8,
+    hasUpperCase: /[A-Z]/.test(formData.password),
+    hasNumber: /[0-9]/.test(formData.password),
+    hasSpecial: /[!@#$%^&*]/.test(formData.password),
+  }
+
+  const isPasswordStrong = Object.values(passwordStrength).every(v => v)
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault()
     setError('')
+    setIsLoading(true)
 
     // Validation
-    if (!formData.firstName || !formData.lastName) {
-      setError('First and last name are required')
-      return
-    }
-    if (formData.password !== formData.confirmPassword) {
-      setError('Passwords do not match')
-      return
-    }
-    if (formData.password.length < 8) {
-      setError('Password must be at least 8 characters')
+    if (!formData.firstName || !formData.lastName || !formData.email || !formData.password) {
+      setError('All fields are required')
+      setIsLoading(false)
       return
     }
 
-    setLoading(true)
-    try {
-      await register(formData.email, formData.password, formData.firstName, formData.lastName)
-      router.push('/dashboard')
-    } catch (err) {
-      setError(err instanceof Error ? err.message : 'Registration failed')
-    } finally {
-      setLoading(false)
+    if (formData.password !== formData.confirmPassword) {
+      setError('Passwords do not match')
+      setIsLoading(false)
+      return
+    }
+
+    if (!isPasswordStrong) {
+      setError('Password does not meet requirements')
+      setIsLoading(false)
+      return
+    }
+
+    const result = await register(
+      formData.email,
+      formData.password,
+      formData.firstName,
+      formData.lastName
+    )
+
+    if (result.success) {
+      router.push('/')
+    } else {
+      setError(result.error || 'Registration failed')
+      setIsLoading(false)
     }
   }
 
+  const handleInputChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const { name, value } = e.target
+    setFormData(prev => ({ ...prev, [name]: value }))
+  }
+
   return (
-    <div className="min-h-screen bg-gradient-to-br from-zinc-950 to-zinc-900 flex items-center justify-center p-4">
+    <div className="min-h-screen bg-gradient-to-b from-zinc-950 to-zinc-900 flex items-center justify-center px-4 py-12">
       <div className="w-full max-w-md">
-        {/* Logo */}
-        <div className="flex justify-center mb-8">
-          <Link href="/" className="flex items-center gap-2">
-            <Logo />
-            <span className="text-2xl font-bold bg-gradient-to-r from-blue-400 to-cyan-400 bg-clip-text text-transparent">
-              Velxo
-            </span>
-          </Link>
-        </div>
-
-        {/* Card */}
-        <Card className="p-8 border-zinc-700 bg-zinc-900/50 backdrop-blur">
-          <h1 className="text-2xl font-bold mb-2">Join Velxo</h1>
-          <p className="text-zinc-400 mb-6">Create an account to start trading gaming products</p>
-
-          {/* Error Alert */}
-          {error && (
-            <div className="mb-6 p-4 rounded-lg bg-red-500/10 border border-red-500/20 flex items-start gap-3">
-              <AlertCircle className="w-5 h-5 text-red-400 flex-shrink-0 mt-0.5" />
-              <p className="text-sm text-red-400">{error}</p>
+        <Card className="border-zinc-800 bg-zinc-900/50 p-8">
+          <form onSubmit={handleSubmit} className="space-y-6">
+            <div>
+              <h2 className="text-3xl font-bold mb-2">Create Account</h2>
+              <p className="text-zinc-400">Join the gaming marketplace</p>
             </div>
-          )}
 
-          {/* Form */}
-          <form onSubmit={handleSubmit} className="space-y-4">
-            {/* Name Row */}
+            {error && (
+              <div className="flex gap-3 p-4 rounded-lg bg-red-500/10 border border-red-500/20">
+                <AlertCircle className="w-5 h-5 text-red-400 flex-shrink-0 mt-0.5" />
+                <p className="text-sm text-red-400">{error}</p>
+              </div>
+            )}
+
+            {/* Name Fields */}
             <div className="grid grid-cols-2 gap-3">
               <div>
                 <label className="block text-sm font-medium mb-2">First Name</label>
-                <div className="relative">
-                  <User className="absolute left-3 top-1/2 -translate-y-1/2 text-zinc-500 w-5 h-5" />
-                  <input
-                    type="text"
-                    value={formData.firstName}
-                    onChange={(e) =>
-                      setFormData({ ...formData, firstName: e.target.value })
-                    }
-                    placeholder="John"
-                    required
-                    className="w-full pl-10 pr-4 py-2 rounded-lg bg-zinc-800 border border-zinc-700 text-white placeholder-zinc-500 focus:outline-none focus:border-blue-500 focus:ring-2 focus:ring-blue-500/20"
-                  />
-                </div>
+                <input
+                  type="text"
+                  name="firstName"
+                  value={formData.firstName}
+                  onChange={handleInputChange}
+                  placeholder="John"
+                  className="w-full px-4 py-3 rounded-lg bg-zinc-800 border border-zinc-700 text-white placeholder-zinc-500 focus:outline-none focus:border-blue-500 focus:ring-1 focus:ring-blue-500"
+                  disabled={isLoading}
+                />
               </div>
               <div>
                 <label className="block text-sm font-medium mb-2">Last Name</label>
-                <div className="relative">
-                  <User className="absolute left-3 top-1/2 -translate-y-1/2 text-zinc-500 w-5 h-5" />
-                  <input
-                    type="text"
-                    value={formData.lastName}
-                    onChange={(e) =>
-                      setFormData({ ...formData, lastName: e.target.value })
-                    }
-                    placeholder="Doe"
-                    required
-                    className="w-full pl-10 pr-4 py-2 rounded-lg bg-zinc-800 border border-zinc-700 text-white placeholder-zinc-500 focus:outline-none focus:border-blue-500 focus:ring-2 focus:ring-blue-500/20"
-                  />
-                </div>
+                <input
+                  type="text"
+                  name="lastName"
+                  value={formData.lastName}
+                  onChange={handleInputChange}
+                  placeholder="Doe"
+                  className="w-full px-4 py-3 rounded-lg bg-zinc-800 border border-zinc-700 text-white placeholder-zinc-500 focus:outline-none focus:border-blue-500 focus:ring-1 focus:ring-blue-500"
+                  disabled={isLoading}
+                />
               </div>
             </div>
 
             {/* Email */}
             <div>
               <label className="block text-sm font-medium mb-2">Email Address</label>
-              <div className="relative">
-                <Mail className="absolute left-3 top-1/2 -translate-y-1/2 text-zinc-500 w-5 h-5" />
-                <input
-                  type="email"
-                  value={formData.email}
-                  onChange={(e) => setFormData({ ...formData, email: e.target.value })}
-                  placeholder="you@example.com"
-                  required
-                  className="w-full pl-10 pr-4 py-2 rounded-lg bg-zinc-800 border border-zinc-700 text-white placeholder-zinc-500 focus:outline-none focus:border-blue-500 focus:ring-2 focus:ring-blue-500/20"
-                />
-              </div>
+              <input
+                type="email"
+                name="email"
+                value={formData.email}
+                onChange={handleInputChange}
+                placeholder="you@example.com"
+                className="w-full px-4 py-3 rounded-lg bg-zinc-800 border border-zinc-700 text-white placeholder-zinc-500 focus:outline-none focus:border-blue-500 focus:ring-1 focus:ring-blue-500"
+                disabled={isLoading}
+              />
             </div>
 
             {/* Password */}
             <div>
               <label className="block text-sm font-medium mb-2">Password</label>
               <div className="relative">
-                <Lock className="absolute left-3 top-1/2 -translate-y-1/2 text-zinc-500 w-5 h-5" />
                 <input
-                  type="password"
+                  type={showPassword ? 'text' : 'password'}
+                  name="password"
                   value={formData.password}
-                  onChange={(e) => setFormData({ ...formData, password: e.target.value })}
+                  onChange={handleInputChange}
                   placeholder="••••••••"
-                  required
-                  className="w-full pl-10 pr-4 py-2 rounded-lg bg-zinc-800 border border-zinc-700 text-white placeholder-zinc-500 focus:outline-none focus:border-blue-500 focus:ring-2 focus:ring-blue-500/20"
+                  className="w-full px-4 py-3 rounded-lg bg-zinc-800 border border-zinc-700 text-white placeholder-zinc-500 focus:outline-none focus:border-blue-500 focus:ring-1 focus:ring-blue-500"
+                  disabled={isLoading}
                 />
+                <button
+                  type="button"
+                  onClick={() => setShowPassword(!showPassword)}
+                  className="absolute right-3 top-1/2 -translate-y-1/2 text-zinc-400 hover:text-white"
+                >
+                  {showPassword ? <EyeOff className="w-5 h-5" /> : <Eye className="w-5 h-5" />}
+                </button>
               </div>
-              <p className="text-xs text-zinc-400 mt-1">At least 8 characters</p>
+
+              {/* Password Strength */}
+              {formData.password && (
+                <div className="mt-3 space-y-2">
+                  <div className="text-xs text-zinc-400 font-semibold">Password Requirements:</div>
+                  <div className="grid grid-cols-2 gap-2 text-xs">
+                    {Object.entries(passwordStrength).map(([key, value]) => (
+                      <div key={key} className="flex items-center gap-2">
+                        {value ? (
+                          <CheckCircle2 className="w-4 h-4 text-green-500" />
+                        ) : (
+                          <div className="w-4 h-4 border border-zinc-600 rounded-full" />
+                        )}
+                        <span className={value ? 'text-green-400' : 'text-zinc-400'}>
+                          {key === 'minLength' && '8+ characters'}
+                          {key === 'hasUpperCase' && 'Uppercase letter'}
+                          {key === 'hasNumber' && 'Number'}
+                          {key === 'hasSpecial' && 'Special character'}
+                        </span>
+                      </div>
+                    ))}
+                  </div>
+                </div>
+              )}
             </div>
 
             {/* Confirm Password */}
             <div>
               <label className="block text-sm font-medium mb-2">Confirm Password</label>
-              <div className="relative">
-                <Lock className="absolute left-3 top-1/2 -translate-y-1/2 text-zinc-500 w-5 h-5" />
-                <input
-                  type="password"
-                  value={formData.confirmPassword}
-                  onChange={(e) =>
-                    setFormData({ ...formData, confirmPassword: e.target.value })
-                  }
-                  placeholder="••••••••"
-                  required
-                  className="w-full pl-10 pr-4 py-2 rounded-lg bg-zinc-800 border border-zinc-700 text-white placeholder-zinc-500 focus:outline-none focus:border-blue-500 focus:ring-2 focus:ring-blue-500/20"
-                />
-              </div>
+              <input
+                type="password"
+                name="confirmPassword"
+                value={formData.confirmPassword}
+                onChange={handleInputChange}
+                placeholder="••••••••"
+                className="w-full px-4 py-3 rounded-lg bg-zinc-800 border border-zinc-700 text-white placeholder-zinc-500 focus:outline-none focus:border-blue-500 focus:ring-1 focus:ring-blue-500"
+                disabled={isLoading}
+              />
             </div>
 
             {/* Terms */}
-            <label className="flex items-start gap-2 cursor-pointer">
-              <input type="checkbox" className="mt-1" required />
+            <label className="flex items-start gap-3 cursor-pointer">
+              <input
+                type="checkbox"
+                className="rounded border-zinc-700 mt-1"
+                disabled={isLoading}
+                defaultChecked
+              />
               <span className="text-sm text-zinc-400">
-                I agree to the{' '}
-                <a href="#" className="text-blue-400 hover:text-blue-300">
+                I agree to Velxo&apos;s{' '}
+                <Link href="/terms" className="text-blue-400 hover:text-blue-300">
                   Terms of Service
-                </a>{' '}
-                and{' '}
-                <a href="#" className="text-blue-400 hover:text-blue-300">
+                </Link>
+                {' '}and{' '}
+                <Link href="/privacy" className="text-blue-400 hover:text-blue-300">
                   Privacy Policy
-                </a>
+                </Link>
               </span>
             </label>
 
-            {/* Submit */}
+            {/* Submit Button */}
             <Button
               type="submit"
-              disabled={loading}
-              className="w-full bg-blue-600 hover:bg-blue-700 disabled:opacity-50"
+              disabled={isLoading || !isPasswordStrong}
+              className="w-full bg-blue-600 hover:bg-blue-700 py-3 font-semibold text-lg"
             >
-              {loading ? 'Creating account...' : 'Create Account'}
+              {isLoading ? (
+                <>
+                  <Loader2 className="mr-2 h-5 w-5 animate-spin" />
+                  Creating Account...
+                </>
+              ) : (
+                'Create Account'
+              )}
             </Button>
+
+            {/* Sign In Link */}
+            <p className="text-center text-zinc-400 text-sm">
+              Already have an account?{' '}
+              <Link href="/auth/login" className="text-blue-400 hover:text-blue-300 font-semibold">
+                Sign in
+              </Link>
+            </p>
           </form>
-
-          {/* Divider */}
-          <div className="relative my-6">
-            <div className="absolute inset-0 flex items-center">
-              <div className="w-full border-t border-zinc-700" />
-            </div>
-            <div className="relative flex justify-center text-sm">
-              <span className="px-2 bg-zinc-900 text-zinc-400">Or sign up with</span>
-            </div>
-          </div>
-
-          {/* OAuth Buttons */}
-          <div className="space-y-2">
-            <Button
-              type="button"
-              variant="outline"
-              className="w-full"
-              onClick={() => {}}
-            >
-              Google
-            </Button>
-            <Button
-              type="button"
-              variant="outline"
-              className="w-full"
-              onClick={() => {}}
-            >
-              Discord
-            </Button>
-          </div>
-
-          {/* Sign In Link */}
-          <p className="text-center text-sm text-zinc-400 mt-6">
-            Already have an account?{' '}
-            <Link href="/auth/login" className="text-blue-400 hover:text-blue-300">
-              Sign in
-            </Link>
-          </p>
         </Card>
-
-        {/* Security Note */}
-        <p className="text-center text-xs text-zinc-500 mt-6">
-          🔒 Your account is protected with industry-standard encryption
-        </p>
       </div>
     </div>
   )
