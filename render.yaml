@@ -1,0 +1,36 @@
+services:
+  # NestJS Backend
+  - type: web
+    name: velxo-backend
+    env: node
+    plan: free
+    rootDir: backend
+    buildCommand: npm install && npm run prisma:generate && npm run build
+    startCommand: npm run start:prod
+    envVars:
+      - key: NODE_ENV
+        value: production
+      - key: PORT
+        value: 3001
+      - key: DATABASE_URL
+        sync: false
+      - key: SUPABASE_URL
+        sync: false
+      - key: SUPABASE_SERVICE_ROLE_KEY
+        sync: false
+      - key: CORS_ORIGIN
+        value: https://velxo.shop
+
+  # Next.js Frontend (Alternative to Vercel if wanted on Render)
+  - type: web
+    name: velxo-frontend
+    env: docker
+    plan: free
+    rootDir: frontend
+    envVars:
+      - key: NEXT_PUBLIC_API_URL
+        value: https://velxo-backend.onrender.com/api/v1
+      - key: NEXT_PUBLIC_SUPABASE_URL
+        sync: false
+      - key: NEXT_PUBLIC_SUPABASE_ANON_KEY
+        sync: false

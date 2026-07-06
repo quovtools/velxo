@@ -1,35 +1,6 @@
-import { createBrowserClient } from '@supabase/ssr'
+import { createClient } from '@supabase/supabase-js';
 
-export const supabase = createBrowserClient(
-  process.env.NEXT_PUBLIC_SUPABASE_URL!,
-  process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!
-)
+const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL || '';
+const supabaseAnonKey = process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY || '';
 
-export type User = {
-  id: string
-  email: string
-  firstName?: string
-  lastName?: string
-  role?: string
-}
-
-export type Listing = {
-  id: string
-  title: string
-  description: string
-  price: number
-  currency: string
-  gameName: string
-  status: string
-  images: string[]
-  sellerId: string
-}
-
-export type Order = {
-  id: string
-  orderNumber: string
-  status: string
-  totalAmount: number
-  currency: string
-  createdAt: string
-}
+export const supabase = createClient(supabaseUrl, supabaseAnonKey);

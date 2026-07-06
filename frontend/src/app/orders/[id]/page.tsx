@@ -1,216 +1,329 @@
-"use client"
-import { useState, useEffect } from 'react'
-import { useRouter, useParams } from 'next/navigation'
-import { Card } from '@/components/ui/card'
-import { Skeleton } from '@/components/ui/skeleton'
+'use client';
 
-interface OrderDetail {
-  id: string
-  orderNumber: string
-  status: string
-  totalAmount: number
-  createdAt: string
-  updatedAt: string
-  listing?: { title: string; image: string; price: number }
-  seller?: { id: string; username: string; avatar: string; rating: number }
-  quantity: number
-  commission: number
-  escrowStatus: string
+import React, { useState, useEffect, use } from 'react';
+import { useRouter } from 'next/navigation';
+import { api } from '@/lib/api';
+import { useAuth } from '@/app/providers';
+import { ShieldCheck, MessageSquare, AlertTriangle, CheckCircle, Info } from 'lucide-react';
+import Link from 'next/link';
+
+interface Order {
+  id: string;
+  orderNumber: string;
+  totalAmount: string;
+  status: string;
+  buyerNote: string;
+  createdAt: string;
+  buyerId: string;
+  sellerId: string;
+  orderItems: Array<{
+    listing: {
+      id: string;
+      title: string;
+      gameName: string;
+      price: string;
+    };
+  }>;
 }
 
-export default function OrderDetailPage() {
-  const [order, setOrder] = useState<OrderDetail | null>(null)
-  const [loading, setLoading] = useState(true)
-  const [confirmingDelivery, setConfirmingDelivery] = useState(false)
-  const router = useRouter()
-  const params = useParams()
-  const orderId = params.id as string
+export default function OrderTrackingPage({ params }: { params: Promise<{ id: string }> }) {
+  const { id } = use(params);
+  const router = useRouter();
+  const { user } = useAuth();
+
+  const [order, setOrder] = useState<Order | null>(null);
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState<string | null>(null);
+
+  // Dispute form state
+  const [showDisputeModal, setShowDisputeModal] = useState(false);
+  const [disputeReason, setDisputeReason] = useState('');
+  const [disputeDescription, setDisputeDescription] = useState('');
+  const [submittingDispute, setSubmittingDispute] = useState(false);
+
+  async function loadOrder() {
+    try {
+      const response = await api.get<{ success: boolean; data: Order }>(`/orders/${id}`);
+      if (response.success) {
+        setOrder(response.data);
+      }
+    } catch (err: any) {
+      setError(err.message || 'Failed to load order tracker');
+    } finally {
+      setLoading(false);
+    }
+  }
 
   useEffect(() => {
-    const fetchOrder = async () => {
-      try {
-        const token = localStorage.getItem('token')
-        if (!token) {
-          router.push('/auth/login')
-          return
-        }
-
-        const res = await fetch(`${process.env.NEXT_PUBLIC_API_URL || 'http://localhost:3001/api/v1'}/orders/${orderId}`, {
-          headers: { Authorization: `Bearer ${token}` },
-        })
-
-        if (res.ok) {
-          const data = await res.json()
-          setOrder(data.data)
-        }
-      } catch (error) {
-        console.error('Failed to fetch order:', error)
-      } finally {
-        setLoading(false)
-      }
+    if (!user) {
+      router.push('/auth/login');
+      return;
     }
-
-    fetchOrder()
-  }, [orderId, router])
+    loadOrder();
+  }, [id, user, router]);
 
   const handleConfirmDelivery = async () => {
+    if (!confirm('Are you sure you want to release funds to the seller? This action is irreversible.')) return;
+    setLoading(true);
+
     try {
-      setConfirmingDelivery(true)
-      const token = localStorage.getItem('token')
-      const res = await fetch(`${process.env.NEXT_PUBLIC_API_URL || 'http://localhost:3001/api/v1'}/orders/${orderId}/confirm-delivery`, {
-        method: 'PATCH',
-        headers: { Authorization: `Bearer ${token}`, 'Content-Type': 'application/json' },
-      })
-
-      if (res.ok) {
-        alert('Order confirmed! Funds released to seller.')
-        router.refresh()
+      const response = await api.patch<{ success: boolean }>(`/orders/${id}/confirm-delivery`);
+      if (response.success) {
+        alert('Funds released successfully!');
+        await loadOrder();
       }
-    } catch (error) {
-      alert('Failed to confirm delivery')
+    } catch (err: any) {
+      alert(err.message || 'Failed to complete escrow release');
     } finally {
-      setConfirmingDelivery(false)
+      setLoading(false);
     }
-  }
+  };
 
-  const getTimeline = () => {
-    const events = [
-      { status: 'PENDING', label: 'Order Placed', completed: true },
-      { status: 'PAID', label: 'Payment Confirmed', completed: order?.status !== 'PENDING' },
-      { status: 'DELIVERED', label: 'Seller Delivered', completed: ['DELIVERED', 'COMPLETED'].includes(order?.status || '') },
-      { status: 'COMPLETED', label: 'Order Complete', completed: order?.status === 'COMPLETED' },
-    ]
-    return events
-  }
+  const handleCreateDispute = async (e: React.FormEvent) => {
+    e.preventDefault();
+    setSubmittingDispute(true);
+
+    try {
+      const response = await api.post<{ success: boolean }>('/disputes', {
+        orderId: id,
+        reason: disputeReason,
+        description: disputeDescription,
+      });
+
+      if (response.success) {
+        alert('Dispute opened. A moderator will review your case shortly.');
+        setShowDisputeModal(false);
+        await loadOrder();
+      }
+    } catch (err: any) {
+      alert(err.message || 'Failed to open dispute');
+    } finally {
+      setSubmittingDispute(false);
+    }
+  };
 
   if (loading) {
-    return (
-      <div className="min-h-screen bg-zinc-950 text-white">
-        <div className="container mx-auto px-4 py-8">
-          <Skeleton className="h-96 w-full bg-zinc-800" />
-        </div>
-      </div>
-    )
+    return <div className="text-center py-20 text-gray-400">Loading escrow tracking console...</div>;
   }
 
-  if (!order) {
+  if (error || !order) {
     return (
-      <div className="min-h-screen bg-zinc-950 text-white flex items-center justify-center">
-        <p className="text-zinc-400">Order not found</p>
+      <div className="text-center py-20 bg-cardBg border border-borderBg rounded-2xl">
+        <p className="text-red-400 text-lg font-semibold">{error || 'Order not found'}</p>
       </div>
-    )
+    );
   }
+
+  const item = order.orderItems?.[0];
 
   return (
-    <div className="min-h-screen bg-zinc-950 text-white">
-      <div className="container mx-auto px-4 py-8 max-w-4xl">
-        <button onClick={() => router.back()} className="text-blue-400 hover:text-blue-300 mb-6">
-          ← Back to Orders
-        </button>
-
-        <div className="mb-8">
-          <h1 className="text-3xl font-bold mb-2">Order #{order.orderNumber}</h1>
-          <p className="text-zinc-400">{new Date(order.createdAt).toLocaleString()}</p>
+    <div className="space-y-8 my-6">
+      <div className="flex flex-col md:flex-row justify-between items-start md:items-center gap-4 border-b border-borderBg pb-6">
+        <div>
+          <h1 className="text-3xl font-extrabold text-white">Track Order</h1>
+          <p className="text-gray-400 text-sm mt-1">
+            Order ID: <span className="text-brand-light font-bold">#{order.orderNumber.toUpperCase()}</span> • Placed {new Date(order.createdAt).toLocaleString()}
+          </p>
         </div>
+        <div className="flex items-center gap-3">
+          <span className={`px-4 py-2 rounded-full text-sm font-bold ${
+            order.status === 'COMPLETED'
+              ? 'bg-emerald-950/40 text-emerald-400 border border-emerald-500/20'
+              : order.status === 'DISPUTED'
+              ? 'bg-red-950/40 text-red-400 border border-red-500/20'
+              : 'bg-yellow-950/40 text-yellow-400 border border-yellow-500/20'
+          }`}>
+            Status: {order.status}
+          </span>
+        </div>
+      </div>
 
-        {/* Timeline */}
-        <Card className="p-6 bg-zinc-900 border-zinc-800 mb-8">
-          <h2 className="text-lg font-semibold mb-6">Order Timeline</h2>
-          <div className="space-y-4">
-            {getTimeline().map((event, idx) => (
-              <div key={event.status} className="flex items-center gap-4">
-                <div className={`w-3 h-3 rounded-full ${event.completed ? 'bg-green-500' : 'bg-zinc-700'}`} />
-                <div className="flex-1">
-                  <p className={event.completed ? 'text-white' : 'text-zinc-400'}>{event.label}</p>
+      <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
+        {/* Main tracking console */}
+        <div className="lg:col-span-2 space-y-6">
+          {/* Tracking state map */}
+          <div className="bg-cardBg border border-borderBg rounded-3xl p-8 space-y-6">
+            <h3 className="text-xl font-bold text-white">Escrow Progression</h3>
+
+            <div className="relative pl-8 space-y-8 border-l border-borderBg">
+              {/* Step 1: Paid */}
+              <div className="relative">
+                <span className="absolute -left-11 top-0.5 bg-emerald-500 text-black p-1 rounded-full text-xs font-bold w-6 h-6 flex items-center justify-center">
+                  ✓
+                </span>
+                <div>
+                  <h4 className="font-bold text-white">Funds Deposited</h4>
+                  <p className="text-xs text-gray-400 mt-0.5">Payment verified and locked in secure escrow.</p>
                 </div>
               </div>
-            ))}
-          </div>
-        </Card>
 
-        {/* Order Details */}
-        <div className="grid grid-cols-1 md:grid-cols-3 gap-6 mb-8">
-          <Card className="p-6 bg-zinc-900 border-zinc-800">
-            <p className="text-zinc-400 text-sm mb-1">Status</p>
-            <p className="text-2xl font-bold text-blue-400">{order.status}</p>
-          </Card>
-          <Card className="p-6 bg-zinc-900 border-zinc-800">
-            <p className="text-zinc-400 text-sm mb-1">Escrow Status</p>
-            <p className="text-2xl font-bold text-purple-400">{order.escrowStatus || 'HELD'}</p>
-          </Card>
-          <Card className="p-6 bg-zinc-900 border-zinc-800">
-            <p className="text-zinc-400 text-sm mb-1">Total Amount</p>
-            <p className="text-2xl font-bold text-green-400">${order.totalAmount.toFixed(2)}</p>
-          </Card>
+              {/* Step 2: In progress */}
+              <div className="relative">
+                <span className={`absolute -left-11 top-0.5 p-1 rounded-full text-xs font-bold w-6 h-6 flex items-center justify-center ${
+                  ['IN_PROGRESS', 'DELIVERED', 'COMPLETED', 'DISPUTED'].includes(order.status)
+                    ? 'bg-emerald-500 text-black'
+                    : 'bg-gray-800 text-gray-400'
+                }`}>
+                  {['IN_PROGRESS', 'DELIVERED', 'COMPLETED', 'DISPUTED'].includes(order.status) ? '✓' : '2'}
+                </span>
+                <div>
+                  <h4 className="font-bold text-white">Seller Transfer</h4>
+                  <p className="text-xs text-gray-400 mt-0.5">Seller transfers gaming credentials or starts the boost service.</p>
+                </div>
+              </div>
+
+              {/* Step 3: Complete */}
+              <div className="relative">
+                <span className={`absolute -left-11 top-0.5 p-1 rounded-full text-xs font-bold w-6 h-6 flex items-center justify-center ${
+                  order.status === 'COMPLETED' ? 'bg-emerald-500 text-black' : 'bg-gray-800 text-gray-400'
+                }`}>
+                  {order.status === 'COMPLETED' ? '✓' : '3'}
+                </span>
+                <div>
+                  <h4 className="font-bold text-white">Funds Released</h4>
+                  <p className="text-xs text-gray-400 mt-0.5">Buyer confirms receipt, releasing funds to seller wallet.</p>
+                </div>
+              </div>
+            </div>
+          </div>
+
+          {/* Action Hub */}
+          <div className="bg-cardBg border border-borderBg rounded-3xl p-8 space-y-6">
+            <h3 className="text-xl font-bold text-white">Order Actions</h3>
+
+            {order.status !== 'COMPLETED' && order.status !== 'DISPUTED' ? (
+              <div className="flex flex-col sm:flex-row gap-4">
+                <button
+                  onClick={handleConfirmDelivery}
+                  className="flex-1 bg-brand hover:bg-brand-dark py-4 rounded-xl font-bold transition text-white shadow-lg shadow-brand/20 flex items-center justify-center gap-2"
+                >
+                  <CheckCircle className="w-5 h-5" />
+                  Release Funds (Confirm Delivery)
+                </button>
+
+                <button
+                  onClick={() => setShowDisputeModal(true)}
+                  className="bg-background border border-borderBg hover:border-red-500/40 px-6 py-4 rounded-xl font-bold transition text-red-400 flex items-center justify-center gap-2"
+                >
+                  <AlertTriangle className="w-5 h-5" />
+                  File a Dispute
+                </button>
+              </div>
+            ) : order.status === 'DISPUTED' ? (
+              <div className="bg-red-950/20 border border-red-500/20 rounded-2xl p-4 flex gap-3 text-red-300 text-sm">
+                <AlertTriangle className="w-5 h-5 flex-shrink-0" />
+                <div>
+                  <p className="font-bold">This order is under moderation review.</p>
+                  <p className="mt-1 text-xs text-gray-400">Our support staff is reviewing statements and logs to execute the release/refund.</p>
+                </div>
+              </div>
+            ) : (
+              <div className="bg-emerald-950/20 border border-emerald-500/20 rounded-2xl p-4 flex gap-3 text-emerald-300 text-sm">
+                <ShieldCheck className="w-5 h-5 flex-shrink-0" />
+                <div>
+                  <p className="font-bold">Order successfully completed!</p>
+                  <p className="mt-1 text-xs text-gray-400">Escrow funds have been credited to the seller&apos;s balance.</p>
+                </div>
+              </div>
+            )}
+          </div>
         </div>
 
-        {/* Product Info */}
-        {order.listing && (
-          <Card className="p-6 bg-zinc-900 border-zinc-800 mb-8">
-        {/* Product Information */}
-        {order.listing && (
-          <Card className="p-6 bg-zinc-900 border-zinc-800 mb-8">
-            <h2 className="text-lg font-semibold mb-4">Product Information</h2>
-            <div className="flex gap-6">
-              {order.listing?.image && (
-                <img src={order.listing.image} alt={order.listing?.title} className="w-32 h-32 rounded-lg object-cover" />
-              )}
-              <div className="flex-1">
-                <h3 className="text-xl font-bold mb-2">{order.listing?.title}</h3>
-                <p className="text-zinc-400 mb-2">Quantity: {order.quantity}</p>
-                <p className="text-lg font-semibold">Unit Price: ${order.listing?.price?.toFixed(2)}</p>
-              </div>
-            </div>
-          </Card>
-        )}
+        {/* Invoice Summary */}
+        <div className="space-y-6">
+          <div className="bg-cardBg border border-borderBg rounded-3xl p-8 space-y-6">
+            <h3 className="text-xl font-bold text-white border-b border-borderBg pb-4">Item Details</h3>
 
-        {/* Seller Info */}
-        {order.seller && (
-          <Card className="p-6 bg-zinc-900 border-zinc-800 mb-8">
-            <h2 className="text-lg font-semibold mb-4">Seller Information</h2>
-            <div className="flex items-center gap-4">
+            <div className="space-y-4 text-sm">
               <div>
-                <p className="text-lg font-semibold">{order.seller?.username}</p>
-                <p className="text-zinc-400">Rating: ⭐ {order.seller?.rating?.toFixed(1)}/5</p>
+                <p className="text-xs text-gray-500 font-bold uppercase tracking-wider">Item</p>
+                <p className="font-bold text-white mt-1">{item?.listing?.title || 'Gaming Assets'}</p>
+                <p className="text-xs text-brand-light font-semibold mt-1">{item?.listing?.gameName}</p>
               </div>
-            </div>
-          </Card>
-        )}
-        )}
 
-        {/* Price Breakdown */}
-        <Card className="p-6 bg-zinc-900 border-zinc-800 mb-8">
-          <h2 className="text-lg font-semibold mb-4">Price Breakdown</h2>
-          <div className="space-y-3">
-            <div className="flex justify-between">
-              <span className="text-zinc-400">Subtotal:</span>
-              <span>${(order.totalAmount + order.commission).toFixed(2)}</span>
-            </div>
-            <div className="flex justify-between">
-              <span className="text-zinc-400">Commission (10%):</span>
-              <span>-${order.commission.toFixed(2)}</span>
-            </div>
-            <div className="border-t border-zinc-700 pt-3 flex justify-between font-bold">
-              <span>Total:</span>
-              <span className="text-green-400">${order.totalAmount.toFixed(2)}</span>
+              <div className="border-t border-borderBg pt-4 text-gray-300">
+                <span className="text-xs text-gray-500 font-bold uppercase tracking-wider block mb-2">Instructions from Buyer</span>
+                <p className="text-xs italic bg-background p-3 rounded-lg border border-borderBg">
+                  {order.buyerNote || 'No special note provided.'}
+                </p>
+              </div>
+
+              <div className="border-t border-borderBg pt-4 flex justify-between font-black text-white text-lg">
+                <span>Escrow Total</span>
+                <span>${Number(order.totalAmount).toFixed(2)}</span>
+              </div>
+
+              {user && user.id !== order.sellerId && (
+                <Link
+                  href={`/messages?userId=${order.sellerId}`}
+                  className="flex items-center justify-center gap-2 w-full bg-background border border-borderBg hover:border-brand/40 py-3.5 rounded-xl font-bold transition text-gray-300 mt-4 text-xs"
+                >
+                  <MessageSquare className="w-4 h-4" />
+                  Chat with Seller
+                </Link>
+              )}
             </div>
           </div>
-        </Card>
-
-        {/* Actions */}
-        {order.status === 'DELIVERED' && (
-          <Card className="p-6 bg-zinc-900 border-zinc-800">
-            <p className="text-zinc-400 mb-4">Confirm that you&apos;ve received the product to release funds to the seller.</p>
-            <button
-              onClick={handleConfirmDelivery}
-              disabled={confirmingDelivery}
-              className="w-full bg-green-600 hover:bg-green-700 disabled:bg-zinc-700 px-6 py-3 rounded-lg font-semibold transition"
-            >
-              {confirmingDelivery ? 'Confirming...' : 'Confirm Delivery'}
-            </button>
-          </Card>
-        )}
+        </div>
       </div>
+
+      {/* Dispute Modal */}
+      {showDisputeModal && (
+        <div className="fixed inset-0 bg-black/60 backdrop-blur-sm flex items-center justify-center z-50 p-4">
+          <div className="bg-cardBg border border-borderBg rounded-3xl max-w-md w-full p-8 space-y-6">
+            <div>
+              <h3 className="text-2xl font-extrabold text-white">File Escrow Dispute</h3>
+              <p className="text-gray-400 text-xs mt-1">Submit your case for arbitration by support moderators.</p>
+            </div>
+
+            <form onSubmit={handleCreateDispute} className="space-y-4">
+              <div>
+                <label className="block text-xs font-bold text-gray-400 uppercase tracking-wider mb-2">Reason</label>
+                <select
+                  required
+                  className="w-full bg-background border border-borderBg rounded-xl px-4 py-2.5 text-sm text-white focus:outline-none focus:border-brand"
+                  value={disputeReason}
+                  onChange={(e) => setDisputeReason(e.target.value)}
+                >
+                  <option value="">Choose reason</option>
+                  <option value="Product not delivered">Product not delivered</option>
+                  <option value="Product not as described">Product not as described</option>
+                  <option value="Seller uncooperative">Seller uncooperative</option>
+                  <option value="Fraud suspicious activity">Suspicious fraudulent details</option>
+                </select>
+              </div>
+
+              <div>
+                <label className="block text-xs font-bold text-gray-400 uppercase tracking-wider mb-2">Description</label>
+                <textarea
+                  required
+                  className="w-full bg-background border border-borderBg rounded-xl px-4 py-2.5 text-sm text-white focus:outline-none focus:border-brand h-24 resize-none"
+                  placeholder="Provide precise arguments and state clearly what is missing..."
+                  value={disputeDescription}
+                  onChange={(e) => setDisputeDescription(e.target.value)}
+                />
+              </div>
+
+              <div className="flex gap-3">
+                <button
+                  type="button"
+                  onClick={() => setShowDisputeModal(false)}
+                  className="flex-1 bg-background border border-borderBg py-3 rounded-xl font-bold transition text-gray-400 text-xs"
+                >
+                  Cancel
+                </button>
+                <button
+                  type="submit"
+                  disabled={submittingDispute}
+                  className="flex-1 bg-red-600 hover:bg-red-700 py-3 rounded-xl font-bold transition text-white text-xs disabled:opacity-50"
+                >
+                  {submittingDispute ? 'Filing case...' : 'File Dispute'}
+                </button>
+              </div>
+            </form>
+          </div>
+        </div>
+      )}
     </div>
-  )
+  );
 }

@@ -8,6 +8,8 @@ You are the lead architect and senior full-stack engineer for Velxo (https://vel
 ## 1. BUSINESS OVERVIEW
 
 Velxo is a trusted marketplace connecting buyers and sellers of digital gaming products. It is NOT a simple e-commerce site — it is a secure escrow-backed marketplace with fraud detection, identity verification, dispute resolution, and AI-powered features.
+Our mission is to make Velxo No1 Africa Gaming Marketplace
+
 
 ### Target Users
 - Buyers: Gamers purchasing accounts, coins, top-ups, gift cards, and services
@@ -134,13 +136,10 @@ Goal: Make Velxo the SAFEST gaming marketplace in the world.
 - All other uploaded files
 
 ### PAYMENTS
-- Stripe
-- PayPal
+-
 - Flutterwave
 - Paystack
-- Cryptocurrency (BTC, ETH, USDT via a provider like Coinbase Commerce or BTCPay)
-
-### DEPLOYMENT
+- Cryptocurrency Payment.io
 - Frontend: Render
 - Backend: Render
 - Database: Supabase PostgreSQL

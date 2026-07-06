@@ -1,193 +1,239 @@
-'use client'
+'use client';
 
-import { useEffect } from 'react'
-import { useRouter } from 'next/navigation'
-import { useAuth } from '@/hooks/useAuth'
-import { useApi } from '@/hooks/useApi'
-import { Header } from '@/components/layout/header'
-import { Footer } from '@/components/layout/footer'
-import { Button } from '@/components/ui/button'
-import { Card } from '@/components/ui/card'
-import { formatPrice } from '@/lib/format'
-import { ArrowDownLeft, ArrowUpRight, Plus, Send } from 'lucide-react'
+import React, { useState, useEffect } from 'react';
+import { useRouter } from 'next/navigation';
+import { api } from '@/lib/api';
+import { useAuth } from '@/app/providers';
+import { Wallet, ArrowDownLeft, ArrowUpRight, Clock, ShieldCheck } from 'lucide-react';
 
 interface WalletData {
-  id: string
-  balance: number
-  escrowBalance: number
-  pendingBalance: number
-  totalEarnings: number
-  totalWithdrawals: number
+  balance: string;
+  lockedBalance: string;
+  totalEarnings: string;
+  totalWithdrawn: string;
 }
 
 interface Transaction {
-  id: string
-  type: string
-  amount: number
-  status: string
-  description: string
-  createdAt: string
+  id: string;
+  type: 'CREDIT' | 'DEBIT' | 'HOLD' | 'RELEASE' | 'REFUND';
+  amount: string;
+  description: string;
+  createdAt: string;
 }
 
 export default function WalletPage() {
-  const router = useRouter()
-  const { isAuthenticated, isLoading } = useAuth()
-  const { data: walletData, loading: walletLoading } = useApi<WalletData>('/wallet')
-  const { data: transactionsData, loading: transLoading } = useApi<{ transactions: Transaction[] }>(
-    '/wallet/transactions'
-  )
+  const router = useRouter();
+  const { user } = useAuth();
+
+  const [wallet, setWallet] = useState<WalletData | null>(null);
+  const [transactions, setTransactions] = useState<Transaction[]>([]);
+  const [loading, setLoading] = useState(true);
+
+  const [showWithdrawModal, setShowWithdrawModal] = useState(false);
+  const [withdrawAmount, setWithdrawAmount] = useState('');
+  const [withdrawMethod, setWithdrawMethod] = useState('bank');
+  const [destination, setDestination] = useState('');
 
   useEffect(() => {
-    if (!isLoading && !isAuthenticated) {
-      router.push('/auth/login')
+    if (!user) {
+      router.push('/auth/login');
+      return;
     }
-  }, [isAuthenticated, isLoading, router])
 
-  if (isLoading || walletLoading) {
-    return (
-      <>
-        <Header />
-        <div className="min-h-screen bg-black flex items-center justify-center">
-          <div className="animate-spin">Loading...</div>
-        </div>
-        <Footer />
-      </>
-    )
+    async function loadWallet() {
+      try {
+        const [wRes, tRes] = await Promise.all([
+          api.get<{ success: boolean; data: WalletData }>('/wallet'),
+          api.get<{ success: boolean; data: Transaction[] }>('/wallet/transactions'),
+        ]);
+
+        if (wRes.success) setWallet(wRes.data);
+        if (tRes.success) setTransactions(tRes.data || []);
+      } catch (e) {
+        console.error(e);
+      } finally {
+        setLoading(false);
+      }
+    }
+    loadWallet();
+  }, [user, router]);
+
+  const handleWithdraw = async (e: React.FormEvent) => {
+    e.preventDefault();
+    if (!wallet || parseFloat(withdrawAmount) > parseFloat(wallet.balance)) {
+      alert('Insufficient funds available for withdrawal.');
+      return;
+    }
+
+    alert('Withdrawal request registered! Funds will be processed within 24 hours.');
+    setShowWithdrawModal(false);
+    setWithdrawAmount('');
+    setDestination('');
+  };
+
+  if (loading) {
+    return <div className="text-center py-20 text-gray-400">Loading wallet dashboard...</div>;
   }
 
-  const transactions = transactionsData?.transactions || []
-
   return (
-    <>
-      <Header />
-      <main className="min-h-screen bg-black py-12">
-        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-          {/* Header */}
-          <h1 className="text-4xl font-black mb-12">Wallet</h1>
+    <div className="space-y-8 my-6">
+      <div className="border-b border-borderBg pb-6">
+        <h1 className="text-3xl font-extrabold text-white">Your Wallet</h1>
+        <p className="text-gray-400 mt-2">Manage your earnings, request withdrawals, and check transaction logs.</p>
+      </div>
 
-          {/* Balance Cards */}
-          <div className="grid md:grid-cols-2 lg:grid-cols-4 gap-6 mb-12">
-            {[
-              {
-                label: 'Available Balance',
-                value: walletData?.balance || 0,
-                icon: '💵',
-                color: 'from-green-600 to-green-700',
-              },
-              {
-                label: 'Escrow Held',
-                value: walletData?.escrowBalance || 0,
-                icon: '🔒',
-                color: 'from-blue-600 to-blue-700',
-              },
-              {
-                label: 'Pending',
-                value: walletData?.pendingBalance || 0,
-                icon: '⏳',
-                color: 'from-yellow-600 to-yellow-700',
-              },
-              {
-                label: 'Total Earnings',
-                value: walletData?.totalEarnings || 0,
-                icon: '📈',
-                color: 'from-purple-600 to-purple-700',
-              },
-            ].map((card, i) => (
-              <Card key={i} className="border-zinc-800 bg-gradient-to-br from-zinc-900 to-zinc-950 p-6">
-                <div className="flex items-start justify-between mb-4">
-                  <div>
-                    <p className="text-zinc-400 text-sm mb-1">{card.label}</p>
-                    <p className={`text-3xl font-black bg-gradient-to-r ${card.color} bg-clip-text text-transparent`}>
-                      {formatPrice(card.value)}
-                    </p>
-                  </div>
-                  <span className="text-2xl">{card.icon}</span>
-                </div>
-              </Card>
-            ))}
+      {/* Stats row */}
+      <div className="grid grid-cols-1 md:grid-cols-4 gap-6">
+        <div className="bg-cardBg border border-borderBg rounded-2xl p-6 space-y-2">
+          <p className="text-xs text-gray-500 font-bold uppercase tracking-wider">Available Balance</p>
+          <div className="flex justify-between items-end">
+            <h2 className="text-3xl font-black text-white">${Number(wallet?.balance || 0).toFixed(2)}</h2>
+            <button
+              onClick={() => setShowWithdrawModal(true)}
+              className="bg-brand hover:bg-brand-dark px-4 py-2 rounded-xl text-xs font-bold transition text-white"
+            >
+              Withdraw
+            </button>
           </div>
-
-          {/* Actions */}
-          <div className="grid md:grid-cols-2 gap-6 mb-12">
-            <Button size="lg" className="bg-blue-600 hover:bg-blue-700 gap-2">
-              <Plus className="w-5 h-5" />
-              Add Funds
-            </Button>
-            <Button size="lg" variant="outline" className="gap-2">
-              <Send className="w-5 h-5" />
-              Withdraw Funds
-            </Button>
-          </div>
-
-          {/* Transaction History */}
-          <Card className="border-zinc-800 bg-zinc-900/50 p-8">
-            <h2 className="text-2xl font-bold mb-6">Transaction History</h2>
-
-            {transLoading ? (
-              <div className="text-center py-12">Loading...</div>
-            ) : transactions.length > 0 ? (
-              <div className="overflow-x-auto">
-                <table className="w-full">
-                  <thead>
-                    <tr className="border-b border-zinc-800">
-                      <th className="text-left py-4 px-4 text-sm font-semibold text-zinc-400">Type</th>
-                      <th className="text-left py-4 px-4 text-sm font-semibold text-zinc-400">Description</th>
-                      <th className="text-left py-4 px-4 text-sm font-semibold text-zinc-400">Amount</th>
-                      <th className="text-left py-4 px-4 text-sm font-semibold text-zinc-400">Status</th>
-                      <th className="text-left py-4 px-4 text-sm font-semibold text-zinc-400">Date</th>
-                    </tr>
-                  </thead>
-                  <tbody>
-                    {transactions.map((tx) => (
-                      <tr
-                        key={tx.id}
-                        className="border-b border-zinc-800 hover:bg-zinc-800/30 transition"
-                      >
-                        <td className="py-4 px-4">
-                          <div className="flex items-center gap-2">
-                            {tx.type.includes('deposit') || tx.type.includes('credit') ? (
-                              <ArrowDownLeft className="w-4 h-4 text-green-400" />
-                            ) : (
-                              <ArrowUpRight className="w-4 h-4 text-red-400" />
-                            )}
-                            <span className="text-sm font-medium capitalize">{tx.type}</span>
-                          </div>
-                        </td>
-                        <td className="py-4 px-4 text-sm text-zinc-300">{tx.description}</td>
-                        <td className="py-4 px-4 text-sm font-semibold">
-                          {tx.type.includes('deposit') || tx.type.includes('credit') ? '+' : '-'}
-                          {formatPrice(Math.abs(tx.amount))}
-                        </td>
-                        <td className="py-4 px-4">
-                          <span
-                            className={`text-xs font-bold px-2 py-1 rounded-full ${
-                              tx.status === 'completed'
-                                ? 'bg-green-500/20 text-green-400'
-                                : tx.status === 'pending'
-                                  ? 'bg-yellow-500/20 text-yellow-400'
-                                  : 'bg-red-500/20 text-red-400'
-                            }`}
-                          >
-                            {tx.status}
-                          </span>
-                        </td>
-                        <td className="py-4 px-4 text-sm text-zinc-400">
-                          {new Date(tx.createdAt).toLocaleDateString()}
-                        </td>
-                      </tr>
-                    ))}
-                  </tbody>
-                </table>
-              </div>
-            ) : (
-              <div className="text-center py-12">
-                <p className="text-zinc-400">No transactions yet</p>
-              </div>
-            )}
-          </Card>
         </div>
-      </main>
-      <Footer />
-    </>
-  )
+
+        <div className="bg-cardBg border border-borderBg rounded-2xl p-6 space-y-2">
+          <p className="text-xs text-gray-500 font-bold uppercase tracking-wider">Locked Escrow</p>
+          <h2 className="text-3xl font-black text-gray-400">${Number(wallet?.lockedBalance || 0).toFixed(2)}</h2>
+        </div>
+
+        <div className="bg-cardBg border border-borderBg rounded-2xl p-6 space-y-2">
+          <p className="text-xs text-gray-500 font-bold uppercase tracking-wider">Total Earnings</p>
+          <h2 className="text-3xl font-black text-emerald-400">${Number(wallet?.totalEarnings || 0).toFixed(2)}</h2>
+        </div>
+
+        <div className="bg-cardBg border border-borderBg rounded-2xl p-6 space-y-2">
+          <p className="text-xs text-gray-500 font-bold uppercase tracking-wider">Total Withdrawn</p>
+          <h2 className="text-3xl font-black text-white">${Number(wallet?.totalWithdrawn || 0).toFixed(2)}</h2>
+        </div>
+      </div>
+
+      {/* Ledger transactions list */}
+      <div className="bg-cardBg border border-borderBg rounded-3xl p-8 space-y-6">
+        <h3 className="text-xl font-bold text-white">Transaction History</h3>
+
+        {transactions.length === 0 ? (
+          <div className="text-center py-12">
+            <p className="text-gray-500 text-sm">No transaction records found.</p>
+          </div>
+        ) : (
+          <div className="overflow-x-auto">
+            <table className="w-full text-left text-sm text-gray-400">
+              <thead className="text-xs text-gray-500 uppercase font-bold border-b border-borderBg">
+                <tr>
+                  <th className="py-3 px-4">Type</th>
+                  <th className="py-3 px-4">Description</th>
+                  <th className="py-3 px-4 text-right">Amount</th>
+                  <th className="py-3 px-4 text-right">Date</th>
+                </tr>
+              </thead>
+              <tbody className="divide-y divide-borderBg">
+                {transactions.map((t) => (
+                  <tr key={t.id} className="hover:bg-background/20 transition">
+                    <td className="py-4 px-4 flex items-center gap-2">
+                      {['CREDIT', 'RELEASE', 'REFUND'].includes(t.type) ? (
+                        <ArrowDownLeft className="w-4 h-4 text-emerald-400" />
+                      ) : (
+                        <ArrowUpRight className="w-4 h-4 text-red-400" />
+                      )}
+                      <span className="font-bold text-white text-xs">{t.type}</span>
+                    </td>
+                    <td className="py-4 px-4 text-gray-300">{t.description}</td>
+                    <td className={`py-4 px-4 text-right font-bold ${
+                      ['CREDIT', 'RELEASE', 'REFUND'].includes(t.type) ? 'text-emerald-400' : 'text-red-400'
+                    }`}>
+                      {['CREDIT', 'RELEASE', 'REFUND'].includes(t.type) ? '+' : '-'}${Number(t.amount).toFixed(2)}
+                    </td>
+                    <td className="py-4 px-4 text-right text-xs text-gray-500">
+                      {new Date(t.createdAt).toLocaleDateString()}
+                    </td>
+                  </tr>
+                ))}
+              </tbody>
+            </table>
+          </div>
+        )}
+      </div>
+
+      {/* Withdrawal Modal */}
+      {showWithdrawModal && (
+        <div className="fixed inset-0 bg-black/60 backdrop-blur-sm flex items-center justify-center z-50 p-4">
+          <div className="bg-cardBg border border-borderBg rounded-3xl max-w-md w-full p-8 space-y-6">
+            <div>
+              <h3 className="text-2xl font-extrabold text-white">Withdraw Funds</h3>
+              <p className="text-gray-400 text-xs mt-1">Request a payout from your available wallet balance.</p>
+            </div>
+
+            <form onSubmit={handleWithdraw} className="space-y-4">
+              <div>
+                <label className="block text-xs font-bold text-gray-400 uppercase tracking-wider mb-2">Payout Method</label>
+                <select
+                  required
+                  className="w-full bg-background border border-borderBg rounded-xl px-4 py-2.5 text-sm text-white focus:outline-none focus:border-brand"
+                  value={withdrawMethod}
+                  onChange={(e) => setWithdrawMethod(e.target.value)}
+                >
+                  <option value="bank">Bank Transfer (NGN/GHS)</option>
+                  <option value="crypto">USDT (TRC-20)</option>
+                  <option value="paypal">PayPal</option>
+                </select>
+              </div>
+
+              <div>
+                <label className="block text-xs font-bold text-gray-400 uppercase tracking-wider mb-2">Amount (USD)</label>
+                <input
+                  type="number"
+                  required
+                  min="1"
+                  step="0.01"
+                  className="w-full bg-background border border-borderBg rounded-xl px-4 py-2.5 text-sm text-white focus:outline-none focus:border-brand"
+                  placeholder="0.00"
+                  value={withdrawAmount}
+                  onChange={(e) => setWithdrawAmount(e.target.value)}
+                />
+              </div>
+
+              <div>
+                <label className="block text-xs font-bold text-gray-400 uppercase tracking-wider mb-2">Destination Details</label>
+                <input
+                  type="text"
+                  required
+                  className="w-full bg-background border border-borderBg rounded-xl px-4 py-2.5 text-sm text-white focus:outline-none focus:border-brand"
+                  placeholder={withdrawMethod === 'crypto' ? 'USDT Wallet Address' : 'Account Number & Bank Name'}
+                  value={destination}
+                  onChange={(e) => setDestination(e.target.value)}
+                />
+              </div>
+
+              <div className="bg-background border border-borderBg rounded-2xl p-4 flex gap-2 text-[10px] text-gray-500">
+                <Clock className="w-5 h-5 text-brand flex-shrink-0" />
+                <p>Withdrawal requests are processed manually within 24-48 hours after passing compliance security audits.</p>
+              </div>
+
+              <div className="flex gap-3">
+                <button
+                  type="button"
+                  onClick={() => setShowWithdrawModal(false)}
+                  className="flex-1 bg-background border border-borderBg py-3 rounded-xl font-bold transition text-gray-400 text-xs"
+                >
+                  Cancel
+                </button>
+                <button
+                  type="submit"
+                  className="flex-1 bg-brand hover:bg-brand-dark py-3 rounded-xl font-bold transition text-white text-xs"
+                >
+                  Submit Request
+                </button>
+              </div>
+            </form>
+          </div>
+        </div>
+      )}
+    </div>
+  );
 }

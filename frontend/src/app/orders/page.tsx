@@ -1,160 +1,118 @@
-'use client'
+'use client';
 
-import { useEffect } from 'react'
-import Link from 'next/link'
-import { useRouter } from 'next/navigation'
-import { useAuth } from '@/hooks/useAuth'
-import { useApi } from '@/hooks/useApi'
-import { Header } from '@/components/layout/header'
-import { Footer } from '@/components/layout/footer'
-import { Card } from '@/components/ui/card'
-import { Button } from '@/components/ui/button'
-import { formatPrice } from '@/lib/format'
-import { ShoppingBag, ChevronRight } from 'lucide-react'
+import React, { useState, useEffect } from 'react';
+import { useRouter } from 'next/navigation';
+import { api } from '@/lib/api';
+import { useAuth } from '@/app/providers';
+import Link from 'next/link';
 
 interface Order {
-  id: string
-  orderNumber: string
-  listingId: string
-  totalAmount: number
-  status: string
-  escrowStatus: string
-  createdAt: string
-  listing?: {
-    title: string
-    game: string
-    price: number
-  }
-}
-
-const statusColors: Record<string, string> = {
-  pending: 'bg-yellow-500/20 text-yellow-400',
-  paid: 'bg-blue-500/20 text-blue-400',
-  in_progress: 'bg-purple-500/20 text-purple-400',
-  delivered: 'bg-cyan-500/20 text-cyan-400',
-  completed: 'bg-green-500/20 text-green-400',
-  disputed: 'bg-red-500/20 text-red-400',
-  cancelled: 'bg-gray-500/20 text-gray-400',
+  id: string;
+  orderNumber: string;
+  totalAmount: string;
+  status: string;
+  createdAt: string;
+  orderItems: Array<{
+    listing: {
+      title: string;
+      gameName: string;
+    };
+  }>;
 }
 
 export default function OrdersPage() {
-  const router = useRouter()
-  const { isAuthenticated, isLoading } = useAuth()
-  const { data: ordersData, loading: ordersLoading } = useApi<{ orders: Order[] }>('/orders/me')
+  const router = useRouter();
+  const { user } = useAuth();
+  const [orders, setOrders] = useState<Order[]>([]);
+  const [loading, setLoading] = useState(true);
 
   useEffect(() => {
-    if (!isLoading && !isAuthenticated) {
-      router.push('/auth/login')
+    if (!user) {
+      router.push('/auth/login');
+      return;
     }
-  }, [isAuthenticated, isLoading, router])
 
-  if (isLoading || ordersLoading) {
-    return (
-      <>
-        <Header />
-        <div className="min-h-screen bg-black flex items-center justify-center">
-          <div className="animate-spin">Loading...</div>
-        </div>
-        <Footer />
-      </>
-    )
+    async function loadOrders() {
+      try {
+        const response = await api.get<{ success: boolean; data: Order[] }>('/orders/me');
+        if (response.success) {
+          setOrders(response.data || []);
+        }
+      } catch (e) {
+        console.error(e);
+      } finally {
+        setLoading(false);
+      }
+    }
+    loadOrders();
+  }, [user, router]);
+
+  if (loading) {
+    return <div className="text-center py-20 text-gray-400">Loading order history...</div>;
   }
 
-  const orders = ordersData?.orders || []
-
   return (
-    <>
-      <Header />
-      <main className="min-h-screen bg-black py-12">
-        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-          {/* Header */}
-          <h1 className="text-4xl font-black mb-8">Your Orders</h1>
+    <div className="space-y-8">
+      <div className="border-b border-borderBg pb-6">
+        <h1 className="text-3xl font-extrabold text-white">Your Orders</h1>
+        <p className="text-gray-400 mt-2">Track deliveries, release escrow funds, and view receipts.</p>
+      </div>
 
-          {/* Filters */}
-          <div className="flex gap-4 mb-12 overflow-x-auto pb-2">
-            {['All', 'Pending', 'Processing', 'Completed', 'Cancelled'].map((filter) => (
-              <Button
-                key={filter}
-                variant="outline"
-                className="whitespace-nowrap"
-              >
-                {filter}
-              </Button>
-            ))}
-          </div>
-
-          {/* Orders List */}
-          {ordersLoading ? (
-            <div className="text-center py-12">
-              <div className="animate-spin">Loading orders...</div>
-            </div>
-          ) : orders.length > 0 ? (
-            <div className="space-y-4">
-              {orders.map((order) => (
-                <Link key={order.id} href={`/orders/${order.id}`}>
-                  <Card className="border-zinc-800 bg-zinc-900/50 p-6 hover:border-blue-500 transition cursor-pointer group">
-                    <div className="flex items-center justify-between">
-                      {/* Left Content */}
-                      <div className="flex-1 min-w-0">
-                        <div className="flex items-center gap-4 mb-4">
-                          <div className="w-16 h-16 rounded-lg bg-gradient-to-br from-blue-600/20 to-purple-600/20 flex items-center justify-center flex-shrink-0">
-                            <ShoppingBag className="w-8 h-8 text-blue-400" />
-                          </div>
-                          <div className="flex-1 min-w-0">
-                            <h3 className="font-bold text-lg group-hover:text-blue-400 transition truncate">
-                              {order.listing?.title || 'Order'}
-                            </h3>
-                            <p className="text-sm text-zinc-400">
-                              Order #{order.orderNumber}
-                            </p>
-                            <p className="text-xs text-zinc-500 mt-1">
-                              {order.listing?.game} • {new Date(order.createdAt).toLocaleDateString()}
-                            </p>
-                          </div>
-                        </div>
-                      </div>
-
-                      {/* Right Content */}
-                      <div className="text-right">
-                        <div className="text-2xl font-black text-blue-400 mb-2">
-                          {formatPrice(order.totalAmount)}
-                        </div>
-                        <div className="flex items-center justify-end gap-2 mb-2">
-                          <span
-                            className={`text-xs font-bold px-3 py-1 rounded-full ${
-                              statusColors[order.status] || 'bg-gray-500/20 text-gray-400'
-                            }`}
-                          >
-                            {order.status}
-                          </span>
-                          <ChevronRight className="w-5 h-5 text-zinc-600 group-hover:text-blue-400 transition" />
-                        </div>
-                        <p className="text-xs text-zinc-500">
-                          Escrow: {order.escrowStatus}
-                        </p>
-                      </div>
-                    </div>
-                  </Card>
-                </Link>
-              ))}
-            </div>
-          ) : (
-            <Card className="border-zinc-800 bg-zinc-900/50 p-12 text-center">
-              <ShoppingBag className="w-16 h-16 text-zinc-600 mx-auto mb-4" />
-              <h3 className="text-2xl font-bold mb-2">No Orders Yet</h3>
-              <p className="text-zinc-400 mb-6">
-                Start shopping for gaming products today!
-              </p>
-              <Link href="/search">
-                <Button className="bg-blue-600 hover:bg-blue-700">
-                  Browse Listings
-                </Button>
-              </Link>
-            </Card>
-          )}
+      {orders.length === 0 ? (
+        <div className="text-center py-20 bg-cardBg border border-borderBg rounded-2xl">
+          <p className="text-gray-400">You haven&apos;t placed any orders yet.</p>
+          <Link
+            href="/search"
+            className="mt-4 inline-block bg-brand hover:bg-brand-dark px-6 py-3 rounded-xl font-bold transition text-white"
+          >
+            Browse Marketplace
+          </Link>
         </div>
-      </main>
-      <Footer />
-    </>
-  )
+      ) : (
+        <div className="space-y-4">
+          {orders.map((order) => {
+            const item = order.orderItems?.[0];
+            return (
+              <div key={order.id} className="bg-cardBg border border-borderBg rounded-2xl p-6 flex flex-col md:flex-row justify-between items-start md:items-center gap-4 hover:border-brand/30 transition">
+                <div className="space-y-1">
+                  <div className="flex items-center gap-3">
+                    <span className="text-white font-bold text-sm">Order #{order.orderNumber.slice(-8).toUpperCase()}</span>
+                    <span className="text-xs text-gray-500 font-semibold">{new Date(order.createdAt).toLocaleDateString()}</span>
+                  </div>
+                  <h3 className="text-lg font-bold text-gray-200">
+                    {item?.listing?.title || 'Gaming Assets Pack'}
+                  </h3>
+                  <p className="text-xs text-brand-light font-semibold">{item?.listing?.gameName}</p>
+                </div>
+
+                <div className="flex items-center gap-6 w-full md:w-auto justify-between border-t border-borderBg pt-4 md:border-t-0 md:pt-0">
+                  <div className="text-right">
+                    <p className="text-xs text-gray-500">Amount Paid</p>
+                    <p className="text-xl font-black text-white">${Number(order.totalAmount).toFixed(2)}</p>
+                  </div>
+                  <div className="flex items-center gap-3">
+                    <span className={`px-3 py-1.5 rounded-full text-xs font-bold ${
+                      order.status === 'COMPLETED'
+                        ? 'bg-emerald-950/40 text-emerald-400 border border-emerald-500/20'
+                        : order.status === 'DISPUTED'
+                        ? 'bg-red-950/40 text-red-400 border border-red-500/20'
+                        : 'bg-yellow-950/40 text-yellow-400 border border-yellow-500/20'
+                    }`}>
+                      {order.status}
+                    </span>
+                    <Link
+                      href={`/orders/${order.id}`}
+                      className="bg-brand/10 hover:bg-brand/20 text-brand-light font-bold px-4 py-2 rounded-lg text-xs border border-brand/20 transition"
+                    >
+                      Track Order
+                    </Link>
+                  </div>
+                </div>
+              </div>
+            );
+          })}
+        </div>
+      )}
+    </div>
+  );
 }
