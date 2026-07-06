@@ -166,12 +166,9 @@ export default function OrderDetailPage() {
           <Card className="p-6 bg-zinc-900 border-zinc-800 mb-8">
             <h2 className="text-lg font-semibold mb-4">Seller Information</h2>
             <div className="flex items-center gap-4">
-              {order.seller.avatar && (
-                <img src={order.seller.avatar} alt={order.seller.username} className="w-16 h-16 rounded-full" />
-              )}
               <div>
-                <p className="text-lg font-semibold">{order.seller.username}</p>
-                <p className="text-zinc-400">Rating: ⭐ {order.seller.rating.toFixed(1)}/5</p>
+                <p className="text-lg font-semibold">{order.seller.storeName}</p>
+                <p className="text-zinc-400">Rating: ⭐ {order.seller.averageRating.toFixed(1)}/5</p>
               </div>
             </div>
           </Card>
