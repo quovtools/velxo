@@ -15,7 +15,7 @@ import { Role } from '@prisma/client'
 import { CurrentUserId } from '@/common/decorators/current-user.decorator'
 import { ApiResponseDto } from '@/common/dto/api-response.dto'
 
-@Controller('api/v1/admin')
+@Controller('admin')
 @RequireRoles(Role.ADMIN, Role.SUPER_ADMIN)
 export class AdminController {
   private readonly logger = new Logger(AdminController.name)

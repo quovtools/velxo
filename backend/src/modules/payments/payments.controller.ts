@@ -2,7 +2,7 @@ import { Controller, Post, Body, Logger, Headers } from '@nestjs/common'
 import { PaymentsService } from './payments.service'
 import { ApiResponseDto } from '@/common/dto/api-response.dto'
 
-@Controller('api/v1/payments')
+@Controller('payments')
 export class PaymentsController {
   private readonly logger = new Logger(PaymentsController.name)
 

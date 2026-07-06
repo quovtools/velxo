@@ -15,7 +15,7 @@ import { CurrentUserId } from '@/common/decorators/current-user.decorator'
 import { ApiResponseDto } from '@/common/dto/api-response.dto'
 import { SupportTicketCategory } from '@prisma/client'
 
-@Controller('api/v1/support')
+@Controller('support')
 export class SupportController {
   private readonly logger = new Logger(SupportController.name)
 

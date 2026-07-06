@@ -12,7 +12,7 @@ import { SupabaseJwtGuard } from '@/common/guards/supabase-jwt.guard'
 import { CurrentUserId } from '@/common/decorators/current-user.decorator'
 import { ApiResponseDto } from '@/common/dto/api-response.dto'
 
-@Controller('api/v1/auth')
+@Controller('auth')
 export class AuthController {
   private readonly logger = new Logger(AuthController.name)
 

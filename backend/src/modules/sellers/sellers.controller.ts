@@ -15,7 +15,7 @@ import { SupabaseJwtGuard } from '@/common/guards/supabase-jwt.guard'
 import { CurrentUserId } from '@/common/decorators/current-user.decorator'
 import { ApiResponseDto } from '@/common/dto/api-response.dto'
 
-@Controller('api/v1/sellers')
+@Controller('sellers')
 export class SellersController {
   private readonly logger = new Logger(SellersController.name)
 
