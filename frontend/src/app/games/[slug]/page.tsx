@@ -2,10 +2,6 @@
 
 export const dynamic = 'force-dynamic';
 
-export async function generateStaticParams() {
-  return [];
-}
-
 import React, { useState, useEffect, use } from 'react';
 import Link from 'next/link';
 
