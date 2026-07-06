@@ -80,7 +80,7 @@ export default function CheckoutPage() {
                 <div className="w-20 h-20 bg-zinc-800 rounded-lg flex-shrink-0" />
                 <div className="flex-1">
                   <h3 className="font-semibold mb-1">{product.title}</h3>
-                  <p className="text-sm text-zinc-400 mb-2">{product.gameName}</p>
+                  <p className="text-sm text-zinc-400 mb-2">{product.game}</p>
                   <p className="text-lg font-bold text-blue-400">{formatPrice(product.price)}</p>
                 </div>
               </div>
