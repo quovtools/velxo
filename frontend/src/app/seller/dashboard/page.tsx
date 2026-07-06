@@ -42,11 +42,11 @@ export default function SellerDashboardPage() {
   const router = useRouter()
   const { user, isAuthenticated, isLoading } = useAuth()
   const { data: statsData, loading: statsLoading } = useApi<SellerStats>(
-    user?.role === 'seller' ? '/sellers/me' : null,
+    '/sellers/me',
     { skip: user?.role !== 'seller' }
   )
   const { data: ordersData, loading: ordersLoading } = useApi<{ orders: RecentOrder[] }>(
-    user?.role === 'seller' ? '/orders/seller/recent' : null,
+    '/orders/seller/recent',
     { skip: user?.role !== 'seller' }
   )
 

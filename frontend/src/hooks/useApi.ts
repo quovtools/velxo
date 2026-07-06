@@ -20,7 +20,7 @@ export interface ApiResponse<T = any> {
 }
 
 export function useApi<T = any>(
-  path: string,
+  path: string | null,
   options: UseApiOptions<T> = {}
 ) {
   const [data, setData] = useState<T | null>(null)
@@ -28,7 +28,7 @@ export function useApi<T = any>(
   const [error, setError] = useState<Error | null>(null)
 
   useEffect(() => {
-    if (options.skip || !path) {
+    if (options.skip || !path || path === null) {
       setLoading(false)
       return
     }
