@@ -1,19 +1,44 @@
-import { Controller, Post, Body, UseGuards, Request } from '@nestjs/common'
+import { Controller, Post, Body, Logger, Headers } from '@nestjs/common'
 import { PaymentsService } from './payments.service'
-import { JwtAuthGuard } from '../../common/guards/jwt-auth.guard'
+import { ApiResponseDto } from '@/common/dto/api-response.dto'
 
-@Controller('payments')
+@Controller('api/v1/payments')
 export class PaymentsController {
-  constructor(private readonly paymentsService: PaymentsService) {}
+  private readonly logger = new Logger(PaymentsController.name)
 
-  @Post('create-intent')
-  @UseGuards(JwtAuthGuard)
-  createIntent(@Request() req, @Body() dto: any) {
-    return this.paymentsService.createIntent(req.user.sub, dto)
+  constructor(private paymentsService: PaymentsService) {}
+
+  @Post('webhook/stripe')
+  async handleStripeWebhook(@Body() event: any, @Headers('stripe-signature') signature: string) {
+    try {
+      // TODO: Verify stripe signature
+      await this.paymentsService.handleStripeWebhook(event)
+      return ApiResponseDto.ok(null, 'Webhook processed')
+    } catch (error) {
+      this.logger.error('Error processing Stripe webhook:', error)
+      throw error
+    }
   }
 
-  @Post('webhook')
-  handleWebhook(@Body() body: any) {
-    return { success: true }
+  @Post('webhook/flutterwave')
+  async handleFlutterwaveWebhook(@Body() event: any) {
+    try {
+      await this.paymentsService.handleFlutterwaveWebhook(event)
+      return ApiResponseDto.ok(null, 'Webhook processed')
+    } catch (error) {
+      this.logger.error('Error processing Flutterwave webhook:', error)
+      throw error
+    }
+  }
+
+  @Post('webhook/paypal')
+  async handlePayPalWebhook(@Body() event: any) {
+    try {
+      await this.paymentsService.handlePayPalWebhook(event)
+      return ApiResponseDto.ok(null, 'Webhook processed')
+    } catch (error) {
+      this.logger.error('Error processing PayPal webhook:', error)
+      throw error
+    }
   }
 }
