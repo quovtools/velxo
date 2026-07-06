@@ -1,6 +1,6 @@
 import { Injectable, Logger } from '@nestjs/common'
 import { PrismaService } from '@/common/services/prisma.service'
-import { ListingStatus, OrderStatus } from '@prisma/client'
+import { ListingStatus, OrderStatus, AuditAction } from '@prisma/client'
 
 @Injectable()
 export class AdminService {
@@ -35,7 +35,7 @@ export class AdminService {
     ])
 
     const avgOrderValue =
-      completedOrders > 0 ? (totalRevenue._sum.totalAmount || 0) / completedOrders : 0
+      completedOrders > 0 ? Number(totalRevenue._sum.totalAmount || 0) / completedOrders : 0
 
     return {
       totalUsers,
@@ -180,7 +180,7 @@ export class AdminService {
     }
   }
 
-  async createAuditLog(actorId: string, action: string, entityType: string, entityId: string, oldValue?: any, newValue?: any) {
+  async createAuditLog(actorId: string, action: AuditAction, entityType: string, entityId: string, oldValue?: any, newValue?: any) {
     return this.prisma.adminAuditLogs.create({
       data: {
         actorId,

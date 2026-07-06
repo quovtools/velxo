@@ -1,4 +1,4 @@
-import { IsEnum, IsOptional, MaxLength, IsNumber, Min } from 'class-validator'
+import { IsEnum, IsOptional, MaxLength, IsNumber, Min, IsString } from 'class-validator'
 import { DisputeResolutionType } from '@prisma/client'
 
 export class ResolveDisputeDto {

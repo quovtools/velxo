@@ -176,7 +176,7 @@ export class EscrowService {
         order: {
           include: {
             buyer: { select: { id: true, email: true } },
-            seller: { select: { userId: true } },
+            seller: { select: { id: true } },
           },
         },
       },
