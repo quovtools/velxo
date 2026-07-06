@@ -149,8 +149,8 @@ export default function OrderDetailPage() {
           <Card className="p-6 bg-zinc-900 border-zinc-800 mb-8">
             <h2 className="text-lg font-semibold mb-4">Product Information</h2>
             <div className="flex gap-6">
-              {order.listing.image && (
-                <img src={order.listing.image} alt={order.listing.title} className="w-32 h-32 rounded-lg object-cover" />
+              {order.listing.images?.[0] && (
+                <img src={order.listing.images[0]} alt={order.listing.title} className="w-32 h-32 rounded-lg object-cover" />
               )}
               <div className="flex-1">
                 <h3 className="text-xl font-bold mb-2">{order.listing.title}</h3>

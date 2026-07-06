@@ -180,46 +180,11 @@ export default function ListingDetailPage() {
             </Card>
 
             {/* Delivery info */}
-            {product.deliveryTime && (
-              <Card className="mt-4 p-4 border-zinc-700 bg-zinc-900/50">
-                <div className="flex gap-3">
-                  <Clock className="w-5 h-5 text-blue-400 flex-shrink-0" />
-                  <div className="text-sm">
-                    <div className="font-semibold mb-1">Delivery Time</div>
-                    <p className="text-zinc-400">Usually within {product.deliveryTime} minutes</p>
-                  </div>
-                </div>
-              </Card>
-            )}
+            {/* Delivery time not available in current schema - can be added later */}
           </div>
         </div>
 
-        {/* Reviews section */}
-        {product.listingReviews && product.listingReviews.length > 0 && (
-          <Card className="mt-12 p-6 border-zinc-700 bg-zinc-900/50">
-            <h2 className="text-xl font-bold mb-6">Reviews</h2>
-            <div className="space-y-4">
-              {product.listingReviews.slice(0, 5).map((review) => (
-                <div key={review.id} className="border-t border-zinc-700 pt-4 first:border-0 first:pt-0">
-                  <div className="flex justify-between mb-2">
-                    <div className="font-semibold">{review.buyer?.firstName} {review.buyer?.lastName}</div>
-                    <div className="flex">
-                      {[...Array(5)].map((_, i) => (
-                        <span
-                          key={i}
-                          className={i < review.rating ? 'text-yellow-400' : 'text-zinc-600'}
-                        >
-                          ★
-                        </span>
-                      ))}
-                    </div>
-                  </div>
-                  <p className="text-sm text-zinc-300">{review.comment}</p>
-                </div>
-              ))}
-            </div>
-          </Card>
-        )}
+        {/* Reviews section - can be implemented when reviews API is available */}
       </div>
 
       <Footer />
