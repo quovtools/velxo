@@ -167,8 +167,8 @@ export default function OrderDetailPage() {
             <h2 className="text-lg font-semibold mb-4">Seller Information</h2>
             <div className="flex items-center gap-4">
               <div>
-                <p className="text-lg font-semibold">{order.seller.storeName}</p>
-                <p className="text-zinc-400">Rating: ⭐ {order.seller.averageRating.toFixed(1)}/5</p>
+                <p className="text-lg font-semibold">{order.seller.username}</p>
+                <p className="text-zinc-400">Rating: ⭐ {order.seller.rating.toFixed(1)}/5</p>
               </div>
             </div>
           </Card>
