@@ -1,20 +1,126 @@
-import { Controller, Get, Post, UseGuards, Body, Param, Request } from '@nestjs/common'
+import {
+  Controller,
+  Get,
+  Post,
+  Patch,
+  Delete,
+  Body,
+  Param,
+  Query,
+  UseGuards,
+  Logger,
+} from '@nestjs/common'
 import { MessagesService } from './messages.service'
-import { JwtAuthGuard } from '../../common/guards/jwt-auth.guard'
+import { SupabaseJwtGuard } from '@/common/guards/supabase-jwt.guard'
+import { CurrentUserId } from '@/common/decorators/current-user.decorator'
+import { ApiResponseDto } from '@/common/dto/api-response.dto'
 
-@Controller('messages')
+@Controller('api/v1/messages')
 export class MessagesController {
-  constructor(private readonly messagesService: MessagesService) {}
+  private readonly logger = new Logger(MessagesController.name)
 
-  @Get('conversation/:conversationId')
-  @UseGuards(JwtAuthGuard)
-  findConversation(@Param('conversationId') conversationId: string) {
-    return this.messagesService.findConversation(conversationId)
+  constructor(private messagesService: MessagesService) {}
+
+  @Get()
+  @UseGuards(SupabaseJwtGuard)
+  async getConversations(@CurrentUserId() userId: string, @Query('limit') limit?: number) {
+    try {
+      const conversations = await this.messagesService.getConversations(userId, limit)
+      return ApiResponseDto.ok(conversations, 'Conversations retrieved')
+    } catch (error) {
+      this.logger.error('Error fetching conversations:', error)
+      throw error
+    }
   }
 
-  @Post('send')
-  @UseGuards(JwtAuthGuard)
-  send(@Request() req, @Body() dto: any) {
-    return this.messagesService.send(req.user.sub, dto)
+  @Get('unread-count')
+  @UseGuards(SupabaseJwtGuard)
+  async getUnreadCount(@CurrentUserId() userId: string) {
+    try {
+      const result = await this.messagesService.getUnreadCount(userId)
+      return ApiResponseDto.ok(result, 'Unread count retrieved')
+    } catch (error) {
+      this.logger.error('Error fetching unread count:', error)
+      throw error
+    }
+  }
+
+  @Get('conversation/:conversationId')
+  @UseGuards(SupabaseJwtGuard)
+  async getConversationMessages(
+    @Param('conversationId') conversationId: string,
+    @Query('limit') limit?: number,
+  ) {
+    try {
+      const messages = await this.messagesService.getConversationMessages(conversationId, limit)
+      return ApiResponseDto.ok(messages, 'Messages retrieved')
+    } catch (error) {
+      this.logger.error('Error fetching messages:', error)
+      throw error
+    }
+  }
+
+  @Post('conversation/:conversationId/send')
+  @UseGuards(SupabaseJwtGuard)
+  async sendMessage(
+    @Param('conversationId') conversationId: string,
+    @CurrentUserId() senderId: string,
+    @Body('content') content: string,
+    @Body('attachments') attachments?: string[],
+  ) {
+    try {
+      const message = await this.messagesService.sendMessage(
+        conversationId,
+        senderId,
+        content,
+        attachments,
+      )
+      return ApiResponseDto.ok(message, 'Message sent successfully')
+    } catch (error) {
+      this.logger.error('Error sending message:', error)
+      throw error
+    }
+  }
+
+  @Patch('conversation/:conversationId/mark-read')
+  @UseGuards(SupabaseJwtGuard)
+  async markAsRead(
+    @Param('conversationId') conversationId: string,
+    @CurrentUserId() userId: string,
+  ) {
+    try {
+      await this.messagesService.markMessagesAsRead(conversationId, userId)
+      return ApiResponseDto.ok(null, 'Messages marked as read')
+    } catch (error) {
+      this.logger.error('Error marking messages as read:', error)
+      throw error
+    }
+  }
+
+  @Delete('message/:messageId')
+  @UseGuards(SupabaseJwtGuard)
+  async deleteMessage(@Param('messageId') messageId: string, @CurrentUserId() userId: string) {
+    try {
+      await this.messagesService.deleteMessage(messageId, userId)
+      return ApiResponseDto.ok(null, 'Message deleted')
+    } catch (error) {
+      this.logger.error('Error deleting message:', error)
+      throw error
+    }
+  }
+
+  @Patch('conversation/:conversationId/block')
+  @UseGuards(SupabaseJwtGuard)
+  async blockConversation(
+    @Param('conversationId') conversationId: string,
+    @CurrentUserId() userId: string,
+  ) {
+    try {
+      const conversation = await this.messagesService.blockConversation(conversationId, userId)
+      return ApiResponseDto.ok(conversation, 'Conversation blocked')
+    } catch (error) {
+      this.logger.error('Error blocking conversation:', error)
+      throw error
+    }
   }
 }

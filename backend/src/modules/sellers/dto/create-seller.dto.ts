@@ -1,12 +1,34 @@
-import { ApiProperty } from '@nestjs/swagger'
-import { IsString, IsOptional, IsEnum } from 'class-validator'
-import { ListingStatus } from '@prisma/client'
+import { IsString, IsOptional, MaxLength, MinLength } from 'class-validator'
 
 export class CreateSellerDto {
-  @ApiProperty() @IsString() storeName: string
-  @ApiProperty({ required: false }) @IsOptional() storeDescription?: string
+  @IsString()
+  @MinLength(3)
+  @MaxLength(100)
+  storeName: string
+
+  @IsString()
+  @IsOptional()
+  @MaxLength(1000)
+  storeDescription?: string
 }
 
 export class UpdateSellerDto {
-  @ApiProperty() update: any
+  @IsString()
+  @IsOptional()
+  @MinLength(3)
+  @MaxLength(100)
+  storeName?: string
+
+  @IsString()
+  @IsOptional()
+  @MaxLength(1000)
+  storeDescription?: string
+}
+
+export class UploadVerificationDocumentsDto {
+  @IsString()
+  documentType: string // 'id', 'proof_of_address', 'business_license'
+
+  @IsString()
+  documentUrl: string // URL from Supabase storage
 }
