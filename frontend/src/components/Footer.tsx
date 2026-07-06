@@ -18,8 +18,8 @@ const footerLinks = {
     links: [
       { name: 'Start Selling', href: '/sell' },
       { name: 'Seller Dashboard', href: '/seller/dashboard' },
-      { name: 'Seller Guidelines', href: '/support' },
-      { name: 'Pricing & Fees', href: '/support' },
+      { name: 'Seller Guidelines', href: '/seller/guidelines' },
+      { name: 'Pricing & Fees', href: '/pricing' },
       { name: 'Boost Your Listing', href: '/sell' },
     ],
   },
@@ -27,20 +27,20 @@ const footerLinks = {
     label: 'Support',
     links: [
       { name: 'Help Center', href: '/support' },
-      { name: 'Dispute Resolution', href: '/support' },
-      { name: 'How Escrow Works', href: '/support' },
-      { name: 'Report a Problem', href: '/support' },
-      { name: 'Contact Us', href: '/support' },
+      { name: 'Dispute Resolution', href: '/escrow#disputes' },
+      { name: 'How Escrow Works', href: '/escrow' },
+      { name: 'Report a Problem', href: '/support#report' },
+      { name: 'Contact Us', href: '/support#contact' },
     ],
   },
   company: {
     label: 'Company',
     links: [
-      { name: 'About Velxo', href: '/support' },
+      { name: 'About Velxo', href: '/about' },
       { name: 'Terms of Service', href: '/terms' },
       { name: 'Privacy Policy', href: '/privacy' },
-      { name: 'Cookie Policy', href: '/privacy' },
-      { name: 'Careers', href: '/support' },
+      { name: 'Cookie Policy', href: '/privacy#cookies' },
+      { name: 'Careers', href: '/careers' },
     ],
   },
 };
