@@ -31,7 +31,7 @@ const steps = [
     step: '05',
     icon: <Banknote className="w-6 h-6 text-brand" />,
     title: 'Seller Gets Paid',
-    desc: 'The funds (minus the 2% service fee) are credited to the seller\'s Velxo wallet, ready for withdrawal.',
+    desc: 'The funds (minus the 10% service fee) are credited to the seller\'s Velxo wallet, ready for withdrawal.',
   },
 ];
 
@@ -68,7 +68,7 @@ const faqs = [
   },
   {
     q: 'What is the escrow service fee?',
-    a: 'Velxo charges a 2% service fee on each completed transaction, deducted from the seller\'s payout. There are no fees for buyers.',
+    a: 'Velxo charges a 10% service fee on each completed transaction, deducted from the seller\'s payout. There are no fees for buyers.',
   },
   {
     q: 'Is my payment safe?',

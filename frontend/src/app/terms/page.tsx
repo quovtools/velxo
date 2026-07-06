@@ -24,7 +24,7 @@ const sections = [
   },
   {
     title: '6. Escrow Service',
-    content: `Velxo Escrow holds buyer payments until the buyer confirms delivery or a dispute is resolved. A 2% escrow service fee is deducted from each completed transaction. Velxo acts as an independent intermediary and does not take sides in disputes. All dispute decisions made by Velxo moderation are final. Funds held in escrow are not interest-bearing.`,
+    content: `Velxo Escrow holds buyer payments until the buyer confirms delivery or a dispute is resolved. A 10% escrow service fee is deducted from each completed transaction. Velxo acts as an independent intermediary and does not take sides in disputes. All dispute decisions made by Velxo moderation are final. Funds held in escrow are not interest-bearing.`,
   },
   {
     title: '7. Prohibited Activities',
@@ -32,7 +32,7 @@ const sections = [
   },
   {
     title: '8. Fees & Payments',
-    content: `Velxo charges a 2% service fee on each completed sale, deducted from the seller's payout. There are no listing fees. Payouts to sellers are processed within 1–3 business days of escrow release. Payment processing is handled by Paystack, Flutterwave, and supported crypto providers. Velxo is not responsible for delays caused by third-party payment processors.`,
+    content: `Velxo charges a 10% service fee on each completed sale, deducted from the seller's payout. There are no listing fees. Payouts to sellers are processed within 1–3 business days of escrow release. Payment processing is handled by Paystack, Flutterwave, and supported crypto providers. Velxo is not responsible for delays caused by third-party payment processors.`,
   },
   {
     title: '9. Dispute Resolution',

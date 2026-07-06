@@ -17,18 +17,18 @@ const sellerFeatures = [
   { text: 'Seller dashboard & analytics', included: true },
   { text: 'Reputation & review system', included: true },
   { text: 'Wallet with fast withdrawals', included: true },
-  { text: '2% service fee per sale only', included: true },
+  { text: '10% service fee per sale only', included: true },
   { text: 'No monthly subscription', included: true },
   { text: 'No listing fees', included: true },
 ];
 
 const feeExamples = [
-  { salePrice: 10, fee: 0.20, payout: 9.80 },
-  { salePrice: 25, fee: 0.50, payout: 24.50 },
-  { salePrice: 50, fee: 1.00, payout: 49.00 },
-  { salePrice: 100, fee: 2.00, payout: 98.00 },
-  { salePrice: 250, fee: 5.00, payout: 245.00 },
-  { salePrice: 500, fee: 10.00, payout: 490.00 },
+  { salePrice: 10, fee: 1.00, payout: 9.00 },
+  { salePrice: 25, fee: 2.50, payout: 22.50 },
+  { salePrice: 50, fee: 5.00, payout: 45.00 },
+  { salePrice: 100, fee: 10.00, payout: 90.00 },
+  { salePrice: 250, fee: 25.00, payout: 225.00 },
+  { salePrice: 500, fee: 50.00, payout: 450.00 },
 ];
 
 const paymentMethods = [
@@ -86,7 +86,7 @@ export default function PricingPage() {
           <div>
             <p className="text-xs font-bold text-gray-500 uppercase tracking-wider">For Sellers</p>
             <div className="flex items-end gap-2 mt-1">
-              <h2 className="text-3xl font-extrabold text-white">2%</h2>
+              <h2 className="text-3xl font-extrabold text-white">10%</h2>
               <span className="text-gray-400 text-sm mb-1">per sale</span>
             </div>
             <p className="text-gray-400 text-sm mt-1">Only pay when you make money.</p>
@@ -115,7 +115,7 @@ export default function PricingPage() {
             <thead className="border-b border-borderBg">
               <tr className="text-xs text-gray-500 uppercase font-bold">
                 <th className="px-6 py-4 text-left">Sale Price</th>
-                <th className="px-6 py-4 text-left">Velxo Fee (2%)</th>
+                <th className="px-6 py-4 text-left">Velxo Fee (10%)</th>
                 <th className="px-6 py-4 text-left text-emerald-400">You Receive</th>
               </tr>
             </thead>
@@ -163,7 +163,7 @@ export default function PricingPage() {
         <div className="bg-cardBg border border-borderBg rounded-2xl p-5 text-center space-y-2">
           <Award className="w-7 h-7 text-brand mx-auto" />
           <p className="font-bold text-white text-sm">No Hidden Charges</p>
-          <p className="text-xs text-gray-400">2% fee and nothing more</p>
+          <p className="text-xs text-gray-400">10% fee and nothing more</p>
         </div>
       </div>
 

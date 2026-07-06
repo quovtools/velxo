@@ -25,7 +25,7 @@ const faqs = [
   },
   {
     q: 'What are the seller fees?',
-    a: 'Velxo charges a 2% escrow service fee on each completed transaction. There are no listing fees or monthly charges — you only pay when you make a sale.',
+    a: 'Velxo charges a 10% escrow service fee on each completed transaction. There are no listing fees or monthly charges — you only pay when you make a sale.',
   },
   {
     q: 'How do I withdraw my earnings?',

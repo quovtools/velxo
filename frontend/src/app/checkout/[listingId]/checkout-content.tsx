@@ -94,7 +94,7 @@ export default function CheckoutContent({ params }: { params: Promise<{ listingI
   }
 
   const subtotal = Number(listing.price);
-  const fee = subtotal * 0.02;
+  const fee = subtotal * 0.10; // 10% service fee
   const total = subtotal + fee;
 
   return (
@@ -192,7 +192,7 @@ export default function CheckoutContent({ params }: { params: Promise<{ listingI
                 <span className="text-white">${subtotal.toFixed(2)}</span>
               </div>
               <div className="flex justify-between">
-                <span>Escrow Service Fee (2%)</span>
+                <span>Escrow Service Fee (10%)</span>
                 <span className="text-white">${fee.toFixed(2)}</span>
               </div>
             </div>
