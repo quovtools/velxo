@@ -1,10 +1,13 @@
+export const dynamic = 'force-dynamic';
+
+export async function generateStaticParams() {
+  return [];
+}
+
 'use client';
 
 import React, { useState, useEffect, use } from 'react';
 import Link from 'next/link';
-
-// Disable static generation for this dynamic route
-export const dynamic = 'force-dynamic';
 
 interface Listing {
   id: string;
