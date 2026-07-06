@@ -1,8 +1,8 @@
 import type { Metadata } from "next";
 import "./globals.css";
 import { Providers } from "./providers";
-import Link from "next/link";
 import NavigationWrapper from "@/components/NavigationWrapper";
+import Footer from "@/components/Footer";
 
 export const metadata: Metadata = {
   title: "Velxo | No.1 Gaming Marketplace in Africa",
@@ -30,20 +30,7 @@ export default function RootLayout({
           <main className="flex-1 w-full max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-6">
             {children}
           </main>
-          <footer className="border-t border-borderBg bg-cardBg py-8 text-center text-gray-500 text-sm mt-12">
-            <div className="max-w-7xl mx-auto px-4 flex flex-col md:flex-row justify-between items-center gap-4">
-              <div>
-                <span className="text-white font-bold text-lg">Velxo</span>
-                <p className="mt-1 text-xs">Escrow-backed gaming marketplace</p>
-              </div>
-              <div className="flex gap-6">
-                <Link href="/terms" className="hover:text-white transition">Terms of Service</Link>
-                <Link href="/privacy" className="hover:text-white transition">Privacy Policy</Link>
-                <Link href="/support" className="hover:text-white transition">Support Center</Link>
-              </div>
-              <p className="text-xs">&copy; {new Date().getFullYear()} Velxo.shop. All rights reserved.</p>
-            </div>
-          </footer>
+          <Footer />
         </Providers>
       </body>
     </html>
