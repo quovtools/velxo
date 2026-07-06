@@ -1,20 +1,36 @@
-import { Controller, Get, Post, UseGuards, Body, Param, Request } from '@nestjs/common'
+import { Controller, Get, Logger, UseGuards } from '@nestjs/common'
 import { WalletService } from './wallet.service'
-import { JwtAuthGuard } from '@/modules/auth/guards/jwt-auth.guard'
+import { SupabaseJwtGuard } from '@/common/guards/supabase-jwt.guard'
+import { CurrentUserId } from '@/common/decorators/current-user.decorator'
+import { ApiResponseDto } from '@/common/dto/api-response.dto'
 
-@Controller('wallet')
+@Controller('api/v1/wallet')
 export class WalletController {
-  constructor(private readonly walletService: WalletService) {}
+  private readonly logger = new Logger(WalletController.name)
 
-  @Get(':userId')
-  @UseGuards(JwtAuthGuard)
-  async getBalance(@Param('userId') userId: string) {
-    return this.walletService.findByUser(userId)
+  constructor(private walletService: WalletService) {}
+
+  @Get()
+  @UseGuards(SupabaseJwtGuard)
+  async getWalletBalance(@CurrentUserId() userId: string) {
+    try {
+      const wallet = await this.walletService.getWalletBalance(userId)
+      return ApiResponseDto.ok(wallet, 'Wallet balance retrieved')
+    } catch (error) {
+      this.logger.error('Error fetching wallet:', error)
+      throw error
+    }
   }
 
-  @Post('withdraw')
-  @UseGuards(JwtAuthGuard)
-  async requestWithdrawal(@Request() req, @Body() dto: any) {
-    return this.walletService.requestWithdrawal(req.user.sub, dto)
+  @Get('transactions')
+  @UseGuards(SupabaseJwtGuard)
+  async getTransactionHistory(@CurrentUserId() userId: string) {
+    try {
+      const transactions = await this.walletService.getTransactionHistory(userId)
+      return ApiResponseDto.ok(transactions, 'Transactions retrieved')
+    } catch (error) {
+      this.logger.error('Error fetching transactions:', error)
+      throw error
+    }
   }
 }

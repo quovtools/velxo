@@ -1,5 +1,6 @@
-import { Module } from '@nestjs/common'
+import { Module, ValidationPipe } from '@nestjs/common'
 import { ConfigModule } from '@nestjs/config'
+import { APP_FILTER, APP_PIPE } from '@nestjs/core'
 import { PrismaModule } from './common/services/prisma.module'
 import { AuthModule } from './modules/auth/auth.module'
 import { UsersModule } from './modules/users/users.module'
@@ -7,7 +8,7 @@ import { SellersModule } from './modules/sellers/sellers.module'
 import { ListingsModule } from './modules/listings/listings.module'
 import { OrdersModule } from './modules/orders/orders.module'
 import { EscrowModule } from './modules/escrow/escrow.module'
-import { WalletsModule } from './modules/wallet/wallets.module'
+import { WalletModule } from './modules/wallet/wallet.module'
 import { PaymentsModule } from './modules/payments/payments.module'
 import { MessagesModule } from './modules/messages/messages.module'
 import { ReviewsModule } from './modules/reviews/reviews.module'
@@ -15,6 +16,7 @@ import { NotificationsModule } from './modules/notifications/notifications.modul
 import { DisputesModule } from './modules/disputes/disputes.module'
 import { SupportModule } from './modules/support/support.module'
 import { AdminModule } from './modules/admin/admin.module'
+import { AllExceptionsFilter } from './common/filters/all-exceptions.filter'
 
 @Module({
   imports: [
@@ -26,7 +28,7 @@ import { AdminModule } from './modules/admin/admin.module'
     ListingsModule,
     OrdersModule,
     EscrowModule,
-    WalletsModule,
+    WalletModule,
     PaymentsModule,
     MessagesModule,
     ReviewsModule,
@@ -34,6 +36,21 @@ import { AdminModule } from './modules/admin/admin.module'
     DisputesModule,
     SupportModule,
     AdminModule,
+  ],
+  providers: [
+    {
+      provide: APP_FILTER,
+      useClass: AllExceptionsFilter,
+    },
+    {
+      provide: APP_PIPE,
+      useValue: new ValidationPipe({
+        whitelist: true,
+        forbidNonWhitelisted: true,
+        transform: true,
+        transformOptions: { enableImplicitConversion: true },
+      }),
+    },
   ],
 })
 export class AppModule {}

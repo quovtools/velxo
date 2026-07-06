@@ -1,32 +1,130 @@
-import { Injectable, NotFoundException } from '@nestjs/common'
+import { Injectable, Logger } from '@nestjs/common'
 import { PrismaService } from '@/common/services/prisma.service'
-import { Prisma } from '@prisma/client'
+import { NotFoundException, InsufficientFundsException } from '@/common/exceptions/custom-exceptions'
+import { Decimal } from '@prisma/client/runtime/library'
 
 @Injectable()
 export class WalletService {
-  constructor(private readonly prisma: PrismaService) {}
+  private readonly logger = new Logger(WalletService.name)
 
-  async findByUser(userId: string) {
-    const wallet = await this.prisma.wallet.findUnique({ where: { userId } })
-    if (!wallet) throw new NotFoundException('Wallet not found')
-    return { success: true, data: wallet }
+  constructor(private prisma: PrismaService) {}
+
+  async getOrCreateWallet(userId: string) {
+    let wallet = await this.prisma.wallet.findUnique({
+      where: { userId },
+    })
+
+    if (!wallet) {
+      wallet = await this.prisma.wallet.create({
+        data: {
+          userId,
+          balance: new Decimal(0),
+          currency: 'USD',
+        },
+      })
+    }
+
+    return wallet
   }
 
-  async requestWithdrawal(userId: string, dto: any) {
-    const wallet = await this.prisma.wallet.findUnique({ where: { userId } })
-    if (!wallet || wallet.balance < dto.amount) throw new NotFoundException('Insufficient balance')
-    const withdrawal = await this.prisma.withdrawalRequests.create({ data: { ...dto, sellerId: userId, netAmount: dto.amount } })
-    const balanceAfter = new Prisma.Decimal(wallet.balance).minus(new Prisma.Decimal(dto.amount))
-    await this.prisma.walletTransactions.create({
-      data: {
-        walletId: wallet.id,
-        type: 'DEBIT',
-        amount: dto.amount,
-        description: 'Withdrawal',
-        relatedId: withdrawal.id,
-        balanceAfter,
-      },
+  async getWalletBalance(userId: string) {
+    const wallet = await this.prisma.wallet.findUnique({
+      where: { userId },
     })
-    return { success: true, data: withdrawal }
+
+    if (!wallet) {
+      throw new NotFoundException('Wallet')
+    }
+
+    return wallet
+  }
+
+  async creditBalance(userId: string, amount: Decimal, description: string, relatedId?: string) {
+    this.logger.log(`Crediting ${amount} to user ${userId}`)
+
+    return await this.prisma.$transaction(async (tx) => {
+      const wallet = await tx.wallet.findUnique({
+        where: { userId },
+      })
+
+      if (!wallet) {
+        throw new NotFoundException('Wallet')
+      }
+
+      const newBalance = wallet.balance.plus(amount)
+
+      await tx.wallet.update({
+        where: { userId },
+        data: {
+          balance: newBalance,
+          totalEarnings: wallet.totalEarnings.plus(amount),
+        },
+      })
+
+      await tx.walletTransactions.create({
+        data: {
+          walletId: wallet.id,
+          type: 'CREDIT',
+          amount,
+          currency: wallet.currency,
+          balanceAfter: newBalance,
+          description,
+          relatedId,
+        },
+      })
+
+      return newBalance
+    })
+  }
+
+  async debitBalance(userId: string, amount: Decimal, description: string, relatedId?: string) {
+    this.logger.log(`Debiting ${amount} from user ${userId}`)
+
+    return await this.prisma.$transaction(async (tx) => {
+      const wallet = await tx.wallet.findUnique({
+        where: { userId },
+      })
+
+      if (!wallet) {
+        throw new NotFoundException('Wallet')
+      }
+
+      if (wallet.balance.lessThan(amount)) {
+        throw new InsufficientFundsException('Insufficient wallet balance')
+      }
+
+      const newBalance = wallet.balance.minus(amount)
+
+      await tx.wallet.update({
+        where: { userId },
+        data: {
+          balance: newBalance,
+        },
+      })
+
+      await tx.walletTransactions.create({
+        data: {
+          walletId: wallet.id,
+          type: 'DEBIT',
+          amount,
+          currency: wallet.currency,
+          balanceAfter: newBalance,
+          description,
+          relatedId,
+        },
+      })
+
+      return newBalance
+    })
+  }
+
+  async getTransactionHistory(userId: string, limit: number = 50) {
+    const wallet = await this.getWalletBalance(userId)
+
+    return this.prisma.walletTransactions.findMany({
+      where: { walletId: wallet.id },
+      orderBy: { createdAt: 'desc' },
+      take: limit,
+    })
   }
 }

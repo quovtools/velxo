@@ -1,26 +1,70 @@
-import { Controller, Get, Post, UseGuards, Body, Param, Request } from '@nestjs/common'
+import {
+  Controller,
+  Get,
+  Post,
+  Body,
+  Param,
+  UseGuards,
+  Logger,
+  Patch,
+} from '@nestjs/common'
 import { OrdersService } from './orders.service'
 import { CreateOrderDto } from './dto/create-order.dto'
-import { JwtAuthGuard } from '../../common/guards/jwt-auth.guard'
+import { SupabaseJwtGuard } from '@/common/guards/supabase-jwt.guard'
+import { CurrentUserId } from '@/common/decorators/current-user.decorator'
+import { ApiResponseDto } from '@/common/dto/api-response.dto'
 
-@Controller('orders')
+@Controller('api/v1/orders')
 export class OrdersController {
-  constructor(private readonly ordersService: OrdersService) {}
+  private readonly logger = new Logger(OrdersController.name)
+
+  constructor(private ordersService: OrdersService) {}
 
   @Post()
-  @UseGuards(JwtAuthGuard)
-  create(@Request() req, @Body() dto: CreateOrderDto) {
-    return this.ordersService.create(req.user.sub, dto)
+  @UseGuards(SupabaseJwtGuard)
+  async createOrder(@CurrentUserId() buyerId: string, @Body() dto: CreateOrderDto) {
+    try {
+      const order = await this.ordersService.createOrder(buyerId, dto)
+      return ApiResponseDto.ok(order, 'Order created successfully')
+    } catch (error) {
+      this.logger.error('Error creating order:', error)
+      throw error
+    }
   }
 
   @Get('me')
-  @UseGuards(JwtAuthGuard)
-  findMyOrders(@Request() req) {
-    return this.ordersService.findByUser(req.user.sub)
+  @UseGuards(SupabaseJwtGuard)
+  async getMyOrders(@CurrentUserId() buyerId: string) {
+    try {
+      const orders = await this.ordersService.getBuyerOrders(buyerId)
+      return ApiResponseDto.ok(orders, 'Orders retrieved successfully')
+    } catch (error) {
+      this.logger.error('Error fetching orders:', error)
+      throw error
+    }
   }
 
   @Get(':id')
-  findOne(@Param('id') id: string) {
-    return this.ordersService.findById(id)
+  @UseGuards(SupabaseJwtGuard)
+  async getOrderById(@Param('id') orderId: string, @CurrentUserId() userId: string) {
+    try {
+      const order = await this.ordersService.getOrderById(orderId, userId)
+      return ApiResponseDto.ok(order, 'Order retrieved successfully')
+    } catch (error) {
+      this.logger.error('Error fetching order:', error)
+      throw error
+    }
+  }
+
+  @Patch(':id/confirm-delivery')
+  @UseGuards(SupabaseJwtGuard)
+  async confirmDelivery(@Param('id') orderId: string, @CurrentUserId() buyerId: string) {
+    try {
+      const order = await this.ordersService.confirmDelivery(orderId, buyerId)
+      return ApiResponseDto.ok(order, 'Delivery confirmed successfully')
+    } catch (error) {
+      this.logger.error('Error confirming delivery:', error)
+      throw error
+    }
   }
 }

@@ -1,56 +1,234 @@
-import { Injectable, NotFoundException, BadRequestException } from '@nestjs/common'
-import { PrismaService } from '../../common/services/prisma.service'
+import { Injectable, Logger } from '@nestjs/common'
+import { PrismaService } from '@/common/services/prisma.service'
+import { CreateOrderDto } from './dto/create-order.dto'
+import {
+  NotFoundException,
+  ForbiddenException,
+  InsufficientFundsException,
+  InvalidEscrowStateException,
+} from '@/common/exceptions/custom-exceptions'
+import { OrderStatus, EscrowStatus } from '@prisma/client'
 import { Decimal } from '@prisma/client/runtime/library'
 
 @Injectable()
 export class OrdersService {
-  constructor(private readonly prisma: PrismaService) {}
+  private readonly logger = new Logger(OrdersService.name)
+  private readonly COMMISSION_RATE = 0.1 // 10%
 
-  async create(buyerId: string, dto: any) {
-    return this.prisma.$transaction(async tx => {
-      const listing = await tx.listings.findUnique({ where: { id: dto.listingId } })
-      if (!listing) throw new NotFoundException('Listing not found')
-      if (listing.status !== 'ACTIVE') throw new BadRequestException('Listing is not available')
+  constructor(private prisma: PrismaService) {}
 
-      const price = listing.price
-      const commissionRate = new Decimal('0.10')
-      const commissionAmount = price.mul(commissionRate)
-      const sellerPayout = price.sub(commissionAmount)
+  async createOrder(buyerId: string, dto: CreateOrderDto) {
+    this.logger.log(`Creating order for buyer ${buyerId}`)
 
-      const order = await tx.orders.create({
+    // Validate listing
+    const listing = await this.prisma.listings.findUnique({
+      where: { id: dto.listingId },
+      include: { seller: true },
+    })
+
+    if (!listing) {
+      throw new NotFoundException('Listing')
+    }
+
+    if (listing.sellerId === buyerId) {
+      throw new ForbiddenException('Cannot purchase your own listing')
+    }
+
+    // Calculate amounts
+    const subtotal = new Decimal(listing.price).times(dto.quantity)
+    const commissionAmount = subtotal.times(this.COMMISSION_RATE)
+    const sellerPayout = subtotal.minus(commissionAmount)
+
+    // Create order in a transaction
+    const order = await this.prisma.$transaction(async (tx) => {
+      const newOrder = await tx.orders.create({
         data: {
+          orderNumber: `ORD-${Date.now()}-${Math.random().toString(36).substr(2, 9).toUpperCase()}`,
           buyerId,
           sellerId: listing.sellerId,
-          totalAmount: price,
-          subtotal: price,
-          commissionRate,
+          subtotal,
+          totalAmount: subtotal,
+          commissionRate: new Decimal(this.COMMISSION_RATE),
           commissionAmount,
           sellerPayout,
           currency: listing.currency,
-          status: 'PENDING',
+          buyerNote: dto.buyerNote,
+          status: OrderStatus.PENDING,
+          orderItems: {
+            create: {
+              listingId: dto.listingId,
+              quantity: dto.quantity,
+              unitPrice: listing.price,
+              totalPrice: subtotal,
+            },
+          },
+          escrow: {
+            create: {
+              amount: subtotal,
+              currency: listing.currency,
+              status: EscrowStatus.HELD,
+            },
+          },
+        },
+        include: {
+          orderItems: { include: { listing: true } },
+          escrow: true,
+          buyer: true,
+          seller: { include: { user: true } },
         },
       })
 
-      await tx.orderItems.create({
-        data: { orderId: order.id, listingId: listing.id, quantity: 1, unitPrice: price, totalPrice: price },
+      // Create commission record
+      await tx.commissions.create({
+        data: {
+          orderId: newOrder.id,
+          sellerId: listing.sellerId,
+          rate: new Decimal(this.COMMISSION_RATE),
+          amount: commissionAmount,
+          currency: listing.currency,
+        },
       })
 
-      await tx.escrowTransactions.create({
-        data: { orderId: order.id, amount: price, currency: listing.currency, status: 'HELD' },
+      // Increment listing sales count
+      await tx.listings.update({
+        where: { id: dto.listingId },
+        data: { salesCount: { increment: 1 } },
       })
 
-      return { success: true, data: order }
+      return newOrder
+    })
+
+    return order
+  }
+
+  async getOrderById(orderId: string, userId: string) {
+    const order = await this.prisma.orders.findUnique({
+      where: { id: orderId },
+      include: {
+        buyer: true,
+        seller: { include: { user: true } },
+        orderItems: { include: { listing: true } },
+        escrow: true,
+        payments: true,
+        disputes: true,
+      },
+    })
+
+    if (!order) {
+      throw new NotFoundException('Order')
+    }
+
+    // Authorize access
+    if (order.buyerId !== userId && order.sellerId !== userId) {
+      throw new ForbiddenException('You do not have access to this order')
+    }
+
+    return order
+  }
+
+  async confirmDelivery(orderId: string, buyerId: string) {
+    this.logger.log(`Confirming delivery for order ${orderId}`)
+
+    const order = await this.prisma.orders.findUnique({
+      where: { id: orderId },
+      include: { escrow: true },
+    })
+
+    if (!order) {
+      throw new NotFoundException('Order')
+    }
+
+    if (order.buyerId !== buyerId) {
+      throw new ForbiddenException('Only the buyer can confirm delivery')
+    }
+
+    if (order.status !== OrderStatus.IN_PROGRESS) {
+      throw new InvalidEscrowStateException('Order is not in progress')
+    }
+
+    // Release escrow and complete order
+    return await this.prisma.$transaction(async (tx) => {
+      // Update escrow
+      await tx.escrowTransactions.update({
+        where: { id: order.escrow.id },
+        data: {
+          status: EscrowStatus.RELEASED,
+          releasedAt: new Date(),
+        },
+      })
+
+      // Update order
+      const updatedOrder = await tx.orders.update({
+        where: { id: orderId },
+        data: {
+          status: OrderStatus.COMPLETED,
+          completedAt: new Date(),
+          paidAt: new Date(),
+        },
+        include: {
+          buyer: true,
+          seller: { include: { user: true } },
+          orderItems: { include: { listing: true } },
+        },
+      })
+
+      // Credit seller wallet
+      const seller = await tx.sellers.findUnique({
+        where: { userId: order.sellerId },
+        include: { user: true },
+      })
+
+      if (seller) {
+        await tx.walletTransactions.create({
+          data: {
+            walletId: seller.user.id, // FIXME: Link properly
+            type: 'CREDIT',
+            amount: order.sellerPayout,
+            currency: order.currency,
+            balanceAfter: new Decimal(0), // TODO: Calculate from wallet balance
+            description: `Payment for order ${order.orderNumber}`,
+            relatedId: orderId,
+          },
+        })
+      }
+
+      // Record commission
+      await tx.commissions.update({
+        where: {
+          orderId_sellerId: {
+            orderId,
+            sellerId: order.sellerId,
+          },
+        },
+        data: {
+          status: 'PAID',
+          paidAt: new Date(),
+        },
+      })
+
+      return updatedOrder
     })
   }
 
-  async findById(id: string) {
-    const order = await this.prisma.orders.findUnique({ where: { id }, include: { orderItems: true, escrow: true } })
-    if (!order) throw new NotFoundException('Order not found')
-    return { success: true, data: order }
+  async getBuyerOrders(buyerId: string) {
+    return this.prisma.orders.findMany({
+      where: { buyerId },
+      include: {
+        seller: { include: { user: true } },
+        orderItems: { include: { listing: true } },
+      },
+      orderBy: { createdAt: 'desc' },
+    })
   }
 
-  async findByUser(userId: string) {
-    const orders = await this.prisma.orders.findMany({ where: { buyerId: userId }, take: 50, orderBy: { createdAt: 'desc' } })
-    return { success: true, data: orders }
+  async getSellerOrders(sellerId: string) {
+    return this.prisma.orders.findMany({
+      where: { sellerId },
+      include: {
+        buyer: true,
+        orderItems: { include: { listing: true } },
+      },
+      orderBy: { createdAt: 'desc' },
+    })
   }
 }
