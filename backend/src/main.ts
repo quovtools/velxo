@@ -1,6 +1,7 @@
 import { NestFactory } from '@nestjs/core'
 import { AppModule } from './app.module'
 import { ValidationPipe } from '@nestjs/common'
+import { RequestMethod } from '@nestjs/common'
 import helmet from 'helmet'
 import rateLimit from 'express-rate-limit'
 
@@ -31,7 +32,10 @@ async function bootstrap() {
   )
 
   app.setGlobalPrefix('api/v1', {
-    exclude: ['/'],
+    exclude: [
+      { path: '/', method: RequestMethod.GET },
+      { path: '/', method: RequestMethod.HEAD },
+    ],
   })
 
   const port = process.env.PORT || 3001

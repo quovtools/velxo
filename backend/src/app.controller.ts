@@ -9,7 +9,9 @@ export class AppController {
     return {
       status: 'ok',
       service: 'Velxo API',
+      version: '1.0.0',
       timestamp: new Date().toISOString(),
+      uptime: process.uptime(),
     }
   }
 
