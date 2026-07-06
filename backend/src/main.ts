@@ -30,7 +30,9 @@ async function bootstrap() {
     }),
   )
 
-  app.setGlobalPrefix('api/v1')
+  app.setGlobalPrefix('api/v1', {
+    exclude: ['/'],
+  })
 
   const port = process.env.PORT || 3001
   const nodeEnv = process.env.NODE_ENV || 'development'

@@ -1,16 +1,21 @@
-import { Controller, Get, HttpCode, HttpStatus, Head } from '@nestjs/common';
+import { Controller, Get, Head, HttpCode, HttpStatus, Res } from '@nestjs/common'
+import { Response } from 'express'
 
 @Controller()
 export class AppController {
   @Get()
   @HttpCode(HttpStatus.OK)
   healthCheck() {
-    return { status: 'ok', timestamp: new Date().toISOString() };
+    return {
+      status: 'ok',
+      service: 'Velxo API',
+      timestamp: new Date().toISOString(),
+    }
   }
 
   @Head()
   @HttpCode(HttpStatus.OK)
-  healthCheckHead() {
-    return;
+  healthCheckHead(@Res() res: Response) {
+    res.status(HttpStatus.OK).end()
   }
 }
