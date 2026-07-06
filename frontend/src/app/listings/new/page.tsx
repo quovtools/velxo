@@ -1,47 +1,24 @@
-"use client"
-import { useState } from 'react'
+'use client'
+
+import { useEffect, useState } from 'react'
 import { useRouter } from 'next/navigation'
-import { Card } from '@/components/ui/card'
-import { Input } from '@/components/ui/input'
+import { useAuth } from '@/hooks/useAuth'
+import { apiCall } from '@/hooks/useApi'
+import { Header } from '@/components/layout/header'
+import { Footer } from '@/components/layout/footer'
 import { Button } from '@/components/ui/button'
-import { useApi, apiCall } from '@/hooks/useApi'
-import { ListingType } from '@/types'
-import Link from 'next/link'
-import { ChevronRight, Upload, X } from 'lucide-react'
-
-const GAMES = [
-  'Valorant',
-  'CS:GO',
-  'League of Legends',
-  'Dota 2',
-  'Fortnite',
-  'Minecraft',
-  'Steam',
-  'Epic Games',
-]
-
-const PLATFORMS = ['PC', 'PS5', 'Xbox', 'Nintendo Switch', 'Mobile']
-
-const LISTING_TYPES: { value: ListingType; label: string }[] = [
-  { value: 'account', label: 'Account' },
-  { value: 'coins', label: 'Coins/Currency' },
-  { value: 'topup', label: 'Top-up' },
-  { value: 'boost', label: 'Boost/Leveling' },
-  { value: 'gift_card', label: 'Gift Card' },
-  { value: 'service', label: 'Service' },
-]
+import { Card } from '@/components/ui/card'
+import { GAMES, LISTING_TYPES, PLATFORMS } from '@/lib/constants'
+import { Upload, Loader2 } from 'lucide-react'
 
 export default function CreateListingPage() {
   const router = useRouter()
-  const [isSubmitting, setIsSubmitting] = useState(false)
-  const [images, setImages] = useState<File[]>([])
-  const [previewUrls, setPreviewUrls] = useState<string[]>([])
-
+  const { user, isAuthenticated, isLoading } = useAuth()
   const [formData, setFormData] = useState({
     title: '',
     description: '',
-    type: 'account' as ListingType,
     game: '',
+    type: '',
     platform: '',
     price: '',
     quantity: '1',
@@ -49,290 +26,255 @@ export default function CreateListingPage() {
     rank: '',
     level: '',
   })
+  const [isSaving, setIsSaving] = useState(false)
 
-  const handleImageChange = (e: React.ChangeEvent<HTMLInputElement>) => {
-    const files = Array.from(e.target.files || [])
-    const newImages = [...images, ...files].slice(0, 5)
-    setImages(newImages)
-
-    const urls = newImages.map(file => URL.createObjectURL(file))
-    setPreviewUrls(urls)
-  }
-
-  const removeImage = (index: number) => {
-    const newImages = images.filter((_, i) => i !== index)
-    setImages(newImages)
-    
-    const newUrls = previewUrls.filter((_, i) => i !== index)
-    setPreviewUrls(newUrls)
-  }
+  useEffect(() => {
+    if (!isLoading && !isAuthenticated) {
+      router.push('/auth/login')
+    }
+    if (!isLoading && isAuthenticated && user?.role !== 'seller') {
+      router.push('/profile')
+    }
+  }, [isAuthenticated, isLoading, user, router])
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault()
-    
-    if (!formData.title || !formData.description || !formData.price || !formData.game) {
-      alert('Please fill in all required fields')
-      return
-    }
-
-    setIsSubmitting(true)
+    setIsSaving(true)
     try {
-      const listingData = {
-        ...formData,
-        price: parseFloat(formData.price),
-        quantity: parseInt(formData.quantity),
-      }
-
-      await apiCall('/listings', {
+      const response = await apiCall('/listings', {
         method: 'POST',
-        body: listingData,
+        body: {
+          ...formData,
+          price: parseFloat(formData.price),
+          quantity: parseInt(formData.quantity),
+        },
       })
-
-      alert('Listing created successfully!')
-      router.push('/seller/dashboard')
-    } catch (err) {
-      alert(err instanceof Error ? err.message : 'Failed to create listing')
-    } finally {
-      setIsSubmitting(false)
+      router.push(`/listings/${response.id}`)
+    } catch (error) {
+      console.error('Failed to create listing:', error)
+      alert('Failed to create listing. Please try again.')
+      setIsSaving(false)
     }
   }
 
+  if (isLoading) {
+    return (
+      <>
+        <Header />
+        <div className="min-h-screen bg-black flex items-center justify-center">
+          <div className="animate-spin">Loading...</div>
+        </div>
+        <Footer />
+      </>
+    )
+  }
+
   return (
-    <div className="min-h-screen bg-zinc-950 text-white p-4">
-      <div className="container mx-auto max-w-2xl">
-        {/* Breadcrumb */}
-        <div className="flex items-center gap-2 text-sm text-zinc-400 mb-8">
-          <Link href="/" className="hover:text-white">Home</Link>
-          <ChevronRight className="w-4 h-4" />
-          <Link href="/seller/dashboard" className="hover:text-white">Seller</Link>
-          <ChevronRight className="w-4 h-4" />
-          <span>Create Listing</span>
-        </div>
+    <>
+      <Header />
+      <main className="min-h-screen bg-black py-12">
+        <div className="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8">
+          <h1 className="text-4xl font-black mb-8">Create New Listing</h1>
 
-        {/* Header */}
-        <div className="mb-8">
-          <h1 className="text-4xl font-bold mb-2">Create New Listing</h1>
-          <p className="text-zinc-400">List a product on Velxo marketplace</p>
-        </div>
-
-        <form onSubmit={handleSubmit} className="space-y-6">
-          {/* Basic Info */}
-          <Card className="p-6 bg-zinc-900 border-zinc-800">
-            <h2 className="text-xl font-semibold mb-4">Basic Information</h2>
-            <div className="space-y-4">
-              <div>
-                <label className="block text-sm font-medium text-zinc-300 mb-2">
-                  Title <span className="text-red-400">*</span>
-                </label>
-                <Input
-                  type="text"
-                  value={formData.title}
-                  onChange={(e) => setFormData({ ...formData, title: e.target.value })}
-                  placeholder="e.g., Level 50 LoL Account"
-                  className="bg-zinc-800 border-zinc-700 text-white"
-                />
-              </div>
-
-              <div>
-                <label className="block text-sm font-medium text-zinc-300 mb-2">
-                  Description <span className="text-red-400">*</span>
-                </label>
-                <textarea
-                  value={formData.description}
-                  onChange={(e) => setFormData({ ...formData, description: e.target.value })}
-                  placeholder="Describe your listing in detail"
-                  rows={5}
-                  className="w-full px-4 py-2 bg-zinc-800 border border-zinc-700 rounded-lg text-white placeholder-zinc-500"
-                />
-              </div>
-
-              <div className="grid grid-cols-2 gap-4">
+          <form onSubmit={handleSubmit} className="space-y-8">
+            {/* Basic Info */}
+            <Card className="border-zinc-800 bg-zinc-900/50 p-8">
+              <h2 className="text-2xl font-bold mb-6">Product Information</h2>
+              <div className="space-y-6">
+                {/* Title */}
                 <div>
-                  <label className="block text-sm font-medium text-zinc-300 mb-2">
-                    Listing Type <span className="text-red-400">*</span>
-                  </label>
-                  <select
-                    value={formData.type}
-                    onChange={(e) => setFormData({ ...formData, type: e.target.value as ListingType })}
-                    className="w-full px-4 py-2 bg-zinc-800 border border-zinc-700 rounded-lg text-white"
-                  >
-                    {LISTING_TYPES.map(type => (
-                      <option key={type.value} value={type.value}>{type.label}</option>
-                    ))}
-                  </select>
-                </div>
-
-                <div>
-                  <label className="block text-sm font-medium text-zinc-300 mb-2">
-                    Game <span className="text-red-400">*</span>
-                  </label>
-                  <select
-                    value={formData.game}
-                    onChange={(e) => setFormData({ ...formData, game: e.target.value })}
-                    className="w-full px-4 py-2 bg-zinc-800 border border-zinc-700 rounded-lg text-white"
-                  >
-                    <option value="">Select a game</option>
-                    {GAMES.map(game => (
-                      <option key={game} value={game}>{game}</option>
-                    ))}
-                  </select>
-                </div>
-              </div>
-            </div>
-          </Card>
-
-          {/* Details */}
-          <Card className="p-6 bg-zinc-900 border-zinc-800">
-            <h2 className="text-xl font-semibold mb-4">Product Details</h2>
-            <div className="space-y-4">
-              <div className="grid grid-cols-2 gap-4">
-                <div>
-                  <label className="block text-sm font-medium text-zinc-300 mb-2">Platform</label>
-                  <select
-                    value={formData.platform}
-                    onChange={(e) => setFormData({ ...formData, platform: e.target.value })}
-                    className="w-full px-4 py-2 bg-zinc-800 border border-zinc-700 rounded-lg text-white"
-                  >
-                    <option value="">Select platform</option>
-                    {PLATFORMS.map(platform => (
-                      <option key={platform} value={platform}>{platform}</option>
-                    ))}
-                  </select>
-                </div>
-
-                <div>
-                  <label className="block text-sm font-medium text-zinc-300 mb-2">Region</label>
-                  <Input
+                  <label className="block text-sm font-medium mb-2">Product Title</label>
+                  <input
                     type="text"
-                    value={formData.region}
-                    onChange={(e) => setFormData({ ...formData, region: e.target.value })}
-                    placeholder="e.g., NA, EU, ASIA"
-                    className="bg-zinc-800 border-zinc-700 text-white"
-                  />
-                </div>
-              </div>
-
-              <div className="grid grid-cols-2 gap-4">
-                <div>
-                  <label className="block text-sm font-medium text-zinc-300 mb-2">Rank (if applicable)</label>
-                  <Input
-                    type="text"
-                    value={formData.rank}
-                    onChange={(e) => setFormData({ ...formData, rank: e.target.value })}
-                    placeholder="e.g., Platinum"
-                    className="bg-zinc-800 border-zinc-700 text-white"
+                    value={formData.title}
+                    onChange={(e) => setFormData({ ...formData, title: e.target.value })}
+                    placeholder="E.g., Valorant Radiant Account"
+                    required
+                    className="w-full px-4 py-3 rounded-lg bg-zinc-800 border border-zinc-700 text-white placeholder-zinc-500 focus:outline-none focus:border-blue-500"
                   />
                 </div>
 
+                {/* Description */}
                 <div>
-                  <label className="block text-sm font-medium text-zinc-300 mb-2">Level</label>
-                  <Input
-                    type="text"
-                    value={formData.level}
-                    onChange={(e) => setFormData({ ...formData, level: e.target.value })}
-                    placeholder="e.g., 150"
-                    className="bg-zinc-800 border-zinc-700 text-white"
+                  <label className="block text-sm font-medium mb-2">Description</label>
+                  <textarea
+                    value={formData.description}
+                    onChange={(e) => setFormData({ ...formData, description: e.target.value })}
+                    placeholder="Describe your product in detail..."
+                    required
+                    rows={4}
+                    className="w-full px-4 py-3 rounded-lg bg-zinc-800 border border-zinc-700 text-white placeholder-zinc-500 focus:outline-none focus:border-blue-500 resize-none"
                   />
                 </div>
-              </div>
-            </div>
-          </Card>
 
-          {/* Pricing */}
-          <Card className="p-6 bg-zinc-900 border-zinc-800">
-            <h2 className="text-xl font-semibold mb-4">Pricing & Quantity</h2>
-            <div className="space-y-4">
-              <div className="grid grid-cols-2 gap-4">
-                <div>
-                  <label className="block text-sm font-medium text-zinc-300 mb-2">
-                    Price (USD) <span className="text-red-400">*</span>
-                  </label>
-                  <div className="relative">
-                    <span className="absolute left-3 top-2 text-zinc-400">$</span>
-                    <Input
+                {/* Game & Type */}
+                <div className="grid md:grid-cols-2 gap-6">
+                  <div>
+                    <label className="block text-sm font-medium mb-2">Game</label>
+                    <select
+                      value={formData.game}
+                      onChange={(e) => setFormData({ ...formData, game: e.target.value })}
+                      required
+                      className="w-full px-4 py-3 rounded-lg bg-zinc-800 border border-zinc-700 text-white focus:outline-none focus:border-blue-500"
+                    >
+                      <option value="">Select a game</option>
+                      {GAMES.map((game) => (
+                        <option key={game.id} value={game.id}>
+                          {game.name}
+                        </option>
+                      ))}
+                    </select>
+                  </div>
+
+                  <div>
+                    <label className="block text-sm font-medium mb-2">Product Type</label>
+                    <select
+                      value={formData.type}
+                      onChange={(e) => setFormData({ ...formData, type: e.target.value })}
+                      required
+                      className="w-full px-4 py-3 rounded-lg bg-zinc-800 border border-zinc-700 text-white focus:outline-none focus:border-blue-500"
+                    >
+                      <option value="">Select type</option>
+                      {LISTING_TYPES.map((type) => (
+                        <option key={type.id} value={type.id}>
+                          {type.label}
+                        </option>
+                      ))}
+                    </select>
+                  </div>
+                </div>
+
+                {/* Platform & Price */}
+                <div className="grid md:grid-cols-2 gap-6">
+                  <div>
+                    <label className="block text-sm font-medium mb-2">Platform</label>
+                    <select
+                      value={formData.platform}
+                      onChange={(e) => setFormData({ ...formData, platform: e.target.value })}
+                      required
+                      className="w-full px-4 py-3 rounded-lg bg-zinc-800 border border-zinc-700 text-white focus:outline-none focus:border-blue-500"
+                    >
+                      <option value="">Select platform</option>
+                      {PLATFORMS.map((platform) => (
+                        <option key={platform} value={platform}>
+                          {platform}
+                        </option>
+                      ))}
+                    </select>
+                  </div>
+
+                  <div>
+                    <label className="block text-sm font-medium mb-2">Price (USD)</label>
+                    <input
                       type="number"
                       step="0.01"
                       min="0"
                       value={formData.price}
                       onChange={(e) => setFormData({ ...formData, price: e.target.value })}
                       placeholder="0.00"
-                      className="pl-8 bg-zinc-800 border-zinc-700 text-white"
+                      required
+                      className="w-full px-4 py-3 rounded-lg bg-zinc-800 border border-zinc-700 text-white placeholder-zinc-500 focus:outline-none focus:border-blue-500"
                     />
                   </div>
                 </div>
+              </div>
+            </Card>
 
+            {/* Details */}
+            <Card className="border-zinc-800 bg-zinc-900/50 p-8">
+              <h2 className="text-2xl font-bold mb-6">Product Details</h2>
+              <div className="space-y-6">
+                {/* Quantity */}
                 <div>
-                  <label className="block text-sm font-medium text-zinc-300 mb-2">Quantity</label>
-                  <Input
+                  <label className="block text-sm font-medium mb-2">Quantity Available</label>
+                  <input
                     type="number"
                     min="1"
                     value={formData.quantity}
                     onChange={(e) => setFormData({ ...formData, quantity: e.target.value })}
-                    className="bg-zinc-800 border-zinc-700 text-white"
+                    required
+                    className="w-full px-4 py-3 rounded-lg bg-zinc-800 border border-zinc-700 text-white focus:outline-none focus:border-blue-500"
                   />
                 </div>
-              </div>
-            </div>
-          </Card>
 
-          {/* Images */}
-          <Card className="p-6 bg-zinc-900 border-zinc-800">
-            <h2 className="text-xl font-semibold mb-4">Images</h2>
-            <div className="space-y-4">
-              <div className="border-2 border-dashed border-zinc-700 rounded-lg p-8 text-center hover:border-blue-500 transition cursor-pointer">
-                <label className="cursor-pointer">
+                {/* Region & Rank */}
+                <div className="grid md:grid-cols-2 gap-6">
+                  <div>
+                    <label className="block text-sm font-medium mb-2">Region (Optional)</label>
+                    <input
+                      type="text"
+                      value={formData.region}
+                      onChange={(e) => setFormData({ ...formData, region: e.target.value })}
+                      placeholder="E.g., NA, EU, ASIA"
+                      className="w-full px-4 py-3 rounded-lg bg-zinc-800 border border-zinc-700 text-white placeholder-zinc-500 focus:outline-none focus:border-blue-500"
+                    />
+                  </div>
+
+                  <div>
+                    <label className="block text-sm font-medium mb-2">Rank (Optional)</label>
+                    <input
+                      type="text"
+                      value={formData.rank}
+                      onChange={(e) => setFormData({ ...formData, rank: e.target.value })}
+                      placeholder="E.g., Radiant, Diamond"
+                      className="w-full px-4 py-3 rounded-lg bg-zinc-800 border border-zinc-700 text-white placeholder-zinc-500 focus:outline-none focus:border-blue-500"
+                    />
+                  </div>
+                </div>
+
+                {/* Level */}
+                <div>
+                  <label className="block text-sm font-medium mb-2">Level (Optional)</label>
                   <input
-                    type="file"
-                    multiple
-                    accept="image/*"
-                    onChange={handleImageChange}
-                    className="hidden"
+                    type="text"
+                    value={formData.level}
+                    onChange={(e) => setFormData({ ...formData, level: e.target.value })}
+                    placeholder="E.g., Level 30, Prestige 10"
+                    className="w-full px-4 py-3 rounded-lg bg-zinc-800 border border-zinc-700 text-white placeholder-zinc-500 focus:outline-none focus:border-blue-500"
                   />
-                  <Upload className="w-8 h-8 text-zinc-400 mx-auto mb-2" />
-                  <p className="text-sm text-zinc-300">Click or drag images here</p>
-                  <p className="text-xs text-zinc-500">Max 5 images</p>
-                </label>
-              </div>
-
-              {previewUrls.length > 0 && (
-                <div className="grid grid-cols-3 gap-4">
-                  {previewUrls.map((url, index) => (
-                    <div key={index} className="relative">
-                      <img src={url} alt={`Preview ${index}`} className="w-full h-24 object-cover rounded-lg" />
-                      <button
-                        type="button"
-                        onClick={() => removeImage(index)}
-                        className="absolute top-1 right-1 bg-red-600 hover:bg-red-700 p-1 rounded"
-                      >
-                        <X className="w-3 h-3" />
-                      </button>
-                    </div>
-                  ))}
                 </div>
-              )}
-            </div>
-          </Card>
+              </div>
+            </Card>
 
-          {/* Actions */}
-          <div className="flex gap-4">
-            <Button
-              type="submit"
-              disabled={isSubmitting}
-              className="flex-1 bg-blue-600 hover:bg-blue-700 disabled:bg-zinc-700"
-            >
-              {isSubmitting ? 'Creating...' : 'Create Listing'}
-            </Button>
-            <Button
-              type="button"
-              onClick={() => router.back()}
-              variant="outline"
-              className="flex-1 border-zinc-700 text-white hover:bg-zinc-800"
-            >
-              Cancel
-            </Button>
-          </div>
-        </form>
-      </div>
-    </div>
+            {/* Images */}
+            <Card className="border-zinc-800 bg-zinc-900/50 p-8">
+              <h2 className="text-2xl font-bold mb-6">Product Images</h2>
+              <div className="border-2 border-dashed border-zinc-700 rounded-lg p-12 text-center cursor-pointer hover:border-blue-500 transition">
+                <Upload className="w-12 h-12 text-zinc-600 mx-auto mb-4" />
+                <p className="font-semibold mb-2">Click to upload images</p>
+                <p className="text-sm text-zinc-400">PNG, JPG up to 10MB</p>
+              </div>
+            </Card>
+
+            {/* Actions */}
+            <div className="flex gap-4">
+              <Button
+                type="submit"
+                disabled={isSaving}
+                className="flex-1 bg-blue-600 hover:bg-blue-700 gap-2 py-3 text-lg"
+              >
+                {isSaving ? (
+                  <>
+                    <Loader2 className="w-5 h-5 animate-spin" />
+                    Creating...
+                  </>
+                ) : (
+                  'Create Listing'
+                )}
+              </Button>
+              <Button
+                type="button"
+                variant="outline"
+                className="flex-1 py-3 text-lg"
+                onClick={() => router.back()}
+              >
+                Cancel
+              </Button>
+            </div>
+          </form>
+        </div>
+      </main>
+      <Footer />
+    </>
   )
 }
