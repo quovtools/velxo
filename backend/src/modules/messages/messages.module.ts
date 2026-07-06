@@ -3,9 +3,23 @@ import { MessagesService } from './messages.service'
 import { MessagesController } from './messages.controller'
 import { PrismaModule } from '../../common/services/prisma.module'
 import { MessagesGateway } from '../gateways/messages.gateway'
+import { JwtModule } from '@nestjs/jwt'
+import { ConfigModule, ConfigService } from '@nestjs/config'
 
 @Module({
-  imports: [PrismaModule, MessagesGateway],
+  imports: [
+    PrismaModule,
+    ConfigModule,
+    MessagesGateway,
+    JwtModule.registerAsync({
+      imports: [ConfigModule],
+      useFactory: async (configService: ConfigService) => ({
+        secret: configService.get<string>('JWT_SECRET'),
+        signOptions: { expiresIn: configService.get<string>('JWT_EXPIRES_IN') || '7d' },
+      }),
+      inject: [ConfigService],
+    }),
+  ],
   controllers: [MessagesController],
   providers: [MessagesService],
   exports: [MessagesService],
