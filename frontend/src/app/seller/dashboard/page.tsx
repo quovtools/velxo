@@ -43,7 +43,7 @@ export default function SellerDashboard() {
       try {
         const [sRes, lRes] = await Promise.all([
           api.get<{ success: boolean; data: SellerProfile }>('/sellers/me'),
-          api.get<{ success: boolean; data: { listings: SellerListing[] } }>('/listings?sellerId=' + user.id),
+          api.get<{ success: boolean; data: { listings: SellerListing[] } }>('/listings?sellerId=' + user!.id),
         ]);
 
         if (sRes.success) setSeller(sRes.data);
