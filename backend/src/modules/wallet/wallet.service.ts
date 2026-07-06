@@ -1,6 +1,5 @@
 import { Injectable, NotFoundException } from '@nestjs/common'
 import { PrismaService } from '@/common/services/prisma.service'
-import { Prisma } from '@prisma/client'
 
 @Injectable()
 export class WalletService {
@@ -16,7 +15,7 @@ export class WalletService {
     const wallet = await this.prisma.wallet.findUnique({ where: { userId } })
     if (!wallet || wallet.balance < dto.amount) throw new NotFoundException('Insufficient balance')
     const withdrawal = await this.prisma.withdrawalRequests.create({ data: { ...dto, sellerId: userId, netAmount: dto.amount } })
-    const balanceAfter = new Decimal(wallet.balance).minus(new Decimal(dto.amount))
+    const balanceAfter = this.prisma.Prisma.Decimal(wallet.balance).minus(new this.prisma.Prisma.Decimal(dto.amount))
     await this.prisma.walletTransactions.create({
       data: {
         walletId: wallet.id,
