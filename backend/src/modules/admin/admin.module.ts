@@ -1,25 +1,11 @@
 import { Module } from '@nestjs/common'
-import { AdminService } from './admin.service'
 import { AdminController } from './admin.controller'
-import { PrismaModule } from '../../common/services/prisma.module'
-import { JwtModule } from '@nestjs/jwt'
-import { ConfigModule, ConfigService } from '@nestjs/config'
+import { AdminService } from './admin.service'
+import { PrismaService } from '@/common/services/prisma.service'
 
 @Module({
-  imports: [
-    PrismaModule,
-    ConfigModule,
-    JwtModule.registerAsync({
-      imports: [ConfigModule],
-      useFactory: async (configService: ConfigService) => ({
-        secret: configService.get<string>('JWT_SECRET'),
-        signOptions: { expiresIn: configService.get<string>('JWT_EXPIRES_IN') || '7d' },
-      }),
-      inject: [ConfigService],
-    }),
-  ],
   controllers: [AdminController],
-  providers: [AdminService],
+  providers: [AdminService, PrismaService],
   exports: [AdminService],
 })
 export class AdminModule {}

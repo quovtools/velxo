@@ -1,22 +1,118 @@
-import { Injectable, NotFoundException } from '@nestjs/common'
-import { PrismaService } from '../../common/services/prisma.service'
+import { Injectable, Logger } from '@nestjs/common'
+import { PrismaService } from '@/common/services/prisma.service'
+import { CreateReviewDto } from './dto/create-review.dto'
+import { NotFoundException, ForbiddenException } from '@/common/exceptions/custom-exceptions'
 
 @Injectable()
 export class ReviewsService {
-  constructor(private readonly prisma: PrismaService) {}
+  private readonly logger = new Logger(ReviewsService.name)
 
-  async create(buyerId: string, dto: any) {
-    const review = await this.prisma.reviews.create({
-      data: { ...dto, buyerId, sellerId: dto.sellerId },
+  constructor(private prisma: PrismaService) {}
+
+  async createReview(buyerId: string, dto: CreateReviewDto) {
+    this.logger.log(`Creating review for order ${dto.orderId}`)
+
+    const order = await this.prisma.orders.findUnique({
+      where: { id: dto.orderId },
+      include: { orderItems: true },
     })
-    return { success: true, data: review }
+
+    if (!order) {
+      throw new NotFoundException('Order')
+    }
+
+    if (order.buyerId !== buyerId) {
+      throw new ForbiddenException('Only the buyer can review this order')
+    }
+
+    // Check if review already exists
+    const existingReview = await this.prisma.reviews.findFirst({
+      where: { orderId: dto.orderId },
+    })
+
+    if (existingReview) {
+      throw new ForbiddenException('You have already reviewed this order')
+    }
+
+    const listingId = order.orderItems[0]?.listingId
+    if (!listingId) {
+      throw new NotFoundException('Listing')
+    }
+
+    const review = await this.prisma.$transaction(async (tx) => {
+      // Create review
+      const newReview = await tx.reviews.create({
+        data: {
+          orderId: dto.orderId,
+          listingId,
+          buyerId,
+          sellerId: order.sellerId,
+          rating: dto.rating,
+          comment: dto.comment,
+        },
+        include: {
+          buyer: true,
+          seller: true,
+        },
+      })
+
+      // Update seller average rating
+      const allReviews = await tx.reviews.findMany({
+        where: { sellerId: order.sellerId },
+      })
+
+      const avgRating = allReviews.reduce((sum, r) => sum + r.rating, 0) / allReviews.length
+
+      await tx.sellers.update({
+        where: { userId: order.sellerId },
+        data: { averageRating: avgRating },
+      })
+
+      return newReview
+    })
+
+    return review
   }
 
-  async findByListing(listingId: string) {
-    const reviews = await this.prisma.reviews.findMany({
-      where: { order: { orderItems: { some: { listingId } } } },
+  async getListingReviews(listingId: string, limit: number = 10) {
+    return this.prisma.reviews.findMany({
+      where: { listingId, isHidden: false },
       include: { buyer: true },
+      orderBy: { createdAt: 'desc' },
+      take: limit,
     })
-    return { success: true, data: reviews }
+  }
+
+  async getSellerReviews(sellerId: string, limit: number = 50) {
+    return this.prisma.reviews.findMany({
+      where: { sellerId, isHidden: false },
+      include: { buyer: true, listing: true },
+      orderBy: { createdAt: 'desc' },
+      take: limit,
+    })
+  }
+
+  async respondToReview(reviewId: string, sellerId: string, response: string) {
+    this.logger.log(`Adding seller response to review ${reviewId}`)
+
+    const review = await this.prisma.reviews.findUnique({
+      where: { id: reviewId },
+    })
+
+    if (!review) {
+      throw new NotFoundException('Review')
+    }
+
+    if (review.sellerId !== sellerId) {
+      throw new ForbiddenException('Only the seller can respond to this review')
+    }
+
+    return this.prisma.reviews.update({
+      where: { id: reviewId },
+      data: {
+        sellerResponse: response,
+        sellerRespondedAt: new Date(),
+      },
+    })
   }
 }
