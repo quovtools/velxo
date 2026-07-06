@@ -1,7 +1,7 @@
 'use client'
 
+import { Suspense, useState } from 'react'
 import { useSearchParams } from 'next/navigation'
-import { useState, useEffect } from 'react'
 import Link from 'next/link'
 import Image from 'next/image'
 import { useApi } from '@/hooks/useApi'
@@ -13,7 +13,7 @@ import { Search, ChevronDown } from 'lucide-react'
 import { GAMES, LISTING_TYPES, PLATFORMS } from '@/lib/constants'
 import { formatPrice } from '@/lib/format'
 
-export default function SearchPage() {
+function SearchContent() {
   const searchParams = useSearchParams()
   const [filters, setFilters] = useState<ListingFilters>({
     game: searchParams.get('game') || undefined,
@@ -190,5 +190,13 @@ export default function SearchPage() {
       </div>
       <Footer />
     </div>
+  )
+}
+
+export default function SearchPage() {
+  return (
+    <Suspense fallback={<div className="min-h-screen bg-zinc-950" />}>
+      <SearchContent />
+    </Suspense>
   )
 }
