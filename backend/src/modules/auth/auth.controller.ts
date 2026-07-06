@@ -1,33 +1,93 @@
-import { Controller, Post, Body, Get, UseGuards, Request } from '@nestjs/common'
+import {
+  Controller,
+  Post,
+  Get,
+  Body,
+  UseGuards,
+  Logger,
+} from '@nestjs/common'
 import { AuthService } from './auth.service'
-import { JwtAuthGuard } from './guards/jwt-auth.guard'
-import { ApiTags, ApiOperation, ApiBearerAuth } from '@nestjs/swagger'
-import { LoginDto } from './dto/login.dto'
-import { RegisterDto } from './dto/register.dto'
+import { LoginDto, RegisterDto } from './dto/login.dto'
+import { SupabaseJwtGuard } from '@/common/guards/supabase-jwt.guard'
+import { CurrentUserId } from '@/common/decorators/current-user.decorator'
+import { ApiResponseDto } from '@/common/dto/api-response.dto'
 
-@ApiTags('Auth')
-@Controller('auth')
+@Controller('api/v1/auth')
 export class AuthController {
-  constructor(private readonly authService: AuthService) {}
+  private readonly logger = new Logger(AuthController.name)
 
-  @Post('login')
-  @ApiOperation({ summary: 'Login with email and password' })
-  async login(@Body() dto: LoginDto) {
-    const user = await this.authService.validateUser(dto.email, dto.password)
-    return this.authService.login(user)
-  }
+  constructor(private authService: AuthService) {}
 
   @Post('register')
-  @ApiOperation({ summary: 'Register new user' })
   async register(@Body() dto: RegisterDto) {
-    return this.authService.register(dto)
+    try {
+      const result = await this.authService.register(dto)
+      return ApiResponseDto.ok(result, 'User registered successfully')
+    } catch (error) {
+      this.logger.error('Registration error:', error)
+      throw error
+    }
+  }
+
+  @Post('login')
+  async login(@Body() dto: LoginDto) {
+    try {
+      const result = await this.authService.login(dto)
+      return ApiResponseDto.ok(result, 'Login successful')
+    } catch (error) {
+      this.logger.error('Login error:', error)
+      throw error
+    }
   }
 
   @Get('me')
-  @UseGuards(JwtAuthGuard)
-  @ApiBearerAuth()
-  @ApiOperation({ summary: 'Get current user profile' })
-  getProfile(@Request() req) {
-    return { success: true, data: req.user }
+  @UseGuards(SupabaseJwtGuard)
+  async getCurrentUser(@CurrentUserId() userId: string) {
+    try {
+      const user = await this.authService.getCurrentUser(userId)
+      return ApiResponseDto.ok(user, 'User profile retrieved')
+    } catch (error) {
+      this.logger.error('Error fetching current user:', error)
+      throw error
+    }
+  }
+
+  @Post('logout')
+  @UseGuards(SupabaseJwtGuard)
+  async logout(@CurrentUserId() userId: string) {
+    try {
+      await this.authService.logout(userId)
+      return ApiResponseDto.ok(null, 'Logout successful')
+    } catch (error) {
+      this.logger.error('Logout error:', error)
+      throw error
+    }
+  }
+
+  @Post('verify-email')
+  @UseGuards(SupabaseJwtGuard)
+  async verifyEmail(@CurrentUserId() userId: string) {
+    try {
+      const user = await this.authService.verifyEmail(userId)
+      return ApiResponseDto.ok(user, 'Email verified')
+    } catch (error) {
+      this.logger.error('Email verification error:', error)
+      throw error
+    }
+  }
+
+  @Post('reset-password')
+  @UseGuards(SupabaseJwtGuard)
+  async resetPassword(
+    @CurrentUserId() userId: string,
+    @Body('newPassword') newPassword: string,
+  ) {
+    try {
+      await this.authService.resetPassword(userId, newPassword)
+      return ApiResponseDto.ok(null, 'Password reset successfully')
+    } catch (error) {
+      this.logger.error('Password reset error:', error)
+      throw error
+    }
   }
 }
