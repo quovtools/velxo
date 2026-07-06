@@ -91,7 +91,7 @@ function ChatContent() {
     // Load message logs
     async function loadLogs() {
       try {
-        const response = await api.get<{ success: boolean; data: Message[] }>(`/messages/conversations/${activeConv.id}/messages`);
+        const response = await api.get<{ success: boolean; data: Message[] }>(`/messages/conversations/${activeConv!.id}/messages`);
         if (response.success) {
           setMessages(response.data || []);
         }
