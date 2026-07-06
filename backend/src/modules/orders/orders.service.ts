@@ -74,7 +74,7 @@ export class OrdersService {
           orderItems: { include: { listing: true } },
           escrow: true,
           buyer: true,
-          seller: { include: { user: true } },
+          seller: true,
         },
       })
 
@@ -106,7 +106,7 @@ export class OrdersService {
       where: { id: orderId },
       include: {
         buyer: true,
-        seller: { include: { user: true } },
+        seller: true,
         orderItems: { include: { listing: true } },
         escrow: true,
         payments: true,
@@ -167,7 +167,7 @@ export class OrdersService {
         },
         include: {
           buyer: true,
-          seller: { include: { user: true } },
+          seller: true,
           orderItems: { include: { listing: true } },
         },
       })
@@ -193,12 +193,10 @@ export class OrdersService {
       }
 
       // Record commission
-      await tx.commissions.update({
+      await tx.commissions.updateMany({
         where: {
-          orderId_sellerId: {
-            orderId,
-            sellerId: order.sellerId,
-          },
+          orderId,
+          sellerId: order.sellerId,
         },
         data: {
           status: 'PAID',
@@ -214,7 +212,7 @@ export class OrdersService {
     return this.prisma.orders.findMany({
       where: { buyerId },
       include: {
-        seller: { include: { user: true } },
+        seller: true,
         orderItems: { include: { listing: true } },
       },
       orderBy: { createdAt: 'desc' },

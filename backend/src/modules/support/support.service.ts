@@ -95,12 +95,16 @@ export class SupportService {
   async resolveTicket(ticketId: string, resolutionNotes: string) {
     this.logger.log(`Resolving ticket ${ticketId}`)
 
+    const existingTicket = await this.prisma.supportTickets.findUnique({
+      where: { id: ticketId },
+    })
+
     const ticket = await this.prisma.supportTickets.update({
       where: { id: ticketId },
       data: {
         status: SupportTicketStatus.RESOLVED,
         metadata: {
-          ...((ticket as any)?.metadata || {}),
+          ...((existingTicket as any)?.metadata || {}),
           resolutionNotes,
         },
       },

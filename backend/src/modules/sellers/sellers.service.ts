@@ -198,7 +198,6 @@ export class SellersService {
     // Get completed orders
     const completedOrders = await this.prisma.orders.findMany({
       where: { sellerId: seller.userId, status: 'COMPLETED' },
-      include: { reviews: true },
     })
 
     const totalSales = completedOrders.length

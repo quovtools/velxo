@@ -13,6 +13,7 @@ import { SupportService } from './support.service'
 import { SupabaseJwtGuard } from '@/common/guards/supabase-jwt.guard'
 import { CurrentUserId } from '@/common/decorators/current-user.decorator'
 import { ApiResponseDto } from '@/common/dto/api-response.dto'
+import { SupportTicketCategory } from '@prisma/client'
 
 @Controller('api/v1/support')
 export class SupportController {
@@ -25,7 +26,7 @@ export class SupportController {
   async createTicket(
     @CurrentUserId() userId: string,
     @Body('subject') subject: string,
-    @Body('category') category: string,
+    @Body('category') category: SupportTicketCategory,
     @Body('priority') priority?: string,
   ) {
     try {
