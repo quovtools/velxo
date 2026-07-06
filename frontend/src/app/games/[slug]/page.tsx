@@ -1,51 +1,10 @@
-'use client';
+import React from 'react';
+import GameCatalogContent from './game-catalog-content';
 
 export const dynamic = 'force-dynamic';
 
-import React, { useState, useEffect, use } from 'react';
-import Link from 'next/link';
-
-interface Listing {
-  id: string;
-  title: string;
-  price: string;
-  gameName: string;
-  platform: string;
-  region: string;
-  rank: string;
-  seller: {
-    storeName: string;
-    averageRating: number;
-  };
-}
-
 export default function GameCatalogPage({ params }: { params: Promise<{ slug: string }> }) {
-  const { slug } = use(params);
-  const [listings, setListings] = useState<Listing[]>([]);
-  const [loading, setLoading] = useState(true);
-
-  // Format game name based on slug
-  const gameName = slug
-    .split('-')
-    .map((word) => word.charAt(0).toUpperCase() + word.slice(1))
-    .join(' ');
-
-  useEffect(() => {
-    async function loadListings() {
-      try {
-        const response = await fetch(`http://localhost:3001/api/v1/listings?gameName=${encodeURIComponent(gameName)}`);
-        if (response.ok) {
-          const result = await response.json();
-          setListings(result.data?.listings || []);
-        }
-      } catch (e) {
-        console.error(e);
-      } finally {
-        setLoading(false);
-      }
-    }
-    loadListings();
-  }, [gameName]);
+  return <GameCatalogContent params={params} />;
 
   return (
     <div className="space-y-8">

@@ -2,6 +2,7 @@ import { Module, ValidationPipe } from '@nestjs/common'
 import { ConfigModule } from '@nestjs/config'
 import { APP_FILTER, APP_PIPE } from '@nestjs/core'
 import { PrismaModule } from './common/services/prisma.module'
+import { AppController } from './app.controller'
 import { AuthModule } from './modules/auth/auth.module'
 import { UsersModule } from './modules/users/users.module'
 import { SellersModule } from './modules/sellers/sellers.module'
@@ -19,6 +20,7 @@ import { AdminModule } from './modules/admin/admin.module'
 import { AllExceptionsFilter } from './common/filters/all-exceptions.filter'
 
 @Module({
+  controllers: [AppController],
   imports: [
     ConfigModule.forRoot({ isGlobal: true }),
     PrismaModule,
@@ -54,3 +56,4 @@ import { AllExceptionsFilter } from './common/filters/all-exceptions.filter'
   ],
 })
 export class AppModule {}
+
