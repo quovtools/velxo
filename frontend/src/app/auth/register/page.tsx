@@ -4,6 +4,7 @@ import React, { useState } from 'react';
 import { useRouter } from 'next/navigation';
 import Link from 'next/link';
 import { useAuth } from '@/app/providers';
+import { api } from '@/lib/api';
 
 export default function RegisterPage() {
   const router = useRouter();
@@ -22,37 +23,13 @@ export default function RegisterPage() {
 
     try {
       // Create user profile in primary database via our backend auth API
-      const response = await fetch('http://localhost:3001/api/v1/auth/register', {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-        },
-        body: JSON.stringify({
-          email,
-          password,
-          firstName,
-          lastName,
-        }),
-      });
-
-      if (!response.ok) {
-        const errData = await response.json();
-        throw new Error(errData.message || 'Registration failed');
-      }
+      await api.post('/auth/register', { email, password, firstName, lastName });
 
       // Log in the user immediately
-      const loginResponse = await fetch('http://localhost:3001/api/v1/auth/login', {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-        },
-        body: JSON.stringify({ email, password }),
-      });
+      await api.post('/auth/login', { email, password });
 
-      if (loginResponse.ok) {
-        // Sign in Supabase client-side as well
-        await refreshSession();
-      }
+      // Sync Supabase client-side session
+      await refreshSession();
 
       router.push('/');
       router.refresh();

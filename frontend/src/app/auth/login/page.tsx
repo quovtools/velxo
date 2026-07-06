@@ -5,6 +5,7 @@ import { useRouter } from 'next/navigation';
 import Link from 'next/link';
 import { supabase } from '@/lib/supabase';
 import { useAuth } from '@/app/providers';
+import { api } from '@/lib/api';
 
 export default function LoginPage() {
   const router = useRouter();
@@ -32,19 +33,12 @@ export default function LoginPage() {
 
       // Step 2: Notify backend to update lastLoginAt and verify ban status
       if (data.session?.access_token) {
-        const response = await fetch('http://localhost:3001/api/v1/auth/login', {
-          method: 'POST',
-          headers: {
-            'Content-Type': 'application/json',
-          },
-          body: JSON.stringify({ email, password }),
-        });
-
-        if (!response.ok) {
-          const errData = await response.json();
+        try {
+          await api.post('/auth/login', { email, password });
+        } catch (err: any) {
           // If banned or something, sign out immediately
           await supabase.auth.signOut();
-          throw new Error(errData.message || 'Login rejected by security policies');
+          throw new Error(err.message || 'Login rejected by security policies');
         }
       }
 
