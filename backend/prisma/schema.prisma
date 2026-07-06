@@ -740,3 +740,19 @@ model commissions {
   @@index([sellerId, status])
   @@map("commissions")
 }
+
+model gameSlides {
+  id          String   @id @default(cuid())
+  title       String
+  subtitle    String?
+  imageUrl    String
+  linkHref    String?
+  badge       String?
+  isActive    Boolean  @default(true)
+  sortOrder   Int      @default(0)
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+
+  @@index([isActive, sortOrder])
+  @@map("game_slides")
+}

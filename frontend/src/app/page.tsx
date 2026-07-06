@@ -3,10 +3,12 @@
 import React, { useState, useEffect } from 'react';
 import Link from 'next/link';
 import {
-  Gamepad2, ShieldCheck, Award, RefreshCw, Flame, Zap, Users,
+  ShieldCheck, Award, RefreshCw, Flame, Zap, Users,
   Star, ArrowRight, CheckCircle, Lock, Banknote, MessageSquare,
-  TrendingUp, Globe, ChevronRight
+  TrendingUp, Globe, ChevronRight, Gamepad2
 } from 'lucide-react';
+import GameSlideshow from '@/components/GameSlideshow';
+import GameIcon from '@/components/GameIcon';
 
 interface Listing {
   id: string;
@@ -24,14 +26,14 @@ interface Listing {
 }
 
 const FEATURED_GAMES = [
-  { name: 'Free Fire', slug: 'free-fire', icon: '🔥', color: 'from-orange-500/20 to-red-500/10' },
-  { name: 'COD Mobile', slug: 'cod-mobile', icon: '💣', color: 'from-green-500/20 to-emerald-500/10' },
-  { name: 'Blood Strike', slug: 'blood-strike', icon: '🩸', color: 'from-red-500/20 to-rose-500/10' },
-  { name: 'Delta Force', slug: 'delta-force', icon: '🪖', color: 'from-yellow-500/20 to-amber-500/10' },
-  { name: 'PUBG Mobile', slug: 'pubg-mobile', icon: '🔫', color: 'from-blue-500/20 to-cyan-500/10' },
-  { name: 'Valorant', slug: 'valorant', icon: '🎯', color: 'from-rose-500/20 to-pink-500/10' },
-  { name: 'Roblox', slug: 'roblox', icon: '🧱', color: 'from-cyan-500/20 to-blue-500/10' },
-  { name: 'Mobile Legends', slug: 'mobile-legends', icon: '⚔️', color: 'from-purple-500/20 to-violet-500/10' },
+  { name: 'Free Fire', slug: 'free-fire' },
+  { name: 'COD Mobile', slug: 'cod-mobile' },
+  { name: 'Blood Strike', slug: 'blood-strike' },
+  { name: 'Delta Force', slug: 'delta-force' },
+  { name: 'PUBG Mobile', slug: 'pubg-mobile' },
+  { name: 'Valorant', slug: 'valorant' },
+  { name: 'Roblox', slug: 'roblox' },
+  { name: 'Mobile Legends', slug: 'mobile-legends' },
 ];
 
 const HOW_IT_WORKS = [
@@ -124,58 +126,49 @@ export default function Homepage() {
   return (
     <div className="space-y-16">
 
+      {/* ─── SLIDESHOW ─── */}
+      <GameSlideshow />
+
       {/* ─── HERO ─── */}
-      <section className="relative rounded-3xl overflow-hidden bg-gradient-to-br from-brand-dark/40 via-background to-cyan-900/20 border border-borderBg py-14 px-6 md:px-12 text-center">
+      <section className="relative rounded-3xl overflow-hidden bg-gradient-to-br from-brand-dark/40 via-background to-cyan-900/20 border border-borderBg py-12 px-6 md:px-12 text-center">
         <div className="absolute inset-0 bg-[radial-gradient(ellipse_at_top,_var(--tw-gradient-stops))] from-brand/10 via-transparent to-transparent pointer-events-none" />
-        <div className="relative max-w-2xl mx-auto space-y-6">
+        <div className="relative max-w-2xl mx-auto space-y-5">
           <div className="inline-flex items-center gap-2 bg-brand/10 text-brand-light text-xs font-bold uppercase tracking-wider px-3 py-1.5 rounded-full border border-brand/20">
             <span className="w-2 h-2 rounded-full bg-emerald-400 animate-pulse"></span>
             Africa&apos;s No.1 Escrow Gaming Marketplace
           </div>
-          <h1 className="text-4xl sm:text-5xl md:text-6xl font-black tracking-tight leading-none text-white">
+          <h1 className="text-3xl sm:text-4xl md:text-5xl font-black tracking-tight leading-none text-white">
             Trade Gaming Assets <br className="hidden sm:block" />
             <span className="text-gradient">Without the Fear.</span>
           </h1>
-          <p className="text-gray-400 text-base sm:text-lg max-w-xl mx-auto">
-            Buy and sell game accounts, coins, top-ups, and boosting services — fully protected by Velxo Escrow. Your money only moves when you&apos;re happy.
+          <p className="text-gray-400 text-base max-w-xl mx-auto">
+            Buy and sell game accounts, coins, top-ups, and boosting services — fully protected by Velxo Escrow.
           </p>
           <div className="flex flex-col sm:flex-row gap-3 max-w-lg mx-auto">
             <input
               type="text"
               placeholder="Search games, accounts, coins..."
-              className="flex-1 bg-background border border-borderBg rounded-xl px-4 py-3.5 text-white focus:outline-none focus:border-brand transition text-sm"
+              className="flex-1 bg-background border border-borderBg rounded-xl px-4 py-3 text-white focus:outline-none focus:border-brand transition text-sm"
               value={search}
               onChange={(e) => setSearch(e.target.value)}
               onKeyDown={(e) => e.key === 'Enter' && window.location.assign(`/search?query=${encodeURIComponent(search)}`)}
             />
             <Link
               href={`/search?query=${encodeURIComponent(search)}`}
-              className="bg-brand hover:bg-brand-dark px-6 py-3.5 rounded-xl font-bold text-center transition shadow-lg shadow-brand/20 text-white text-sm whitespace-nowrap"
+              className="bg-brand hover:bg-brand-dark px-6 py-3 rounded-xl font-bold text-center transition shadow-lg shadow-brand/20 text-white text-sm whitespace-nowrap"
             >
               Search
             </Link>
           </div>
-          <div className="flex flex-col sm:flex-row items-center justify-center gap-3">
-            <Link
-              href="/escrow"
-              className="flex items-center gap-2 bg-background border border-borderBg hover:border-brand/40 px-5 py-2.5 rounded-xl text-sm font-semibold text-gray-300 transition"
-            >
-              <ShieldCheck className="w-4 h-4 text-brand" />
-              How Escrow Works
+          <div className="flex flex-wrap items-center justify-center gap-2">
+            <Link href="/escrow" className="flex items-center gap-1.5 bg-background border border-borderBg hover:border-brand/40 px-4 py-2 rounded-xl text-xs font-semibold text-gray-300 transition">
+              <ShieldCheck className="w-3.5 h-3.5 text-brand" /> How Escrow Works
             </Link>
-            <Link
-              href="/sell"
-              className="flex items-center gap-2 bg-background border border-borderBg hover:border-brand/40 px-5 py-2.5 rounded-xl text-sm font-semibold text-gray-300 transition"
-            >
-              <TrendingUp className="w-4 h-4 text-brand" />
-              Start Selling
+            <Link href="/sell" className="flex items-center gap-1.5 bg-background border border-borderBg hover:border-brand/40 px-4 py-2 rounded-xl text-xs font-semibold text-gray-300 transition">
+              <TrendingUp className="w-3.5 h-3.5 text-brand" /> Start Selling
             </Link>
-            <Link
-              href="/about"
-              className="flex items-center gap-2 bg-background border border-borderBg hover:border-brand/40 px-5 py-2.5 rounded-xl text-sm font-semibold text-gray-300 transition"
-            >
-              <Users className="w-4 h-4 text-brand" />
-              About Velxo
+            <Link href="/about" className="flex items-center gap-1.5 bg-background border border-borderBg hover:border-brand/40 px-4 py-2 rounded-xl text-xs font-semibold text-gray-300 transition">
+              <Users className="w-3.5 h-3.5 text-brand" /> About Velxo
             </Link>
           </div>
         </div>
@@ -208,9 +201,9 @@ export default function Homepage() {
             <Link
               key={game.slug}
               href={`/games/${game.slug}`}
-              className={`bg-gradient-to-br ${game.color} border border-borderBg hover:border-brand/50 rounded-2xl p-4 flex flex-col items-center justify-center gap-2 transition text-center group`}
+              className="bg-cardBg border border-borderBg hover:border-brand/50 rounded-2xl p-4 flex flex-col items-center justify-center gap-2 transition text-center group"
             >
-              <span className="text-3xl group-hover:scale-110 transition-transform">{game.icon}</span>
+              <GameIcon game={game.slug} className="w-10 h-10 group-hover:scale-110 transition-transform" />
               <span className="text-xs font-bold text-gray-200 leading-tight">{game.name}</span>
             </Link>
           ))}

@@ -17,6 +17,7 @@ import { NotificationsModule } from './modules/notifications/notifications.modul
 import { DisputesModule } from './modules/disputes/disputes.module'
 import { SupportModule } from './modules/support/support.module'
 import { AdminModule } from './modules/admin/admin.module'
+import { SlidesModule } from './modules/slides/slides.module'
 import { AllExceptionsFilter } from './common/filters/all-exceptions.filter'
 
 @Module({
@@ -38,6 +39,7 @@ import { AllExceptionsFilter } from './common/filters/all-exceptions.filter'
     DisputesModule,
     SupportModule,
     AdminModule,
+    SlidesModule,
   ],
   providers: [
     {
