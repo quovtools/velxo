@@ -90,6 +90,7 @@ export function useApi<T = any>(
       isMounted = false
       controller.abort()
     }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [path, options.method, options.body])
 
   return { data, loading, error, refetch: () => {} }
