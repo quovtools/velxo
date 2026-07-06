@@ -153,10 +153,10 @@ export default function CheckoutPage() {
                       ))}
                     </div>
                     <span className="text-sm text-zinc-400">
-                      {product.seller.averageRating.toFixed(1)} • {product.seller.totalSales} sales
+                      {product.seller.averageRating.toFixed(1)} • {product.seller.completedOrders} sales
                     </span>
                   </div>
-                  {product.seller.isVerified && (
+                  {product.seller.verificationStatus === 'verified' && (
                     <div className="flex items-center gap-1 text-green-400 text-sm">
                       <CheckCircle className="w-4 h-4" />
                       Verified Seller
