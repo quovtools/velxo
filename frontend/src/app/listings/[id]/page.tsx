@@ -3,6 +3,7 @@
 import { useEffect, useState } from 'react'
 import Link from 'next/link'
 import Image from 'next/image'
+import { useParams } from 'next/navigation'
 import { useApi } from '@/hooks/useApi'
 import { Listing } from '@/types'
 import { Button } from '@/components/ui/button'
@@ -11,8 +12,10 @@ import { Footer } from '@/components/layout/footer'
 import { ChevronLeft, Heart, Share2, Shield, Clock, CheckCircle } from 'lucide-react'
 import { formatPrice } from '@/lib/format'
 
-export default function ListingDetailPage({ params }: { params: { id: string } }) {
-  const { data: listing } = useApi<{ listing: Listing }>(`/listings/${params.id}`)
+export default function ListingDetailPage() {
+  const params = useParams()
+  const id = params.id as string
+  const { data: listing } = useApi<{ listing: Listing }>(`/listings/${id}`)
   const [selectedImage, setSelectedImage] = useState(0)
 
   if (!listing?.listing) {

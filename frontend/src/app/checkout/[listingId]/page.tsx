@@ -2,7 +2,7 @@
 
 import { useState } from 'react'
 import Link from 'next/link'
-import { useRouter } from 'next/navigation'
+import { useRouter, useParams } from 'next/navigation'
 import { useApi, apiCall } from '@/hooks/useApi'
 import { Listing } from '@/types'
 import { Button } from '@/components/ui/button'
@@ -11,9 +11,11 @@ import { Footer } from '@/components/layout/footer'
 import { Shield, Lock, AlertCircle, CheckCircle } from 'lucide-react'
 import { formatPrice } from '@/lib/format'
 
-export default function CheckoutPage({ params }: { params: { listingId: string } }) {
+export default function CheckoutPage() {
   const router = useRouter()
-  const { data: listing } = useApi<{ listing: Listing }>(`/listings/${params.listingId}`)
+  const params = useParams()
+  const listingId = params.listingId as string
+  const { data: listing } = useApi<{ listing: Listing }>(`/listings/${listingId}`)
   const [loading, setLoading] = useState(false)
   const [error, setError] = useState('')
   const [agreed, setAgreed] = useState(false)
@@ -45,7 +47,7 @@ export default function CheckoutPage({ params }: { params: { listingId: string }
       const order = await apiCall('/orders', {
         method: 'POST',
         body: {
-          listingId: params.listingId,
+          listingId,
           quantity,
         },
       })
