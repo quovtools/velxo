@@ -33,7 +33,12 @@ async function bootstrap() {
   app.setGlobalPrefix('api/v1')
 
   const port = process.env.PORT || 3001
+  const nodeEnv = process.env.NODE_ENV || 'development'
+  const apiUrl = nodeEnv === 'production' 
+    ? process.env.API_URL || `https://velxo.onrender.com/api/v1`
+    : `http://localhost:${port}/api/v1`
+  
   await app.listen(port)
-  console.log(`🚀 Velxo API running on http://localhost:${port}/api/v1`)
+  console.log(`🚀 Velxo API running on ${apiUrl}`)
 }
 bootstrap()
