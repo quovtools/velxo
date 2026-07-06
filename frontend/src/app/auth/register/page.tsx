@@ -62,10 +62,10 @@ export default function RegisterPage() {
       formData.lastName
     )
 
-    if (result.success) {
+    if (result?.success) {
       router.push('/')
     } else {
-      setError(result.error || 'Registration failed')
+      setError(result?.error || 'Registration failed')
       setIsLoading(false)
     }
   }

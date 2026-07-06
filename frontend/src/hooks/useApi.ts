@@ -90,7 +90,7 @@ export function useApi<T = any>(
       isMounted = false
       controller.abort()
     }
-  }, options.dependencies || [path, options.method, options.body])
+  }, [path, options.method, options.body])
 
   return { data, loading, error, refetch: () => {} }
 }

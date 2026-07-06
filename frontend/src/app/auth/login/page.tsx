@@ -30,10 +30,10 @@ export default function LoginPage() {
 
     const result = await login(email, password)
     
-    if (result.success) {
+    if (result?.success) {
       router.push('/')
     } else {
-      setError(result.error || 'Login failed')
+      setError(result?.error || 'Login failed')
       setIsLoading(false)
     }
   }

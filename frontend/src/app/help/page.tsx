@@ -5,7 +5,7 @@ import { Header } from '@/components/layout/header'
 import { Footer } from '@/components/layout/footer'
 import { Card } from '@/components/ui/card'
 import { Button } from '@/components/ui/button'
-import { ChevronLeft, Search, BookOpen, ShieldCheck, TrendingUp, HelperCircle } from 'lucide-react'
+import { ChevronLeft, Search, BookOpen, ShieldCheck, TrendingUp, HelpCircle } from 'lucide-react'
 import { useState } from 'react'
 
 const HELP_ARTICLES = [
@@ -160,7 +160,7 @@ export default function HelpPage() {
 
         {/* Still Need Help */}
         <Card className="p-12 border-zinc-700 bg-zinc-900/50 mt-16 text-center">
-          <HelperCircle className="w-16 h-16 text-cyan-400 mx-auto mb-4" />
+          <HelpCircle className="w-16 h-16 text-cyan-400 mx-auto mb-4" />
           <h2 className="text-2xl font-bold mb-4">Can&apos;t find what you&apos;re looking for?</h2>
           <p className="text-zinc-400 mb-8">Our support team is here to help you 24/7</p>
           <Link href="/contact">
