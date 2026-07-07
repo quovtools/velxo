@@ -16,6 +16,9 @@ import {
   Search,
   Home,
   Users,
+  ShoppingBag,
+  Tag,
+  CreditCard,
 } from 'lucide-react';
 
 export default function NavigationWrapper() {
@@ -166,36 +169,24 @@ export default function NavigationWrapper() {
       </header>
 
       {/* ── Mobile Bottom Tab Bar ── */}
-      {user && (
-        <nav className="sm:hidden fixed bottom-0 left-0 right-0 z-50 bg-cardBg border-t border-borderBg flex items-center justify-around px-2 py-2 safe-area-pb">
-          <Link href="/" className="flex flex-col items-center gap-0.5 p-2 text-gray-400 hover:text-white transition" onClick={() => setMobileOpen(false)}>
-            <Home className="w-5 h-5" />
-            <span className="text-[9px] font-semibold">Home</span>
-          </Link>
-          <Link href="/search" className="flex flex-col items-center gap-0.5 p-2 text-gray-400 hover:text-white transition">
-            <Search className="w-5 h-5" />
-            <span className="text-[9px] font-semibold">Browse</span>
-          </Link>
-          <Link href="/sell" className="flex flex-col items-center gap-0.5 p-2">
-            <div className="w-10 h-10 bg-brand rounded-full flex items-center justify-center shadow-lg shadow-brand/30 -mt-5 border-2 border-background">
-              <PlusCircle className="w-5 h-5 text-white" />
-            </div>
-            <span className="text-[9px] font-semibold text-brand">Sell</span>
-          </Link>
-          <Link href="/messages" className="flex flex-col items-center gap-0.5 p-2 text-gray-400 hover:text-white transition">
-            <MessageSquare className="w-5 h-5" />
-            <span className="text-[9px] font-semibold">Messages</span>
-          </Link>
-          <Link href="/affiliate" className="flex flex-col items-center gap-0.5 p-2 text-gray-400 hover:text-white transition">
-            <Users className="w-5 h-5" />
-            <span className="text-[9px] font-semibold">Refer</span>
-          </Link>
-          <Link href="/profile" className="flex flex-col items-center gap-0.5 p-2 text-gray-400 hover:text-white transition">
-            <User className="w-5 h-5" />
-            <span className="text-[9px] font-semibold">Profile</span>
-          </Link>
-        </nav>
-      )}
+      <nav className="sm:hidden fixed bottom-0 left-0 right-0 z-50 bg-cardBg border-t border-borderBg flex items-center justify-around px-2 py-2 safe-area-pb">
+        <Link href="/" className="flex flex-col items-center gap-0.5 p-2 text-gray-400 hover:text-white transition" onClick={() => setMobileOpen(false)}>
+          <ShoppingBag className="w-5 h-5" />
+          <span className="text-[9px] font-semibold">Shop</span>
+        </Link>
+        <Link href="/pricing" className="flex flex-col items-center gap-0.5 p-2 text-gray-400 hover:text-white transition" onClick={() => setMobileOpen(false)}>
+          <Tag className="w-5 h-5" />
+          <span className="text-[9px] font-semibold">Deals</span>
+        </Link>
+        <Link href="/affiliate" className="flex flex-col items-center gap-0.5 p-2 text-gray-400 hover:text-white transition" onClick={() => setMobileOpen(false)}>
+          <CreditCard className="w-5 h-5" />
+          <span className="text-[9px] font-semibold">Rewards</span>
+        </Link>
+        <Link href={user ? "/profile" : "/auth/login"} className="flex flex-col items-center gap-0.5 p-2 text-gray-400 hover:text-white transition" onClick={() => setMobileOpen(false)}>
+          <User className="w-5 h-5" />
+          <span className="text-[9px] font-semibold">Profile</span>
+        </Link>
+      </nav>
     </>
   );
 }
