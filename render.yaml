@@ -6,7 +6,7 @@ services:
     plan: free
     rootDir: backend
     buildCommand: npm install && npm run prisma:generate && npm run build
-    startCommand: npm run start:prod
+    startCommand: npm run start:migrate
     envVars:
       - key: NODE_ENV
         value: production
@@ -16,8 +16,16 @@ services:
         sync: false
       - key: SUPABASE_URL
         sync: false
+      - key: SUPABASE_ANON_KEY
+        sync: false
       - key: SUPABASE_SERVICE_ROLE_KEY
         sync: false
+      - key: SUPABASE_JWT_SECRET
+        sync: false
+      - key: JWT_SECRET
+        sync: false
+      - key: JWT_EXPIRES_IN
+        value: 7d
       - key: CORS_ORIGIN
         value: https://velxo.shop
 
@@ -29,7 +37,7 @@ services:
     rootDir: frontend
     envVars:
       - key: NEXT_PUBLIC_API_URL
-        value: https://velxo-backend.onrender.com/api/v1
+        value: https://velxo.onrender.com/api/v1
       - key: NEXT_PUBLIC_SUPABASE_URL
         sync: false
       - key: NEXT_PUBLIC_SUPABASE_ANON_KEY

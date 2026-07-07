@@ -4,6 +4,7 @@ WORKDIR /app
 COPY package*.json ./
 COPY prisma ./prisma/
 
+# Install ALL deps (including dev) so we can build and generate
 RUN npm ci
 
 COPY . .
@@ -14,17 +15,17 @@ RUN npx prisma generate
 FROM node:20-alpine AS runner
 WORKDIR /app
 
-ENV NODE_ENV production
+ENV NODE_ENV=production
 
-RUN addgroup --system --gid 1001 nodejs && adduser --system --uid 1001 nestjs
+# Install ALL deps including prisma CLI needed for db push at runtime
+COPY package*.json ./
+COPY prisma ./prisma/
+RUN npm ci
 
+# Copy compiled app
 COPY --from=builder /app/dist ./dist
-COPY --from=builder /app/node_modules ./node_modules
-COPY --from=builder /app/prisma ./prisma
-COPY package.json .
-
-USER nestjs
 
 EXPOSE 3001
 
-CMD ["sh", "-c", "npx prisma db push --skip-generate && node dist/main"]
+# Run prisma db push to auto-sync schema, then start the app
+CMD ["sh", "-c", "npx prisma db push --skip-generate --accept-data-loss && node dist/main"]
