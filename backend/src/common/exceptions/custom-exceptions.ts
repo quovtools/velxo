@@ -66,6 +66,19 @@ export class ConflictException extends HttpException {
   }
 }
 
+export class BadRequestException extends HttpException {
+  constructor(message: string = 'Bad request') {
+    super(
+      {
+        success: false,
+        message,
+        timestamp: new Date().toISOString(),
+      },
+      HttpStatus.BAD_REQUEST,
+    )
+  }
+}
+
 export class InsufficientFundsException extends HttpException {
   constructor(message: string = 'Insufficient funds') {
     super(
