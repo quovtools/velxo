@@ -5,9 +5,9 @@ import { Gamepad2, Menu, X } from 'lucide-react';
 const NAV_LINKS = [
   { label: 'How It Works', href: '#how-it-works' },
   { label: 'Games', href: '#games' },
-  { label: 'Features', href: '#features' },
   { label: 'Pricing', href: '#pricing' },
-  { label: 'About', href: '#about' },
+  { label: 'Blog', href: '/blog' },
+  { label: 'Community', href: '/community' },
 ];
 
 export default function Navbar() {
