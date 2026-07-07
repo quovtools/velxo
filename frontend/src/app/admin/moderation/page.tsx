@@ -22,6 +22,7 @@ export default function ModerationPage() {
   const [actionLoading, setActionLoading] = useState<string | null>(null);
   const [rejectId, setRejectId] = useState<string | null>(null);
   const [rejectReason, setRejectReason] = useState('');
+  const [actionError, setActionError] = useState('');
 
   const fetchListings = async () => {
     setLoading(true);
@@ -39,11 +40,12 @@ export default function ModerationPage() {
 
   const approve = async (id: string) => {
     setActionLoading(id);
+    setActionError('');
     try {
       await api.patch(`/admin/listings/${id}/approve`);
       setListings(l => l.filter(x => x.id !== id));
     } catch (e: any) {
-      alert(e.message || 'Failed to approve');
+      setActionError(e.message || 'Failed to approve');
     } finally {
       setActionLoading(null);
     }
@@ -52,13 +54,14 @@ export default function ModerationPage() {
   const reject = async (id: string) => {
     if (!rejectReason.trim()) return;
     setActionLoading(id);
+    setActionError('');
     try {
       await api.patch(`/admin/listings/${id}/reject`, { reason: rejectReason });
       setListings(l => l.filter(x => x.id !== id));
       setRejectId(null);
       setRejectReason('');
     } catch (e: any) {
-      alert(e.message || 'Failed to reject');
+      setActionError(e.message || 'Failed to reject');
     } finally {
       setActionLoading(null);
     }
@@ -77,6 +80,13 @@ export default function ModerationPage() {
           <RefreshCw className="w-4 h-4" /> Refresh
         </button>
       </div>
+
+      {actionError && (
+        <div className="bg-red-900/30 border border-red-500/50 text-red-300 text-sm px-4 py-3 rounded-xl flex justify-between items-center">
+          {actionError}
+          <button onClick={() => setActionError('')} className="text-red-300 hover:text-white ml-4">✕</button>
+        </div>
+      )}
 
       {loading ? (
         <div className="text-center py-20 text-gray-500">Loading listings...</div>

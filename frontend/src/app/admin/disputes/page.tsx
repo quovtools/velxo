@@ -125,6 +125,9 @@ export default function DisputesPage() {
               {/* Resolve panel */}
               {resolveId === dispute.id && (
                 <div className="pt-4 border-t border-borderBg space-y-3">
+                  {resolveError && (
+                    <div className="bg-red-900/30 border border-red-500/50 text-red-300 text-sm px-4 py-2 rounded-xl">{resolveError}</div>
+                  )}
                   <select
                     value={resolution}
                     onChange={e => setResolution(e.target.value)}
