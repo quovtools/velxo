@@ -2,10 +2,9 @@
 
 import React, { useState, useEffect, useRef, Suspense } from 'react';
 import { useRouter, useSearchParams } from 'next/navigation';
-import { io, Socket } from 'socket.io-client';
 import { api } from '@/lib/api';
 import { useAuth } from '@/app/providers';
-import { Send, User, Gamepad } from 'lucide-react';
+import { Send, User, MessageSquare, Search, Loader2 } from 'lucide-react';
 
 interface Message {
   id: string;
@@ -22,214 +21,221 @@ interface Conversation {
   messages?: Message[];
 }
 
+function timeAgo(date: string) {
+  const diff  = Date.now() - new Date(date).getTime();
+  const mins  = Math.floor(diff / 60000);
+  const hours = Math.floor(diff / 3600000);
+  if (mins < 1)   return 'now';
+  if (mins < 60)  return `${mins}m`;
+  if (hours < 24) return `${hours}h`;
+  return new Date(date).toLocaleDateString();
+}
+
 function ChatContent() {
-  const router = useRouter();
-  const searchParams = useSearchParams();
-  const targetUserId = searchParams.get('userId');
-  const { user } = useAuth();
+  const router          = useRouter();
+  const searchParams    = useSearchParams();
+  const targetUserId    = searchParams.get('userId');
+  const { user }        = useAuth();
 
-  const [conversations, setConversations] = useState<Conversation[]>([]);
-  const [activeConv, setActiveConv] = useState<Conversation | null>(null);
-  const [messages, setMessages] = useState<Message[]>([]);
-  const [newMessage, setNewMessage] = useState('');
-  const [loading, setLoading] = useState(true);
+  const [convos, setConvos]         = useState<Conversation[]>([]);
+  const [active, setActive]         = useState<Conversation | null>(null);
+  const [messages, setMessages]     = useState<Message[]>([]);
+  const [text, setText]             = useState('');
+  const [loading, setLoading]       = useState(true);
+  const [sending, setSending]       = useState(false);
+  const [search, setSearch]         = useState('');
+  const bottomRef                   = useRef<HTMLDivElement>(null);
 
-  const socketRef = useRef<Socket | null>(null);
-  const messagesEndRef = useRef<HTMLDivElement>(null);
-
-  // Scroll to bottom on new messages
   useEffect(() => {
-    messagesEndRef.current?.scrollIntoView({ behavior: 'smooth' });
+    bottomRef.current?.scrollIntoView({ behavior: 'smooth' });
   }, [messages]);
 
-  // Load conversations
   useEffect(() => {
-    if (!user) {
-      router.push('/auth/login');
-      return;
-    }
+    if (!user) { router.push('/auth/login'); return; }
 
-    async function loadChats() {
+    (async () => {
       try {
-        const response = await api.get<{ success: boolean; data: Conversation[] }>('/messages/conversations');
-        if (response.success) {
-          const list = response.data || [];
-          setConversations(list);
+        const res = await api.get<{ success: boolean; data: Conversation[] }>('/messages/conversations');
+        const list = res.success ? (res.data || []) : [];
+        setConvos(list);
 
-          // If starting chat with a user
-          if (targetUserId) {
-            const match = list.find(c => c.buyerId === targetUserId || c.sellerId === targetUserId);
-            if (match) {
-              setActiveConv(match);
-            } else {
-              // Create new conversation
-              const newRes = await api.post<{ success: boolean; data: Conversation }>('/messages/conversations', {
-                recipientId: targetUserId,
-              });
-              if (newRes.success) {
-                setConversations(prev => [newRes.data, ...prev]);
-                setActiveConv(newRes.data);
-              }
+        if (targetUserId) {
+          const match = list.find(c => c.buyerId === targetUserId || c.sellerId === targetUserId);
+          if (match) {
+            setActive(match);
+          } else {
+            const created = await api.post<{ success: boolean; data: Conversation }>(
+              '/messages/conversations', { recipientId: targetUserId }
+            );
+            if (created.success) {
+              setConvos(prev => [created.data, ...prev]);
+              setActive(created.data);
             }
-          } else if (list.length > 0) {
-            setActiveConv(list[0]);
           }
+        } else if (list.length > 0) {
+          setActive(list[0]);
         }
-      } catch (e) {
-        console.error('Failed to load conversations', e);
-      } finally {
-        setLoading(false);
-      }
-    }
-    loadChats();
+      } catch { /* silent */ }
+      finally { setLoading(false); }
+    })();
   }, [user, targetUserId, router]);
 
-  // Handle active conversation updates & WebSocket subscriptions
   useEffect(() => {
-    if (!activeConv || !user) return;
-
-    // Load message logs
-    async function loadLogs() {
+    if (!active) return;
+    (async () => {
       try {
-        const response = await api.get<{ success: boolean; data: Message[] }>(`/messages/conversations/${activeConv!.id}/messages`);
-        if (response.success) {
-          setMessages(response.data || []);
-        }
-      } catch (e) {
-        console.error(e);
-      }
-    }
-    loadLogs();
+        const res = await api.get<{ success: boolean; data: Message[] }>(
+          `/messages/conversations/${active.id}/messages`
+        );
+        if (res.success) setMessages(res.data || []);
+      } catch { /* silent */ }
+    })();
+  }, [active]);
 
-    // Establish socket connection
-    const socket = io('http://localhost:3001', {
-      auth: async (cb) => {
-        const session = await api.get<any>('/auth/session'); // Get session token if needed
-        cb({ token: session?.access_token });
-      },
-    });
-    socketRef.current = socket;
-
-    socket.emit('joinConversation', { conversationId: activeConv.id });
-
-    socket.on('message', (msg: Message) => {
-      setMessages(prev => [...prev, msg]);
-    });
-
-    return () => {
-      socket.disconnect();
-    };
-  }, [activeConv, user]);
-
-  const handleSendMessage = async (e: React.FormEvent) => {
+  const send = async (e: React.FormEvent) => {
     e.preventDefault();
-    if (!newMessage.trim() || !activeConv) return;
-
+    if (!text.trim() || !active || sending) return;
+    setSending(true);
     try {
-      const response = await api.post<{ success: boolean; data: Message }>(`/messages/conversations/${activeConv.id}/messages`, {
-        content: newMessage,
-      });
-
-      if (response.success) {
-        setMessages(prev => [...prev, response.data]);
-        setNewMessage('');
+      const res = await api.post<{ success: boolean; data: Message }>(
+        `/messages/conversations/${active.id}/messages`, { content: text }
+      );
+      if (res.success) {
+        setMessages(prev => [...prev, res.data]);
+        setText('');
       }
-    } catch (e) {
-      console.error(e);
-    }
+    } catch { /* silent */ }
+    finally { setSending(false); }
   };
 
-  if (loading) {
-    return <div className="text-center py-20 text-gray-400">Opening secure chat connection...</div>;
-  }
+  const filtered = convos.filter(c =>
+    c.id.toLowerCase().includes(search.toLowerCase())
+  );
+
+  if (loading) return (
+    <div className="h-[600px] bg-cardBg border border-borderBg rounded-2xl flex items-center justify-center fade-in">
+      <Loader2 className="w-8 h-8 text-brand animate-spin" />
+    </div>
+  );
 
   return (
-    <div className="grid grid-cols-1 md:grid-cols-4 gap-6 bg-cardBg border border-borderBg rounded-3xl h-[600px] overflow-hidden my-6">
-      {/* Sidebar chats list */}
-      <div className="md:col-span-1 border-r border-borderBg p-6 space-y-4 overflow-y-auto">
-        <h2 className="text-xl font-bold text-white mb-4">Conversations</h2>
-        {conversations.length === 0 ? (
-          <p className="text-xs text-gray-500">No active discussions. Open a product to message a merchant.</p>
-        ) : (
-          <div className="space-y-2">
-            {conversations.map((c) => {
-              const active = activeConv?.id === c.id;
-              return (
-                <button
-                  key={c.id}
-                  onClick={() => setActiveConv(c)}
-                  className={`w-full flex items-center gap-3 p-3 rounded-xl border text-left transition ${
-                    active ? 'border-brand bg-brand/5' : 'border-transparent hover:bg-background'
-                  }`}
-                >
-                  <User className="w-8 h-8 text-gray-400 bg-background p-1.5 rounded-full border border-borderBg" />
-                  <div className="overflow-hidden">
-                    <p className="font-semibold text-sm text-gray-200 truncate">Room #{c.id.slice(-6).toUpperCase()}</p>
-                    <p className="text-[10px] text-gray-500 truncate">Last active: {new Date(c.lastMessageAt).toLocaleTimeString()}</p>
-                  </div>
-                </button>
-              );
-            })}
+    <div className="flex h-[calc(100vh-180px)] min-h-[500px] bg-cardBg border border-borderBg rounded-2xl overflow-hidden fade-in">
+
+      {/* ── Sidebar ── */}
+      <div className="w-72 flex-shrink-0 border-r border-borderBg flex flex-col">
+        {/* Header */}
+        <div className="px-4 py-4 border-b border-borderBg">
+          <h2 className="font-bold text-sm mb-3">Messages</h2>
+          <div className="relative">
+            <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-3.5 h-3.5 text-gray-500" />
+            <input value={search} onChange={e => setSearch(e.target.value)}
+              placeholder="Search conversations..."
+              className="w-full bg-background border border-borderBg rounded-xl pl-8 pr-3 py-2 text-xs focus:outline-none focus:border-brand transition" />
           </div>
-        )}
+        </div>
+
+        {/* Conversation list */}
+        <div className="flex-1 overflow-y-auto">
+          {filtered.length === 0 ? (
+            <div className="text-center py-12 px-4 space-y-2">
+              <MessageSquare className="w-8 h-8 text-gray-700 mx-auto" />
+              <p className="text-xs text-gray-500">No conversations yet</p>
+            </div>
+          ) : filtered.map(c => {
+            const isActive = active?.id === c.id;
+            const otherRole = c.buyerId === (user as any)?.id ? 'Seller' : 'Buyer';
+            return (
+              <button key={c.id} onClick={() => setActive(c)}
+                className={`w-full flex items-center gap-3 px-4 py-3.5 text-left transition border-b border-borderBg/50 ${
+                  isActive ? 'bg-brand/10 border-l-2 border-l-brand' : 'hover:bg-hoverBg/40'
+                }`}>
+                <div className="w-9 h-9 rounded-full bg-brand/10 border border-brand/20 flex items-center justify-center flex-shrink-0">
+                  <User className="w-4 h-4 text-brand-light" />
+                </div>
+                <div className="flex-1 min-w-0">
+                  <div className="flex items-center justify-between">
+                    <p className={`text-sm font-semibold truncate ${isActive ? 'text-white' : 'text-gray-300'}`}>
+                      {otherRole} #{c.id.slice(-4).toUpperCase()}
+                    </p>
+                    <span className="text-[9px] text-gray-600 flex-shrink-0 ml-1">
+                      {timeAgo(c.lastMessageAt)}
+                    </span>
+                  </div>
+                  <p className="text-xs text-gray-500 truncate mt-0.5">Room #{c.id.slice(-6).toUpperCase()}</p>
+                </div>
+              </button>
+            );
+          })}
+        </div>
       </div>
 
-      {/* Messaging console */}
-      <div className="md:col-span-3 flex flex-col h-full bg-background/20">
-        {activeConv ? (
+      {/* ── Chat panel ── */}
+      <div className="flex-1 flex flex-col min-w-0">
+        {active ? (
           <>
-            {/* Header info */}
-            <div className="border-b border-borderBg p-4 flex items-center gap-3 bg-cardBg">
-              <User className="w-10 h-10 text-brand bg-background p-2 rounded-full border border-borderBg" />
+            {/* Chat header */}
+            <div className="flex items-center gap-3 px-5 py-4 border-b border-borderBg bg-cardBg">
+              <div className="w-9 h-9 rounded-full bg-brand/10 border border-brand/20 flex items-center justify-center">
+                <User className="w-4 h-4 text-brand-light" />
+              </div>
               <div>
-                <p className="font-bold text-white">Conversation Room #{activeConv.id.slice(-6).toUpperCase()}</p>
-                <p className="text-xs text-emerald-400">Online encrypted line</p>
+                <p className="font-semibold text-sm">
+                  {active.buyerId === (user as any)?.id ? 'Seller' : 'Buyer'} #{active.id.slice(-4).toUpperCase()}
+                </p>
+                <p className="text-[10px] text-emerald-400 flex items-center gap-1">
+                  <span className="w-1.5 h-1.5 rounded-full bg-emerald-400 inline-block" /> Encrypted line
+                </p>
               </div>
             </div>
 
-            {/* Message logs */}
-            <div className="flex-1 overflow-y-auto p-6 space-y-4">
-              {messages.map((m) => {
-                const selfMsg = m.senderId === user?.id;
+            {/* Messages */}
+            <div className="flex-1 overflow-y-auto px-5 py-4 space-y-3">
+              {messages.length === 0 && (
+                <div className="text-center py-12 text-gray-500 text-sm">
+                  No messages yet. Start the conversation!
+                </div>
+              )}
+              {messages.map(m => {
+                const isMine = m.senderId === (user as any)?.id;
                 return (
-                  <div key={m.id} className={`flex ${selfMsg ? 'justify-end' : 'justify-start'}`}>
-                    <div className={`max-w-xs md:max-w-md rounded-2xl px-4 py-3 text-sm shadow-md ${
-                      selfMsg
+                  <div key={m.id} className={`flex ${isMine ? 'justify-end' : 'justify-start'}`}>
+                    <div className={`max-w-sm px-4 py-2.5 rounded-2xl text-sm shadow-sm ${
+                      isMine
                         ? 'bg-brand text-white rounded-tr-none'
-                        : 'bg-cardBg border border-borderBg text-gray-200 rounded-tl-none'
+                        : 'bg-hoverBg border border-borderBg text-gray-200 rounded-tl-none'
                     }`}>
                       <p className="leading-relaxed">{m.content}</p>
-                      <span className="block text-[8px] text-right mt-1 opacity-60">
+                      <p className={`text-[9px] mt-1 ${isMine ? 'text-blue-200 text-right' : 'text-gray-500'}`}>
                         {new Date(m.createdAt).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}
-                      </span>
+                      </p>
                     </div>
                   </div>
                 );
               })}
-              <div ref={messagesEndRef} />
+              <div ref={bottomRef} />
             </div>
 
-            {/* Input form */}
-            <form onSubmit={handleSendMessage} className="border-t border-borderBg p-4 flex gap-3 bg-cardBg">
-              <input
-                type="text"
-                placeholder="Compose secure escrow message..."
-                className="flex-1 bg-background border border-borderBg rounded-xl px-4 py-3 text-sm text-white focus:outline-none focus:border-brand"
-                value={newMessage}
-                onChange={(e) => setNewMessage(e.target.value)}
-              />
-              <button
-                type="submit"
-                className="bg-brand hover:bg-brand-dark p-3.5 rounded-xl transition shadow-lg shadow-brand/20 text-white"
-              >
-                <Send className="w-5 h-5" />
+            {/* Input */}
+            <form onSubmit={send} className="flex items-center gap-3 px-5 py-4 border-t border-borderBg">
+              <input value={text} onChange={e => setText(e.target.value)}
+                placeholder="Type a message..."
+                className="flex-1 bg-background border border-borderBg rounded-xl px-4 py-2.5 text-sm focus:outline-none focus:border-brand transition" />
+              <button type="submit" disabled={!text.trim() || sending}
+                className="w-10 h-10 bg-brand hover:bg-brand-dark rounded-xl flex items-center justify-center transition disabled:opacity-40 flex-shrink-0 shadow-lg shadow-brand/20">
+                {sending
+                  ? <Loader2 className="w-4 h-4 text-white animate-spin" />
+                  : <Send className="w-4 h-4 text-white" />
+                }
               </button>
             </form>
           </>
         ) : (
-          <div className="flex-1 flex flex-col items-center justify-center text-center p-8">
-            <Gamepad className="w-16 h-16 text-brand/20 mb-3" />
-            <p className="text-gray-500 text-sm">Select an active conversation room from the list to start messaging.</p>
+          <div className="flex-1 flex flex-col items-center justify-center space-y-3 text-center p-8">
+            <div className="w-16 h-16 rounded-2xl bg-brand/10 border border-brand/20 flex items-center justify-center">
+              <MessageSquare className="w-8 h-8 text-brand/40" />
+            </div>
+            <p className="font-semibold text-gray-300">Select a conversation</p>
+            <p className="text-xs text-gray-500">Choose from the list or start a chat from a listing page.</p>
           </div>
         )}
       </div>
@@ -237,9 +243,13 @@ function ChatContent() {
   );
 }
 
-export default function RealTimeMessagingPage() {
+export default function MessagesPage() {
   return (
-    <Suspense fallback={<div className="text-center py-20">Initializing messenger interface...</div>}>
+    <Suspense fallback={
+      <div className="h-[600px] bg-cardBg border border-borderBg rounded-2xl flex items-center justify-center fade-in">
+        <Loader2 className="w-8 h-8 text-brand animate-spin" />
+      </div>
+    }>
       <ChatContent />
     </Suspense>
   );

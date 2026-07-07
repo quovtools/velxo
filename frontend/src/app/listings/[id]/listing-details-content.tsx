@@ -2,7 +2,11 @@
 
 import React, { useState, useEffect, use } from 'react';
 import Link from 'next/link';
-import { Shield, Sparkles, UserCheck, MessageSquare } from 'lucide-react';
+import {
+  Shield, Sparkles, UserCheck, MessageSquare, Star,
+  ChevronLeft, ChevronRight, Clock, MapPin, Monitor,
+  Award, ShoppingCart, Loader2,
+} from 'lucide-react';
 import { useAuth } from '@/app/providers';
 
 interface Listing {
@@ -29,218 +33,254 @@ interface Listing {
     id: string;
     rating: number;
     comment: string;
-    buyer: {
-      firstName: string;
-      lastName: string;
-    };
+    createdAt: string;
+    buyer: { firstName: string; lastName: string };
   }>;
+}
+
+const API_BASE = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:3001/api/v1';
+
+function StarRating({ rating }: { rating: number }) {
+  return (
+    <div className="flex items-center gap-0.5">
+      {[1,2,3,4,5].map(i => (
+        <Star key={i} className={`w-3.5 h-3.5 ${i <= rating ? 'fill-yellow-400 text-yellow-400' : 'text-gray-600'}`} />
+      ))}
+    </div>
+  );
 }
 
 export default function ListingDetailsContent({ params }: { params: Promise<{ id: string }> }) {
   const { id } = use(params);
   const { user } = useAuth();
-  const [listing, setListing] = useState<Listing | null>(null);
-  const [loading, setLoading] = useState(true);
-  const [error, setError] = useState<string | null>(null);
+  const [listing, setListing]   = useState<Listing | null>(null);
+  const [loading, setLoading]   = useState(true);
+  const [error, setError]       = useState<string | null>(null);
+  const [imgIdx, setImgIdx]     = useState(0);
 
   useEffect(() => {
-    async function loadListing() {
+    (async () => {
       try {
-        const response = await fetch(`http://localhost:3001/api/v1/listings/${id}`);
-        if (!response.ok) throw new Error('Listing not found');
-        const result = await response.json();
-        setListing(result.data);
+        const res = await fetch(`${API_BASE}/listings/${id}`);
+        if (!res.ok) throw new Error('Listing not found');
+        const data = await res.json();
+        setListing(data.data);
       } catch (err: any) {
         setError(err.message || 'Failed to load listing');
       } finally {
         setLoading(false);
       }
-    }
-    loadListing();
+    })();
   }, [id]);
 
-  if (loading) {
-    return (
-      <div className="max-w-7xl mx-auto py-12 space-y-8 animate-pulse">
-        <div className="h-96 bg-cardBg rounded-3xl"></div>
-        <div className="grid grid-cols-1 md:grid-cols-3 gap-8">
-          <div className="md:col-span-2 h-40 bg-cardBg rounded-2xl"></div>
-          <div className="h-40 bg-cardBg rounded-2xl"></div>
+  if (loading) return (
+    <div className="space-y-6 py-8 fade-in">
+      <div className="h-8 skeleton rounded-xl w-1/3" />
+      <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
+        <div className="lg:col-span-2 space-y-4">
+          <div className="h-80 skeleton rounded-2xl" />
+          <div className="h-40 skeleton rounded-2xl" />
         </div>
+        <div className="h-64 skeleton rounded-2xl" />
       </div>
-    );
-  }
+    </div>
+  );
 
-  if (error || !listing) {
-    return (
-      <div className="text-center py-20 bg-cardBg border border-borderBg rounded-2xl">
-        <p className="text-red-400 text-lg font-semibold">{error || 'Listing not found'}</p>
-        <Link href="/" className="text-brand hover:underline mt-4 inline-block font-semibold">
-          Return to Homepage
-        </Link>
-      </div>
-    );
-  }
+  if (error || !listing) return (
+    <div className="text-center py-20 bg-cardBg border border-borderBg rounded-2xl fade-in">
+      <Sparkles className="w-12 h-12 text-gray-700 mx-auto mb-4" />
+      <p className="text-red-400 font-semibold mb-3">{error || 'Listing not found'}</p>
+      <Link href="/" className="text-brand hover:text-brand-light font-semibold transition text-sm">← Back to marketplace</Link>
+    </div>
+  );
+
+  const images = listing.images?.length ? listing.images : [];
+  const avgRating = listing.seller?.averageRating || 0;
 
   return (
-    <div className="space-y-8">
-      {/* Upper breadcrumb */}
-      <div className="text-sm text-gray-500">
-        <Link href="/" className="hover:text-white transition">Home</Link> &gt;{' '}
-        <Link href={`/games/${listing.gameName.toLowerCase().replace(/\s+/g, '-')}`} className="hover:text-white transition">
-          {listing.gameName}
-        </Link> &gt;{' '}
-        <span className="text-gray-300">{listing.title}</span>
-      </div>
+    <div className="space-y-6 fade-in">
+      {/* Breadcrumb */}
+      <nav className="flex items-center gap-2 text-xs text-gray-500">
+        <Link href="/" className="hover:text-white transition">Home</Link>
+        <span>/</span>
+        <span className="text-gray-400">{listing.gameName}</span>
+        <span>/</span>
+        <span className="text-white truncate max-w-[200px]">{listing.title}</span>
+      </nav>
 
-      <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
-        {/* Main Details and Images */}
-        <div className="lg:col-span-2 space-y-6">
-          <div className="bg-cardBg border border-borderBg rounded-3xl p-6 md:p-8 space-y-6">
-            <h1 className="text-2xl md:text-3xl font-extrabold text-white leading-tight">
-              {listing.title}
-            </h1>
+      <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
 
-            {/* Tags row */}
-            <div className="flex flex-wrap gap-2">
-              <span className="bg-brand/10 text-brand-light text-xs font-bold px-3 py-1.5 rounded-full border border-brand/20">
-                {listing.gameName}
-              </span>
-              {listing.platform && (
-                <span className="bg-cyan-900/20 text-cyan-400 text-xs font-bold px-3 py-1.5 rounded-full border border-cyan-500/20">
-                  {listing.platform}
-                </span>
-              )}
-              {listing.region && (
-                <span className="bg-emerald-950/20 text-emerald-400 text-xs font-bold px-3 py-1.5 rounded-full border border-emerald-500/20">
-                  {listing.region}
-                </span>
-              )}
-            </div>
+        {/* ── Left: Images + Details ── */}
+        <div className="lg:col-span-2 space-y-5">
 
-            {/* Images container */}
-            <div className="relative aspect-video w-full rounded-2xl overflow-hidden bg-background border border-borderBg flex items-center justify-center">
-              {listing.images && listing.images.length > 0 ? (
-                // eslint-disable-next-line @next/next/no-img-element
-                <img
-                  src={listing.images[0]}
-                  alt="Listing image"
-                  className="object-cover w-full h-full"
-                />
+          {/* Image gallery */}
+          <div className="bg-cardBg border border-borderBg rounded-2xl overflow-hidden">
+            <div className="relative aspect-video bg-background flex items-center justify-center">
+              {images.length > 0 ? (
+                <>
+                  {/* eslint-disable-next-line @next/next/no-img-element */}
+                  <img src={images[imgIdx]} alt={listing.title}
+                    className="w-full h-full object-cover" />
+                  {images.length > 1 && (
+                    <>
+                      <button onClick={() => setImgIdx(i => (i - 1 + images.length) % images.length)}
+                        className="absolute left-3 top-1/2 -translate-y-1/2 w-8 h-8 bg-black/50 hover:bg-black/70 rounded-full flex items-center justify-center transition">
+                        <ChevronLeft className="w-4 h-4 text-white" />
+                      </button>
+                      <button onClick={() => setImgIdx(i => (i + 1) % images.length)}
+                        className="absolute right-3 top-1/2 -translate-y-1/2 w-8 h-8 bg-black/50 hover:bg-black/70 rounded-full flex items-center justify-center transition">
+                        <ChevronRight className="w-4 h-4 text-white" />
+                      </button>
+                      <div className="absolute bottom-3 left-1/2 -translate-x-1/2 flex gap-1">
+                        {images.map((_, i) => (
+                          <button key={i} onClick={() => setImgIdx(i)}
+                            className={`w-2 h-2 rounded-full transition ${i === imgIdx ? 'bg-white' : 'bg-white/40'}`} />
+                        ))}
+                      </div>
+                    </>
+                  )}
+                </>
               ) : (
-                <div className="text-center p-8 text-gray-500">
+                <div className="text-center p-12">
                   <Sparkles className="w-16 h-16 mx-auto text-brand/20 mb-3" />
-                  <p>No preview screenshot supplied by seller</p>
+                  <p className="text-gray-500 text-sm">No preview available</p>
                 </div>
               )}
             </div>
 
-            {/* Game metadata grid */}
-            <div className="grid grid-cols-2 sm:grid-cols-4 gap-4 bg-background border border-borderBg rounded-2xl p-6 text-sm">
-              <div>
-                <p className="text-gray-500">Rank</p>
-                <p className="text-white font-bold mt-0.5">{listing.rank || 'Unranked'}</p>
+            {/* Thumbnail strip */}
+            {images.length > 1 && (
+              <div className="flex gap-2 p-3 overflow-x-auto scrollbar-none bg-background/30">
+                {images.map((img, i) => (
+                  // eslint-disable-next-line @next/next/no-img-element
+                  <img key={i} src={img} alt="" onClick={() => setImgIdx(i)}
+                    className={`h-14 w-20 object-cover rounded-lg cursor-pointer flex-shrink-0 transition ${
+                      i === imgIdx ? 'ring-2 ring-brand opacity-100' : 'opacity-50 hover:opacity-80'
+                    }`} />
+                ))}
               </div>
-              <div>
-                <p className="text-gray-500">Account Level</p>
-                <p className="text-white font-bold mt-0.5">{listing.level || 'N/A'}</p>
-              </div>
-              <div>
-                <p className="text-gray-500">Login Method</p>
-                <p className="text-white font-bold mt-0.5">{listing.loginMethod || 'Escrow Transferred'}</p>
-              </div>
-              <div>
-                <p className="text-gray-500">Delivery Time</p>
-                <p className="text-white font-bold mt-0.5">{listing.deliveryTime ? `${listing.deliveryTime} mins` : 'Instant'}</p>
-              </div>
+            )}
+          </div>
+
+          {/* Title + tags */}
+          <div className="bg-cardBg border border-borderBg rounded-2xl p-6 space-y-4">
+            <div className="flex flex-wrap gap-2">
+              <span className="bg-brand/10 text-brand-light text-xs font-bold px-3 py-1 rounded-full border border-brand/20">{listing.gameName}</span>
+              {listing.platform && <span className="bg-cyan-900/20 text-cyan-400 text-xs font-bold px-3 py-1 rounded-full border border-cyan-500/20 flex items-center gap-1"><Monitor className="w-3 h-3" />{listing.platform}</span>}
+              {listing.region   && <span className="bg-emerald-950/20 text-emerald-400 text-xs font-bold px-3 py-1 rounded-full border border-emerald-500/20 flex items-center gap-1"><MapPin className="w-3 h-3" />{listing.region}</span>}
+            </div>
+            <h1 className="text-xl md:text-2xl font-bold leading-snug">{listing.title}</h1>
+
+            {/* Metadata grid */}
+            <div className="grid grid-cols-2 sm:grid-cols-4 gap-3">
+              {[
+                { label: 'Rank',     val: listing.rank || 'Unranked' },
+                { label: 'Level',    val: listing.level ? `Lv. ${listing.level}` : 'N/A' },
+                { label: 'Login',    val: listing.loginMethod || 'Escrow transfer' },
+                { label: 'Delivery', val: listing.deliveryTime ? `${listing.deliveryTime} min` : 'Instant' },
+              ].map(m => (
+                <div key={m.label} className="bg-background border border-borderBg rounded-xl p-3">
+                  <p className="text-[10px] text-gray-500 uppercase tracking-wider">{m.label}</p>
+                  <p className="text-sm font-bold mt-0.5 truncate">{m.val}</p>
+                </div>
+              ))}
             </div>
 
             {/* Description */}
-            <div className="space-y-3">
-              <h3 className="text-xl font-bold text-white">Item Description</h3>
-              <p className="text-gray-300 whitespace-pre-line leading-relaxed">
-                {listing.description}
-              </p>
+            <div className="pt-2 border-t border-borderBg">
+              <h3 className="text-sm font-bold text-gray-400 uppercase tracking-wider mb-3">Description</h3>
+              <p className="text-sm text-gray-300 whitespace-pre-line leading-relaxed">{listing.description}</p>
             </div>
           </div>
 
-          {/* Seller Ratings / Reviews list */}
-          <div className="bg-cardBg border border-borderBg rounded-3xl p-6 md:p-8 space-y-6">
-            <h3 className="text-xl font-bold text-white">Seller Feedbacks</h3>
-            {listing.listingReviews && listing.listingReviews.length > 0 ? (
+          {/* Reviews */}
+          <div className="bg-cardBg border border-borderBg rounded-2xl p-6 space-y-4">
+            <div className="flex items-center justify-between">
+              <h3 className="font-bold">Buyer Reviews</h3>
+              <span className="text-xs text-gray-500">{listing.listingReviews?.length || 0} reviews</span>
+            </div>
+            {listing.listingReviews?.length ? (
               <div className="space-y-4">
-                {listing.listingReviews.map((review) => (
-                  <div key={review.id} className="border-b border-borderBg pb-4 last:border-b-0 last:pb-0">
-                    <div className="flex justify-between items-center mb-1">
-                      <span className="font-semibold text-gray-200">
-                        {review.buyer?.firstName} {review.buyer?.lastName}
-                      </span>
-                      <span className="text-brand-light font-bold">{'★'.repeat(review.rating)}</span>
+                {listing.listingReviews.map(r => (
+                  <div key={r.id} className="border-b border-borderBg pb-4 last:border-0 last:pb-0">
+                    <div className="flex items-start justify-between gap-2">
+                      <div className="flex items-center gap-2">
+                        <div className="w-8 h-8 rounded-full bg-brand/20 flex items-center justify-center text-xs font-bold text-brand-light">
+                          {r.buyer?.firstName?.[0]}{r.buyer?.lastName?.[0]}
+                        </div>
+                        <div>
+                          <p className="text-sm font-semibold">{r.buyer?.firstName} {r.buyer?.lastName}</p>
+                          <StarRating rating={r.rating} />
+                        </div>
+                      </div>
+                      <span className="text-[10px] text-gray-500 flex-shrink-0">{new Date(r.createdAt).toLocaleDateString()}</span>
                     </div>
-                    <p className="text-sm text-gray-400">{review.comment}</p>
+                    <p className="text-sm text-gray-400 mt-2 ml-10">{r.comment}</p>
                   </div>
                 ))}
               </div>
             ) : (
-              <p className="text-gray-500 text-sm">No reviews yet for this seller listing.</p>
+              <p className="text-sm text-gray-500 text-center py-6">No reviews yet for this listing.</p>
             )}
           </div>
         </div>
 
-        {/* Pricing / Checkout card */}
-        <div className="space-y-6">
-          <div className="bg-cardBg border border-borderBg rounded-3xl p-6 md:p-8 space-y-6 sticky top-24">
+        {/* ── Right: Purchase card ── */}
+        <div>
+          <div className="bg-cardBg border border-borderBg rounded-2xl p-6 space-y-5 sticky top-20">
+            {/* Price */}
             <div>
-              <p className="text-xs text-gray-500 font-bold uppercase tracking-wider">Checkout Price</p>
-              <h2 className="text-4xl font-black text-white mt-1">
-                ${Number(listing.price).toFixed(2)}
-              </h2>
-            </div>
-
-            <div className="space-y-4 border-t border-borderBg pt-6 text-sm text-gray-300">
-              <div className="flex items-center gap-3">
-                <Shield className="w-5 h-5 text-brand" />
-                <span>Secure Escrow Protection</span>
-              </div>
-              <div className="flex items-center gap-3">
-                <UserCheck className="w-5 h-5 text-brand" />
-                <span>Verified Gaming Merchant</span>
+              <p className="text-xs text-gray-500 uppercase tracking-wider">Price</p>
+              <div className="flex items-end gap-2 mt-1">
+                <span className="text-4xl font-black">${Number(listing.price).toFixed(2)}</span>
+                <span className="text-xs text-gray-500 mb-1">USD</span>
               </div>
             </div>
 
-            <div className="space-y-3">
-              <Link
-                href={`/checkout/${listing.id}`}
-                className="block text-center w-full bg-brand hover:bg-brand-dark py-4 rounded-xl font-bold transition shadow-lg shadow-brand/20 text-white text-base"
-              >
-                Buy Now
+            {/* Trust indicators */}
+            <div className="space-y-2.5 border-y border-borderBg py-4">
+              {[
+                { icon: <Shield className="w-4 h-4 text-brand" />, text: 'Escrow protection on all orders' },
+                { icon: <Clock className="w-4 h-4 text-emerald-400" />, text: listing.deliveryTime ? `Delivery in ~${listing.deliveryTime} min` : 'Instant delivery' },
+                { icon: <UserCheck className="w-4 h-4 text-brand" />, text: 'Verified seller account' },
+              ].map((t, i) => (
+                <div key={i} className="flex items-center gap-2.5 text-sm text-gray-300">{t.icon}{t.text}</div>
+              ))}
+            </div>
+
+            {/* CTA buttons */}
+            <div className="space-y-2.5">
+              <Link href={`/checkout/${listing.id}`}
+                className="flex items-center justify-center gap-2 w-full bg-brand hover:bg-brand-dark py-3.5 rounded-xl font-bold transition shadow-lg shadow-brand/20 text-white">
+                <ShoppingCart className="w-4 h-4" /> Buy Now
               </Link>
-
-              {user && user.id !== listing.seller?.userId && (
-                <Link
-                  href={`/messages?userId=${listing.seller?.userId}`}
-                  className="flex items-center justify-center gap-2 w-full bg-background border border-borderBg hover:border-brand/40 py-4 rounded-xl font-bold transition text-gray-300"
-                >
-                  <MessageSquare className="w-4 h-4" />
-                  Chat with Seller
+              {user && (user as any).id !== listing.seller?.userId && (
+                <Link href={`/messages?userId=${listing.seller?.userId}`}
+                  className="flex items-center justify-center gap-2 w-full bg-background border border-borderBg hover:border-brand/40 py-3.5 rounded-xl font-bold transition text-gray-300 hover:text-white">
+                  <MessageSquare className="w-4 h-4" /> Message Seller
                 </Link>
               )}
             </div>
 
-            {/* Seller profile overview inside card */}
-            <div className="border-t border-borderBg pt-6 space-y-3 text-sm">
-              <p className="text-xs font-bold text-gray-500 uppercase tracking-wider">About Merchant</p>
-              <div className="flex justify-between items-center">
-                <span className="font-bold text-white">{listing.seller?.storeName}</span>
-                {listing.seller?.isVerified && (
-                  <span className="text-xs bg-emerald-950/20 text-emerald-400 border border-emerald-500/20 px-2 py-0.5 rounded">
-                    Verified
-                  </span>
-                )}
-              </div>
-              <div className="flex justify-between text-gray-400 text-xs">
-                <span>Rating: {listing.seller?.averageRating?.toFixed(1) || '0.0'} ★</span>
-                <span>Sales: {listing.seller?.totalSales || 0}</span>
+            {/* Seller card */}
+            <div className="border-t border-borderBg pt-4 space-y-3">
+              <p className="text-xs font-bold text-gray-500 uppercase tracking-wider">Seller</p>
+              <div className="flex items-center gap-3">
+                <div className="w-10 h-10 rounded-full bg-brand/10 border border-brand/20 flex items-center justify-center">
+                  <Award className="w-5 h-5 text-brand-light" />
+                </div>
+                <div className="flex-1 min-w-0">
+                  <div className="flex items-center gap-1.5">
+                    <span className="font-bold text-sm truncate">{listing.seller?.storeName}</span>
+                    {listing.seller?.isVerified && (
+                      <span className="text-[9px] bg-emerald-900/30 text-emerald-400 border border-emerald-500/20 px-1.5 py-0.5 rounded font-bold flex-shrink-0">VERIFIED</span>
+                    )}
+                  </div>
+                  <div className="flex items-center gap-2 mt-0.5">
+                    <StarRating rating={Math.round(avgRating)} />
+                    <span className="text-xs text-gray-500">{avgRating.toFixed(1)} · {listing.seller?.totalSales || 0} sales</span>
+                  </div>
+                </div>
               </div>
             </div>
           </div>

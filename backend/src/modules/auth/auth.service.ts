@@ -152,6 +152,82 @@ export class AuthService {
     return user
   }
 
+  async forgotPassword(email: string) {
+    // Stub — in production send email via Resend/SendGrid
+    const user = await this.prisma.users.findUnique({ where: { email } })
+    if (user) {
+      this.logger.log(`Password reset requested for ${email}`)
+      // TODO: generate reset token, send email
+    }
+  }
+
+  async handleGoogleCallback(code: string) {
+    // Exchange code for tokens
+    const tokenRes = await fetch('https://oauth2.googleapis.com/token', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/x-www-form-urlencoded' },
+      body: new URLSearchParams({
+        code,
+        client_id: process.env.GOOGLE_CLIENT_ID!,
+        client_secret: process.env.GOOGLE_CLIENT_SECRET!,
+        redirect_uri: process.env.GOOGLE_REDIRECT_URI || `${process.env.API_URL || 'http://localhost:3001/api/v1'}/auth/google/callback`,
+        grant_type: 'authorization_code',
+      }),
+    })
+
+    if (!tokenRes.ok) {
+      const err = await tokenRes.text()
+      this.logger.error('Google token exchange failed:', err)
+      throw new Error('Google authentication failed')
+    }
+
+    const tokens: any = await tokenRes.json()
+
+    // Get user info from Google
+    const userInfoRes = await fetch('https://www.googleapis.com/oauth2/v3/userinfo', {
+      headers: { Authorization: `Bearer ${tokens.access_token}` },
+    })
+    const googleUser: any = await userInfoRes.json()
+
+    const { email, given_name, family_name, sub: googleId } = googleUser
+
+    // Upsert user in DB
+    let user = await this.prisma.users.findUnique({ where: { email } })
+
+    if (!user) {
+      user = await this.prisma.users.create({
+        data: {
+          email,
+          firstName: given_name || '',
+          lastName: family_name || '',
+          emailVerified: true,
+          role: Role.BUYER,
+          // No passwordHash — Google-only account
+        },
+      })
+      // Create wallet
+      await this.prisma.wallet.create({ data: { userId: user.id } }).catch(() => {})
+    } else {
+      // Update name if missing
+      if (!user.firstName) {
+        await this.prisma.users.update({
+          where: { id: user.id },
+          data: { firstName: given_name, lastName: family_name, emailVerified: true },
+        })
+      }
+    }
+
+    if (user.isBanned) throw new Error('Your account has been suspended')
+
+    await this.prisma.users.update({ where: { id: user.id }, data: { lastLoginAt: new Date() } })
+
+    const accessToken = this.signToken(user.id, user.email, user.role)
+    return {
+      user: { id: user.id, email: user.email, firstName: user.firstName, lastName: user.lastName, role: user.role },
+      accessToken,
+    }
+  }
+
   async banUser(userId: string, reason: string, moderatorId: string) {
     this.logger.log(`Banning user ${userId}`)
     const user = await this.prisma.users.update({

@@ -2,9 +2,22 @@
 @tailwind components;
 @tailwind utilities;
 
+/* ── Dark mode (default) ── */
 :root {
   --background: #0f172a;
   --foreground: #f8fafc;
+  --card-bg: #1e293b;
+  --border-bg: #334155;
+  --hover-bg: #475569;
+}
+
+/* ── Light mode ── */
+:root.light {
+  --background: #f8fafc;
+  --foreground: #0f172a;
+  --card-bg: #ffffff;
+  --border-bg: #e2e8f0;
+  --hover-bg: #f1f5f9;
 }
 
 body {
@@ -12,56 +25,39 @@ body {
   color: var(--foreground);
   font-family: 'Inter', sans-serif;
   overflow-x: hidden;
+  transition: background-color 0.2s, color 0.2s;
 }
 
-::-webkit-scrollbar {
-  width: 6px;
-  height: 6px;
-}
-::-webkit-scrollbar-track {
-  background: #0f172a;
-}
-::-webkit-scrollbar-thumb {
-  background: #334155;
-  border-radius: 4px;
-}
-::-webkit-scrollbar-thumb:hover {
-  background: #2563eb;
-}
-
-body {
-  background-color: var(--background);
-  color: var(--foreground);
-  font-family: 'Inter', sans-serif;
-  overflow-x: hidden;
-}
-
-/* Custom scrollbar */
-::-webkit-scrollbar {
-  width: 6px;
-  height: 6px;
-}
-::-webkit-scrollbar-track {
-  background: #0f172a;
-}
-::-webkit-scrollbar-thumb {
-  background: #334155;
-  border-radius: 4px;
-}
-::-webkit-scrollbar-thumb:hover {
-  background: #2563eb;
-}
+/* Scrollbar */
+::-webkit-scrollbar { width: 5px; height: 5px; }
+::-webkit-scrollbar-track { background: var(--background); }
+::-webkit-scrollbar-thumb { background: var(--border-bg); border-radius: 4px; }
+::-webkit-scrollbar-thumb:hover { background: #2563eb; }
 
 /* Animations */
 @keyframes fadeIn {
-  from { opacity: 0; transform: translateY(20px); }
-  to { opacity: 1; transform: translateY(0); }
+  from { opacity: 0; transform: translateY(16px); }
+  to   { opacity: 1; transform: translateY(0); }
 }
-.fade-in {
-  animation: fadeIn 0.6s ease-out;
+.fade-in { animation: fadeIn 0.4s ease-out forwards; }
+
+@keyframes shimmer {
+  from { background-position: -200% 0; }
+  to   { background-position: 200% 0; }
+}
+.skeleton {
+  background: linear-gradient(90deg, var(--card-bg) 25%, var(--hover-bg) 50%, var(--card-bg) 75%);
+  background-size: 200% 100%;
+  animation: shimmer 1.4s infinite;
 }
 
-/* Safe area padding for mobile bottom nav */
-.safe-area-pb {
-  padding-bottom: env(safe-area-inset-bottom, 0px);
-}
+/* Helpers */
+.safe-area-pb { padding-bottom: env(safe-area-inset-bottom, 0px); }
+.scrollbar-none::-webkit-scrollbar { display: none; }
+.scrollbar-none { -ms-overflow-style: none; scrollbar-width: none; }
+
+/* Light mode text overrides */
+:root.light .text-gray-400 { color: #64748b; }
+:root.light .text-gray-300 { color: #475569; }
+:root.light .text-gray-500 { color: #94a3b8; }
+:root.light .text-white    { color: #0f172a; }

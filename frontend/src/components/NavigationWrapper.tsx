@@ -4,25 +4,13 @@ import Link from 'next/link';
 import { useAuth } from '@/app/providers';
 import { useState } from 'react';
 import {
-  MessageSquare,
-  Wallet,
-  User,
-  PlusCircle,
-  LayoutDashboard,
-  ShieldCheck,
-  LogOut,
-  Menu,
-  X,
-  Search,
-  Home,
-  Users,
-  ShoppingBag,
-  Bell,
-  Award,
+  MessageSquare, Wallet, User, PlusCircle, LayoutDashboard,
+  ShieldCheck, LogOut, Menu, X, Search, Home, Users,
+  ShoppingBag, Bell, Award, Sun, Moon,
 } from 'lucide-react';
 
 export default function NavigationWrapper() {
-  const { user, logout } = useAuth();
+  const { user, logout, theme, toggleTheme } = useAuth();
   const role = (user as any)?.role;
   const [mobileOpen, setMobileOpen] = useState(false);
 
@@ -55,6 +43,16 @@ export default function NavigationWrapper() {
 
           {/* Right side */}
           <div className="flex items-center gap-2 md:gap-3">
+            {/* Theme toggle */}
+            <button
+              onClick={toggleTheme}
+              className="p-2 text-gray-400 hover:text-white transition rounded-lg hover:bg-hoverBg"
+              title={theme === 'dark' ? 'Switch to light mode' : 'Switch to dark mode'}
+              aria-label="Toggle theme"
+            >
+              {theme === 'dark' ? <Sun className="w-4 h-4" /> : <Moon className="w-4 h-4" />}
+            </button>
+
             {user ? (
               <>
                 <Link href="/messages" className="hidden sm:flex text-gray-300 hover:text-brand p-2 transition" title="Messages">
