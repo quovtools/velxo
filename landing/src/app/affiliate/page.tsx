@@ -1,13 +1,13 @@
 import React from 'react';
 import Navbar from '@/components/Navbar';
 import Footer from '@/components/Footer';
-import { TrendingUp, Users, DollarSign, ArrowRight, CheckCircle, Share2, BarChart3, Zap } from 'lucide-react';
+import { TrendingUp, Users, DollarSign, ArrowRight, CheckCircle, Share2 } from 'lucide-react';
 
 const HOW_IT_WORKS = [
   { step: '01', icon: <Share2 className="w-5 h-5 text-[#8B5CF6]" />, title: 'Get Your Link', desc: 'Sign up and get a unique referral link tied to your account.' },
   { step: '02', icon: <Users className="w-5 h-5 text-[#06B6D4]" />, title: 'Share It', desc: 'Share your link on WhatsApp, TikTok, YouTube, Discord — anywhere your audience is.' },
   { step: '03', icon: <DollarSign className="w-5 h-5 text-emerald-400" />, title: 'Earn Commission', desc: 'Earn a commission on every completed trade your referrals make on Velxo.' },
-  { step: '04', icon: <BarChart3 className="w-5 h-5 text-yellow-400" />, title: 'Track & Withdraw', desc: 'Monitor clicks, signups, and earnings in your affiliate dashboard. Withdraw anytime.' },
+  { step: '04', icon: <TrendingUp className="w-5 h-5 text-[#8B5CF6]" />, title: 'Track & Withdraw', desc: 'Monitor clicks, signups, and earnings in your affiliate dashboard. Withdraw anytime.' },
 ];
 
 const TIERS = [
@@ -70,21 +70,6 @@ export default function AffiliatePage() {
                 Join the Program <ArrowRight className="w-4 h-4 group-hover:translate-x-1 transition-transform" />
               </a>
             </div>
-          </div>
-
-          {/* Quick stats */}
-          <div className="grid grid-cols-1 sm:grid-cols-3 gap-5">
-            {[
-              { icon: <DollarSign className="w-6 h-6 text-emerald-400" />, value: 'Up to 5%', label: 'Commission per trade' },
-              { icon: <Zap className="w-6 h-6 text-yellow-400" />, value: 'Instant', label: 'Tracking & attribution' },
-              { icon: <TrendingUp className="w-6 h-6 text-[#8B5CF6]" />, value: 'No limit', label: 'On referrals or earnings' },
-            ].map((s) => (
-              <div key={s.label} className="bg-[#111827] border border-[#1F2937] rounded-2xl p-7 text-center space-y-3">
-                <div className="flex justify-center">{s.icon}</div>
-                <p className="text-3xl font-black text-white">{s.value}</p>
-                <p className="text-sm text-gray-500">{s.label}</p>
-              </div>
-            ))}
           </div>
 
           {/* How it works */}

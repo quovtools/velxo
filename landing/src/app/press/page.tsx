@@ -49,21 +49,6 @@ export default function PressPage() {
             </p>
           </div>
 
-          {/* Stats */}
-          <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
-            {[
-              { value: '2025', label: 'Founded' },
-              { value: '10K+', label: 'Active Traders' },
-              { value: '20+', label: 'Countries' },
-              { value: '$2M+', label: 'Volume Traded' },
-            ].map((s) => (
-              <div key={s.label} className="bg-[#111827] border border-[#1F2937] rounded-2xl p-5 text-center">
-                <p className="text-3xl font-black text-white mb-1">{s.value}</p>
-                <p className="text-xs text-gray-500">{s.label}</p>
-              </div>
-            ))}
-          </div>
-
           {/* Press releases */}
           <div className="space-y-5">
             <h2 className="text-2xl font-black text-white">Press Releases</h2>

@@ -18,6 +18,8 @@ import { DisputesModule } from './modules/disputes/disputes.module'
 import { SupportModule } from './modules/support/support.module'
 import { AdminModule } from './modules/admin/admin.module'
 import { SlidesModule } from './modules/slides/slides.module'
+import { BlogModule } from './modules/blog/blog.module'
+import { AffiliateModule } from './modules/affiliate/affiliate.module'
 import { AllExceptionsFilter } from './common/filters/all-exceptions.filter'
 
 @Module({
@@ -40,6 +42,8 @@ import { AllExceptionsFilter } from './common/filters/all-exceptions.filter'
     SupportModule,
     AdminModule,
     SlidesModule,
+    BlogModule,
+    AffiliateModule,
   ],
   providers: [
     {

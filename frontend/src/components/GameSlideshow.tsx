@@ -64,7 +64,8 @@ export default function GameSlideshow() {
   useEffect(() => {
     async function fetchSlides() {
       try {
-        const res = await fetch('http://localhost:3001/api/v1/slides');
+        const apiBase = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:3001/api/v1';
+        const res = await fetch(`${apiBase}/slides`);
         if (res.ok) {
           const data = await res.json();
           const active = (data.data || []).filter((s: Slide) => s.isActive);

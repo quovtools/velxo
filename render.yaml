@@ -26,10 +26,20 @@ services:
         sync: false
       - key: JWT_EXPIRES_IN
         value: 7d
-      - key: CORS_ORIGIN
-        value: https://velxo.shop
+       - key: CORS_ORIGIN
+         value: https://velxo.shop,https://market.velxo.shop
 
-  # Next.js Frontend (Alternative to Vercel if wanted on Render)
+  # Next.js Landing (velxo.shop)
+  - type: web
+    name: velxo-landing
+    env: docker
+    plan: free
+    rootDir: landing
+    envVars:
+      - key: NEXT_PUBLIC_API_URL
+        value: https://velxo.onrender.com/api/v1
+
+  # Next.js Frontend (market.velxo.shop)
   - type: web
     name: velxo-frontend
     env: docker

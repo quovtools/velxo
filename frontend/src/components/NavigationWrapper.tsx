@@ -16,6 +16,7 @@ import {
   X,
   Search,
   Home,
+  Users,
 } from 'lucide-react';
 
 export default function NavigationWrapper() {
@@ -30,7 +31,7 @@ export default function NavigationWrapper() {
           {/* Logo */}
           <div className="flex items-center gap-4 md:gap-8">
             <Link href="/" className="flex items-center gap-2" onClick={() => setMobileOpen(false)}>
-              <Gamepad2 className="w-7 h-7 text-brand" />
+              <img src="/logo.png" alt="Velxo" className="w-7 h-7 rounded-lg object-cover" />
               <span className="text-xl md:text-2xl font-black tracking-wider text-gradient">VELXO</span>
             </Link>
             {/* Desktop nav links */}
@@ -42,6 +43,10 @@ export default function NavigationWrapper() {
               </Link>
               <Link href="/escrow" className="hover:text-brand transition">How it Works</Link>
               <Link href="/pricing" className="hover:text-brand transition">Pricing</Link>
+              <Link href="/affiliate" className="hover:text-brand transition flex items-center gap-1.5">
+                <Users className="w-4 h-4" />
+                Refer
+              </Link>
             </nav>
           </div>
 
@@ -106,14 +111,17 @@ export default function NavigationWrapper() {
             <Link href="/sell" onClick={() => setMobileOpen(false)} className="flex items-center gap-3 px-3 py-3 rounded-xl text-gray-300 hover:bg-background hover:text-white transition text-sm font-medium">
               <PlusCircle className="w-4 h-4" /> Sell a Product
             </Link>
-            <Link href="/escrow" onClick={() => setMobileOpen(false)} className="flex items-center gap-3 px-3 py-3 rounded-xl text-gray-300 hover:bg-background hover:text-white transition text-sm font-medium">
-              <ShieldCheck className="w-4 h-4" /> How Escrow Works
-            </Link>
-            <Link href="/pricing" onClick={() => setMobileOpen(false)} className="flex items-center gap-3 px-3 py-3 rounded-xl text-gray-300 hover:bg-background hover:text-white transition text-sm font-medium">
-              <Wallet className="w-4 h-4" /> Pricing & Fees
-            </Link>
+             <Link href="/escrow" onClick={() => setMobileOpen(false)} className="flex items-center gap-3 px-3 py-3 rounded-xl text-gray-300 hover:bg-background hover:text-white transition text-sm font-medium">
+               <ShieldCheck className="w-4 h-4" /> How Escrow Works
+             </Link>
+             <Link href="/pricing" onClick={() => setMobileOpen(false)} className="flex items-center gap-3 px-3 py-3 rounded-xl text-gray-300 hover:bg-background hover:text-white transition text-sm font-medium">
+               <Wallet className="w-4 h-4" /> Pricing & Fees
+             </Link>
+             <Link href="/affiliate" onClick={() => setMobileOpen(false)} className="flex items-center gap-3 px-3 py-3 rounded-xl text-gray-300 hover:bg-background hover:text-white transition text-sm font-medium">
+               <Users className="w-4 h-4" /> Refer & Earn
+             </Link>
 
-            {user ? (
+             {user ? (
               <>
                 <div className="border-t border-borderBg my-2" />
                 <Link href="/messages" onClick={() => setMobileOpen(false)} className="flex items-center gap-3 px-3 py-3 rounded-xl text-gray-300 hover:bg-background hover:text-white transition text-sm font-medium">
@@ -178,6 +186,10 @@ export default function NavigationWrapper() {
           <Link href="/messages" className="flex flex-col items-center gap-0.5 p-2 text-gray-400 hover:text-white transition">
             <MessageSquare className="w-5 h-5" />
             <span className="text-[9px] font-semibold">Messages</span>
+          </Link>
+          <Link href="/affiliate" className="flex flex-col items-center gap-0.5 p-2 text-gray-400 hover:text-white transition">
+            <Users className="w-5 h-5" />
+            <span className="text-[9px] font-semibold">Refer</span>
           </Link>
           <Link href="/profile" className="flex flex-col items-center gap-0.5 p-2 text-gray-400 hover:text-white transition">
             <User className="w-5 h-5" />

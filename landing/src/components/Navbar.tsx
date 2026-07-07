@@ -1,8 +1,9 @@
 'use client';
 import React, { useState, useEffect } from 'react';
-import { Gamepad2, Menu, X } from 'lucide-react';
+import { Menu, X } from 'lucide-react';
 
 const NAV_LINKS = [
+  { label: 'Home', href: '/' },
   { label: 'How It Works', href: '#how-it-works' },
   { label: 'Games', href: '#games' },
   { label: 'Pricing', href: '#pricing' },
@@ -25,10 +26,8 @@ export default function Navbar() {
       scrolled ? 'bg-[#0b0f19]/95 backdrop-blur-xl border-b border-[#1F2937]' : 'bg-transparent'
     }`}>
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 h-16 flex items-center justify-between">
-        <a href="#" className="flex items-center gap-2 group">
-          <div className="w-8 h-8 rounded-xl bg-gradient-to-br from-[#8B5CF6] to-[#06B6D4] flex items-center justify-center">
-            <Gamepad2 className="w-4 h-4 text-white" />
-          </div>
+        <a href="/" className="flex items-center gap-2 group">
+          <img src="/logo.png" alt="Velxo" className="w-8 h-8 rounded-xl object-cover" />
           <span className="text-xl font-black tracking-wider text-gradient">VELXO</span>
         </a>
 

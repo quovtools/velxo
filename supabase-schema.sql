@@ -566,12 +566,59 @@ CREATE TABLE game_slides (
   badge       TEXT,
   "isActive"  BOOLEAN NOT NULL DEFAULT true,
   "sortOrder" INT NOT NULL DEFAULT 0,
-  "createdAt" TIMESTAMPTZ NOT NULL DEFAULT now(),
-  "updatedAt" TIMESTAMPTZ NOT NULL DEFAULT now()
+  "createdAt"  TIMESTAMPTZ NOT NULL DEFAULT now(),
+  "updatedAt"  TIMESTAMPTZ NOT NULL DEFAULT now()
 );
 
 CREATE INDEX game_slides_active_sort_idx ON game_slides("isActive", "sortOrder");
 
+-- BLOG POSTS
+-- ============================================================
+CREATE TABLE blog_posts (
+  id          TEXT PRIMARY KEY DEFAULT gen_random_uuid()::text,
+  title       TEXT NOT NULL,
+  slug        TEXT UNIQUE NOT NULL,
+  excerpt     TEXT NOT NULL,
+  content     TEXT NOT NULL,
+  category    TEXT NOT NULL DEFAULT 'Platform',
+  author      TEXT NOT NULL DEFAULT 'Velxo Team',
+  "coverImage" TEXT,
+  "isPublished" BOOLEAN NOT NULL DEFAULT false,
+  "isFeatured"  BOOLEAN NOT NULL DEFAULT false,
+  "readTime"    TEXT,
+  "publishedAt" TIMESTAMPTZ,
+  "createdAt"   TIMESTAMPTZ NOT NULL DEFAULT now(),
+  "updatedAt"   TIMESTAMPTZ NOT NULL DEFAULT now()
+);
+
+CREATE INDEX blog_slug_idx ON blog_posts(slug);
+CREATE INDEX blog_category_idx ON blog_posts(category);
+CREATE INDEX blog_published_idx ON blog_posts("isPublished", "isFeatured");
+CREATE INDEX blog_published_at_idx ON blog_posts("publishedAt");
+
+-- AFFILIATE REFERRALS
+-- ============================================================
+CREATE TABLE affiliate_referrals (
+  id              TEXT PRIMARY KEY DEFAULT gen_random_uuid()::text,
+  "referrerId"    TEXT NOT NULL REFERENCES users(id) ON DELETE CASCADE,
+  "referredUserId" TEXT UNIQUE REFERENCES users(id) ON DELETE SET NULL,
+  "referralCode"  TEXT UNIQUE NOT NULL,
+  status          TEXT NOT NULL DEFAULT 'PENDING',
+  "commissionRate" DECIMAL(5,4) NOT NULL DEFAULT 0.02,
+  "totalEarned"   DECIMAL(12,2) NOT NULL DEFAULT 0,
+  "totalPaid"     DECIMAL(12,2) NOT NULL DEFAULT 0,
+  "clickCount"    INT NOT NULL DEFAULT 0,
+  "signupCount"   INT NOT NULL DEFAULT 0,
+  "tradeCount"    INT NOT NULL DEFAULT 0,
+  "createdAt"     TIMESTAMPTZ NOT NULL DEFAULT now(),
+  "updatedAt"     TIMESTAMPTZ NOT NULL DEFAULT now()
+);
+
+CREATE INDEX affiliate_referrer_idx ON affiliate_referrals("referrerId");
+CREATE INDEX affiliate_code_idx ON affiliate_referrals("referralCode");
+CREATE INDEX affiliate_status_idx ON affiliate_referrals(status);
+
+-- COMMISSIONS
 -- ============================================================
 -- AUTO-UPDATE updatedAt via trigger
 -- ============================================================
@@ -600,3 +647,5 @@ CREATE TRIGGER payment_methods_updated_at BEFORE UPDATE ON payment_methods FOR E
 CREATE TRIGGER payments_updated_at BEFORE UPDATE ON payments FOR EACH ROW EXECUTE FUNCTION update_updated_at();
 CREATE TRIGGER withdrawal_requests_updated_at BEFORE UPDATE ON withdrawal_requests FOR EACH ROW EXECUTE FUNCTION update_updated_at();
 CREATE TRIGGER game_slides_updated_at BEFORE UPDATE ON game_slides FOR EACH ROW EXECUTE FUNCTION update_updated_at();
+CREATE TRIGGER blog_posts_updated_at BEFORE UPDATE ON blog_posts FOR EACH ROW EXECUTE FUNCTION update_updated_at();
+CREATE TRIGGER affiliate_referrals_updated_at BEFORE UPDATE ON affiliate_referrals FOR EACH ROW EXECUTE FUNCTION update_updated_at();

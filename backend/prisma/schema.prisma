@@ -182,6 +182,8 @@ model users {
   notifications    notifications[]
   paymentMethods   paymentMethods[]
   wallet           wallet?
+  affiliateReferrals  affiliateReferrals[] @relation("AffiliateReferrer")
+  affiliateReferred   affiliateReferrals?  @relation("AffiliateReferred")
 
   @@index([email])
   @@index([role])
@@ -755,4 +757,51 @@ model gameSlides {
 
   @@index([isActive, sortOrder])
   @@map("game_slides")
+}
+
+model blogPosts {
+  id          String   @id @default(cuid())
+  title       String
+  slug        String   @unique
+  excerpt     String
+  content     String
+  category    String   @default("Platform")
+  author      String   @default("Velxo Team")
+  coverImage  String?
+  isPublished Boolean  @default(false)
+  isFeatured  Boolean  @default(false)
+  readTime    String?
+  publishedAt DateTime?
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+
+  @@index([isPublished, isFeatured])
+  @@index([slug])
+  @@index([category])
+  @@index([publishedAt])
+  @@map("blog_posts")
+}
+
+model affiliateReferrals {
+  id              String   @id @default(cuid())
+  referrerId      String
+  referredUserId  String?  @unique
+  referralCode    String   @unique
+  status          String   @default("PENDING")
+  commissionRate  Decimal  @default(0.02) @db.Decimal(5, 4)
+  totalEarned     Decimal  @default(0) @db.Decimal(12, 2)
+  totalPaid       Decimal  @default(0) @db.Decimal(12, 2)
+  clickCount      Int      @default(0)
+  signupCount     Int      @default(0)
+  tradeCount      Int      @default(0)
+  createdAt       DateTime @default(now())
+  updatedAt       DateTime @updatedAt
+
+  referrer        users    @relation("AffiliateReferrer", fields: [referrerId], references: [id])
+  referredUser    users?   @relation("AffiliateReferred", fields: [referredUserId], references: [id])
+
+  @@index([referrerId])
+  @@index([referralCode])
+  @@index([status])
+  @@map("affiliate_referrals")
 }

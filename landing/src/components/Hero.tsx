@@ -1,6 +1,6 @@
 'use client';
 import React, { useState } from 'react';
-import { ShieldCheck, Zap, ArrowRight, Play, Star, Users, TrendingUp } from 'lucide-react';
+import { ShieldCheck, Zap, ArrowRight, Play, Star } from 'lucide-react';
 
 const STATS = [
   { value: '10K+', label: 'Active Traders' },
@@ -68,17 +68,6 @@ export default function Hero() {
               {pill.icon} {pill.text}
             </div>
           ))}
-        </div>
-
-        {/* Stats row */}
-        <div className="grid grid-cols-2 md:grid-cols-4 gap-4 max-w-3xl mx-auto">
-          {STATS.map((s) => (
-            <div key={s.label} className="bg-[#111827]/60 border border-[#1F2937] rounded-2xl p-5 backdrop-blur-sm">
-              <p className="text-3xl font-black text-white mb-1">{s.value}</p>
-              <p className="text-xs text-gray-500 font-medium">{s.label}</p>
-            </div>
-          ))}
-        </div>
       </div>
     </section>
   );

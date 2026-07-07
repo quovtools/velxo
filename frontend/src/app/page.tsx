@@ -2,7 +2,7 @@
 
 import React, { useState, useEffect, useCallback, Suspense } from 'react';
 import Link from 'next/link';
-import { useSearchParams, useRouter } from 'next/navigation';
+import { useSearchParams } from 'next/navigation';
 import {
   Search, SlidersHorizontal, Gamepad2, ChevronRight,
   Star, Flame, PlusCircle, ShieldCheck, X
@@ -42,7 +42,6 @@ const SORT_OPTIONS = [
 
 function MarketplaceContent() {
   const searchParams = useSearchParams();
-  const router = useRouter();
 
   const [listings, setListings] = useState<Listing[]>([]);
   const [loading, setLoading] = useState(true);
@@ -71,8 +70,8 @@ function MarketplaceContent() {
       if (category) params.append('category', category);
       if (minPrice) params.append('minPrice', minPrice);
       if (maxPrice) params.append('maxPrice', maxPrice);
-      if (sort === 'price_asc') params.append('sortBy', 'price'); params.append('order', 'asc');
-      if (sort === 'price_desc') { params.set('sortBy', 'price'); params.set('order', 'desc'); }
+      if (sort === 'price_asc') { params.append('sortBy', 'price'); params.append('order', 'asc'); }
+      else if (sort === 'price_desc') { params.append('sortBy', 'price'); params.append('order', 'desc'); }
       params.append('limit', '24');
 
       const res = await fetch(`${apiBase}/listings?${params.toString()}`);
@@ -99,7 +98,26 @@ function MarketplaceContent() {
   const hasFilters = search || activeGame || platform || region || category || minPrice || maxPrice;
 
   return (
-    <div className="space-y-5">
+    <div className="space-y-6">
+      {/* Page header */}
+      <div className="flex flex-col sm:flex-row sm:items-end justify-between gap-4">
+        <div className="space-y-1">
+          <h1 className="text-2xl sm:text-3xl font-black text-white tracking-tight">
+            {activeGame ? <span className="text-gradient">{activeGame}</span> : 'Browse Marketplace'}
+          </h1>
+          <p className="text-sm text-gray-500">
+            {activeGame ? `${GAMES.find(g => g.name === activeGame)?.slug || activeGame} listings` : 'Game accounts, top-ups, gift cards & boosting services'}
+          </p>
+        </div>
+        <div className="flex items-center gap-3">
+          {activeGame && (
+            <button onClick={() => setActiveGame('')} className="text-xs font-bold text-brand hover:text-brand-light transition">
+              Clear game filter
+            </button>
+          )}
+        </div>
+      </div>
+
       {/* Slideshow */}
       <GameSlideshow />
 
@@ -245,24 +263,35 @@ function MarketplaceContent() {
       {loading ? (
         <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-4">
           {Array.from({ length: 8 }).map((_, i) => (
-            <div key={i} className="bg-cardBg border border-borderBg rounded-2xl p-5 h-52 animate-pulse space-y-3">
-              <div className="h-3 bg-gray-700 rounded w-1/3" />
-              <div className="h-5 bg-gray-700 rounded w-3/4" />
-              <div className="h-3 bg-gray-700 rounded w-1/2" />
-              <div className="h-9 bg-gray-700 rounded mt-auto" />
+            <div key={i} className="bg-cardBg border border-borderBg rounded-2xl overflow-hidden animate-pulse">
+              <div className="h-40 bg-gray-700/50" />
+              <div className="p-4 space-y-3">
+                <div className="h-3 bg-gray-700 rounded w-1/3" />
+                <div className="h-4 bg-gray-700 rounded w-3/4" />
+                <div className="flex justify-between">
+                  <div className="h-3 bg-gray-700 rounded w-1/3" />
+                  <div className="h-3 bg-gray-700 rounded w-12" />
+                </div>
+                <div className="flex items-center justify-between border-t border-borderBg pt-3 mt-2">
+                  <div className="h-7 bg-gray-700 rounded w-20" />
+                  <div className="h-8 bg-gray-700 rounded-lg w-24" />
+                </div>
+              </div>
             </div>
           ))}
         </div>
       ) : listings.length === 0 ? (
-        <div className="text-center py-16 bg-cardBg border border-borderBg rounded-2xl space-y-3">
-          <Gamepad2 className="w-12 h-12 text-brand/20 mx-auto" />
-          <p className="text-gray-400 text-sm font-semibold">No listings match your filters.</p>
+        <div className="text-center py-20 bg-cardBg border border-borderBg rounded-3xl space-y-4">
+          <div className="w-16 h-16 bg-brand/10 rounded-2xl flex items-center justify-center mx-auto">
+            <Gamepad2 className="w-8 h-8 text-brand/40" />
+          </div>
+          <p className="text-gray-400 font-semibold">No listings match your filters.</p>
           {hasFilters && (
-            <button onClick={clearFilters} className="text-brand text-xs font-bold hover:underline">
-              Clear filters
+            <button onClick={clearFilters} className="text-brand text-sm font-bold hover:underline">
+              Clear all filters
             </button>
           )}
-          <div className="pt-2">
+          <div className="pt-1">
             <Link
               href="/sell"
               className="inline-flex items-center gap-2 bg-brand hover:bg-brand-dark px-5 py-2.5 rounded-xl text-sm font-bold text-white transition"
@@ -277,40 +306,42 @@ function MarketplaceContent() {
             <Link
               key={item.id}
               href={`/listings/${item.id}`}
-              className="glow-card border border-borderBg p-5 flex flex-col justify-between group hover:border-brand/40 transition rounded-2xl"
+              className="group bg-cardBg border border-borderBg hover:border-brand/40 rounded-2xl overflow-hidden transition-all duration-300 flex flex-col"
             >
-              <div>
-                <div className="flex justify-between items-start gap-2 mb-2.5">
-                  <span className="bg-brand/10 text-brand-light text-xs font-semibold px-2 py-0.5 rounded border border-brand/20 truncate max-w-[110px]">
-                    {item.gameName}
+              {/* Image area placeholder */}
+              <div className="h-36 bg-gradient-to-br from-background to-cardBg flex items-center justify-center relative">
+                <span className="text-xs font-bold text-gray-600 uppercase tracking-wider">{item.gameName}</span>
+                {item.isFeatured && (
+                  <span className="absolute top-3 right-3 flex items-center gap-1 text-[10px] font-black text-orange-400 bg-orange-400/10 border border-orange-400/20 px-2 py-1 rounded-lg">
+                    <Flame className="w-3 h-3" /> HOT
                   </span>
-                  {item.isFeatured && (
-                    <span className="flex items-center gap-0.5 text-[10px] font-bold text-orange-400 flex-shrink-0">
-                      <Flame className="w-3 h-3" /> Hot
-                    </span>
-                  )}
-                </div>
-                <h3 className="font-bold text-sm text-white line-clamp-2 mb-1.5 group-hover:text-brand transition leading-snug">
-                  {item.title}
-                </h3>
-                <div className="flex items-center justify-between text-xs text-gray-500">
-                  <span className="truncate">{item.seller?.storeName}</span>
-                  <span className="flex items-center gap-0.5 flex-shrink-0">
-                    <Star className="w-3 h-3 text-brand fill-brand" />
-                    {item.seller?.averageRating?.toFixed(1) || '0.0'}
-                  </span>
-                </div>
-                {(item.platform || item.region) && (
-                  <p className="text-xs text-gray-600 mt-1 truncate">
-                    {[item.platform, item.region].filter(Boolean).join(' · ')}
-                  </p>
                 )}
               </div>
-              <div className="flex items-center justify-between border-t border-borderBg pt-3 mt-3">
-                <span className="text-lg font-black text-white">${Number(item.price).toFixed(2)}</span>
-                <span className="bg-brand hover:bg-brand-dark px-3 py-1.5 rounded-lg text-xs font-semibold text-white transition">
-                  Buy Now
-                </span>
+              <div className="p-4 flex-1 flex flex-col justify-between space-y-3">
+                <div>
+                  <div className="flex items-center gap-2 mb-2">
+                    <span className="bg-brand/10 text-brand-light text-[10px] font-bold px-2 py-0.5 rounded border border-brand/20 uppercase tracking-wide truncate max-w-[120px]">
+                      {item.gameName}
+                    </span>
+                    <span className="text-[10px] text-gray-600 truncate">{item.platform}</span>
+                  </div>
+                  <h3 className="font-bold text-sm text-white line-clamp-2 leading-snug group-hover:text-brand transition">
+                    {item.title}
+                  </h3>
+                  <div className="flex items-center justify-between text-[11px] text-gray-500 mt-2">
+                    <span className="truncate">{item.seller?.storeName}</span>
+                    <span className="flex items-center gap-0.5 flex-shrink-0">
+                      <Star className="w-3 h-3 text-brand fill-brand" />
+                      {item.seller?.averageRating?.toFixed(1) || '0.0'}
+                    </span>
+                  </div>
+                </div>
+                <div className="flex items-center justify-between border-t border-borderBg pt-3">
+                  <span className="text-lg font-black text-white tracking-tight">${Number(item.price).toFixed(2)}</span>
+                  <span className="bg-brand hover:bg-brand-dark px-3 py-1.5 rounded-lg text-xs font-bold text-white transition">
+                    Buy Now
+                  </span>
+                </div>
               </div>
             </Link>
           ))}
