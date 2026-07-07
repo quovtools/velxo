@@ -21,8 +21,22 @@ async function bootstrap() {
   // Register global exception filter — catches ALL errors and logs them to Render
   app.useGlobalFilters(new AllExceptionsFilter())
 
+  // Support multiple allowed origins via comma-separated CORS_ORIGIN env var
+  // e.g. CORS_ORIGIN=https://market.velxo.shop,https://velxo-azure.vercel.app
+  const rawOrigin = process.env.CORS_ORIGIN
+  const allowedOrigins = rawOrigin
+    ? rawOrigin.split(',').map((o) => o.trim())
+    : null
+
   app.enableCors({
-    origin: process.env.CORS_ORIGIN || true,
+    origin: allowedOrigins
+      ? (origin, callback) => {
+          // Allow requests with no origin (mobile apps, curl, Render health checks)
+          if (!origin) return callback(null, true)
+          if (allowedOrigins.includes(origin)) return callback(null, true)
+          callback(new Error(`CORS: origin ${origin} not allowed`))
+        }
+      : true, // Allow all origins if CORS_ORIGIN is not set
     credentials: true,
     methods: ['GET', 'POST', 'PATCH', 'PUT', 'DELETE', 'OPTIONS'],
     allowedHeaders: ['Content-Type', 'Authorization'],
@@ -90,7 +104,7 @@ async function bootstrap() {
   // Log key config at startup so it's visible in Render logs
   logger.log(`🚀 Velxo API running on ${apiUrl}`)
   logger.log(`📦 Environment: ${nodeEnv}`)
-  logger.log(`🌐 CORS origin: ${process.env.CORS_ORIGIN || 'ALL (open)'}`)
+  logger.log(`🌐 CORS origins: ${allowedOrigins ? allowedOrigins.join(', ') : 'ALL (open)'}`)
   logger.log(`🗄️  Supabase URL: ${process.env.SUPABASE_URL ? 'SET' : 'MISSING ⚠️'}`)
   logger.log(`🔑 Supabase service key: ${process.env.SUPABASE_SERVICE_ROLE_KEY ? 'SET' : 'MISSING ⚠️'}`)
   logger.log(`🗃️  Database URL: ${process.env.DATABASE_URL ? 'SET' : 'MISSING ⚠️'}`)
