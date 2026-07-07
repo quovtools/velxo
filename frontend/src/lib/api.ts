@@ -40,13 +40,34 @@ async function request<T>(endpoint: string, options: RequestOptions = {}): Promi
     headers,
   };
 
-  const response = await fetch(url, config).catch((networkError: Error) => {
-    // This fires when the server is unreachable (CORS preflight blocked, server down, wrong URL, etc.)
-    console.error('[API] Network error on', url, networkError)
-    throw new Error(
-      `Cannot reach the server. Check your internet connection or try again later. (${networkError.message})`,
-    )
-  });
+  // Retry once on network failure (handles Render cold-start timeouts)
+  const fetchWithRetry = async (attempt: number): Promise<Response> => {
+    const controller = new AbortController();
+    // 20s timeout per attempt — enough for Render to cold-start
+    const timeoutId = setTimeout(() => controller.abort(), 20000);
+
+    try {
+      const res = await fetch(url, { ...config, signal: controller.signal });
+      clearTimeout(timeoutId);
+      return res;
+    } catch (err: any) {
+      clearTimeout(timeoutId);
+      if (attempt < 2 && (err.name === 'AbortError' || err.message === 'Failed to fetch')) {
+        console.warn(`[API] Attempt ${attempt} failed for ${url}, retrying...`);
+        await new Promise((r) => setTimeout(r, 2000)); // wait 2s before retry
+        return fetchWithRetry(attempt + 1);
+      }
+      console.error('[API] Network error on', url, err);
+      if (err.name === 'AbortError') {
+        throw new Error('Request timed out. The server may be starting up — please try again in a moment.');
+      }
+      throw new Error(
+        `Cannot reach the server. Check your internet connection or try again later. (${err.message})`,
+      );
+    }
+  };
+
+  const response = await fetchWithRetry(1);
 
   let responseData;
   const contentType = response.headers.get('content-type');

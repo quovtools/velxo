@@ -66,6 +66,12 @@ export function Providers({ children }: { children: React.ReactNode }) {
   };
 
   useEffect(() => {
+    // Silently wake the backend on app load (handles Render free-tier cold starts)
+    const apiUrl = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:3001/api/v1';
+    fetch(apiUrl, { method: 'GET' }).catch(() => {
+      // Ignore errors — this is just a warm-up ping
+    });
+
     refreshSession();
 
     const { data: { subscription } } = supabase.auth.onAuthStateChange(async (event, session) => {
