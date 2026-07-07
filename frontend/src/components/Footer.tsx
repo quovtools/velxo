@@ -45,6 +45,17 @@ const footerLinks = {
   },
 };
 
+const popularGames = [
+  { name: 'Free Fire', href: '/games/free-fire' },
+  { name: 'PUBG Mobile', href: '/games/pubg-mobile' },
+  { name: 'Valorant', href: '/games/valorant' },
+  { name: 'COD Mobile', href: '/games/cod-mobile' },
+  { name: 'Fortnite', href: '/games/fortnite' },
+  { name: 'Roblox', href: '/games/roblox' },
+  { name: 'Mobile Legends', href: '/games/mobile-legends' },
+  { name: 'Clash of Clans', href: '/games/clash-of-clans' },
+];
+
 export default function Footer() {
   return (
     <footer className="border-t border-borderBg bg-cardBg mt-16">
