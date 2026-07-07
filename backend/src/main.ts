@@ -8,6 +8,10 @@ import rateLimit from 'express-rate-limit'
 async function bootstrap() {
   const app = await NestFactory.create(AppModule)
 
+  // Trust Render's proxy so rate limiter and IP detection work correctly
+  const expressApp = app.getHttpAdapter().getInstance()
+  expressApp.set('trust proxy', 1)
+
   app.enableCors({
     origin: process.env.CORS_ORIGIN || true,
     credentials: true,
@@ -19,6 +23,7 @@ async function bootstrap() {
       windowMs: 60 * 1000,
       max: 100,
       message: { success: false, message: 'Too many requests. Please try again later.' },
+      validate: { xForwardedForHeader: false },
     }),
   )
 
@@ -39,7 +44,6 @@ async function bootstrap() {
   })
 
   // Handle health checks at /api/v1 (Render pings this path)
-  const expressApp = app.getHttpAdapter().getInstance()
   const healthPayload = JSON.stringify({
     status: 'ok',
     service: 'Velxo API',

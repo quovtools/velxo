@@ -53,5 +53,9 @@ export class SearchListingDto extends PaginationDto {
 
   @IsOptional()
   @IsString()
+  order?: string
+
+  @IsOptional()
+  @IsString()
   currency?: string = 'USD'
 }
