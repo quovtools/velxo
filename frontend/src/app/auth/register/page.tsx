@@ -5,6 +5,7 @@ import { useRouter } from 'next/navigation';
 import Link from 'next/link';
 import { useAuth } from '@/app/providers';
 import { api } from '@/lib/api';
+import { supabase } from '@/lib/supabase';
 
 export default function RegisterPage() {
   const router = useRouter();
@@ -22,13 +23,22 @@ export default function RegisterPage() {
     setLoading(true);
 
     try {
-      // Create user profile in primary database via our backend auth API
+      // Create user profile in backend (Supabase + Prisma)
       await api.post('/auth/register', { email, password, firstName, lastName });
 
-      // Log in the user immediately
-      await api.post('/auth/login', { email, password });
+      // Sign in directly via Supabase client so the browser session is set
+      const { error: signInError } = await supabase.auth.signInWithPassword({
+        email,
+        password,
+      });
 
-      // Sync Supabase client-side session
+      if (signInError) {
+        // Account was created but sign-in failed — send them to login
+        router.push('/auth/login?registered=true');
+        return;
+      }
+
+      // Sync auth context with the new session
       await refreshSession();
 
       router.push('/');
