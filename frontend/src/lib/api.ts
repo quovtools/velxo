@@ -1,4 +1,4 @@
-import { supabase } from './supabase';
+import { getToken } from './auth';
 
 const API_BASE_URL = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:3001/api/v1';
 
@@ -14,14 +14,10 @@ async function request<T>(endpoint: string, options: RequestOptions = {}): Promi
   if (params) {
     const searchParams = new URLSearchParams();
     Object.entries(params).forEach(([key, val]) => {
-      if (val !== undefined && val !== null) {
-        searchParams.append(key, String(val));
-      }
+      if (val !== undefined && val !== null) searchParams.append(key, String(val));
     });
     const queryString = searchParams.toString();
-    if (queryString) {
-      url += `?${queryString}`;
-    }
+    if (queryString) url += `?${queryString}`;
   }
 
   const headers = new Headers(customHeaders);
@@ -29,23 +25,16 @@ async function request<T>(endpoint: string, options: RequestOptions = {}): Promi
     headers.set('Content-Type', 'application/json');
   }
 
-  // Inject Supabase JWT access token if session is active
-  const { data: { session } } = await supabase.auth.getSession();
-  if (session?.access_token) {
-    headers.set('Authorization', `Bearer ${session.access_token}`);
-  }
+  // Inject JWT from localStorage
+  const token = getToken();
+  if (token) headers.set('Authorization', `Bearer ${token}`);
 
-  const config: RequestInit = {
-    ...customOptions,
-    headers,
-  };
+  const config: RequestInit = { ...customOptions, headers };
 
-  // Retry once on network failure (handles Render cold-start timeouts)
+  // Retry once — handles Render cold-start timeouts
   const fetchWithRetry = async (attempt: number): Promise<Response> => {
     const controller = new AbortController();
-    // 20s timeout per attempt — enough for Render to cold-start
     const timeoutId = setTimeout(() => controller.abort(), 20000);
-
     try {
       const res = await fetch(url, { ...config, signal: controller.signal });
       clearTimeout(timeoutId);
@@ -54,39 +43,36 @@ async function request<T>(endpoint: string, options: RequestOptions = {}): Promi
       clearTimeout(timeoutId);
       if (attempt < 2 && (err.name === 'AbortError' || err.message === 'Failed to fetch')) {
         console.warn(`[API] Attempt ${attempt} failed for ${url}, retrying...`);
-        await new Promise((r) => setTimeout(r, 2000)); // wait 2s before retry
+        await new Promise((r) => setTimeout(r, 2000));
         return fetchWithRetry(attempt + 1);
       }
       console.error('[API] Network error on', url, err);
       if (err.name === 'AbortError') {
-        throw new Error('Request timed out. The server may be starting up — please try again in a moment.');
+        throw new Error('Request timed out. The server may be starting up — please try again.');
       }
-      throw new Error(
-        `Cannot reach the server. Check your internet connection or try again later. (${err.message})`,
-      );
+      throw new Error(`Cannot reach the server. (${err.message})`);
     }
   };
 
   const response = await fetchWithRetry(1);
 
-  let responseData;
+  let responseData: any;
   const contentType = response.headers.get('content-type');
-  if (contentType && contentType.includes('application/json')) {
+  if (contentType?.includes('application/json')) {
     responseData = await response.json();
   } else {
     responseData = await response.text();
   }
 
   if (!response.ok) {
-    // NestJS may return message as a string or array (from ValidationPipe)
-    const rawMessage = responseData?.message
+    const rawMessage = responseData?.message;
     const message = Array.isArray(rawMessage)
       ? rawMessage.join('; ')
-      : rawMessage || (typeof responseData === 'string' ? responseData : 'Something went wrong')
-    const err = new Error(message) as any
-    err.status = response.status
-    err.data = responseData
-    throw err
+      : rawMessage || (typeof responseData === 'string' ? responseData : 'Something went wrong');
+    const err = new Error(message) as any;
+    err.status = response.status;
+    err.data = responseData;
+    throw err;
   }
 
   return responseData;

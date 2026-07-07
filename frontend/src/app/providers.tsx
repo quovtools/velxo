@@ -2,103 +2,58 @@
 
 import React, { createContext, useContext, useEffect, useState } from 'react';
 import { QueryClient, QueryClientProvider } from '@tanstack/react-query';
-import { supabase } from '@/lib/supabase';
-import { User } from '@supabase/supabase-js';
+import { getToken, getUser, clearSession, AuthUser } from '@/lib/auth';
 
 const QueryClientInstance = new QueryClient({
-  defaultOptions: {
-    queries: {
-      refetchOnWindowFocus: false,
-      retry: 1,
-    },
-  },
+  defaultOptions: { queries: { refetchOnWindowFocus: false, retry: 1 } },
 });
 
 interface AuthContextType {
-  user: User | null;
+  user: AuthUser | null;
   loading: boolean;
-  role: string | null;
-  logout: () => Promise<void>;
-  refreshSession: () => Promise<void>;
+  logout: () => void;
+  refreshSession: () => void;
 }
 
 const AuthContext = createContext<AuthContextType>({
   user: null,
   loading: true,
-  role: null,
-  logout: async () => {},
-  refreshSession: async () => {},
+  logout: () => {},
+  refreshSession: () => {},
 });
 
 export function Providers({ children }: { children: React.ReactNode }) {
-  const [user, setUser] = useState<User | null>(null);
-  const [role, setRole] = useState<string | null>(null);
+  const [user, setUser] = useState<AuthUser | null>(null);
   const [loading, setLoading] = useState(true);
 
-  const fetchUserProfile = async (userId: string) => {
-    try {
-      const apiUrl = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:3001/api/v1';
-      const response = await fetch(`${apiUrl}/users/me`, {
-        headers: {
-          Authorization: `Bearer ${(await supabase.auth.getSession()).data.session?.access_token}`,
-        },
-      });
-      if (response.ok) {
-        const result = await response.json();
-        setRole(result.data?.role || 'BUYER');
-      }
-    } catch (e) {
-      console.error('Error fetching role:', e);
-    }
-  };
-
-  const refreshSession = async () => {
-    setLoading(true);
-    const { data: { session } } = await supabase.auth.getSession();
-    if (session?.user) {
-      setUser(session.user);
-      await fetchUserProfile(session.user.id);
+  const refreshSession = () => {
+    const token = getToken();
+    const stored = getUser();
+    if (token && stored) {
+      setUser(stored);
     } else {
       setUser(null);
-      setRole(null);
     }
     setLoading(false);
   };
 
   useEffect(() => {
-    // Silently wake the backend on app load (handles Render free-tier cold starts)
-    const apiUrl = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:3001/api/v1';
-    fetch(apiUrl, { method: 'GET' }).catch(() => {
-      // Ignore errors — this is just a warm-up ping
-    });
-
     refreshSession();
 
-    const { data: { subscription } } = supabase.auth.onAuthStateChange(async (event, session) => {
-      if (session?.user) {
-        setUser(session.user);
-        await fetchUserProfile(session.user.id);
-      } else {
-        setUser(null);
-        setRole(null);
-      }
-      setLoading(false);
-    });
-
-    return () => {
-      subscription.unsubscribe();
-    };
+    // Warm up the backend on app load (Render free-tier cold start)
+    const apiUrl = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:3001/api/v1';
+    fetch(apiUrl, { method: 'GET' }).catch(() => {});
   }, []);
 
-  const logout = async () => {
-    await supabase.auth.signOut();
+  const logout = () => {
+    clearSession();
     setUser(null);
-    setRole(null);
+    window.location.href = '/';
   };
 
   return (
     <QueryClientProvider client={QueryClientInstance}>
-      <AuthContext.Provider value={{ user, loading, role, logout, refreshSession }}>
+      <AuthContext.Provider value={{ user, loading, logout, refreshSession }}>
         {children}
       </AuthContext.Provider>
     </QueryClientProvider>

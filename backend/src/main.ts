@@ -105,9 +105,8 @@ async function bootstrap() {
   logger.log(`🚀 Velxo API running on ${apiUrl}`)
   logger.log(`📦 Environment: ${nodeEnv}`)
   logger.log(`🌐 CORS origins: ${allowedOrigins ? allowedOrigins.join(', ') : 'ALL (open)'}`)
-  logger.log(`🗄️  Supabase URL: ${process.env.SUPABASE_URL ? 'SET' : 'MISSING ⚠️'}`)
-  logger.log(`🔑 Supabase service key: ${process.env.SUPABASE_SERVICE_ROLE_KEY ? 'SET' : 'MISSING ⚠️'}`)
   logger.log(`🗃️  Database URL: ${process.env.DATABASE_URL ? 'SET' : 'MISSING ⚠️'}`)
+  logger.log(`🔐 JWT Secret: ${process.env.JWT_SECRET ? 'SET' : 'MISSING — using fallback ⚠️'}`)
 
   await app.listen(port)
 }

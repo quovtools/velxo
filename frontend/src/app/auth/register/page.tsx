@@ -5,7 +5,8 @@ import { useRouter } from 'next/navigation';
 import Link from 'next/link';
 import { useAuth } from '@/app/providers';
 import { api } from '@/lib/api';
-import { supabase } from '@/lib/supabase';
+import { setSession } from '@/lib/auth';
+import { Eye, EyeOff, ShieldCheck } from 'lucide-react';
 
 export default function RegisterPage() {
   const router = useRouter();
@@ -14,6 +15,7 @@ export default function RegisterPage() {
   const [lastName, setLastName] = useState('');
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
+  const [showPassword, setShowPassword] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [loading, setLoading] = useState(false);
 
@@ -23,26 +25,14 @@ export default function RegisterPage() {
     setLoading(true);
 
     try {
-      // Create user profile in backend (Supabase + Prisma)
-      await api.post('/auth/register', { email, password, firstName, lastName });
+      const res = await api.post<{ success: boolean; data: { user: any; accessToken: string } }>(
+        '/auth/register',
+        { email, password, firstName, lastName },
+      );
 
-      // Sign in directly via Supabase client so the browser session is set
-      const { error: signInError } = await supabase.auth.signInWithPassword({
-        email,
-        password,
-      });
-
-      if (signInError) {
-        // Account was created but sign-in failed — send them to login
-        router.push('/auth/login?registered=true');
-        return;
-      }
-
-      // Sync auth context with the new session
-      await refreshSession();
-
+      setSession(res.data.accessToken, res.data.user);
+      refreshSession();
       router.push('/');
-      router.refresh();
     } catch (err: any) {
       setError(err.message || 'Something went wrong. Please try again.');
     } finally {
@@ -51,83 +41,109 @@ export default function RegisterPage() {
   };
 
   return (
-    <div className="max-w-md mx-auto my-12 bg-cardBg border border-borderBg rounded-2xl p-8 shadow-xl">
-      <div className="text-center mb-8">
-        <h1 className="text-3xl font-extrabold text-white">Create Account</h1>
-        <p className="text-gray-400 mt-2">Join Africa&apos;s No.1 Gaming Marketplace</p>
+    <div className="min-h-[80vh] flex items-center justify-center py-12 px-4">
+      <div className="w-full max-w-md">
+        {/* Header */}
+        <div className="text-center mb-8">
+          <Link href="/" className="inline-flex items-center gap-2 mb-6">
+            <img src="/logo.png" alt="Velxo" className="w-8 h-8 rounded-lg" />
+            <span className="text-xl font-black tracking-wider text-white">VELXO</span>
+          </Link>
+          <h1 className="text-2xl font-bold text-white">Create your account</h1>
+          <p className="text-gray-500 text-sm mt-1">Join thousands of gamers trading safely</p>
+        </div>
+
+        {/* Card */}
+        <div className="bg-cardBg border border-borderBg rounded-2xl p-8">
+          {error && (
+            <div className="bg-red-500/10 border border-red-500/30 text-red-400 text-sm px-4 py-3 rounded-xl mb-6">
+              {error}
+            </div>
+          )}
+
+          <form onSubmit={handleSubmit} className="space-y-4">
+            <div className="grid grid-cols-2 gap-3">
+              <div>
+                <label className="block text-xs font-semibold text-gray-400 mb-1.5 uppercase tracking-wide">First Name</label>
+                <input
+                  type="text"
+                  required
+                  className="w-full bg-surface border border-borderBg rounded-xl px-4 py-3 text-white text-sm placeholder-gray-600 focus:outline-none focus:border-brand transition"
+                  placeholder="John"
+                  value={firstName}
+                  onChange={(e) => setFirstName(e.target.value)}
+                />
+              </div>
+              <div>
+                <label className="block text-xs font-semibold text-gray-400 mb-1.5 uppercase tracking-wide">Last Name</label>
+                <input
+                  type="text"
+                  required
+                  className="w-full bg-surface border border-borderBg rounded-xl px-4 py-3 text-white text-sm placeholder-gray-600 focus:outline-none focus:border-brand transition"
+                  placeholder="Doe"
+                  value={lastName}
+                  onChange={(e) => setLastName(e.target.value)}
+                />
+              </div>
+            </div>
+
+            <div>
+              <label className="block text-xs font-semibold text-gray-400 mb-1.5 uppercase tracking-wide">Email</label>
+              <input
+                type="email"
+                required
+                className="w-full bg-surface border border-borderBg rounded-xl px-4 py-3 text-white text-sm placeholder-gray-600 focus:outline-none focus:border-brand transition"
+                placeholder="you@example.com"
+                value={email}
+                onChange={(e) => setEmail(e.target.value)}
+              />
+            </div>
+
+            <div>
+              <label className="block text-xs font-semibold text-gray-400 mb-1.5 uppercase tracking-wide">Password</label>
+              <div className="relative">
+                <input
+                  type={showPassword ? 'text' : 'password'}
+                  required
+                  minLength={8}
+                  className="w-full bg-surface border border-borderBg rounded-xl px-4 py-3 pr-11 text-white text-sm placeholder-gray-600 focus:outline-none focus:border-brand transition"
+                  placeholder="Min. 8 characters"
+                  value={password}
+                  onChange={(e) => setPassword(e.target.value)}
+                />
+                <button
+                  type="button"
+                  onClick={() => setShowPassword(!showPassword)}
+                  className="absolute right-3 top-1/2 -translate-y-1/2 text-gray-500 hover:text-gray-300 transition"
+                >
+                  {showPassword ? <EyeOff className="w-4 h-4" /> : <Eye className="w-4 h-4" />}
+                </button>
+              </div>
+            </div>
+
+            <button
+              type="submit"
+              disabled={loading}
+              className="w-full bg-brand hover:bg-brand-dark text-white font-bold py-3.5 rounded-xl transition mt-2 disabled:opacity-50 disabled:cursor-not-allowed"
+            >
+              {loading ? 'Creating account...' : 'Create Account'}
+            </button>
+          </form>
+
+          <p className="text-center text-sm text-gray-500 mt-6">
+            Already have an account?{' '}
+            <Link href="/auth/login" className="text-brand hover:text-brand-light font-semibold transition">
+              Sign in
+            </Link>
+          </p>
+        </div>
+
+        {/* Trust note */}
+        <div className="flex items-center justify-center gap-2 mt-6 text-xs text-gray-600">
+          <ShieldCheck className="w-3.5 h-3.5 text-brand/50" />
+          <span>All trades protected by Velxo Escrow</span>
+        </div>
       </div>
-
-      {error && (
-        <div className="bg-red-900/30 border border-red-500 text-red-200 text-sm px-4 py-3 rounded-lg mb-6">
-          {error}
-        </div>
-      )}
-
-      <form onSubmit={handleSubmit} className="space-y-4">
-        <div className="grid grid-cols-2 gap-4">
-          <div>
-            <label className="block text-sm font-semibold text-gray-300 mb-1">First Name</label>
-            <input
-              type="text"
-              required
-              className="w-full bg-background border border-borderBg rounded-xl px-4 py-3 text-white placeholder-gray-500 focus:outline-none focus:border-brand transition"
-              placeholder="Precious"
-              value={firstName}
-              onChange={(e) => setFirstName(e.target.value)}
-            />
-          </div>
-          <div>
-            <label className="block text-sm font-semibold text-gray-300 mb-1">Last Name</label>
-            <input
-              type="text"
-              required
-              className="w-full bg-background border border-borderBg rounded-xl px-4 py-3 text-white placeholder-gray-500 focus:outline-none focus:border-brand transition"
-              placeholder="Dev"
-              value={lastName}
-              onChange={(e) => setLastName(e.target.value)}
-            />
-          </div>
-        </div>
-
-        <div>
-          <label className="block text-sm font-semibold text-gray-300 mb-1">Email Address</label>
-          <input
-            type="email"
-            required
-            className="w-full bg-background border border-borderBg rounded-xl px-4 py-3 text-white placeholder-gray-500 focus:outline-none focus:border-brand transition"
-            placeholder="gaming@velxo.shop"
-            value={email}
-            onChange={(e) => setEmail(e.target.value)}
-          />
-        </div>
-
-        <div>
-          <label className="block text-sm font-semibold text-gray-300 mb-1">Password</label>
-          <input
-            type="password"
-            required
-            className="w-full bg-background border border-borderBg rounded-xl px-4 py-3 text-white placeholder-gray-500 focus:outline-none focus:border-brand transition"
-            placeholder="••••••••"
-            value={password}
-            onChange={(e) => setPassword(e.target.value)}
-          />
-        </div>
-
-        <button
-          type="submit"
-          disabled={loading}
-          className="w-full bg-brand hover:bg-brand-dark py-3.5 rounded-xl font-bold transition shadow-lg shadow-brand/20 disabled:opacity-50 text-white mt-4"
-        >
-          {loading ? 'Creating Account...' : 'Register'}
-        </button>
-      </form>
-
-      <p className="text-center text-sm text-gray-400 mt-8">
-        Already have an account?{' '}
-        <Link href="/auth/login" className="text-brand hover:underline font-semibold">
-          Sign In
-        </Link>
-      </p>
     </div>
   );
 }

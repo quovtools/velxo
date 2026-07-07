@@ -1,5 +1,6 @@
 import { Injectable, Logger } from '@nestjs/common'
-import { createClient } from '@supabase/supabase-js'
+import { JwtService } from '@nestjs/jwt'
+import * as bcrypt from 'bcrypt'
 import { PrismaService } from '@/common/services/prisma.service'
 import { LoginDto, RegisterDto } from './dto/login.dto'
 import { UnauthorizedException, ConflictException } from '@/common/exceptions/custom-exceptions'
@@ -8,67 +9,55 @@ import { Role } from '@prisma/client'
 @Injectable()
 export class AuthService {
   private readonly logger = new Logger(AuthService.name)
-  private supabase
 
-  constructor(private prisma: PrismaService) {
-    this.supabase = createClient(
-      process.env.SUPABASE_URL,
-      process.env.SUPABASE_SERVICE_ROLE_KEY,
-    )
+  constructor(
+    private prisma: PrismaService,
+    private jwtService: JwtService,
+  ) {}
+
+  private signToken(userId: string, email: string, role: Role): string {
+    return this.jwtService.sign({ sub: userId, email, role })
   }
 
   async register(dto: RegisterDto) {
     this.logger.log(`Registering new user: ${dto.email}`)
 
-    // Create user in Supabase
-    const { data, error } = await this.supabase.auth.admin.createUser({
-      email: dto.email,
-      password: dto.password,
-      email_confirm: true, // Auto-verify in development
-    })
-
-    if (error) {
-      this.logger.error('Supabase registration error:', JSON.stringify(error))
-      // Surface the actual Supabase message so it shows in Render logs
-      if (error.message?.includes('already registered') || error.message?.includes('already exists')) {
-        throw new ConflictException('An account with this email already exists')
-      }
-      throw new ConflictException(error.message || 'Registration failed')
+    // Check for existing email
+    const existing = await this.prisma.users.findUnique({ where: { email: dto.email } })
+    if (existing) {
+      throw new ConflictException('An account with this email already exists')
     }
 
-    // Create user profile in database
+    const passwordHash = await bcrypt.hash(dto.password, 12)
+
     let user: any
     try {
       user = await this.prisma.users.create({
         data: {
-          id: data.user.id,
           email: dto.email,
+          passwordHash,
           firstName: dto.firstName,
           lastName: dto.lastName,
-          emailVerified: true,
+          emailVerified: false,
           role: Role.BUYER,
         },
       })
-    } catch (prismaError) {
+    } catch (prismaError: any) {
       this.logger.error('Prisma user creation error:', prismaError)
-      // Roll back the Supabase user so we don't leave orphans
-      await this.supabase.auth.admin.deleteUser(data.user.id).catch((e) =>
-        this.logger.error('Failed to rollback Supabase user after Prisma error:', e),
-      )
+      if (prismaError?.code === 'P2002') {
+        throw new ConflictException('An account with this email already exists')
+      }
       throw new Error('Failed to create user profile. Please try again.')
     }
 
     // Create wallet for user
     try {
-      await this.prisma.wallet.create({
-        data: {
-          userId: user.id,
-        },
-      })
+      await this.prisma.wallet.create({ data: { userId: user.id } })
     } catch (walletError) {
       this.logger.error('Prisma wallet creation error:', walletError)
-      // Non-fatal: user is created, wallet can be created later
     }
+
+    const accessToken = this.signToken(user.id, user.email, user.role)
 
     return {
       user: {
@@ -78,42 +67,35 @@ export class AuthService {
         lastName: user.lastName,
         role: user.role,
       },
-      session: data.session,
+      accessToken,
     }
   }
 
   async login(dto: LoginDto) {
     this.logger.log(`User login attempt: ${dto.email}`)
 
-    // Authenticate with Supabase
-    const { data, error } = await this.supabase.auth.signInWithPassword({
-      email: dto.email,
-      password: dto.password,
-    })
+    const user = await this.prisma.users.findUnique({ where: { email: dto.email } })
 
-    if (error) {
-      this.logger.warn(`Login failed for ${dto.email}`)
+    if (!user || !user.passwordHash) {
       throw new UnauthorizedException('Invalid email or password')
     }
 
-    // Get user profile from database
-    const user = await this.prisma.users.findUnique({
-      where: { id: data.user.id },
-    })
-
-    if (!user) {
-      throw new UnauthorizedException('User profile not found')
+    const passwordMatch = await bcrypt.compare(dto.password, user.passwordHash)
+    if (!passwordMatch) {
+      this.logger.warn(`Login failed for ${dto.email} — wrong password`)
+      throw new UnauthorizedException('Invalid email or password')
     }
 
     if (user.isBanned) {
-      throw new UnauthorizedException('User account is banned')
+      throw new UnauthorizedException('Your account has been suspended')
     }
 
-    // Update last login time
     await this.prisma.users.update({
       where: { id: user.id },
       data: { lastLoginAt: new Date() },
     })
+
+    const accessToken = this.signToken(user.id, user.email, user.role)
 
     return {
       user: {
@@ -123,7 +105,7 @@ export class AuthService {
         lastName: user.lastName,
         role: user.role,
       },
-      session: data.session,
+      accessToken,
     }
   }
 
@@ -149,80 +131,36 @@ export class AuthService {
     return user
   }
 
-  async verifyEmail(userId: string) {
-    this.logger.log(`Verifying email for user ${userId}`)
-
-    return this.prisma.users.update({
-      where: { id: userId },
-      data: { emailVerified: true },
-    })
-  }
-
   async resetPassword(userId: string, newPassword: string) {
     this.logger.log(`Resetting password for user ${userId}`)
-
-    // Update password in Supabase
-    const { error } = await this.supabase.auth.admin.updateUserById(userId, {
-      password: newPassword,
-    })
-
-    if (error) {
-      this.logger.error('Error resetting password:', error)
-      throw new Error('Failed to reset password')
-    }
-
+    const passwordHash = await bcrypt.hash(newPassword, 12)
+    await this.prisma.users.update({ where: { id: userId }, data: { passwordHash } })
     return { success: true }
   }
 
   async logout(userId: string) {
     this.logger.log(`User logout: ${userId}`)
-    // Invalidate token server-side if needed
     return { success: true }
   }
 
   async updateUserRole(userId: string, role: Role, moderatorId: string) {
     this.logger.log(`Updating role for user ${userId} to ${role}`)
-
-    const user = await this.prisma.users.update({
-      where: { id: userId },
-      data: { role },
-    })
-
-    // Audit log
+    const user = await this.prisma.users.update({ where: { id: userId }, data: { role } })
     await this.prisma.adminAuditLogs.create({
-      data: {
-        actorId: moderatorId,
-        action: 'ROLE_CHANGE',
-        entityType: 'user',
-        entityId: userId,
-        newValue: { role },
-      },
+      data: { actorId: moderatorId, action: 'ROLE_CHANGE', entityType: 'user', entityId: userId, newValue: { role } },
     })
-
     return user
   }
 
   async banUser(userId: string, reason: string, moderatorId: string) {
     this.logger.log(`Banning user ${userId}`)
-
     const user = await this.prisma.users.update({
       where: { id: userId },
-      data: {
-        isBanned: true,
-        banReason: reason,
-      },
+      data: { isBanned: true, banReason: reason },
     })
-
     await this.prisma.adminAuditLogs.create({
-      data: {
-        actorId: moderatorId,
-        action: 'STATUS_CHANGE',
-        entityType: 'user',
-        entityId: userId,
-        newValue: { isBanned: true, reason },
-      },
+      data: { actorId: moderatorId, action: 'STATUS_CHANGE', entityType: 'user', entityId: userId, newValue: { isBanned: true, reason } },
     })
-
     return user
   }
 }
