@@ -28,28 +28,47 @@ export class AuthService {
     })
 
     if (error) {
-      this.logger.error('Supabase registration error:', error)
-      throw new ConflictException('User already exists or invalid credentials')
+      this.logger.error('Supabase registration error:', JSON.stringify(error))
+      // Surface the actual Supabase message so it shows in Render logs
+      if (error.message?.includes('already registered') || error.message?.includes('already exists')) {
+        throw new ConflictException('An account with this email already exists')
+      }
+      throw new ConflictException(error.message || 'Registration failed')
     }
 
     // Create user profile in database
-    const user = await this.prisma.users.create({
-      data: {
-        id: data.user.id,
-        email: dto.email,
-        firstName: dto.firstName,
-        lastName: dto.lastName,
-        emailVerified: true,
-        role: Role.BUYER,
-      },
-    })
+    let user: any
+    try {
+      user = await this.prisma.users.create({
+        data: {
+          id: data.user.id,
+          email: dto.email,
+          firstName: dto.firstName,
+          lastName: dto.lastName,
+          emailVerified: true,
+          role: Role.BUYER,
+        },
+      })
+    } catch (prismaError) {
+      this.logger.error('Prisma user creation error:', prismaError)
+      // Roll back the Supabase user so we don't leave orphans
+      await this.supabase.auth.admin.deleteUser(data.user.id).catch((e) =>
+        this.logger.error('Failed to rollback Supabase user after Prisma error:', e),
+      )
+      throw new Error('Failed to create user profile. Please try again.')
+    }
 
     // Create wallet for user
-    await this.prisma.wallet.create({
-      data: {
-        userId: user.id,
-      },
-    })
+    try {
+      await this.prisma.wallet.create({
+        data: {
+          userId: user.id,
+        },
+      })
+    } catch (walletError) {
+      this.logger.error('Prisma wallet creation error:', walletError)
+      // Non-fatal: user is created, wallet can be created later
+    }
 
     return {
       user: {

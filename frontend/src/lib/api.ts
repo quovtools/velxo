@@ -40,7 +40,13 @@ async function request<T>(endpoint: string, options: RequestOptions = {}): Promi
     headers,
   };
 
-  const response = await fetch(url, config);
+  const response = await fetch(url, config).catch((networkError: Error) => {
+    // This fires when the server is unreachable (CORS preflight blocked, server down, wrong URL, etc.)
+    console.error('[API] Network error on', url, networkError)
+    throw new Error(
+      `Cannot reach the server. Check your internet connection or try again later. (${networkError.message})`,
+    )
+  });
 
   let responseData;
   const contentType = response.headers.get('content-type');
@@ -51,8 +57,15 @@ async function request<T>(endpoint: string, options: RequestOptions = {}): Promi
   }
 
   if (!response.ok) {
-    const message = responseData?.message || responseData || 'Something went wrong';
-    throw new Error(message);
+    // NestJS may return message as a string or array (from ValidationPipe)
+    const rawMessage = responseData?.message
+    const message = Array.isArray(rawMessage)
+      ? rawMessage.join('; ')
+      : rawMessage || (typeof responseData === 'string' ? responseData : 'Something went wrong')
+    const err = new Error(message) as any
+    err.status = response.status
+    err.data = responseData
+    throw err
   }
 
   return responseData;
