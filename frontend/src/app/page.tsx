@@ -31,6 +31,7 @@ const GAMES = [
   { name: 'Valorant', slug: 'valorant' },
   { name: 'Roblox', slug: 'roblox' },
   { name: 'Mobile Legends', slug: 'mobile-legends' },
+  { name: 'eFootball', slug: 'efootball' },
 ];
 
 const SORT_OPTIONS = [
@@ -103,7 +104,7 @@ function MarketplaceContent() {
       <div className="flex flex-col sm:flex-row sm:items-end justify-between gap-4">
         <div className="space-y-1">
           <h1 className="text-2xl sm:text-3xl font-black text-white tracking-tight">
-            {activeGame ? <span className="text-gradient">{activeGame}</span> : 'Browse Marketplace'}
+            {activeGame ? <span>{activeGame}</span> : 'Browse Marketplace'}
           </h1>
           <p className="text-sm text-gray-500">
             {activeGame ? `${GAMES.find(g => g.name === activeGame)?.slug || activeGame} listings` : 'Game accounts, top-ups, gift cards & boosting services'}
@@ -254,7 +255,7 @@ function MarketplaceContent() {
           </span>
         </div>
         <div className="flex items-center gap-2 text-xs text-gray-500">
-          <ShieldCheck className="w-3.5 h-3.5 text-emerald-400" />
+          <ShieldCheck className="w-3.5 h-3.5 text-brand-accent" />
           <span className="hidden sm:inline">All trades escrow-protected</span>
         </div>
       </div>
@@ -311,11 +312,11 @@ function MarketplaceContent() {
               {/* Image area placeholder */}
               <div className="h-36 bg-gradient-to-br from-background to-cardBg flex items-center justify-center relative">
                 <span className="text-xs font-bold text-gray-600 uppercase tracking-wider">{item.gameName}</span>
-                {item.isFeatured && (
-                  <span className="absolute top-3 right-3 flex items-center gap-1 text-[10px] font-black text-orange-400 bg-orange-400/10 border border-orange-400/20 px-2 py-1 rounded-lg">
-                    <Flame className="w-3 h-3" /> HOT
-                  </span>
-                )}
+                  {item.isFeatured && (
+                    <span className="flex items-center gap-0.5 text-[10px] font-bold text-brand-accent flex-shrink-0">
+                      <Flame className="w-3 h-3" /> Hot
+                    </span>
+                  )}
               </div>
               <div className="p-4 flex-1 flex flex-col justify-between space-y-3">
                 <div>

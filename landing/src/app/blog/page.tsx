@@ -18,10 +18,10 @@ interface Post {
 }
 
 const CATEGORY_COLORS: Record<string, string> = {
-  Platform: 'bg-[#8B5CF6]/10 text-[#A78BFA] border-[#8B5CF6]/20',
-  Sellers: 'bg-emerald-500/10 text-emerald-400 border-emerald-500/20',
+  Platform: 'bg-brand/10 text-brand-light border-brand/20',
+  Sellers: 'bg-brand-accent/10 text-brand-accent border-brand-accent/20',
   Safety: 'bg-red-500/10 text-red-400 border-red-500/20',
-  Guides: 'bg-[#06B6D4]/10 text-[#06B6D4] border-[#06B6D4]/20',
+  Guides: 'bg-brand-light/10 text-brand-light border-brand-light/20',
 };
 
 const API = process.env.NEXT_PUBLIC_API_URL || 'https://api.velxo.shop/api/v1';
@@ -63,12 +63,12 @@ export default function BlogPage() {
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-16 space-y-12">
 
           <div className="text-center space-y-4">
-            <span className="inline-block text-xs font-bold text-[#A78BFA] uppercase tracking-widest bg-[#8B5CF6]/10 px-4 py-2 rounded-full border border-[#8B5CF6]/20">
+            <span className="inline-block text-xs font-bold text-brand-light uppercase tracking-widest bg-brand/10 px-4 py-2 rounded-full border border-brand/20">
               Velxo Blog
             </span>
             <h1 className="text-4xl sm:text-5xl font-black text-white">
               Insights, guides &amp;{' '}
-              <span className="text-gradient">gaming news</span>
+              <span>gaming news</span>
             </h1>
             <p className="text-gray-400 text-lg max-w-xl mx-auto">
               Tips for buyers, guides for sellers, platform updates, and everything to trade smarter.
@@ -81,8 +81,8 @@ export default function BlogPage() {
               <button key={cat} onClick={() => setCategory(cat)}
                 className={`px-4 py-2 rounded-full text-xs font-bold border transition ${
                   category === cat
-                    ? 'bg-[#8B5CF6] border-[#8B5CF6] text-white'
-                    : 'bg-[#111827] border-[#1F2937] text-gray-400 hover:text-white hover:border-[#8B5CF6]/40'
+                    ? 'bg-brand border-brand text-white'
+                    : 'bg-card border-border text-gray-400 hover:text-white hover:border-brand/40'
                 }`}>
                 {cat || 'All'}
               </button>
@@ -101,8 +101,8 @@ export default function BlogPage() {
             <>
               {featured.length > 0 && (
                 <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-                  {featured.map((post) => (
-                    <article key={post.slug} className="bg-[#111827] border border-[#1F2937] hover:border-[#8B5CF6]/30 rounded-3xl overflow-hidden transition-all duration-300 card-glow group">
+              {featured.map((post) => (
+                     <article key={post.slug} className="bg-card border border-border hover:border-brand/30 rounded-3xl overflow-hidden transition-all duration-300 card-glow group">
                       {post.coverImage && (
                         <img src={post.coverImage} alt={post.title} className="w-full h-48 object-cover" />
                       )}
@@ -126,9 +126,9 @@ export default function BlogPage() {
                             <User className="w-3 h-3" /> {post.author}
                             {post.publishedAt && ` · ${new Date(post.publishedAt).toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' })}`}
                           </div>
-                          <a href={`/blog/${post.slug}`} className="flex items-center gap-1 text-xs font-bold text-[#A78BFA] group-hover:gap-2 transition-all">
-                            Read more <ArrowRight className="w-3 h-3" />
-                          </a>
+                          <a href={`/blog/${post.slug}`} className="flex items-center gap-1 text-xs font-bold text-brand-light group-hover:gap-2 transition-all">
+                             Read more <ArrowRight className="w-3 h-3" />
+                           </a>
                         </div>
                       </div>
                     </article>
@@ -141,7 +141,7 @@ export default function BlogPage() {
                   <h2 className="text-xl font-bold text-white">All Articles</h2>
                   <div className="grid grid-cols-1 md:grid-cols-3 gap-5">
                     {rest.map((post) => (
-                      <article key={post.slug} className="bg-[#111827] border border-[#1F2937] hover:border-[#8B5CF6]/30 rounded-2xl overflow-hidden transition-all duration-300 card-glow group">
+                      <article key={post.slug} className="bg-card border border-border hover:border-brand/30 rounded-2xl overflow-hidden transition-all duration-300 card-glow group">
                         {post.coverImage && (
                           <img src={post.coverImage} alt={post.title} className="w-full h-32 object-cover" />
                         )}
@@ -156,9 +156,9 @@ export default function BlogPage() {
                             {post.title}
                           </h3>
                           <p className="text-xs text-gray-500 leading-relaxed line-clamp-3">{post.excerpt}</p>
-                          <a href={`/blog/${post.slug}`} className="text-xs font-bold text-[#A78BFA] hover:text-white transition flex items-center gap-1">
-                            Read more <ArrowRight className="w-3 h-3" />
-                          </a>
+                           <a href={`/blog/${post.slug}`} className="text-xs font-bold text-brand-light hover:text-white transition flex items-center gap-1">
+                             Read more <ArrowRight className="w-3 h-3" />
+                           </a>
                         </div>
                       </article>
                     ))}
@@ -169,17 +169,17 @@ export default function BlogPage() {
           )}
 
           {/* Newsletter */}
-          <div className="bg-[#111827] border border-[#8B5CF6]/20 rounded-3xl p-10 text-center space-y-5">
+          <div className="bg-card border border-brand/20 rounded-3xl p-10 text-center space-y-5">
             <h3 className="text-2xl font-black text-white">Stay in the loop</h3>
             <p className="text-gray-400 text-sm max-w-md mx-auto">Get new posts, platform updates, and seller tips. No spam.</p>
             {subscribed ? (
-              <p className="text-emerald-400 font-semibold">You&apos;re subscribed!</p>
+              <p className="text-brand-accent font-semibold">You&apos;re subscribed!</p>
             ) : (
               <div className="flex flex-col sm:flex-row gap-3 max-w-md mx-auto">
                 <input type="email" placeholder="your@email.com" value={email} onChange={(e) => setEmail(e.target.value)}
-                  className="flex-1 bg-[#0b0f19] border border-[#1F2937] focus:border-[#8B5CF6] rounded-xl px-4 py-3 text-white text-sm outline-none transition" />
+                  className="flex-1 bg-background border border-border focus:border-brand rounded-xl px-4 py-3 text-white text-sm outline-none transition" />
                 <button onClick={() => email && setSubscribed(true)}
-                  className="bg-[#8B5CF6] hover:bg-[#6D28D9] text-white font-bold px-6 py-3 rounded-xl text-sm transition">
+                  className="bg-brand hover:bg-brand-dark text-white font-bold px-6 py-3 rounded-xl text-sm transition">
                   Subscribe
                 </button>
               </div>

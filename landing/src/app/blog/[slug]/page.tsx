@@ -59,17 +59,17 @@ export default function BlogPostPage() {
   return (
     <>
       <Navbar />
-      <main className="min-h-screen bg-[#0b0f19] pt-24">
+        <main className="min-h-screen bg-background pt-24">
         <div className="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8 py-12">
 
           {loading ? (
             <div className="flex justify-center py-24">
-              <Loader2 className="w-10 h-10 text-[#8B5CF6] animate-spin" />
+              <Loader2 className="w-10 h-10 text-brand animate-spin" />
             </div>
           ) : notFound || !post ? (
             <div className="text-center py-24 space-y-6">
               <p className="text-gray-400 text-lg font-semibold">Post not found.</p>
-              <Link href="/blog" className="inline-flex items-center gap-2 text-[#A78BFA] hover:text-white transition">
+              <Link href="/blog" className="inline-flex items-center gap-2 text-brand-light hover:text-white transition">
                 <ArrowLeft className="w-4 h-4" /> Back to Blog
               </Link>
             </div>
@@ -85,11 +85,11 @@ export default function BlogPostPage() {
               </div>
 
               {post.coverImage && (
-                <img src={post.coverImage} alt={post.title} className="w-full h-64 sm:h-80 object-cover rounded-3xl border border-[#1F2937]" />
+                <img src={post.coverImage} alt={post.title} className="w-full h-64 sm:h-80 object-cover rounded-3xl border border-border" />
               )}
 
               <div className="space-y-4">
-                <span className="inline-block text-xs font-bold text-[#A78BFA] uppercase tracking-widest bg-[#8B5CF6]/10 px-4 py-2 rounded-full border border-[#8B5CF6]/20">
+                <span className="inline-block text-xs font-bold text-brand-light uppercase tracking-widest bg-brand/10 px-4 py-2 rounded-full border border-brand/20">
                   {post.category}
                 </span>
                 <h1 className="text-3xl sm:text-4xl lg:text-5xl font-black text-white leading-tight">{post.title}</h1>
@@ -100,7 +100,7 @@ export default function BlogPostPage() {
                 </div>
               </div>
 
-              <div className="border-t border-b border-[#1F2937] py-8">
+              <div className="border-t border-b border-border py-8">
                 <p className="text-lg text-gray-300 leading-relaxed font-medium">{post.excerpt}</p>
               </div>
 
@@ -110,8 +110,8 @@ export default function BlogPostPage() {
                 ))}
               </div>
 
-              <div className="border-t border-[#1F2937] pt-8">
-                <Link href="/blog" className="inline-flex items-center gap-2 text-sm text-[#A78BFA] hover:text-white transition">
+              <div className="border-t border-border pt-8">
+                <Link href="/blog" className="inline-flex items-center gap-2 text-sm text-brand-light hover:text-white transition">
                   <ArrowLeft className="w-4 h-4" /> Back to all posts
                 </Link>
               </div>

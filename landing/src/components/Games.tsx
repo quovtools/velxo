@@ -11,6 +11,7 @@ const GAMES = [
   { name: 'Valorant', slug: 'valorant', tag: 'Tactical FPS', color: '#FF4655', listings: '1,200+' },
   { name: 'Roblox', slug: 'roblox', tag: 'Sandbox', color: '#CC0000', listings: '2,000+' },
   { name: 'Mobile Legends', slug: 'mobile-legends', tag: 'MOBA', color: '#9B59B6', listings: '1,600+' },
+  { name: 'eFootball', slug: 'efootball', tag: 'Sports', color: '#00C8FF', listings: '500+' },
 ];
 
 export default function Games() {

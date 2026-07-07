@@ -33,11 +33,11 @@ export default function Pricing() {
   return (
     <section id="pricing" className="py-24 px-4 sm:px-6 lg:px-8 max-w-7xl mx-auto">
       <div className="text-center mb-16 space-y-4">
-        <span className="inline-block text-xs font-bold text-[#A78BFA] uppercase tracking-widest bg-[#8B5CF6]/10 px-4 py-2 rounded-full border border-[#8B5CF6]/20">
+        <span className="inline-block text-xs font-bold text-brand-light uppercase tracking-widest bg-brand/10 px-4 py-2 rounded-full border border-brand/20">
           Pricing
         </span>
         <h2 className="text-4xl sm:text-5xl font-black text-white">
-          Simple, <span className="text-gradient">transparent pricing</span>
+          Simple, <span>transparent pricing</span>
         </h2>
         <p className="text-gray-400 text-lg max-w-xl mx-auto">
           No subscriptions. No hidden fees. Buyers always free. Sellers pay only when they earn.
@@ -46,7 +46,7 @@ export default function Pricing() {
 
       <div className="grid grid-cols-1 md:grid-cols-2 gap-6 mb-12 max-w-4xl mx-auto">
         {/* Buyer card */}
-        <div className="bg-[#111827] border border-[#1F2937] rounded-3xl p-8 space-y-6">
+        <div className="bg-card border border-border rounded-3xl p-8 space-y-6">
           <div>
             <p className="text-xs font-bold text-gray-500 uppercase tracking-wider mb-1">For Buyers</p>
             <div className="flex items-end gap-2">
@@ -57,21 +57,21 @@ export default function Pricing() {
           <ul className="space-y-3">
             {BUYER_FEATURES.map((f) => (
               <li key={f} className="flex items-center gap-2.5 text-sm text-gray-300">
-                <CheckCircle className="w-4 h-4 text-emerald-400 flex-shrink-0" />
+                <CheckCircle className="w-4 h-4 text-brand-accent flex-shrink-0" />
                 {f}
               </li>
             ))}
           </ul>
           <a href="https://market.velxo.shop/auth/register"
-            className="block text-center py-3.5 rounded-xl border border-[#1F2937] text-gray-300 hover:border-[#8B5CF6]/40 hover:text-white font-semibold text-sm transition">
+            className="block text-center py-3.5 rounded-xl border border-border text-gray-300 hover:border-brand/40 hover:text-white font-semibold text-sm transition">
             Create Buyer Account
           </a>
         </div>
 
         {/* Seller card */}
-        <div className="bg-[#111827] border border-[#8B5CF6]/40 rounded-3xl p-8 space-y-6 relative ring-1 ring-[#8B5CF6]/20">
+        <div className="bg-card border border-brand/40 rounded-3xl p-8 space-y-6 relative ring-1 ring-brand/20">
           <div className="absolute -top-3.5 left-7">
-            <span className="bg-[#8B5CF6] text-white text-xs font-black uppercase tracking-wide px-4 py-1.5 rounded-full shadow-lg shadow-[#8B5CF6]/30">
+            <span className="bg-brand text-white text-xs font-black uppercase tracking-wide px-4 py-1.5 rounded-full shadow-lg shadow-brand/30">
               Sellers
             </span>
           </div>
@@ -85,13 +85,13 @@ export default function Pricing() {
           <ul className="space-y-3">
             {SELLER_FEATURES.map((f) => (
               <li key={f} className="flex items-center gap-2.5 text-sm text-gray-300">
-                <CheckCircle className="w-4 h-4 text-emerald-400 flex-shrink-0" />
+                <CheckCircle className="w-4 h-4 text-brand-accent flex-shrink-0" />
                 {f}
               </li>
             ))}
           </ul>
           <a href="https://market.velxo.shop/sell"
-            className="group flex items-center justify-center gap-2 py-3.5 rounded-xl bg-[#8B5CF6] hover:bg-[#6D28D9] text-white font-bold text-sm transition shadow-lg shadow-[#8B5CF6]/25">
+            className="group flex items-center justify-center gap-2 py-3.5 rounded-xl bg-brand hover:bg-brand-dark text-white font-bold text-sm transition shadow-lg shadow-brand/25">
             Start Selling Today
             <ArrowRight className="w-4 h-4 group-hover:translate-x-1 transition-transform" />
           </a>
@@ -101,21 +101,21 @@ export default function Pricing() {
       {/* Fee table */}
       <div className="max-w-2xl mx-auto">
         <h3 className="text-center text-lg font-bold text-white mb-4">Fee Calculator</h3>
-        <div className="bg-[#111827] border border-[#1F2937] rounded-2xl overflow-hidden">
+        <div className="bg-card border border-border rounded-2xl overflow-hidden">
           <table className="w-full text-sm">
-            <thead className="border-b border-[#1F2937]">
+            <thead className="border-b border-border">
               <tr className="text-xs text-gray-500 uppercase font-bold">
                 <th className="px-6 py-4 text-left">Sale Price</th>
                 <th className="px-6 py-4 text-left">Velxo Fee (10%)</th>
-                <th className="px-6 py-4 text-left text-emerald-400">You Receive</th>
+                <th className="px-6 py-4 text-left text-brand-accent">You Receive</th>
               </tr>
             </thead>
-            <tbody className="divide-y divide-[#1F2937]">
+            <tbody className="divide-y divide-border">
               {FEE_EXAMPLES.map((row) => (
-                <tr key={row.sale} className="hover:bg-[#0b0f19]/50 transition">
+                <tr key={row.sale} className="hover:bg-background/50 transition">
                   <td className="px-6 py-4 font-bold text-white">{row.sale}</td>
                   <td className="px-6 py-4 text-gray-500">{row.fee}</td>
-                  <td className="px-6 py-4 font-bold text-emerald-400">{row.payout}</td>
+                  <td className="px-6 py-4 font-bold text-brand-accent">{row.payout}</td>
                 </tr>
               ))}
             </tbody>

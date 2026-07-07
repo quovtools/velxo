@@ -31,9 +31,9 @@ export default function GameIcon({ game, className = 'w-10 h-10' }: GameIconProp
           if (el) {
             el.innerHTML = `<svg viewBox="0 0 64 64" fill="none" xmlns="http://www.w3.org/2000/svg" class="w-full h-full">
               <rect width="64" height="64" rx="14" fill="#1a1a2e"/>
-              <rect x="12" y="22" width="40" height="22" rx="6" fill="#7C3AED"/>
-              <rect x="8" y="26" width="8" height="14" rx="4" fill="#7C3AED"/>
-              <rect x="48" y="26" width="8" height="14" rx="4" fill="#7C3AED"/>
+              <rect x="12" y="22" width="40" height="22" rx="6" fill="#2563EB"/>
+              <rect x="8" y="26" width="8" height="14" rx="4" fill="#2563EB"/>
+              <rect x="48" y="26" width="8" height="14" rx="4" fill="#2563EB"/>
               <rect x="20" y="30" width="3" height="8" rx="1.5" fill="white"/>
               <rect x="17" y="33" width="9" height="3" rx="1.5" fill="white"/>
               <circle cx="40" cy="30" r="2" fill="white"/>

@@ -48,13 +48,13 @@ const FALLBACK_SLIDES: Slide[] = [
   },
 ];
 
-const GRADIENT_FALLBACKS = [
-  'from-orange-900/80 via-red-900/60 to-background',
-  'from-green-900/80 via-emerald-900/60 to-background',
-  'from-blue-900/80 via-cyan-900/60 to-background',
-  'from-purple-900/80 via-violet-900/60 to-background',
-  'from-rose-900/80 via-pink-900/60 to-background',
-];
+  const GRADIENT_FALLBACKS = [
+    'from-brand/80 via-brand-dark/60 to-background',
+    'from-brand-accent/80 via-brand/60 to-background',
+    'from-brand-light/80 via-brand/60 to-background',
+    'from-brand-dark/80 via-brand/60 to-background',
+    'from-brand-accent/80 via-brand-light/60 to-background',
+  ];
 
 export default function GameSlideshow() {
   const [slides, setSlides] = useState<Slide[]>([]);

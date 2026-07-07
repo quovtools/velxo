@@ -1,5 +1,5 @@
 import React from 'react';
-import { Gamepad2, Twitter, Instagram, Youtube, MessageCircle } from 'lucide-react';
+import { Twitter, Instagram, Youtube, MessageCircle } from 'lucide-react';
 
 const LINKS = {
   Marketplace: [
@@ -42,16 +42,14 @@ const SOCIALS = [
 
 export default function Footer() {
   return (
-    <footer className="border-t border-[#1F2937] bg-[#111827] mt-8">
+    <footer className="border-t border-border bg-card mt-8">
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-16">
         <div className="grid grid-cols-1 lg:grid-cols-6 gap-12">
           {/* Brand */}
           <div className="lg:col-span-2 space-y-5">
             <a href="#" className="flex items-center gap-2">
-              <div className="w-9 h-9 rounded-xl bg-gradient-to-br from-[#8B5CF6] to-[#06B6D4] flex items-center justify-center">
-                <Gamepad2 className="w-5 h-5 text-white" />
-              </div>
-              <span className="text-2xl font-black tracking-wider text-gradient">VELXO</span>
+              <img src="/logo.png" alt="Velxo" className="w-9 h-9 rounded-xl object-cover" />
+              <span className="text-2xl font-black tracking-wider">VELXO</span>
             </a>
             <p className="text-gray-500 text-sm leading-relaxed max-w-xs">
               Africa&apos;s most trusted escrow-backed gaming marketplace. Buy and sell safely — every trade, every time.
@@ -59,14 +57,14 @@ export default function Footer() {
             <div className="flex gap-3">
               {SOCIALS.map((s) => (
                 <a key={s.label} href={s.href} target="_blank" rel="noopener noreferrer" aria-label={s.label}
-                  className="w-9 h-9 rounded-xl bg-[#0b0f19] border border-[#1F2937] flex items-center justify-center text-gray-500 hover:text-white hover:border-[#8B5CF6]/40 transition">
+                  className="w-9 h-9 rounded-xl bg-background border border-border flex items-center justify-center text-gray-500 hover:text-white hover:border-brand/40 transition">
                   {s.icon}
                 </a>
               ))}
             </div>
-            <div className="inline-flex items-center gap-2 bg-emerald-950/40 border border-emerald-500/20 rounded-lg px-3 py-2">
-              <span className="w-2 h-2 rounded-full bg-emerald-400 animate-pulse" />
-              <span className="text-emerald-400 text-xs font-semibold">Escrow Protected Platform</span>
+            <div className="inline-flex items-center gap-2 bg-brand-accent/10 border border-brand-accent/20 rounded-lg px-3 py-2">
+              <span className="w-2 h-2 rounded-full bg-brand-accent animate-pulse" />
+              <span className="text-brand-accent text-xs font-semibold">Escrow Protected Platform</span>
             </div>
           </div>
 
@@ -88,7 +86,7 @@ export default function Footer() {
         </div>
       </div>
 
-      <div className="border-t border-[#1F2937]">
+      <div className="border-t border-border">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-5 flex flex-col md:flex-row justify-between items-center gap-3 text-xs text-gray-600">
           <p>&copy; {new Date().getFullYear()} Velxo.shop — All rights reserved. Built for Africa&apos;s gaming community.</p>
           <div className="flex gap-5">
@@ -98,7 +96,7 @@ export default function Footer() {
           </div>
           <div className="flex items-center gap-2">
             <span>Founder:</span>
-            <span className="text-[#A78BFA] font-semibold">Badeji Precious</span>
+            <span className="text-brand-light font-semibold">Badeji Precious</span>
           </div>
         </div>
       </div>

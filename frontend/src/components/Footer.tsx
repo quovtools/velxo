@@ -1,5 +1,5 @@
 import Link from 'next/link';
-import { Gamepad2, Twitter, Instagram, Youtube, MessageCircle } from 'lucide-react';
+import { Twitter, Instagram, Youtube, MessageCircle } from 'lucide-react';
 
 const footerLinks = {
   marketplace: {
@@ -54,7 +54,7 @@ export default function Footer() {
           {/* Brand column */}
           <div className="lg:col-span-2 space-y-5">
             <div className="flex items-center gap-2">
-              <Gamepad2 className="w-7 h-7 text-brand" />
+              <img src="/logo.png" alt="Velxo" className="w-8 h-8 rounded-lg object-cover" />
               <span className="text-white font-black text-2xl tracking-tight">Velxo</span>
             </div>
             <p className="text-gray-400 text-sm leading-relaxed max-w-xs">
@@ -100,9 +100,9 @@ export default function Footer() {
               </a>
             </div>
             {/* Trust badge */}
-            <div className="inline-flex items-center gap-2 bg-emerald-950/40 border border-emerald-500/20 rounded-lg px-3 py-2">
-              <span className="w-2 h-2 rounded-full bg-emerald-400 animate-pulse"></span>
-              <span className="text-emerald-400 text-xs font-semibold">Escrow Protected Platform</span>
+            <div className="inline-flex items-center gap-2 bg-brand-accent/10 border border-brand-accent/20 rounded-lg px-3 py-2">
+              <span className="w-2 h-2 rounded-full bg-brand-accent animate-pulse"></span>
+              <span className="text-brand-accent text-xs font-semibold">Escrow Protected Platform</span>
             </div>
           </div>
 
