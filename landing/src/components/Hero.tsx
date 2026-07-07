@@ -68,6 +68,7 @@ export default function Hero() {
               {pill.icon} {pill.text}
             </div>
           ))}
+        </div>
       </div>
     </section>
   );
