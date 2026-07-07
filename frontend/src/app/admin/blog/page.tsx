@@ -17,7 +17,8 @@ const EMPTY: Partial<Post> = {
 };
 
 export default function AdminBlogPage() {
-  const { role } = useAuth();
+  const { user } = useAuth();
+  const role = (user as any)?.role;
   const [posts, setPosts] = useState<Post[]>([]);
   const [loading, setLoading] = useState(true);
   const [showForm, setShowForm] = useState(false);
