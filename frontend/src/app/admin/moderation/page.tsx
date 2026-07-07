@@ -1,7 +1,7 @@
 'use client';
 
 import React, { useEffect, useState } from 'react';
-import { Eye, CheckCircle, XCircle, RefreshCw, AlertTriangle } from 'lucide-react';
+import { Eye, CheckCircle, XCircle, RefreshCw, AlertTriangle, DollarSign, Store, Mail, Clock } from 'lucide-react';
 import { api } from '@/lib/api';
 
 interface Listing {
@@ -105,10 +105,10 @@ export default function ModerationPage() {
                   <h3 className="font-bold text-white truncate">{listing.title}</h3>
                   <p className="text-sm text-gray-400 mt-0.5">{listing.gameName}</p>
                   <div className="flex flex-wrap gap-3 mt-2 text-xs text-gray-500">
-                    <span>💰 {listing.currency} {Number(listing.price).toFixed(2)}</span>
-                    <span>🏪 {listing.seller?.storeName || 'Unknown store'}</span>
-                    <span>📧 {listing.seller?.user?.email || '—'}</span>
-                    <span>🕒 {new Date(listing.createdAt).toLocaleDateString()}</span>
+                    <span className="flex items-center gap-1"><DollarSign className="w-3 h-3" />{listing.currency} {Number(listing.price).toFixed(2)}</span>
+                    <span className="flex items-center gap-1"><Store className="w-3 h-3" />{listing.seller?.storeName || 'Unknown store'}</span>
+                    <span className="flex items-center gap-1"><Mail className="w-3 h-3" />{listing.seller?.user?.email || '—'}</span>
+                    <span className="flex items-center gap-1"><Clock className="w-3 h-3" />{new Date(listing.createdAt).toLocaleDateString()}</span>
                   </div>
                 </div>
 

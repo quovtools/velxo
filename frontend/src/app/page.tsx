@@ -5,7 +5,7 @@ import Link from 'next/link';
 import {
   ShieldCheck, Award, RefreshCw, Flame, Zap, Users,
   Star, ArrowRight, CheckCircle, Lock, Banknote, MessageSquare,
-  TrendingUp, Globe, ChevronRight, Gamepad2
+  TrendingUp, Globe, ChevronRight, Gamepad2, Gift, CreditCard, Swords
 } from 'lucide-react';
 import GameSlideshow from '@/components/GameSlideshow';
 import GameIcon from '@/components/GameIcon';
@@ -71,10 +71,10 @@ const TRUST_STATS = [
 ];
 
 const CATEGORIES = [
-  { name: 'Game Accounts', desc: 'Ranked & unranked', href: '/search?category=accounts', icon: '🎮' },
-  { name: 'Top-Ups & Coins', desc: 'Diamonds, UC, CP & more', href: '/search?category=topups', icon: '💎' },
-  { name: 'Gift Cards', desc: 'All major platforms', href: '/search?category=giftcards', icon: '🎁' },
-  { name: 'Boosting Services', desc: 'Rank up fast', href: '/search?category=boosting', icon: '🚀' },
+  { name: 'Game Accounts', desc: 'Ranked & unranked', href: '/search?category=accounts', icon: <Gamepad2 className="w-7 h-7 text-brand" /> },
+  { name: 'Top-Ups & Coins', desc: 'Diamonds, UC, CP & more', href: '/search?category=topups', icon: <CreditCard className="w-7 h-7 text-brand" /> },
+  { name: 'Gift Cards', desc: 'All major platforms', href: '/search?category=giftcards', icon: <Gift className="w-7 h-7 text-brand" /> },
+  { name: 'Boosting Services', desc: 'Rank up fast', href: '/search?category=boosting', icon: <TrendingUp className="w-7 h-7 text-brand" /> },
 ];
 
 const TESTIMONIALS = [
@@ -220,7 +220,9 @@ export default function Homepage() {
               href={cat.href}
               className="bg-cardBg border border-borderBg hover:border-brand/40 rounded-2xl p-5 space-y-2 transition group"
             >
-              <span className="text-3xl">{cat.icon}</span>
+              <div className="w-11 h-11 bg-brand/10 rounded-xl flex items-center justify-center">
+                {cat.icon}
+              </div>
               <p className="font-bold text-white text-sm group-hover:text-brand transition">{cat.name}</p>
               <p className="text-xs text-gray-500">{cat.desc}</p>
             </Link>
@@ -404,13 +406,15 @@ export default function Homepage() {
         </div>
         <div className="grid grid-cols-2 gap-4">
           {[
-            { icon: '🛡️', title: 'Escrow Protected', desc: 'Every single transaction' },
-            { icon: '⚡', title: 'Instant Delivery', desc: 'Most transfers in minutes' },
-            { icon: '💬', title: 'Live Chat', desc: 'Direct buyer-seller comms' },
-            { icon: '🌍', title: 'Africa-First', desc: 'Local payments supported' },
+            { icon: <ShieldCheck className="w-5 h-5 text-brand" />, title: 'Escrow Protected', desc: 'Every single transaction' },
+            { icon: <Zap className="w-5 h-5 text-brand" />, title: 'Instant Delivery', desc: 'Most transfers in minutes' },
+            { icon: <MessageSquare className="w-5 h-5 text-brand" />, title: 'Live Chat', desc: 'Direct buyer-seller comms' },
+            { icon: <Globe className="w-5 h-5 text-brand" />, title: 'Africa-First', desc: 'Local payments supported' },
           ].map((item) => (
-            <div key={item.title} className="bg-background border border-borderBg rounded-xl p-4 space-y-1">
-              <span className="text-2xl">{item.icon}</span>
+            <div key={item.title} className="bg-background border border-borderBg rounded-xl p-4 space-y-2">
+              <div className="w-8 h-8 bg-brand/10 rounded-lg flex items-center justify-center">
+                {item.icon}
+              </div>
               <p className="font-bold text-white text-sm">{item.title}</p>
               <p className="text-xs text-gray-500">{item.desc}</p>
             </div>

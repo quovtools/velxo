@@ -31,14 +31,21 @@ export default function SlidesPage() {
   const [showForm, setShowForm] = useState(false);
   const [form, setForm] = useState<Omit<Slide, 'id'>>(emptySlide);
   const [saving, setSaving] = useState(false);
+  const [saveError, setSaveError] = useState('');
 
   const fetchSlides = async () => {
     setLoading(true);
     try {
-      const res = await api.get<{ data: Slide[] }>('/slides');
+      const res = await api.get<{ data: Slide[] }>('/slides/all');
       setSlides((res as any).data || []);
     } catch {
-      setSlides([]);
+      // fallback to public endpoint
+      try {
+        const res = await api.get<{ data: Slide[] }>('/slides');
+        setSlides((res as any).data || []);
+      } catch {
+        setSlides([]);
+      }
     } finally {
       setLoading(false);
     }
@@ -49,13 +56,14 @@ export default function SlidesPage() {
   const handleSave = async () => {
     if (!form.title || !form.imageUrl) return;
     setSaving(true);
+    setSaveError('');
     try {
       await api.post('/slides', form);
       setShowForm(false);
       setForm(emptySlide);
       fetchSlides();
     } catch (e: any) {
-      alert(e.message || 'Failed to save slide');
+      setSaveError(e.message || 'Failed to save slide');
     } finally {
       setSaving(false);
     }
@@ -67,7 +75,7 @@ export default function SlidesPage() {
       await api.delete(`/slides/${id}`);
       setSlides(s => s.filter(x => x.id !== id));
     } catch (e: any) {
-      alert(e.message || 'Failed to delete');
+      setSaveError(e.message || 'Failed to delete');
     }
   };
 
@@ -75,7 +83,9 @@ export default function SlidesPage() {
     try {
       await api.patch(`/slides/${slide.id}`, { isActive: !slide.isActive });
       setSlides(s => s.map(x => x.id === slide.id ? { ...x, isActive: !x.isActive } : x));
-    } catch {}
+    } catch (e: any) {
+      setSaveError(e.message || 'Failed to update');
+    }
   };
 
   return (
@@ -92,7 +102,7 @@ export default function SlidesPage() {
             <RefreshCw className="w-4 h-4" />
           </button>
           <button
-            onClick={() => setShowForm(true)}
+            onClick={() => { setShowForm(true); setSaveError(''); }}
             className="flex items-center gap-2 bg-brand hover:bg-brand-dark text-white text-sm font-bold px-4 py-2 rounded-xl transition"
           >
             <Plus className="w-4 h-4" /> Add Slide
@@ -104,6 +114,9 @@ export default function SlidesPage() {
       {showForm && (
         <div className="bg-cardBg border border-brand/30 rounded-2xl p-6 space-y-4">
           <h2 className="font-bold text-white">New Slide</h2>
+          {saveError && (
+            <div className="bg-red-900/30 border border-red-500/50 text-red-300 text-sm px-4 py-3 rounded-xl">{saveError}</div>
+          )}
           <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
             {[
               { key: 'title', label: 'Title *', placeholder: 'e.g. Free Fire Season 8' },
@@ -145,6 +158,13 @@ export default function SlidesPage() {
             </button>
             <button onClick={() => setShowForm(false)} className="text-gray-400 hover:text-white text-sm px-4 py-2 rounded-xl transition">Cancel</button>
           </div>
+        </div>
+      )}
+
+      {saveError && !showForm && (
+        <div className="bg-red-900/30 border border-red-500/50 text-red-300 text-sm px-4 py-3 rounded-xl flex justify-between items-center">
+          {saveError}
+          <button onClick={() => setSaveError('')} className="text-red-300 hover:text-white ml-4">✕</button>
         </div>
       )}
 

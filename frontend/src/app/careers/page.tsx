@@ -1,6 +1,6 @@
 import React from 'react';
 import Link from 'next/link';
-import { Zap, Globe, Users, Heart, Coffee, Award } from 'lucide-react';
+import { Zap, Globe, Users, Heart, Coffee, Award, MapPin } from 'lucide-react';
 
 const openRoles = [
   {
@@ -104,7 +104,9 @@ export default function CareersPage() {
                       {role.team}
                     </span>
                     <span className="text-xs text-gray-500">{role.type}</span>
-                    <span className="text-xs text-gray-500">📍 {role.location}</span>
+                    <span className="text-xs text-gray-500 flex items-center gap-1">
+                      <MapPin className="w-3 h-3" /> {role.location}
+                    </span>
                   </div>
                 </div>
                 <a

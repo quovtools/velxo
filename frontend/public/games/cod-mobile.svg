@@ -1,0 +1,23 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 64 64">
+  <rect width="64" height="64" rx="14" fill="#111111"/>
+  <defs>
+    <linearGradient id="cod-bg" x1="0" y1="0" x2="1" y2="1">
+      <stop offset="0%" stop-color="#1a1a1a"/>
+      <stop offset="100%" stop-color="#0a0a0a"/>
+    </linearGradient>
+  </defs>
+  <rect width="64" height="64" rx="14" fill="url(#cod-bg)"/>
+  <!-- Skull shape -->
+  <ellipse cx="32" cy="26" rx="13" ry="12" fill="#D4D0C8"/>
+  <!-- Skull jaw -->
+  <rect x="24" y="34" width="16" height="8" rx="3" fill="#D4D0C8"/>
+  <!-- Skull eye sockets -->
+  <ellipse cx="27" cy="25" rx="4" ry="4.5" fill="#111111"/>
+  <ellipse cx="37" cy="25" rx="4" ry="4.5" fill="#111111"/>
+  <!-- Teeth -->
+  <rect x="25" y="37" width="3" height="4" rx="1" fill="#111111"/>
+  <rect x="30" y="37" width="3" height="4" rx="1" fill="#111111"/>
+  <rect x="35" y="37" width="3" height="4" rx="1" fill="#111111"/>
+  <!-- COD text -->
+  <text x="32" y="57" font-family="Arial Black, sans-serif" font-size="8" font-weight="900" fill="#D4AF37" text-anchor="middle" letter-spacing="0.5">CODM</text>
+</svg>

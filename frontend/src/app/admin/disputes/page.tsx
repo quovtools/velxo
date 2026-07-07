@@ -29,6 +29,7 @@ export default function DisputesPage() {
   const [resolution, setResolution] = useState('');
   const [notes, setNotes] = useState('');
   const [actionLoading, setActionLoading] = useState(false);
+  const [resolveError, setResolveError] = useState('');
 
   const fetchDisputes = async () => {
     setLoading(true);
@@ -53,8 +54,9 @@ export default function DisputesPage() {
       setResolveId(null);
       setResolution('');
       setNotes('');
+      setResolveError('');
     } catch (e: any) {
-      alert(e.message || 'Failed to resolve dispute');
+      setResolveError(e.message || 'Failed to resolve dispute');
     } finally {
       setActionLoading(false);
     }

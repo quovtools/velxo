@@ -1,0 +1,16 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 64 64">
+  <rect width="64" height="64" rx="14" fill="#0f0e17"/>
+  <defs>
+    <linearGradient id="val-g" x1="0" y1="0" x2="1" y2="1">
+      <stop offset="0%" stop-color="#1a0a12"/>
+      <stop offset="100%" stop-color="#0a0a0a"/>
+    </linearGradient>
+  </defs>
+  <rect width="64" height="64" rx="14" fill="url(#val-g)"/>
+  <!-- V chevron left blade -->
+  <polygon points="8,14 28,50 36,50 20,14" fill="#FF4655"/>
+  <!-- V chevron right blade -->
+  <polygon points="56,14 36,50 44,50 56,22" fill="#FFFFFF"/>
+  <!-- Slash accent line -->
+  <line x1="30" y1="14" x2="38" y2="50" stroke="#FF4655" stroke-width="2.5" stroke-linecap="round"/>
+</svg>

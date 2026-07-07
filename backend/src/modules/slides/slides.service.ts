@@ -1,6 +1,5 @@
 import { Injectable, Logger } from '@nestjs/common'
 import { PrismaService } from '@/common/services/prisma.service'
-import { CreateSlideDto } from './dto/create-slide.dto'
 
 @Injectable()
 export class SlidesService {
@@ -21,25 +20,34 @@ export class SlidesService {
     })
   }
 
-  async createSlide(dto: CreateSlideDto) {
-    this.logger.log(`Creating slide: ${dto.title}`)
-    return this.prisma.gameSlides.create({ data: dto })
+  async createSlide(data: {
+    title: string
+    subtitle?: string
+    imageUrl: string
+    linkHref?: string
+    badge?: string
+    isActive?: boolean
+    sortOrder?: number
+  }) {
+    return this.prisma.gameSlides.create({ data })
   }
 
-  async updateSlide(id: string, dto: Partial<CreateSlideDto>) {
-    this.logger.log(`Updating slide: ${id}`)
-    return this.prisma.gameSlides.update({ where: { id }, data: dto })
+  async updateSlide(
+    id: string,
+    data: Partial<{
+      title: string
+      subtitle: string
+      imageUrl: string
+      linkHref: string
+      badge: string
+      isActive: boolean
+      sortOrder: number
+    }>,
+  ) {
+    return this.prisma.gameSlides.update({ where: { id }, data })
   }
 
   async deleteSlide(id: string) {
-    this.logger.log(`Deleting slide: ${id}`)
     return this.prisma.gameSlides.delete({ where: { id } })
-  }
-
-  async reorderSlides(ids: string[]) {
-    const updates = ids.map((id, index) =>
-      this.prisma.gameSlides.update({ where: { id }, data: { sortOrder: index } }),
-    )
-    return this.prisma.$transaction(updates)
   }
 }

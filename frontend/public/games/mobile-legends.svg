@@ -1,0 +1,27 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 64 64">
+  <rect width="64" height="64" rx="14" fill="#0d0020"/>
+  <defs>
+    <linearGradient id="ml-bg" x1="0" y1="0" x2="1" y2="1">
+      <stop offset="0%" stop-color="#1a0040"/>
+      <stop offset="100%" stop-color="#06000f"/>
+    </linearGradient>
+    <linearGradient id="ml-sword" x1="0" y1="0" x2="0" y2="1">
+      <stop offset="0%" stop-color="#C8A84B"/>
+      <stop offset="100%" stop-color="#F5E070"/>
+    </linearGradient>
+  </defs>
+  <rect width="64" height="64" rx="14" fill="url(#ml-bg)"/>
+  <!-- Shield background -->
+  <path d="M32 10 L50 20 L50 38 C50 46 32 55 32 55 C32 55 14 46 14 38 L14 20 Z" fill="#1a0040" stroke="#9B59B6" stroke-width="2"/>
+  <!-- Crossed swords -->
+  <rect x="30" y="13" width="4" height="30" rx="2" fill="url(#ml-sword)" transform="rotate(-30 32 32)"/>
+  <rect x="30" y="13" width="4" height="30" rx="2" fill="url(#ml-sword)" transform="rotate(30 32 32)"/>
+  <!-- Sword handles -->
+  <rect x="24" y="30" width="16" height="3.5" rx="1.5" fill="#C8A84B" transform="rotate(-30 32 32)"/>
+  <rect x="24" y="30" width="16" height="3.5" rx="1.5" fill="#C8A84B" transform="rotate(30 32 32)"/>
+  <!-- Center gem -->
+  <circle cx="32" cy="32" r="4" fill="#9B59B6"/>
+  <circle cx="32" cy="32" r="2" fill="#D8A4FF"/>
+  <!-- ML text -->
+  <text x="32" y="59" font-family="Arial Black, sans-serif" font-size="7" font-weight="900" fill="#C8A84B" text-anchor="middle" letter-spacing="0.5">ML:BB</text>
+</svg>

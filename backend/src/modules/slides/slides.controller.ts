@@ -1,8 +1,16 @@
 import {
-  Controller, Get, Post, Patch, Delete, Body, Param, UseGuards, Logger,
+  Controller,
+  Get,
+  Post,
+  Patch,
+  Delete,
+  Body,
+  Param,
+  UseGuards,
+  Logger,
 } from '@nestjs/common'
 import { SlidesService } from './slides.service'
-import { CreateSlideDto } from './dto/create-slide.dto'
+import { CreateSlideDto, UpdateSlideDto } from './dto/create-slide.dto'
 import { SupabaseJwtGuard } from '@/common/guards/supabase-jwt.guard'
 import { RequireRoles } from '@/common/decorators/roles.decorator'
 import { Role } from '@prisma/client'
@@ -14,51 +22,68 @@ export class SlidesController {
 
   constructor(private slidesService: SlidesService) {}
 
-  // Public — returns active slides for homepage
+  // Public — homepage fetches active slides
   @Get()
   async getActiveSlides() {
-    const slides = await this.slidesService.getActiveSlides()
-    return ApiResponseDto.ok(slides, 'Slides retrieved')
+    try {
+      const slides = await this.slidesService.getActiveSlides()
+      return ApiResponseDto.ok(slides, 'Slides retrieved')
+    } catch (error) {
+      this.logger.error('Error fetching slides:', error)
+      throw error
+    }
   }
 
-  // Admin — returns all slides including inactive
+  // Admin only — get all including inactive
   @Get('all')
   @UseGuards(SupabaseJwtGuard)
   @RequireRoles(Role.ADMIN, Role.SUPER_ADMIN)
   async getAllSlides() {
-    const slides = await this.slidesService.getAllSlides()
-    return ApiResponseDto.ok(slides, 'All slides retrieved')
+    try {
+      const slides = await this.slidesService.getAllSlides()
+      return ApiResponseDto.ok(slides, 'All slides retrieved')
+    } catch (error) {
+      this.logger.error('Error fetching all slides:', error)
+      throw error
+    }
   }
 
   @Post()
   @UseGuards(SupabaseJwtGuard)
   @RequireRoles(Role.ADMIN, Role.SUPER_ADMIN)
   async createSlide(@Body() dto: CreateSlideDto) {
-    const slide = await this.slidesService.createSlide(dto)
-    return ApiResponseDto.ok(slide, 'Slide created')
+    try {
+      const slide = await this.slidesService.createSlide(dto)
+      return ApiResponseDto.ok(slide, 'Slide created')
+    } catch (error) {
+      this.logger.error('Error creating slide:', error)
+      throw error
+    }
   }
 
   @Patch(':id')
   @UseGuards(SupabaseJwtGuard)
   @RequireRoles(Role.ADMIN, Role.SUPER_ADMIN)
-  async updateSlide(@Param('id') id: string, @Body() dto: Partial<CreateSlideDto>) {
-    const slide = await this.slidesService.updateSlide(id, dto)
-    return ApiResponseDto.ok(slide, 'Slide updated')
+  async updateSlide(@Param('id') id: string, @Body() dto: UpdateSlideDto) {
+    try {
+      const slide = await this.slidesService.updateSlide(id, dto)
+      return ApiResponseDto.ok(slide, 'Slide updated')
+    } catch (error) {
+      this.logger.error('Error updating slide:', error)
+      throw error
+    }
   }
 
   @Delete(':id')
   @UseGuards(SupabaseJwtGuard)
   @RequireRoles(Role.ADMIN, Role.SUPER_ADMIN)
   async deleteSlide(@Param('id') id: string) {
-    await this.slidesService.deleteSlide(id)
-    return ApiResponseDto.ok(null, 'Slide deleted')
-  }
-
-  @Post('reorder')
-  @UseGuards(SupabaseJwtGuard)
-  @RequireRoles(Role.ADMIN, Role.SUPER_ADMIN)
-  async reorderSlides(@Body('ids') ids: string[]) {
-    const result = await this.slidesService.reorderSlides(ids)
-    return ApiResponseDto.ok(result, 'Slides reordered')
+    try {
+      await this.slidesService.deleteSlide(id)
+      return ApiResponseDto.ok(null, 'Slide deleted')
+    } catch (error) {
+      this.logger.error('Error deleting slide:', error)
+      throw error
+    }
   }
 }

@@ -4,26 +4,56 @@ export class CreateSlideDto {
   @IsString()
   title: string
 
-  @IsString()
   @IsOptional()
+  @IsString()
   subtitle?: string
 
   @IsString()
   imageUrl: string
 
-  @IsString()
   @IsOptional()
+  @IsString()
   linkHref?: string
 
-  @IsString()
   @IsOptional()
+  @IsString()
   badge?: string
 
-  @IsBoolean()
   @IsOptional()
+  @IsBoolean()
   isActive?: boolean
 
-  @IsInt()
   @IsOptional()
+  @IsInt()
+  sortOrder?: number
+}
+
+export class UpdateSlideDto {
+  @IsOptional()
+  @IsString()
+  title?: string
+
+  @IsOptional()
+  @IsString()
+  subtitle?: string
+
+  @IsOptional()
+  @IsString()
+  imageUrl?: string
+
+  @IsOptional()
+  @IsString()
+  linkHref?: string
+
+  @IsOptional()
+  @IsString()
+  badge?: string
+
+  @IsOptional()
+  @IsBoolean()
+  isActive?: boolean
+
+  @IsOptional()
+  @IsInt()
   sortOrder?: number
 }

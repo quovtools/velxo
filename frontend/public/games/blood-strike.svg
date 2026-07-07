@@ -1,0 +1,19 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 64 64">
+  <rect width="64" height="64" rx="14" fill="#1a0505"/>
+  <defs>
+    <linearGradient id="bs-bg" x1="0" y1="0" x2="1" y2="1">
+      <stop offset="0%" stop-color="#2d0a0a"/>
+      <stop offset="100%" stop-color="#0f0202"/>
+    </linearGradient>
+  </defs>
+  <rect width="64" height="64" rx="14" fill="url(#bs-bg)"/>
+  <!-- Crossed rifles silhouette -->
+  <rect x="12" y="30" width="40" height="5" rx="2" fill="#CC0000" transform="rotate(-35 32 32)"/>
+  <rect x="12" y="30" width="40" height="5" rx="2" fill="#CC0000" transform="rotate(35 32 32)"/>
+  <!-- Center emblem circle -->
+  <circle cx="32" cy="32" r="8" fill="#1a0505" stroke="#CC0000" stroke-width="2"/>
+  <!-- Blood drop center -->
+  <path d="M32 24 C32 24 27 29 27 33 C27 36 29 38 32 38 C35 38 37 36 37 33 C37 29 32 24 32 24Z" fill="#FF2020"/>
+  <!-- BS text -->
+  <text x="32" y="57" font-family="Arial Black, sans-serif" font-size="8" font-weight="900" fill="#CC0000" text-anchor="middle" letter-spacing="1">BS</text>
+</svg>
