@@ -47,6 +47,7 @@ export class ListingsService {
         skins: dto.skins,
         playerId: dto.playerId,
         playerUid: dto.playerUid,
+        loginMethod: dto.loginMethod,
         deliveryTime: dto.deliveryTime,
         images: dto.images || [],
         videos: dto.videos || [],

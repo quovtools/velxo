@@ -71,6 +71,10 @@ export class CreateListingDto {
   @IsOptional()
   playerUid?: string
 
+  @IsString()
+  @IsOptional()
+  loginMethod?: string
+
   @IsNumber()
   @IsOptional()
   @Min(1)
