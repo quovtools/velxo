@@ -17,8 +17,9 @@ export class JwtAuthGuard implements CanActivate {
     }
 
     try {
+      const secret = process.env.JWT_SECRET || 'velxo-fallback-secret-change-in-prod'
       const payload = await this.jwtService.verifyAsync(token, {
-        secret: process.env.JWT_SECRET,
+        secret,
       })
       request['user'] = payload
       request['userId'] = payload.sub
