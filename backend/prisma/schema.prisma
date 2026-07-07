@@ -817,7 +817,7 @@ model velxoCoins {
   updatedAt DateTime @updatedAt
 
   user      users               @relation(fields: [userId], references: [id], onDelete: Cascade)
-  transactions rewardCoinTransactions[]
+  transactions rewardCoinTransactions[] @relation("RewardCoinTransactions")
 
   @@index([userId])
   @@map("velxo_coins")
