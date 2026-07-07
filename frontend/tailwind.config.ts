@@ -9,21 +9,17 @@ const config: Config = {
   theme: {
     extend: {
       colors: {
-        background: "#0a0a0a",
-        foreground: "#ffffff",
+        background: "#0f172a",
+        foreground: "#f8fafc",
         brand: {
-          DEFAULT: "#7c3aed",
-          dark: "#6d28d9",
-          light: "#a78bfa",
+          DEFAULT: "#2563eb",
+          dark: "#1d4ed8",
+          light: "#60a5fa",
           accent: "#10b981",
         },
-        cardBg: "#111111",
-        borderBg: "#222222",
-        hoverBg: "#1a1a1a",
-        surface: "#161616",
-      },
-      fontFamily: {
-        sans: ['Inter', 'sans-serif'],
+        cardBg: "#1e293b",
+        borderBg: "#334155",
+        hoverBg: "#475569",
       },
     },
   },
