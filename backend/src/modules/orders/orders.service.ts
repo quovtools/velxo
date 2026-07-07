@@ -9,13 +9,14 @@ import {
 } from '@/common/exceptions/custom-exceptions'
 import { OrderStatus, EscrowStatus } from '@prisma/client'
 import { Decimal } from '@prisma/client/runtime/library'
+import { RewardsService } from '../rewards/rewards.service'
 
 @Injectable()
 export class OrdersService {
   private readonly logger = new Logger(OrdersService.name)
   private readonly COMMISSION_RATE = 0.1 // 10%
 
-  constructor(private prisma: PrismaService) {}
+  constructor(private prisma: PrismaService, private rewardsService: RewardsService) {}
 
   async createOrder(buyerId: string, dto: CreateOrderDto) {
     this.logger.log(`Creating order for buyer ${buyerId}`)
@@ -203,6 +204,52 @@ export class OrdersService {
           paidAt: new Date(),
         },
       })
+
+      // Award Velxo Coins to buyer and seller
+      const buyerCoinAmount = Math.floor(Number(order.totalAmount))
+      const sellerCoinAmount = Math.floor(Number(order.sellerPayout)) * 2
+
+      await this.rewardsService.creditCoins(
+        order.buyerId,
+        buyerCoinAmount,
+        'PURCHASE',
+        `Earned ${buyerCoinAmount} coins from order ${order.orderNumber}`,
+        orderId,
+      )
+
+      await this.rewardsService.creditCoins(
+        order.sellerId,
+        sellerCoinAmount,
+        'SALE',
+        `Earned ${sellerCoinAmount} coins from order ${order.orderNumber}`,
+        orderId,
+      )
+
+      // Credit affiliate commission if applicable
+      const referral = await tx.affiliateReferrals.findFirst({
+        where: { referredUserId: order.buyerId },
+      })
+
+      if (referral) {
+        const affiliateCommission = Number(order.totalAmount) * Number(referral.commissionRate)
+        await tx.affiliateReferrals.update({
+          where: { id: referral.id },
+          data: {
+            totalEarned: { increment: affiliateCommission },
+            tradeCount: { increment: 1 },
+          },
+        })
+
+        // Also award coins to referrer
+        const referrerCoins = Math.floor(affiliateCommission * 10)
+        await this.rewardsService.creditCoins(
+          referral.referrerId,
+          referrerCoins,
+          'REFERRAL',
+          `Earned ${referrerCoins} coins from referral trade ${order.orderNumber}`,
+          orderId,
+        )
+      }
 
       return updatedOrder
     })

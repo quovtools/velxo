@@ -17,8 +17,8 @@ import {
   Home,
   Users,
   ShoppingBag,
-  Tag,
-  CreditCard,
+  Bell,
+  Award,
 } from 'lucide-react';
 
 export default function NavigationWrapper() {
@@ -169,18 +169,28 @@ export default function NavigationWrapper() {
       </header>
 
       {/* ── Mobile Bottom Tab Bar ── */}
-      <nav className="sm:hidden fixed bottom-0 left-0 right-0 z-50 bg-cardBg border-t border-borderBg flex items-center justify-around px-2 py-2 safe-area-pb">
+      <nav className="sm:hidden fixed bottom-0 left-0 right-0 z-50 bg-cardBg border-t border-borderBg flex items-center justify-around px-1 py-2 safe-area-pb">
         <Link href="/" className="flex flex-col items-center gap-0.5 p-2 text-gray-400 hover:text-white transition" onClick={() => setMobileOpen(false)}>
           <ShoppingBag className="w-5 h-5" />
           <span className="text-[9px] font-semibold">Shop</span>
         </Link>
-        <Link href="/pricing" className="flex flex-col items-center gap-0.5 p-2 text-gray-400 hover:text-white transition" onClick={() => setMobileOpen(false)}>
-          <Tag className="w-5 h-5" />
-          <span className="text-[9px] font-semibold">Deals</span>
+        <Link href="/notifications" className="flex flex-col items-center gap-0.5 p-2 text-gray-400 hover:text-white transition" onClick={() => setMobileOpen(false)}>
+          <Bell className="w-5 h-5" />
+          <span className="text-[9px] font-semibold">Alerts</span>
         </Link>
-        <Link href="/affiliate" className="flex flex-col items-center gap-0.5 p-2 text-gray-400 hover:text-white transition" onClick={() => setMobileOpen(false)}>
-          <CreditCard className="w-5 h-5" />
+        <Link href="/messages" className="flex flex-col items-center gap-0.5 p-2 -mt-5" onClick={() => setMobileOpen(false)}>
+          <div className="w-12 h-12 bg-brand rounded-full flex items-center justify-center shadow-lg shadow-brand/40 border-4 border-background">
+            <MessageSquare className="w-5 h-5 text-white" />
+          </div>
+          <span className="text-[9px] font-semibold text-brand">Messages</span>
+        </Link>
+        <Link href="/rewards" className="flex flex-col items-center gap-0.5 p-2 text-gray-400 hover:text-white transition" onClick={() => setMobileOpen(false)}>
+          <Award className="w-5 h-5" />
           <span className="text-[9px] font-semibold">Rewards</span>
+        </Link>
+        <Link href="/sell" className="flex flex-col items-center gap-0.5 p-2 text-gray-400 hover:text-white transition" onClick={() => setMobileOpen(false)}>
+          <PlusCircle className="w-5 h-5" />
+          <span className="text-[9px] font-semibold">Sell</span>
         </Link>
         <Link href={user ? "/profile" : "/auth/login"} className="flex flex-col items-center gap-0.5 p-2 text-gray-400 hover:text-white transition" onClick={() => setMobileOpen(false)}>
           <User className="w-5 h-5" />

@@ -184,6 +184,8 @@ model users {
   wallet           wallet?
   affiliateReferrals  affiliateReferrals[] @relation("AffiliateReferrer")
   affiliateReferred   affiliateReferrals?  @relation("AffiliateReferred")
+  velxoCoins          velxoCoins?
+  rewardRedemptions   rewardRedemptions[]
 
   @@index([email])
   @@index([role])
@@ -804,4 +806,77 @@ model affiliateReferrals {
   @@index([referralCode])
   @@index([status])
   @@map("affiliate_referrals")
+}
+
+model velxoCoins {
+  id        String   @id @default(cuid())
+  userId    String   @unique
+  balance   Int      @default(0)
+  currency  String   @default("VXC")
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  user      users               @relation(fields: [userId], references: [id], onDelete: Cascade)
+  transactions rewardCoinTransactions[]
+
+  @@index([userId])
+  @@map("velxo_coins")
+}
+
+model rewardCoinTransactions {
+  id          String   @id @default(cuid())
+  coinId      String
+  type        String   // CREDIT, DEBIT, BONUS, REFERRAL, PURCHASE, SALE, REVIEW
+  amount      Int
+  balanceAfter Int
+  description String
+  relatedId   String?
+  metadata    Json?
+  createdAt   DateTime @default(now())
+
+  coin        velxoCoins @relation("RewardCoinTransactions", fields: [coinId], references: [id], onDelete: Cascade)
+
+  @@index([coinId])
+  @@index([createdAt])
+  @@map("reward_coin_transactions")
+}
+
+model rewardCatalog {
+  id          String   @id @default(cuid())
+  name        String
+  description String?
+  type        String   // GIFT_CARD, TOP_UP, ITEM, COUPON
+  coinCost    Int
+  imageUrl    String?
+  isActive    Boolean  @default(true)
+  sortOrder   Int      @default(0)
+  metadata    Json?
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+
+  redemptions rewardRedemptions[]
+
+  @@index([isActive, sortOrder])
+  @@map("reward_catalog")
+}
+
+model rewardRedemptions {
+  id          String   @id @default(cuid())
+  userId      String
+  catalogId   String
+  coinCost    Int
+  status      String   @default("PENDING") // PENDING, PROCESSING, COMPLETED, FAILED
+  metadata    Json?
+  processedBy String?
+  completedAt DateTime?
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+
+  user        users         @relation(fields: [userId], references: [id])
+  catalogItem rewardCatalog @relation(fields: [catalogId], references: [id])
+
+  @@index([userId])
+  @@index([status])
+  @@index([createdAt])
+  @@map("reward_redemptions")
 }

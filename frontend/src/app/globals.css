@@ -60,3 +60,8 @@ body {
 .fade-in {
   animation: fadeIn 0.6s ease-out;
 }
+
+/* Safe area padding for mobile bottom nav */
+.safe-area-pb {
+  padding-bottom: env(safe-area-inset-bottom, 0px);
+}
