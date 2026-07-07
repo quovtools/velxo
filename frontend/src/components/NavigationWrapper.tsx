@@ -35,7 +35,7 @@ export default function NavigationWrapper() {
             </Link>
             {/* Desktop nav links */}
             <nav className="hidden md:flex items-center gap-6 text-sm font-medium text-gray-300">
-              <Link href="/search" className="hover:text-brand transition">Browse</Link>
+              <Link href="/" className="hover:text-brand transition">Browse</Link>
               <Link href="/sell" className="hover:text-brand transition flex items-center gap-1.5">
                 <PlusCircle className="w-4 h-4" />
                 Sell

@@ -5,12 +5,12 @@ const footerLinks = {
   marketplace: {
     label: 'Marketplace',
     links: [
-      { name: 'Browse Listings', href: '/search' },
-      { name: 'Featured Offers', href: '/search?featured=true' },
-      { name: 'Game Accounts', href: '/search?category=accounts' },
-      { name: 'Top-Ups & Coins', href: '/search?category=topups' },
-      { name: 'Gift Cards', href: '/search?category=giftcards' },
-      { name: 'Boosting Services', href: '/search?category=boosting' },
+      { name: 'All Listings', href: '/' },
+      { name: 'Game Accounts', href: '/?category=accounts' },
+      { name: 'Top-Ups & Coins', href: '/?category=topups' },
+      { name: 'Gift Cards', href: '/?category=giftcards' },
+      { name: 'Boosting Services', href: '/?category=boosting' },
+      { name: 'Featured Offers', href: '/?featured=true' },
     ],
   },
   sellers: {

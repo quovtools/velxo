@@ -5,8 +5,8 @@ import NavigationWrapper from "@/components/NavigationWrapper";
 import Footer from "@/components/Footer";
 
 export const metadata: Metadata = {
-  title: "Velxo | No.1 Gaming Marketplace in Africa",
-  description: "Buy and sell digital gaming accounts, top-ups, coins, gift cards, and boosting services with escrow protection.",
+  title: "Velxo Market | Buy & Sell Game Accounts, Coins & More",
+  description: "Browse thousands of verified gaming listings — accounts, top-ups, gift cards and boosting services. All trades protected by Velxo Escrow.",
   icons: {
     icon: "/favicon.ico",
   },
