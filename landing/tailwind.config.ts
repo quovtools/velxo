@@ -9,18 +9,19 @@ const config: Config = {
   theme: {
     extend: {
       colors: {
-        background: "#0b0f19",
-        foreground: "#f3f4f6",
+        background: "#0f172a",
+        foreground: "#f8fafc",
         brand: {
-          DEFAULT: "#8B5CF6",
-          dark: "#6D28D9",
-          light: "#A78BFA",
+          DEFAULT: "#2563eb",
+          dark: "#1d4ed8",
+          light: "#60a5fa",
+          accent: "#10b981",
         },
-        card: "#111827",
-        border: "#1F2937",
+        card: "#1e293b",
+        border: "#334155",
       },
       fontFamily: {
-        sans: ['Outfit', 'sans-serif'],
+        sans: ['Inter', 'sans-serif'],
       },
       animation: {
         'float': 'float 6s ease-in-out infinite',
@@ -33,8 +34,8 @@ const config: Config = {
           '50%': { transform: 'translateY(-20px)' },
         },
         glow: {
-          from: { boxShadow: '0 0 20px rgba(139,92,246,0.3)' },
-          to: { boxShadow: '0 0 40px rgba(139,92,246,0.6)' },
+          from: { boxShadow: '0 0 20px rgba(37,99,235,0.25)' },
+          to: { boxShadow: '0 0 40px rgba(37,99,235,0.55)' },
         },
         slideUp: {
           from: { opacity: '0', transform: 'translateY(30px)' },

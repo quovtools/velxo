@@ -6,17 +6,28 @@ interface GameIconProps {
 }
 
 export default function GameIcon({ game, className = 'w-10 h-10' }: GameIconProps) {
+  const extOrder = ['png', 'jpg', 'svg'];
   return (
     <div className={`${className} relative rounded-xl overflow-hidden flex-shrink-0`}>
       {/* eslint-disable-next-line @next/next/no-img-element */}
       <img
-        src={`/games/${game}.svg`}
+        src={`/games/${game}.png`}
         alt={game}
         className="w-full h-full object-cover"
         draggable={false}
         onError={(e) => {
-          // fallback to a generic gamepad icon box
-          const el = e.currentTarget.parentElement;
+          const target = e.currentTarget;
+          const tried = target.src;
+          const base = `/games/${game}`;
+          if (!tried.includes('.jpg')) {
+            target.src = `${base}.jpg`;
+            return;
+          }
+          if (!tried.includes('.svg')) {
+            target.src = `${base}.svg`;
+            return;
+          }
+          const el = target.parentElement;
           if (el) {
             el.innerHTML = `<svg viewBox="0 0 64 64" fill="none" xmlns="http://www.w3.org/2000/svg" class="w-full h-full">
               <rect width="64" height="64" rx="14" fill="#1a1a2e"/>

@@ -51,11 +51,22 @@ export default function Games() {
             {/* Icon using local SVG */}
             <div className="w-14 h-14 rounded-xl overflow-hidden mb-4 bg-[#0b0f19] border border-[#1F2937]">
               <img
-                src={`https://market.velxo.shop/games/${game.slug}.svg`}
+                src={`/games/${game.slug}.png`}
                 alt={game.name}
                 className="w-full h-full object-cover"
                 onError={(e) => {
-                  (e.currentTarget as HTMLImageElement).src = 'data:image/svg+xml,%3Csvg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 64 64"%3E%3Crect width="64" height="64" rx="14" fill="%231a1a2e"/%3E%3C/svg%3E';
+                  const target = e.currentTarget;
+                  const tried = target.src;
+                  const base = `/games/${game.slug}`;
+                  if (!tried.includes('.jpg')) {
+                    target.src = `${base}.jpg`;
+                    return;
+                  }
+                  if (!tried.includes('.svg')) {
+                    target.src = `${base}.svg`;
+                    return;
+                  }
+                  target.src = 'data:image/svg+xml,%3Csvg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 64 64"%3E%3Crect width="64" height="64" rx="14" fill="%231a1a2e"/%3E%3C/svg%3E';
                 }}
               />
             </div>

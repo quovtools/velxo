@@ -9,17 +9,17 @@ const config: Config = {
   theme: {
     extend: {
       colors: {
-        background: "var(--background)",
-        foreground: "var(--foreground)",
+        background: "#0f172a",
+        foreground: "#f8fafc",
         brand: {
-          DEFAULT: "#8B5CF6", // Violet
-          dark: "#6D28D9",
-          light: "#A78BFA",
-          accent: "#06B6D4", // Cyan
+          DEFAULT: "#2563eb",
+          dark: "#1d4ed8",
+          light: "#60a5fa",
+          accent: "#10b981",
         },
-        cardBg: "#111827", // Dark gray slate
-        borderBg: "#1F2937",
-        hoverBg: "#374151",
+        cardBg: "#1e293b",
+        borderBg: "#334155",
+        hoverBg: "#475569",
       },
     },
   },

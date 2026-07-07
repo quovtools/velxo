@@ -4,7 +4,6 @@ import Link from 'next/link';
 import { useAuth } from '@/app/providers';
 import { useState } from 'react';
 import {
-  Gamepad2,
   MessageSquare,
   Wallet,
   User,
@@ -32,7 +31,7 @@ export default function NavigationWrapper() {
           <div className="flex items-center gap-4 md:gap-8">
             <Link href="/" className="flex items-center gap-2" onClick={() => setMobileOpen(false)}>
               <img src="/logo.png" alt="Velxo" className="w-7 h-7 rounded-lg object-cover" />
-              <span className="text-xl md:text-2xl font-black tracking-wider text-gradient">VELXO</span>
+              <span className="text-xl md:text-2xl font-black tracking-wider">VELXO</span>
             </Link>
             {/* Desktop nav links */}
             <nav className="hidden md:flex items-center gap-6 text-sm font-medium text-gray-300">

@@ -28,7 +28,7 @@ export default function Navbar() {
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 h-16 flex items-center justify-between">
         <a href="/" className="flex items-center gap-2 group">
           <img src="/logo.png" alt="Velxo" className="w-8 h-8 rounded-xl object-cover" />
-          <span className="text-xl font-black tracking-wider text-gradient">VELXO</span>
+          <span className="text-xl font-black tracking-wider">VELXO</span>
         </a>
 
         <div className="hidden md:flex items-center gap-8">
