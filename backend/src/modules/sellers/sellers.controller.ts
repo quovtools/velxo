@@ -95,43 +95,7 @@ export class SellersController {
       throw error
     }
   }
-}
-  @Post('verification-documents')
-  @UseGuards(SupabaseJwtGuard)
-  async uploadDocuments(
-    @CurrentUserId() userId: string,
-    @Body() documents: UploadVerificationDocumentsDto[],
-  ) {
-    try {
-      const seller = await this.sellersService.getSellerByUserId(userId)
-      const updated = await this.sellersService.uploadVerificationDocuments(seller.id, documents)
-      return ApiResponseDto.ok(updated, 'Documents uploaded successfully')
-    } catch (error) {
-      this.logger.error('Error uploading documents:', error)
-      throw error
-    }
-  }
 
-  @Patch('settings')
-  @UseGuards(SupabaseJwtGuard)
-  async updateSettings(
-    @CurrentUserId() userId: string,
-    @Body() dto: { storeName?: string; storeDescription?: string; responseTime?: number },
-  ) {
-    try {
-      const seller = await this.sellersService.getSellerByUserId(userId)
-      const updated = await this.sellersService.updateSeller(seller.id, {
-        storeName: dto.storeName,
-        storeDescription: dto.storeDescription,
-        responseTime: dto.responseTime,
-      })
-      return ApiResponseDto.ok(updated, 'Seller settings updated')
-    } catch (error) {
-      this.logger.error('Error updating seller settings:', error)
-      throw error
-    }
-  }
-}
   @Patch('settings')
   @UseGuards(SupabaseJwtGuard)
   async updateSettings(
