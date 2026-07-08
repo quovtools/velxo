@@ -54,7 +54,7 @@ export class EmailService {
   }
 
   // Email Templates
-  async sendVerificationEmail(email: string, verificationToken: string): Promise<{ success: boolean }> {
+  async sendVerificationEmail(email: string, verificationToken: string): Promise<{ success: boolean; error?: string }> {
     const verificationUrl = `${process.env.FRONTEND_URL || 'https://market.velxo.shop'}/auth/verify-email?token=${verificationToken}`;
     
     const html = `
@@ -101,10 +101,10 @@ export class EmailService {
     `;
 
     const result = await this.sendEmail(email, 'Verify Your Velxo Account', html);
-    return { success: result.success };
+    return { success: result.success, error: result.error };
   }
 
-  async sendPasswordResetEmail(email: string, resetToken: string): Promise<{ success: boolean }> {
+  async sendPasswordResetEmail(email: string, resetToken: string): Promise<{ success: boolean; error?: string }> {
     const resetUrl = `${process.env.FRONTEND_URL || 'https://market.velxo.shop'}/auth/reset-password?token=${resetToken}`;
     
     const html = `
@@ -148,7 +148,7 @@ export class EmailService {
     `;
 
     const result = await this.sendEmail(email, 'Reset Your Velxo Password', html);
-    return { success: result.success };
+    return { success: result.success, error: result.error };
   }
 
   async sendOrderConfirmationEmail(

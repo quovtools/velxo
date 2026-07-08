@@ -1,4 +1,5 @@
-import { IsEmail, IsString, MinLength } from 'class-validator'
+import { IsEmail, IsString, MinLength, IsEnum, IsOptional, IsObject } from 'class-validator'
+import { Role } from '@prisma/client'
 
 export class LoginDto {
   @IsEmail()
@@ -22,6 +23,9 @@ export class RegisterDto {
 
   @IsString()
   lastName: string
+
+  @IsOptional() @IsEnum(Role) role?: Role
+  @IsOptional() @IsObject() preferences?: Record<string, any>
 }
 
 export class ResetPasswordDto {

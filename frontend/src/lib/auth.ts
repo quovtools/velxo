@@ -9,6 +9,7 @@ export interface AuthUser {
   firstName?: string;
   lastName?: string;
   role: string;
+  emailVerified?: boolean;
 }
 
 export function getToken(): string | null {
