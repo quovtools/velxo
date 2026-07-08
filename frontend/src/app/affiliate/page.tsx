@@ -55,7 +55,7 @@ export default function AffiliateDashboardPage() {
     { name: 'Platinum', minTrades: 50, minEarned: 5000, commissionRate: 5, icon: <Trophy className="w-4 h-4 text-[#e5e4e2]" /> },
   ];
 
-  const currentTier = tierThresholds.find(t => stats?.totalTrades >= t.minTrades && stats?.totalEarned >= t.minEarned) || tierThresholds[0];
+  const currentTier = tierThresholds.find(t => (stats?.totalTrades || 0) >= t.minTrades && (Number(stats?.totalEarned) || 0) >= t.minEarned) || tierThresholds[0];
   const nextTier = tierThresholds.find(t => t.minTrades > currentTier.minTrades && t.minEarned > currentTier.minEarned);
 
   if (!user) {
