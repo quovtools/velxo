@@ -129,10 +129,10 @@ export class AuthController {
     return ApiResponseDto.ok(null, 'If that email exists, a reset link was sent')
   }
 
-  /** Verify email */
-  @Post('verify-email')
+  /** Verify email with email service */
+  @Post('verify')
   @HttpCode(200)
-  async verifyEmail(@CurrentUserId() userId: string) {
+  async verifyUserEmail(@CurrentUserId() userId: string) {
     try {
       await this.authService.verifyUserEmail(userId)
       return ApiResponseDto.ok(null, 'Email verified successfully')
