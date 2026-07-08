@@ -148,7 +148,8 @@ export default function SlidesPage() {
                   onChange={async e => {
                     const file = e.target.files?.[0];
                     if (!file) return;
-                    setForm(f => ({ ...f, imageUrl: await fileToDataUrl(file) }));
+                    const dataUrl = await fileToDataUrl(file);
+                    setForm(f => ({ ...f, imageUrl: dataUrl }));
                   }}
                 />
               </label>
