@@ -7,6 +7,7 @@ import { LoginDto, RegisterDto } from './dto/login.dto'
 import { UnauthorizedException, ConflictException } from '@/common/exceptions/custom-exceptions'
 import { Role } from '@prisma/client'
 import { EmailService } from '@/shared/email.service'
+import { AffiliateService } from '@/modules/affiliate/affiliate.service'
 
 @Injectable()
 export class AuthService {
@@ -16,6 +17,7 @@ export class AuthService {
     private prisma: PrismaService,
     private jwtService: JwtService,
     private emailService: EmailService,
+    private affiliateService: AffiliateService,
   ) {}
 
   private signToken(userId: string, email: string, role: Role): string {
@@ -81,6 +83,18 @@ export class AuthService {
       await this.prisma.wallet.create({ data: { userId: user.id } })
     } catch (walletError) {
       this.logger.error('Wallet creation error:', walletError)
+    }
+
+    // Record affiliate referral if a valid referral code was provided
+    if (dto.referralCode) {
+      try {
+        const referral = await this.affiliateService.registerReferral(dto.referralCode, user.id)
+        if (referral) {
+          this.logger.log(`User ${user.id} registered via referral ${dto.referralCode}`)
+        }
+      } catch (referralError) {
+        this.logger.error('Affiliate referral recording error (non-fatal):', referralError)
+      }
     }
 
     // Send verification email

@@ -6,6 +6,7 @@ import Link from 'next/link';
 import { useAuth } from '@/app/providers';
 import { api } from '@/lib/api';
 import { setSession } from '@/lib/auth';
+import { getStoredReferralCode } from '@/lib/referral';
 import {
   Eye, EyeOff, Loader2, ShieldCheck,
   Gamepad2, ShoppingCart, Users, ChevronRight
@@ -72,6 +73,7 @@ export default function RegisterPage() {
           email, password, firstName, lastName,
           role: accountType,
           preferences: { games, interests, region },
+          referralCode: getStoredReferralCode() || undefined,
         },
       );
       setSession(res.data.accessToken, res.data.user);

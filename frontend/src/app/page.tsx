@@ -11,6 +11,7 @@ import {
 } from 'lucide-react';
 import GameSlideshow from '@/components/GameSlideshow';
 import GameIcon from '@/components/GameIcon';
+import { storeReferralCode, trackReferralClick } from '@/lib/referral';
 
 interface Listing {
   id: string;
@@ -61,6 +62,15 @@ function MarketplaceContent() {
   const [sort, setSort] = useState('newest');
 
   const apiBase = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:3001/api/v1';
+
+  // Capture affiliate referral code from the URL (?ref=CODE) and track the click
+  useEffect(() => {
+    const ref = searchParams.get('ref');
+    if (ref) {
+      storeReferralCode(ref);
+      trackReferralClick(ref);
+    }
+  }, [searchParams]);
 
   const fetchListings = useCallback(async () => {
     setLoading(true);
