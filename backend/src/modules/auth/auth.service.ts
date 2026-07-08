@@ -131,6 +131,29 @@ export class AuthService {
     return user
   }
 
+  async verifyEmail(userId: string) {
+    const user = await this.prisma.users.update({
+      where: { id: userId },
+      data: { emailVerified: true },
+      select: {
+        id: true,
+        email: true,
+        firstName: true,
+        lastName: true,
+        role: true,
+        avatarUrl: true,
+        emailVerified: true,
+        createdAt: true,
+      },
+    })
+
+    if (!user) {
+      throw new UnauthorizedException('User not found')
+    }
+
+    return user
+  }
+
   async resetPassword(userId: string, newPassword: string) {
     this.logger.log(`Resetting password for user ${userId}`)
     const passwordHash = await bcrypt.hash(newPassword, 12)
