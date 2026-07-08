@@ -7,9 +7,10 @@ import {
   Logger,
   Query,
   Res,
+  Req,
   HttpCode,
 } from '@nestjs/common'
-import { Response } from 'express'
+import { Response, Request } from 'express'
 import { AuthService } from './auth.service'
 import { LoginDto, RegisterDto } from './dto/login.dto'
 import { SupabaseJwtGuard } from '@/common/guards/supabase-jwt.guard'
@@ -134,19 +135,15 @@ export class AuthController {
 
   /** Step 1: Redirect to Google consent */
   @Get('google')
-  googleLogin(@Res() res: Response) {
-    const clientId = process.env.GOOGLE_CLIENT_ID
-    const redirectUri = process.env.GOOGLE_REDIRECT_URI || `${process.env.API_URL || 'http://localhost:3001/api/v1'}/auth/google/callback`
-    const scope = 'openid email profile'
-    const url = `https://accounts.google.com/o/oauth2/v2/auth?client_id=${clientId}&redirect_uri=${encodeURIComponent(redirectUri)}&response_type=code&scope=${encodeURIComponent(scope)}&access_type=offline&prompt=select_account`
-    res.redirect(url)
+  googleLogin(@Req() req: Request, @Res() res: Response) {
+    res.redirect(this.authService.getGoogleAuthUrl(req))
   }
 
   /** Step 2: Google callback */
   @Get('google/callback')
-  async googleCallback(@Query('code') code: string, @Res() res: Response) {
+  async googleCallback(@Req() req: Request, @Query('code') code: string, @Res() res: Response) {
     try {
-      const result = await this.authService.handleGoogleCallback(code)
+      const result = await this.authService.handleGoogleCallback(code, req)
       const frontendUrl = process.env.FRONTEND_URL || 'https://market.velxo.shop'
       res.redirect(`${frontendUrl}/auth/callback#token=${result.accessToken}&userId=${result.user.id}`)
     } catch (error) {
