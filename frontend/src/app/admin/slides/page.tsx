@@ -3,6 +3,7 @@
 import React, { useEffect, useState } from 'react';
 import { Image, Plus, Trash2, RefreshCw, GripVertical } from 'lucide-react';
 import { api } from '@/lib/api';
+import { fileToDataUrl } from '@/lib/file';
 
 interface Slide {
   id?: string;
@@ -121,7 +122,6 @@ export default function SlidesPage() {
             {[
               { key: 'title', label: 'Title *', placeholder: 'e.g. Free Fire Season 8' },
               { key: 'subtitle', label: 'Subtitle', placeholder: 'Short description' },
-              { key: 'imageUrl', label: 'Image URL *', placeholder: 'https://...' },
               { key: 'linkHref', label: 'Link URL', placeholder: '/games/free-fire' },
               { key: 'badge', label: 'Badge', placeholder: 'e.g. NEW' },
               { key: 'sortOrder', label: 'Sort Order', placeholder: '0' },
@@ -137,6 +137,22 @@ export default function SlidesPage() {
                 />
               </div>
             ))}
+            <div>
+              <label className="block text-xs font-semibold text-gray-400 mb-1.5">Image *</label>
+              <label className="flex items-center gap-2 cursor-pointer bg-background border border-borderBg rounded-xl px-4 py-2.5 text-sm text-gray-400 focus-within:border-brand transition overflow-hidden">
+                {form.imageUrl ? <span className="truncate text-white">Image selected</span> : <span>Choose image…</span>}
+                <input
+                  type="file"
+                  accept="image/*"
+                  className="hidden"
+                  onChange={async e => {
+                    const file = e.target.files?.[0];
+                    if (!file) return;
+                    setForm(f => ({ ...f, imageUrl: await fileToDataUrl(file) }));
+                  }}
+                />
+              </label>
+            </div>
           </div>
           <div className="flex items-center gap-3">
             <label className="flex items-center gap-2 cursor-pointer">

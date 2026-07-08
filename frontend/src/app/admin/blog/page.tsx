@@ -2,6 +2,7 @@
 import React, { useState, useEffect } from 'react';
 import { api } from '@/lib/api';
 import { useAuth } from '@/app/providers';
+import { fileToDataUrl } from '@/lib/file';
 import { PlusCircle, Pencil, Trash2, Eye, EyeOff, Star, StarOff, ArrowLeft, Save, X } from 'lucide-react';
 import Link from 'next/link';
 
@@ -161,10 +162,16 @@ export default function AdminBlogPage() {
                   className="w-full bg-background border border-borderBg rounded-xl px-3 py-2.5 text-white text-sm focus:outline-none focus:border-brand" />
               </div>
               <div className="space-y-1">
-                <label className="text-xs font-bold text-gray-400 uppercase tracking-wider">Cover Image URL</label>
-                <input value={form.coverImage || ''} onChange={(e) => setForm({ ...form, coverImage: e.target.value })}
-                  placeholder="https://..."
-                  className="w-full bg-background border border-borderBg rounded-xl px-3 py-2.5 text-white text-sm focus:outline-none focus:border-brand" />
+                <label className="text-xs font-bold text-gray-400 uppercase tracking-wider">Cover Image</label>
+                <label className="flex items-center gap-2 cursor-pointer bg-background border border-borderBg rounded-xl px-3 py-2.5 text-white text-sm focus-within:border-brand transition overflow-hidden">
+                  {form.coverImage ? <span className="truncate">Image selected</span> : <span className="text-gray-500">Choose cover image…</span>}
+                  <input type="file" accept="image/*" className="hidden"
+                    onChange={async (e) => {
+                      const file = e.target.files?.[0];
+                      if (!file) return;
+                      setForm({ ...form, coverImage: await fileToDataUrl(file) });
+                    }} />
+                </label>
               </div>
             </div>
             <div className="flex items-center gap-6">

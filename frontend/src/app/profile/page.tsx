@@ -4,6 +4,7 @@ import React, { useState, useEffect } from 'react';
 import { useRouter } from 'next/navigation';
 import { api } from '@/lib/api';
 import { useAuth } from '@/app/providers';
+import { fileToDataUrl } from '@/lib/file';
 import Link from 'next/link';
 import {
   User, Mail, Phone, ShieldCheck, Camera,
@@ -291,11 +292,17 @@ export default function ProfilePage() {
               </div>
             </div>
             <div>
-              <label className="block text-xs font-semibold text-gray-400 mb-1.5 uppercase tracking-wide">Profile Picture URL</label>
-              <input type="url" value={avatarUrl} onChange={e => setAvatar(e.target.value)}
-                placeholder="https://i.imgur.com/example.jpg"
-                className="w-full bg-background border border-borderBg rounded-xl px-4 py-3 text-sm focus:outline-none focus:border-brand transition" />
-              <p className="text-xs text-gray-500 mt-1">Upload your photo to Imgur or ImgBB and paste the link</p>
+              <label className="block text-xs font-semibold text-gray-400 mb-1.5 uppercase tracking-wide">Profile Picture</label>
+              <label className="flex items-center gap-2 cursor-pointer bg-background border border-borderBg rounded-xl px-4 py-3 text-sm text-gray-400 focus-within:border-brand transition overflow-hidden">
+                {avatarUrl ? <span className="truncate text-white">Image selected</span> : <span>Choose a photo…</span>}
+                <input type="file" accept="image/*" className="hidden"
+                  onChange={async e => {
+                    const file = e.target.files?.[0];
+                    if (!file) return;
+                    setAvatar(await fileToDataUrl(file));
+                  }} />
+              </label>
+              <p className="text-xs text-gray-500 mt-1">Upload a photo from your device</p>
             </div>
             {avatarUrl && (
               <div className="flex items-center gap-3 p-3 bg-hoverBg/40 rounded-xl border border-borderBg">

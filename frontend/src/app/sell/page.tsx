@@ -3,6 +3,7 @@
 import React, { useState, useEffect } from 'react';
 import { useRouter } from 'next/navigation';
 import { api } from '@/lib/api';
+import { fileToDataUrl } from '@/lib/file';
 import { useAuth } from '@/app/providers';
 import {
   Gamepad2, Package, ChevronRight, ChevronLeft,
@@ -381,22 +382,31 @@ export default function SellPage() {
             )}
 
             <div>
-              <label className="block text-xs font-semibold text-gray-400 mb-2 uppercase tracking-wide">Screenshot URLs (optional)</label>
+              <label className="block text-xs font-semibold text-gray-400 mb-2 uppercase tracking-wide">Screenshots (optional)</label>
               <div className="space-y-2">
                 {imageUrls.map((url, i) => (
                   <div key={i} className="flex items-center gap-2">
                     <Image className="w-4 h-4 text-gray-400 flex-shrink-0" />
-                    <input
-                      type="url"
-                      value={url}
-                      onChange={e => {
-                        const next = [...imageUrls];
-                        next[i] = e.target.value;
-                        setImageUrls(next);
-                      }}
-                      placeholder={`https://imgur.com/screenshot-${i + 1}.jpg`}
-                      className="w-full bg-background border border-borderBg rounded-xl px-4 py-2.5 text-sm focus:outline-none focus:border-brand transition"
-                    />
+                    <label className="flex-1 flex items-center gap-2 cursor-pointer bg-background border border-borderBg rounded-xl px-4 py-2.5 text-sm text-gray-400 focus-within:border-brand transition overflow-hidden">
+                      {url ? (
+                        <span className="truncate text-white">{url.split(',')[1]?.slice(0, 16) || 'Image selected'}…</span>
+                      ) : (
+                        <span>Choose image {i + 1}</span>
+                      )}
+                      <input
+                        type="file"
+                        accept="image/*"
+                        className="hidden"
+                        onChange={async e => {
+                          const file = e.target.files?.[0];
+                          if (!file) return;
+                          const dataUrl = await fileToDataUrl(file);
+                          const next = [...imageUrls];
+                          next[i] = dataUrl;
+                          setImageUrls(next);
+                        }}
+                      />
+                    </label>
                     {imageUrls.length > 1 && (
                       <button type="button" onClick={() => setImageUrls(imageUrls.filter((_, idx) => idx !== i))}
                         className="px-2 py-2 text-gray-500 hover:text-red-400 transition flex-shrink-0">
@@ -412,7 +422,7 @@ export default function SellPage() {
                   <Plus className="w-3.5 h-3.5" /> Add another image (up to 4)
                 </button>
               )}
-              <p className="text-xs text-gray-500 mt-2">Upload to Imgur, ImgBB, etc. and paste the links. First image is your main thumbnail.</p>
+              <p className="text-xs text-gray-500 mt-2">Upload images from your device. The first image is your main thumbnail.</p>
             </div>
           </div>
 
