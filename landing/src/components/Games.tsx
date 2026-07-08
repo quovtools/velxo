@@ -54,6 +54,8 @@ export default function Games() {
               <img
                 src={`/games/${game.slug}.png`}
                 alt={game.name}
+                loading="lazy"
+                decoding="async"
                 className="w-full h-full object-cover"
                 onError={(e) => {
                   const target = e.currentTarget;

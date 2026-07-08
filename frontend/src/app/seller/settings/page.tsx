@@ -24,7 +24,7 @@ interface SellerProfile {
 
 export default function SellerSettingsPage() {
   const router = useRouter();
-  const { user } = useAuth();
+  const { user, loading: authLoading } = useAuth();
   const [seller, setSeller] = useState<SellerProfile | null>(null);
   const [loading, setLoading] = useState(true);
   const [saving, setSaving] = useState(false);
@@ -44,6 +44,7 @@ export default function SellerSettingsPage() {
   ];
 
   useEffect(() => {
+    if (authLoading) return;
     if (!user) {
       router.push('/auth/login');
       return;
@@ -65,7 +66,7 @@ export default function SellerSettingsPage() {
       }
     }
     load();
-  }, [user, router]);
+  }, [user, authLoading, router]);
 
   const saveStoreSettings = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -150,7 +151,7 @@ export default function SellerSettingsPage() {
             
             <div className="flex items-center gap-4 mb-6">
               <div className="w-20 h-20 bg-gradient-to-br from-brand to-purple-600 rounded-2xl flex items-center justify-center flex-shrink-0 text-3xl font-black text-white">
-                {storeName[0].toUpperCase()}
+                {storeName[0]?.toUpperCase() || '?'}
               </div>
               <div>
                 <p className="text-sm text-gray-400">Store Name</p>

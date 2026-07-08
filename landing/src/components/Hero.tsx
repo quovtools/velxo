@@ -1,6 +1,6 @@
 'use client';
-import React, { useState } from 'react';
-import { ShieldCheck, Zap, ArrowRight, Play, Star } from 'lucide-react';
+import React from 'react';
+import { ShieldCheck, Zap, ArrowRight, Star } from 'lucide-react';
 
 const STATS = [
   { value: '10K+', label: 'Active Traders' },
@@ -10,8 +10,6 @@ const STATS = [
 ];
 
 export default function Hero() {
-  const [email, setEmail] = useState('');
-
   return (
     <section className="relative min-h-screen flex items-center justify-center overflow-hidden pt-16">
       {/* Background effects */}

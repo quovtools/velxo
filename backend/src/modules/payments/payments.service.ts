@@ -1,7 +1,11 @@
 import { Injectable, Logger } from '@nestjs/common'
 import { PrismaService } from '@/common/services/prisma.service'
-import { PaymentProvider, PaymentStatus } from '@prisma/client'
-import { NotFoundException } from '@/common/exceptions/custom-exceptions'
+import { PaymentProvider, PaymentStatus, OrderStatus } from '@prisma/client'
+import {
+  NotFoundException,
+  ForbiddenException,
+  BadRequestException,
+} from '@/common/exceptions/custom-exceptions'
 import { Decimal } from '@prisma/client/runtime/library'
 import { PaymentIoService } from './paymentio.service'
 
@@ -53,7 +57,24 @@ export class PaymentsService {
     amount: Decimal,
     provider: PaymentProvider,
     callbackUrl: string,
+    buyerId: string,
   ): Promise<{ payment: any; paymentUrl: string | null; configured: boolean }> {
+    // Validate ownership and amount before creating any payment record.
+    const order = await this.prisma.orders.findUnique({ where: { id: orderId } })
+    if (!order) {
+      throw new NotFoundException('Order')
+    }
+    if (order.buyerId !== buyerId) {
+      throw new ForbiddenException('You can only pay for your own orders')
+    }
+    if (order.status !== OrderStatus.PENDING && order.status !== OrderStatus.PAID) {
+      throw new BadRequestException('This order cannot be paid')
+    }
+    // The client-supplied amount must exactly match the order total.
+    if (new Decimal(amount).toString() !== new Decimal(order.totalAmount.toString()).toString()) {
+      throw new BadRequestException('Payment amount does not match the order total')
+    }
+
     const payment = await this.createPayment(orderId, amount, provider)
 
     if (provider === 'PAYMENT_IO') {

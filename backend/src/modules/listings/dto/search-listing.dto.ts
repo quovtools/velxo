@@ -25,6 +25,10 @@ export class SearchListingDto extends PaginationDto {
 
   @IsOptional()
   @IsString()
+  sellerId?: string
+
+  @IsOptional()
+  @IsString()
   platform?: string
 
   @IsOptional()

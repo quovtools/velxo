@@ -1,4 +1,4 @@
-import { Injectable, Logger } from '@nestjs/common'
+import { Injectable, Logger, BadRequestException } from '@nestjs/common'
 import { PrismaService } from '@/common/services/prisma.service'
 import { NotFoundException, InsufficientFundsException } from '@/common/exceptions/custom-exceptions'
 import { Decimal } from '@prisma/client/runtime/library'
@@ -125,6 +125,54 @@ export class WalletService {
       where: { walletId: wallet.id },
       orderBy: { createdAt: 'desc' },
       take: limit,
+    })
+  }
+
+  async withdraw(
+    userId: string,
+    amount: Decimal,
+    method: string,
+    destination: string,
+  ) {
+    if (amount.lessThanOrEqualTo(0)) {
+      throw new BadRequestException('Withdrawal amount must be greater than zero')
+    }
+
+    return this.prisma.$transaction(async (tx) => {
+      const wallet = await tx.wallet.findUnique({
+        where: { userId },
+      })
+
+      if (!wallet) {
+        throw new NotFoundException('Wallet')
+      }
+
+      if (wallet.balance.lessThan(amount)) {
+        throw new InsufficientFundsException('Insufficient wallet balance')
+      }
+
+      const newBalance = wallet.balance.minus(amount)
+
+      await tx.wallet.update({
+        where: { userId },
+        data: {
+          balance: newBalance,
+          totalWithdrawn: wallet.totalWithdrawn.plus(amount),
+        },
+      })
+
+      await tx.walletTransactions.create({
+        data: {
+          walletId: wallet.id,
+          type: 'DEBIT',
+          amount,
+          currency: wallet.currency,
+          balanceAfter: newBalance,
+          description: `Withdrawal via ${method}${destination ? ` (${destination})` : ''}`,
+        },
+      })
+
+      return { balance: newBalance, totalWithdrawn: wallet.totalWithdrawn.plus(amount) }
     })
   }
 }

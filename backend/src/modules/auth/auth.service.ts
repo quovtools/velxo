@@ -66,7 +66,12 @@ export class AuthService {
           firstName: dto.firstName,
           lastName: dto.lastName,
           emailVerified: false,
-          role: dto.role ?? Role.BUYER,
+          // Never allow self-assignment of privileged roles (ADMIN, MODERATOR,
+          // SUPER_ADMIN) during public registration.
+          role:
+            dto.role === Role.BUYER || dto.role === Role.SELLER
+              ? dto.role
+              : Role.BUYER,
           preferences: dto.preferences ?? undefined,
         },
       })

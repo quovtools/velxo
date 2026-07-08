@@ -1,6 +1,7 @@
 import { Controller, Get, Post, Param, Query, UseGuards } from '@nestjs/common'
 import { AffiliateService } from './affiliate.service'
 import { SupabaseJwtGuard } from '@/common/guards/supabase-jwt.guard'
+import { RolesGuard } from '@/common/guards/roles.guard'
 import { RequireRoles } from '@/common/decorators/roles.decorator'
 import { CurrentUserId } from '@/common/decorators/current-user.decorator'
 import { Role } from '@prisma/client'
@@ -35,7 +36,7 @@ export class AffiliateController {
 
   // Admin — list all affiliates
   @Get('admin/all')
-  @UseGuards(SupabaseJwtGuard)
+  @UseGuards(SupabaseJwtGuard, RolesGuard)
   @RequireRoles(Role.ADMIN, Role.SUPER_ADMIN)
   async getAllReferrals(@Query('limit') limit?: number) {
     const referrals = await this.affiliateService.getAllReferrals(limit)

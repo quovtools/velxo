@@ -4,13 +4,15 @@ import { Request } from 'express'
 @Injectable()
 export class AdminPasswordGuard implements CanActivate {
   private readonly logger = new Logger(AdminPasswordGuard.name)
-  private readonly adminPassword = process.env.ADMIN_PASSWORD || 'Fadekemi123@'
+  // No hardcoded fallback: an unconfigured ADMIN_PASSWORD disables admin access
+  // entirely rather than exposing a known default password.
+  private readonly adminPassword = process.env.ADMIN_PASSWORD || ''
 
   canActivate(context: ExecutionContext): boolean {
     const request = context.switchToHttp().getRequest<Request>()
     const provided = request.headers['x-admin-password']
 
-    if (!provided || provided !== this.adminPassword) {
+    if (!this.adminPassword || !provided || provided !== this.adminPassword) {
       throw new UnauthorizedException('Invalid admin password')
     }
 

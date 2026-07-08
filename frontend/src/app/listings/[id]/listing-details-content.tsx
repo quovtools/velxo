@@ -1,6 +1,6 @@
 'use client';
 
-import React, { useState, useEffect, use } from 'react';
+import React, { useState, useEffect } from 'react';
 import Link from 'next/link';
 import {
   Shield, Sparkles, UserCheck, MessageSquare, Star,
@@ -50,8 +50,7 @@ function StarRating({ rating }: { rating: number }) {
   );
 }
 
-export default function ListingDetailsContent({ params }: { params: Promise<{ id: string }> }) {
-  const { id } = use(params);
+export default function ListingDetailsContent({ id }: { id: string }) {
   const { user } = useAuth();
   const [listing, setListing]   = useState<Listing | null>(null);
   const [loading, setLoading]   = useState(true);

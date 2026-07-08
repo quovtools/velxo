@@ -1,6 +1,19 @@
 import React from 'react';
 import Link from 'next/link';
+import type { Metadata } from 'next';
 import { ShieldCheck, MessageSquare, AlertTriangle, HelpCircle, BookOpen, Zap, ChevronDown } from 'lucide-react';
+
+export const metadata: Metadata = {
+  title: 'Help Center & Support | Velxo Market',
+  description: 'Find answers to common questions about buying, selling, escrow, payments, withdrawals, and disputes on Velxo. Contact our support team 7 days a week.',
+  alternates: { canonical: 'https://market.velxo.shop/support' },
+  openGraph: {
+    title: 'Help Center & Support | Velxo Market',
+    description: 'Answers about escrow, payments, disputes, and selling on Velxo.',
+    url: 'https://market.velxo.shop/support',
+    type: 'website',
+  },
+};
 
 const faqs = [
   {

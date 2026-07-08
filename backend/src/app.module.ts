@@ -1,4 +1,4 @@
-import { Module, ValidationPipe } from '@nestjs/common'
+import { Module } from '@nestjs/common'
 import { ConfigModule } from '@nestjs/config'
 import { JwtModule } from '@nestjs/jwt'
 import { APP_FILTER, APP_PIPE } from '@nestjs/core'
@@ -57,15 +57,6 @@ import { AllExceptionsFilter } from './common/filters/all-exceptions.filter'
     {
       provide: APP_FILTER,
       useClass: AllExceptionsFilter,
-    },
-    {
-      provide: APP_PIPE,
-      useValue: new ValidationPipe({
-        whitelist: true,
-        forbidNonWhitelisted: true,
-        transform: true,
-        transformOptions: { enableImplicitConversion: true },
-      }),
     },
   ],
 })

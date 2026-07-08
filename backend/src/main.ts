@@ -1,6 +1,6 @@
 import { NestFactory } from '@nestjs/core'
 import { AppModule } from './app.module'
-import { ValidationPipe, Logger } from '@nestjs/common'
+import { ValidationPipe, Logger, BadRequestException } from '@nestjs/common'
 import { RequestMethod } from '@nestjs/common'
 import helmet from 'helmet'
 import rateLimit from 'express-rate-limit'
@@ -79,7 +79,6 @@ async function bootstrap() {
         const messages = errors.flatMap((e) =>
           Object.values(e.constraints || {})
         )
-        const { BadRequestException } = require('@nestjs/common')
         return new BadRequestException({
           success: false,
           message: messages.join('; '),

@@ -65,13 +65,14 @@ function StatCard({ title, value, icon, trend, trendUp }: StatCardProps) {
 
 export default function SellerDashboard() {
   const router = useRouter();
-  const { user } = useAuth();
+  const { user, loading: authLoading } = useAuth();
   const [seller, setSeller] = useState<SellerProfile | null>(null);
   const [listings, setListings] = useState<SellerListing[]>([]);
   const [loading, setLoading] = useState(true);
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
 
   useEffect(() => {
+    if (authLoading) return;
     if (!user) {
       router.push('/auth/login');
       return;
@@ -93,7 +94,7 @@ export default function SellerDashboard() {
       }
     }
     loadDashboard();
-  }, [user, router]);
+  }, [user, authLoading, router]);
 
   if (loading) {
     return (
@@ -198,7 +199,7 @@ const currentTier = tierConfig[seller?.subscriptionTier as keyof TierConfig] || 
         <div className="p-6">
           <div className="flex items-start gap-4">
             <div className="w-16 h-16 bg-gradient-to-br from-brand to-purple-600 rounded-xl flex items-center justify-center flex-shrink-0">
-              <span className="text-2xl font-black text-white">{seller?.storeName[0].toUpperCase()}</span>
+               <span className="text-2xl font-black text-white">{seller?.storeName?.[0]?.toUpperCase() || '?'}</span>
             </div>
             <div className="flex-1">
               <div className="flex items-center gap-2">

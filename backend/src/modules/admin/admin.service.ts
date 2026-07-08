@@ -142,9 +142,9 @@ export class AdminService {
       include: { commissions: true },
     })
 
-    const totalRevenue = orders.reduce((sum, order) => sum + (order.totalAmount as any), 0)
+    const totalRevenue = orders.reduce((sum, order) => sum + order.totalAmount.toNumber(), 0)
     const totalCommissions = orders.reduce(
-      (sum, order) => sum + order.commissions.reduce((s, c) => s + (c.amount as any), 0),
+      (sum, order) => sum + order.commissions.reduce((s, c) => s + c.amount.toNumber(), 0),
       0,
     )
 

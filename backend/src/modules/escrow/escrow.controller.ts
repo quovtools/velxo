@@ -6,17 +6,24 @@ import {
   Param,
   UseGuards,
   Logger,
+  Req,
 } from '@nestjs/common'
+import { Request } from 'express'
 import { EscrowService } from './escrow.service'
 import { SupabaseJwtGuard } from '@/common/guards/supabase-jwt.guard'
 import { CurrentUserId } from '@/common/decorators/current-user.decorator'
 import { ApiResponseDto } from '@/common/dto/api-response.dto'
+import { PrismaService } from '@/common/services/prisma.service'
+import { ForbiddenException, NotFoundException } from '@/common/exceptions/custom-exceptions'
 
 @Controller('escrow')
 export class EscrowController {
   private readonly logger = new Logger(EscrowController.name)
 
-  constructor(private escrowService: EscrowService) {}
+  constructor(
+    private escrowService: EscrowService,
+    private prisma: PrismaService,
+  ) {}
 
   @Get(':orderId')
   @UseGuards(SupabaseJwtGuard)
@@ -37,13 +44,10 @@ export class EscrowController {
     @CurrentUserId() userId: string,
   ) {
     try {
-      // Verify user is buyer
-      const order = await (require('@nestjs/common')).get('prisma').orders.findUnique({
-        where: { id: orderId },
-      })
-
-      if (!order || order.buyerId !== userId) {
-        throw new Error('Unauthorized')
+      const order = await this.prisma.orders.findUnique({ where: { id: orderId } })
+      if (!order) throw new NotFoundException('Order')
+      if (order.buyerId !== userId) {
+        throw new ForbiddenException('Only the buyer can release escrow')
       }
 
       const escrow = await this.escrowService.releaseFunds(orderId)
@@ -60,9 +64,16 @@ export class EscrowController {
     @Param('orderId') orderId: string,
     @Body('reason') reason: string,
     @CurrentUserId() userId: string,
+    @Req() req: Request,
   ) {
     try {
-      // TODO: Verify user is admin or order participant
+      const role = req['userRole']
+      const isAdmin =
+        role === 'ADMIN' || role === 'SUPER_ADMIN' || role === 'MODERATOR'
+      if (!isAdmin) {
+        throw new ForbiddenException('Only an admin can refund escrow')
+      }
+
       const escrow = await this.escrowService.refundFunds(orderId, reason)
       return ApiResponseDto.ok(escrow, 'Funds refunded successfully')
     } catch (error) {

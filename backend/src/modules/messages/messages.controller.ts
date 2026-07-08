@@ -14,6 +14,7 @@ import { MessagesService } from './messages.service'
 import { SupabaseJwtGuard } from '@/common/guards/supabase-jwt.guard'
 import { CurrentUserId } from '@/common/decorators/current-user.decorator'
 import { ApiResponseDto } from '@/common/dto/api-response.dto'
+import { CreateConversationDto } from './dto/create-conversation.dto'
 
 @Controller('messages')
 export class MessagesController {
@@ -45,10 +46,33 @@ export class MessagesController {
     }
   }
 
+  @Post('conversation')
+  @UseGuards(SupabaseJwtGuard)
+  async createConversation(
+    @CurrentUserId() userId: string,
+    @Body() dto: CreateConversationDto,
+  ) {
+    try {
+      if (userId === dto.recipientId) {
+        throw new ForbiddenException('You cannot start a conversation with yourself')
+      }
+      const conversation = await this.messagesService.getOrCreateConversation(
+        userId,
+        dto.recipientId,
+        dto.orderId,
+      )
+      return ApiResponseDto.ok(conversation, 'Conversation ready')
+    } catch (error) {
+      this.logger.error('Error creating conversation:', error)
+      throw error
+    }
+  }
+
   @Get('conversation/:conversationId')
   @UseGuards(SupabaseJwtGuard)
   async getConversationMessages(
     @Param('conversationId') conversationId: string,
+    @CurrentUserId() userId: string,
     @Query('limit') limit?: number,
   ) {
     try {

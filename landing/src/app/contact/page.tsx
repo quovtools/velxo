@@ -1,7 +1,21 @@
 import React from 'react';
+import type { Metadata } from 'next';
 import Navbar from '@/components/Navbar';
 import Footer from '@/components/Footer';
-import { Mail, MessageCircle, Twitter, Phone, MapPin, Clock } from 'lucide-react';
+import { Mail, MessageCircle, Twitter, MapPin, Clock } from 'lucide-react';
+
+export const metadata: Metadata = {
+  title: "Contact Us — Velxo",
+  description: "Get in touch with Velxo — general enquiries, live chat support, safety reporting, press, and partnerships. We reply within 24 hours, 7 days a week.",
+  alternates: { canonical: "https://velxo.shop/contact" },
+  openGraph: {
+    title: "Contact Us — Velxo",
+    description: "Reach the right Velxo team for fast help.",
+    url: "https://velxo.shop/contact",
+    siteName: "Velxo",
+    type: "website",
+  },
+};
 
 const CONTACT_OPTIONS = [
   {
@@ -122,7 +136,7 @@ export default function ContactPage() {
               <MapPin className="w-4 h-4" />
               <span>Velxo is a remote-first company operating across Africa</span>
             </div>
-            <p className="text-xs text-gray-700">Registered in Nigeria · Serving 20+ African countries</p>
+            <p className="text-xs text-gray-500">Registered in Nigeria · Serving 20+ African countries</p>
           </div>
         </div>
       </main>

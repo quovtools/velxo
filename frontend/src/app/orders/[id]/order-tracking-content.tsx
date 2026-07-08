@@ -1,6 +1,6 @@
 'use client';
 
-import React, { useState, useEffect, useCallback, use } from 'react';
+import React, { useState, useEffect, useCallback } from 'react';
 import { useRouter } from 'next/navigation';
 import { api } from '@/lib/api';
 import { useAuth } from '@/app/providers';
@@ -26,10 +26,9 @@ interface Order {
   }>;
 }
 
-export default function OrderTrackingContent({ params }: { params: Promise<{ id: string }> }) {
-  const { id } = use(params);
+export default function OrderTrackingContent({ id }: { id: string }) {
   const router = useRouter();
-  const { user } = useAuth();
+  const { user, loading: authLoading } = useAuth();
 
   const [order, setOrder] = useState<Order | null>(null);
   const [loading, setLoading] = useState(true);
@@ -54,12 +53,13 @@ export default function OrderTrackingContent({ params }: { params: Promise<{ id:
   }, [id]);
 
   useEffect(() => {
+    if (authLoading) return;
     if (!user) {
       router.push('/auth/login');
       return;
     }
     loadOrder();
-  }, [id, user, router, loadOrder]);
+  }, [id, user, authLoading, router, loadOrder]);
 
   const handleConfirmDelivery = async () => {
     if (!confirm('Are you sure you want to release funds to the seller? This action is irreversible.')) return;

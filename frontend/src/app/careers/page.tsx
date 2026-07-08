@@ -1,6 +1,19 @@
 import React from 'react';
 import Link from 'next/link';
+import type { Metadata } from 'next';
 import { Zap, Globe, Users, Heart, Coffee, Award, MapPin } from 'lucide-react';
+
+export const metadata: Metadata = {
+  title: 'Careers at Velxo | Join the Team',
+  description: 'We’re hiring remote engineers, community managers, moderators, and support specialists across Africa. Help build the future of African gaming commerce.',
+  alternates: { canonical: 'https://market.velxo.shop/careers' },
+  openGraph: {
+    title: 'Careers at Velxo | Join the Team',
+    description: 'Remote roles across Africa building safe gaming commerce.',
+    url: 'https://market.velxo.shop/careers',
+    type: 'website',
+  },
+};
 
 const openRoles = [
   {

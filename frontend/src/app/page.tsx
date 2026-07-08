@@ -83,8 +83,9 @@ function MarketplaceContent() {
       if (category) params.append('category', category);
       if (minPrice) params.append('minPrice', minPrice);
       if (maxPrice) params.append('maxPrice', maxPrice);
-      if (sort === 'price_asc') { params.append('sortBy', 'price'); params.append('order', 'asc'); }
-      else if (sort === 'price_desc') { params.append('sortBy', 'price'); params.append('order', 'desc'); }
+      if (sort === 'price_asc') { params.append('sortBy', 'price_low'); }
+      else if (sort === 'price_desc') { params.append('sortBy', 'price_high'); }
+      else if (sort === 'rating') { params.append('sortBy', 'rating'); }
       params.append('limit', '24');
 
       const res = await fetch(`${apiBase}/listings?${params.toString()}`);

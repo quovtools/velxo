@@ -53,7 +53,7 @@ function StatCard({ label, value, sub, icon, highlight }: {
 
 export default function WalletPage() {
   const router = useRouter();
-  const { user } = useAuth();
+  const { user, loading: authLoading } = useAuth();
   const [wallet, setWallet]           = useState<WalletData | null>(null);
   const [transactions, setTxns]       = useState<Transaction[]>([]);
   const [loading, setLoading]         = useState(true);
@@ -65,6 +65,7 @@ export default function WalletPage() {
   const [toast, setToast]             = useState<{ msg: string; ok: boolean } | null>(null);
 
   useEffect(() => {
+    if (authLoading) return;
     if (!user) { router.push('/auth/login'); return; }
     (async () => {
       try {
@@ -77,7 +78,7 @@ export default function WalletPage() {
       } catch { /* silent */ }
       finally { setLoading(false); }
     })();
-  }, [user, router]);
+  }, [user, authLoading, router]);
 
   const showToast = (msg: string, ok: boolean) => {
     setToast({ msg, ok });

@@ -1,7 +1,7 @@
 import { Injectable, Logger } from '@nestjs/common'
 import { PrismaService } from '@/common/services/prisma.service'
 import { CreateReviewDto } from './dto/create-review.dto'
-import { NotFoundException, ForbiddenException } from '@/common/exceptions/custom-exceptions'
+import { NotFoundException, ForbiddenException, BadRequestException } from '@/common/exceptions/custom-exceptions'
 
 @Injectable()
 export class ReviewsService {
@@ -23,6 +23,10 @@ export class ReviewsService {
 
     if (order.buyerId !== buyerId) {
       throw new ForbiddenException('Only the buyer can review this order')
+    }
+
+    if (order.status !== 'COMPLETED' && order.status !== 'DELIVERED') {
+      throw new BadRequestException('You can only review a completed order')
     }
 
     // Check if review already exists

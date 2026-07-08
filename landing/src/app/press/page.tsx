@@ -1,7 +1,21 @@
 import React from 'react';
+import type { Metadata } from 'next';
 import Navbar from '@/components/Navbar';
 import Footer from '@/components/Footer';
 import { Download, Mail, ExternalLink } from 'lucide-react';
+
+export const metadata: Metadata = {
+  title: "Press & Media — Velxo",
+  description: "Velxo press releases, media resources, and brand assets for journalists covering Africa's No.1 escrow-backed gaming marketplace.",
+  alternates: { canonical: "https://velxo.shop/press" },
+  openGraph: {
+    title: "Press & Media — Velxo",
+    description: "Press releases, media resources, and brand assets.",
+    url: "https://velxo.shop/press",
+    siteName: "Velxo",
+    type: "website",
+  },
+};
 
 const PRESS_RELEASES = [
   {

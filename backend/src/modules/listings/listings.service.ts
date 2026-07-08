@@ -94,6 +94,10 @@ export class ListingsService {
       where.categoryId = dto.categoryId
     }
 
+    if (dto.sellerId) {
+      where.seller = { userId: dto.sellerId }
+    }
+
     if (dto.platform) {
       where.platform = dto.platform
     }
@@ -120,7 +124,7 @@ export class ListingsService {
     } else if (dto.sortBy === SortByEnum.PRICE_HIGH) {
       orderBy = { price: 'desc' }
     } else if (dto.sortBy === SortByEnum.RATING) {
-      orderBy = { 'seller.averageRating': 'desc' }
+      orderBy = { seller: { averageRating: 'desc' } }
     }
 
     const [listings, total] = await Promise.all([
@@ -187,7 +191,7 @@ export class ListingsService {
       throw new NotFoundException('Listing')
     }
 
-    if (listing.seller.id !== sellerId) {
+    if (listing.seller.userId !== sellerId) {
       throw new ForbiddenException('You can only edit your own listings')
     }
 
@@ -216,7 +220,7 @@ export class ListingsService {
       throw new NotFoundException('Listing')
     }
 
-    if (listing.seller.id !== sellerId) {
+    if (listing.seller.userId !== sellerId) {
       throw new ForbiddenException('You can only delete your own listings')
     }
 

@@ -1,6 +1,19 @@
 import React from 'react';
 import Link from 'next/link';
+import type { Metadata } from 'next';
 import { ShieldCheck, CheckCircle, XCircle, AlertTriangle, Star, Zap } from 'lucide-react';
+
+export const metadata: Metadata = {
+  title: 'Seller Guidelines & Rules | Velxo Market',
+  description: 'Read the rules, requirements, prohibited activities, and penalty structure every Velxo seller agrees to. Build trust and avoid disputes with clear listing practices.',
+  alternates: { canonical: 'https://market.velxo.shop/seller/guidelines' },
+  openGraph: {
+    title: 'Seller Guidelines & Rules | Velxo Market',
+    description: 'Rules, prohibited activities, and penalties for Velxo sellers.',
+    url: 'https://market.velxo.shop/seller/guidelines',
+    type: 'website',
+  },
+};
 
 const rules = [
   {

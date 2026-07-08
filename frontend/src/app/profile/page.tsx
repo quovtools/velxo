@@ -48,7 +48,7 @@ type TabId = typeof TABS[number]['id'];
 
 export default function ProfilePage() {
   const router = useRouter();
-  const { user, logout, updateUser } = useAuth();
+  const { user, loading: authLoading, logout, updateUser } = useAuth();
   const [profile, setProfile] = useState<ProfileData | null>(null);
   const [loading, setLoading] = useState(true);
   const [saving, setSaving] = useState(false);
@@ -78,6 +78,7 @@ export default function ProfilePage() {
   const showToast = (msg: string, ok: boolean) => setToast({ msg, ok });
 
   useEffect(() => {
+    if (authLoading) return;
     if (!user) { router.push('/auth/login'); return; }
 
     // Seed from the session so the profile is never empty while /auth/me loads
@@ -107,7 +108,7 @@ export default function ProfilePage() {
       })
       .catch(() => {})
       .finally(() => setLoading(false));
-  }, [user, router]);
+  }, [user, authLoading, router]);
 
   const saveProfile = async (e: React.FormEvent) => {
     e.preventDefault();

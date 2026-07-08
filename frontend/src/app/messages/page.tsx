@@ -38,7 +38,7 @@ function ChatContent() {
   const router = useRouter();
   const searchParams = useSearchParams();
   const targetUserId = searchParams.get('userId');
-  const { user } = useAuth();
+  const { user, loading: authLoading } = useAuth();
 
   const [convos, setConvos] = useState<Conversation[]>([]);
   const [active, setActive] = useState<Conversation | null>(null);
@@ -55,30 +55,35 @@ function ChatContent() {
   }, [messages]);
 
   useEffect(() => {
+    if (authLoading) return;
     if (!user) { router.push('/auth/login'); return; }
     (async () => {
       try {
-        const res = await api.get<{ success: boolean; data: Conversation[] }>('/messages/conversations');
+        const res = await api.get<{ success: boolean; data: Conversation[] }>('/messages');
         const list = res.success ? (res.data || []) : [];
         setConvos(list);
         if (targetUserId) {
           const match = list.find(c => c.buyerId === targetUserId || c.sellerId === targetUserId);
           if (match) { setActive(match); setShowSidebar(false); }
           else {
-            const created = await api.post<{ success: boolean; data: Conversation }>(
-              '/messages/conversations', { recipientId: targetUserId }
-            );
-            if (created.success) { setConvos(p => [created.data, ...p]); setActive(created.data); setShowSidebar(false); }
+            // NOTE: backend must expose POST /messages/conversation (calling
+            // getOrCreateConversation) for brand-new threads. Falls back gracefully if absent.
+            try {
+              const created = await api.post<{ success: boolean; data: Conversation }>(
+                '/messages/conversation', { recipientId: targetUserId }
+              );
+              if (created.success) { setConvos(p => [created.data, ...p]); setActive(created.data); setShowSidebar(false); }
+            } catch { /* no existing thread and create endpoint unavailable */ }
           }
         } else if (list.length > 0) { setActive(list[0]); setShowSidebar(true); }
       } catch { /* silent */ }
       finally { setLoading(false); }
     })();
-  }, [user, targetUserId, router]);
+  }, [user, authLoading, targetUserId, router]);
 
   useEffect(() => {
     if (!active) return;
-    api.get<{ success: boolean; data: Message[] }>(`/messages/conversations/${active.id}/messages`)
+    api.get<{ success: boolean; data: Message[] }>(`/messages/conversation/${active.id}`)
       .then(res => { if (res.success) setMessages(res.data || []); })
       .catch(() => {});
   }, [active]);
@@ -93,7 +98,7 @@ function ChatContent() {
     setText('');
     try {
       const res = await api.post<{ success: boolean; data: Message }>(
-        `/messages/conversations/${active.id}/messages`, { content: draft }
+        `/messages/conversation/${active.id}/send`, { content: draft }
       );
       if (res.success) {
         setMessages(p => p.map(m => m.id === optimistic.id ? res.data : m));
@@ -112,8 +117,6 @@ function ChatContent() {
       <Loader2 className="w-8 h-8 text-brand animate-spin" />
     </div>
   );
-
-  const isMobile = typeof window !== 'undefined' && window.innerWidth < 640;
 
   return (
     <div className="flex h-[calc(100vh-180px)] min-h-[500px] bg-cardBg border border-borderBg rounded-2xl overflow-hidden fade-in">

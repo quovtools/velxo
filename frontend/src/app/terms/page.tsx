@@ -1,5 +1,18 @@
 import React from 'react';
 import Link from 'next/link';
+import type { Metadata } from 'next';
+
+export const metadata: Metadata = {
+  title: 'Terms of Service | Velxo Market',
+  description: 'The terms governing your use of the Velxo gaming marketplace, including accounts, escrow, fees, prohibited activities, and dispute resolution.',
+  alternates: { canonical: 'https://market.velxo.shop/terms' },
+  openGraph: {
+    title: 'Terms of Service | Velxo Market',
+    description: 'The rules of trading safely on Velxo.',
+    url: 'https://market.velxo.shop/terms',
+    type: 'website',
+  },
+};
 
 const sections = [
   {

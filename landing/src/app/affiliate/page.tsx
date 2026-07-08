@@ -1,7 +1,21 @@
 import React from 'react';
+import type { Metadata } from 'next';
 import Navbar from '@/components/Navbar';
 import Footer from '@/components/Footer';
 import { TrendingUp, Users, DollarSign, ArrowRight, CheckCircle, Share2 } from 'lucide-react';
+
+export const metadata: Metadata = {
+  title: "Affiliate Program — Velxo",
+  description: "Earn commission by referring traders to Africa's No.1 gaming marketplace. Tiered commissions up to 5% per trade, no cap, no expiry.",
+  alternates: { canonical: "https://velxo.shop/affiliate" },
+  openGraph: {
+    title: "Affiliate Program — Velxo",
+    description: "Earn by sharing Velxo. Up to 5% commission per trade.",
+    url: "https://velxo.shop/affiliate",
+    siteName: "Velxo",
+    type: "website",
+  },
+};
 
 const HOW_IT_WORKS = [
   { step: '01', icon: <Share2 className="w-5 h-5 text-[#8B5CF6]" />, title: 'Get Your Link', desc: 'Sign up and get a unique referral link tied to your account.' },

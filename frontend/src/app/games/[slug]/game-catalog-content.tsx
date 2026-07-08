@@ -1,6 +1,6 @@
 'use client';
 
-import React, { useState, useEffect, use } from 'react';
+import React, { useState, useEffect } from 'react';
 import Link from 'next/link';
 
 const API_BASE = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:3001/api/v1';
@@ -19,8 +19,7 @@ interface Listing {
   };
 }
 
-export default function GameCatalogContent({ params }: { params: Promise<{ slug: string }> }) {
-  const { slug } = use(params);
+export default function GameCatalogContent({ slug }: { slug: string }) {
   const [listings, setListings] = useState<Listing[]>([]);
   const [loading, setLoading] = useState(true);
 

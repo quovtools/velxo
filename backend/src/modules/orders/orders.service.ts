@@ -6,6 +6,7 @@ import {
   ForbiddenException,
   InsufficientFundsException,
   InvalidEscrowStateException,
+  BadRequestException,
 } from '@/common/exceptions/custom-exceptions'
 import { OrderStatus, EscrowStatus } from '@prisma/client'
 import { Decimal } from '@prisma/client/runtime/library'
@@ -29,6 +30,10 @@ export class OrdersService {
 
     if (!listing) {
       throw new NotFoundException('Listing')
+    }
+
+    if (listing.status !== 'ACTIVE' || listing.isSold) {
+      throw new BadRequestException('This listing is not available for purchase')
     }
 
     if (listing.sellerId === buyerId) {
@@ -147,6 +152,14 @@ export class OrdersService {
       throw new InvalidEscrowStateException('Order is not in progress')
     }
 
+    if (!order.escrow) {
+      throw new InvalidEscrowStateException('No escrow record for this order')
+    }
+
+    if (order.escrow.status !== EscrowStatus.HELD) {
+      throw new InvalidEscrowStateException('Escrow is not held')
+    }
+
     // Release escrow and complete order
     return await this.prisma.$transaction(async (tx) => {
       // Update escrow
@@ -173,20 +186,27 @@ export class OrdersService {
         },
       })
 
-      // Credit seller wallet
-      const seller = await tx.sellers.findUnique({
+      // Credit seller wallet (balance + transaction) atomically
+      const wallet = await tx.wallet.findUnique({
         where: { userId: order.sellerId },
-        include: { user: true },
       })
 
-      if (seller) {
+      if (wallet) {
+        const newBalance = wallet.balance.plus(order.sellerPayout)
+        await tx.wallet.update({
+          where: { id: wallet.id },
+          data: {
+            balance: newBalance,
+            totalEarnings: wallet.totalEarnings.plus(order.sellerPayout),
+          },
+        })
         await tx.walletTransactions.create({
           data: {
-            walletId: seller.user.id, // FIXME: Link properly
+            walletId: wallet.id,
             type: 'CREDIT',
             amount: order.sellerPayout,
             currency: order.currency,
-            balanceAfter: new Decimal(0), // TODO: Calculate from wallet balance
+            balanceAfter: newBalance,
             description: `Payment for order ${order.orderNumber}`,
             relatedId: orderId,
           },

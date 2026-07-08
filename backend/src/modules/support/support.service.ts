@@ -1,6 +1,6 @@
 import { Injectable, Logger } from '@nestjs/common'
 import { PrismaService } from '@/common/services/prisma.service'
-import { NotFoundException } from '@/common/exceptions/custom-exceptions'
+import { NotFoundException, ForbiddenException } from '@/common/exceptions/custom-exceptions'
 import { SupportTicketStatus, SupportTicketCategory } from '@prisma/client'
 
 @Injectable()
@@ -49,7 +49,7 @@ export class SupportService {
     })
   }
 
-  async getTicketById(ticketId: string) {
+  async getTicketById(ticketId: string, userId?: string) {
     const ticket = await this.prisma.supportTickets.findUnique({
       where: { id: ticketId },
       include: {
@@ -59,6 +59,10 @@ export class SupportService {
 
     if (!ticket) {
       throw new NotFoundException('Support ticket')
+    }
+
+    if (userId && ticket.userId !== userId) {
+      throw new ForbiddenException('You do not have access to this ticket')
     }
 
     return ticket

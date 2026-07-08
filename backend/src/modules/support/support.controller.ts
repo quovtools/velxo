@@ -52,7 +52,7 @@ export class SupportController {
 
   @Get('tickets/:id')
   @UseGuards(SupabaseJwtGuard)
-  async getTicket(@Param('id') ticketId: string) {
+  async getTicket(@Param('id') ticketId: string, @CurrentUserId() userId: string) {
     try {
       const ticket = await this.supportService.getTicketById(ticketId)
       return ApiResponseDto.ok(ticket, 'Ticket retrieved')

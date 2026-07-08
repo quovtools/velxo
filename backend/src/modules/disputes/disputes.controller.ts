@@ -8,13 +8,23 @@ import {
   Query,
   UseGuards,
   Logger,
+  Req,
 } from '@nestjs/common'
+import { Request } from 'express'
 import { DisputesService } from './disputes.service'
 import { CreateDisputeDto } from './dto/create-dispute.dto'
 import { ResolveDisputeDto } from './dto/resolve-dispute.dto'
 import { SupabaseJwtGuard } from '@/common/guards/supabase-jwt.guard'
 import { CurrentUserId } from '@/common/decorators/current-user.decorator'
 import { ApiResponseDto } from '@/common/dto/api-response.dto'
+import { ForbiddenException } from '@/common/exceptions/custom-exceptions'
+
+function assertStaff(req: Request) {
+  const role = req['userRole']
+  if (role !== 'ADMIN' && role !== 'SUPER_ADMIN' && role !== 'MODERATOR') {
+    throw new ForbiddenException('Admin or moderator access required')
+  }
+}
 
 @Controller('disputes')
 export class DisputesController {
@@ -35,8 +45,10 @@ export class DisputesController {
   }
 
   @Get('open')
-  async getOpenDisputes(@Query('limit') limit?: number) {
+  @UseGuards(SupabaseJwtGuard)
+  async getOpenDisputes(@Req() req: Request, @Query('limit') limit?: number) {
     try {
+      assertStaff(req)
       const disputes = await this.disputesService.getOpenDisputes(limit)
       return ApiResponseDto.ok(disputes, 'Open disputes retrieved')
     } catch (error) {
@@ -46,8 +58,10 @@ export class DisputesController {
   }
 
   @Get(':id')
-  async getDisputeById(@Param('id') disputeId: string) {
+  @UseGuards(SupabaseJwtGuard)
+  async getDisputeById(@Req() req: Request, @Param('id') disputeId: string) {
     try {
+      assertStaff(req)
       const dispute = await this.disputesService.getDisputeById(disputeId)
       return ApiResponseDto.ok(dispute, 'Dispute retrieved successfully')
     } catch (error) {
@@ -59,11 +73,13 @@ export class DisputesController {
   @Patch(':id/resolve')
   @UseGuards(SupabaseJwtGuard)
   async resolveDispute(
+    @Req() req: Request,
     @Param('id') disputeId: string,
     @CurrentUserId() resolverId: string,
     @Body() dto: ResolveDisputeDto,
   ) {
     try {
+      assertStaff(req)
       const dispute = await this.disputesService.resolveDispute(disputeId, resolverId, dto)
       return ApiResponseDto.ok(dispute, 'Dispute resolved successfully')
     } catch (error) {

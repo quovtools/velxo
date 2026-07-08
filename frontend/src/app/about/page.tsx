@@ -1,6 +1,19 @@
 import React from 'react';
 import Link from 'next/link';
+import type { Metadata } from 'next';
 import { ShieldCheck, Zap, Users, Globe, Award, TrendingUp } from 'lucide-react';
+
+export const metadata: Metadata = {
+  title: 'About Velxo | Africa’s Escrow-Backed Gaming Marketplace',
+  description: 'Velxo is a peer-to-peer, escrow-protected marketplace built for African gamers to safely buy and sell accounts, coins, top-ups, gift cards, and boosting services.',
+  alternates: { canonical: 'https://market.velxo.shop/about' },
+  openGraph: {
+    title: 'About Velxo | Africa’s Escrow-Backed Gaming Marketplace',
+    description: 'The marketplace Africa’s gamers deserve — safe, fast, escrow-protected gaming commerce.',
+    url: 'https://market.velxo.shop/about',
+    type: 'website',
+  },
+};
 
 const stats = [
   { label: 'Active Traders', value: '10,000+' },

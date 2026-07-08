@@ -1,6 +1,6 @@
 'use client';
 
-import React, { useState, useEffect, use } from 'react';
+import React, { useState, useEffect } from 'react';
 import { useRouter } from 'next/navigation';
 import { api } from '@/lib/api';
 import { useAuth } from '@/app/providers';
@@ -17,10 +17,9 @@ interface Listing {
   region: string;
 }
 
-export default function CheckoutContent({ params }: { params: Promise<{ listingId: string }> }) {
-  const { listingId } = use(params);
+export default function CheckoutContent({ listingId }: { listingId: string }) {
   const router = useRouter();
-  const { user } = useAuth();
+  const { user, loading: authLoading } = useAuth();
 
   const [listing, setListing] = useState<Listing | null>(null);
   const [loadingListing, setLoadingListing] = useState(true);
@@ -30,6 +29,7 @@ export default function CheckoutContent({ params }: { params: Promise<{ listingI
   const [error, setError] = useState<string | null>(null);
 
   useEffect(() => {
+    if (authLoading) return;
     if (!user) {
       router.push('/auth/login');
       return;
@@ -48,7 +48,7 @@ export default function CheckoutContent({ params }: { params: Promise<{ listingI
       }
     }
     loadListing();
-  }, [listingId, user, router]);
+  }, [listingId, user, authLoading, router]);
 
   const handleCheckout = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -103,8 +103,9 @@ export default function CheckoutContent({ params }: { params: Promise<{ listingI
   }
 
   const subtotal = Number(listing.price);
-  const fee = subtotal * 0.10; // 10% service fee
-  const total = subtotal + fee;
+  // Per the escrow model (see /escrow), the 10% platform fee is deducted
+  // from the SELLER's payout — buyers pay the listed price only.
+  const total = subtotal;
 
   return (
     <div className="grid grid-cols-1 lg:grid-cols-3 gap-8 my-6">
@@ -183,13 +184,12 @@ export default function CheckoutContent({ params }: { params: Promise<{ listingI
 
             <div className="border-t border-borderBg pt-4 space-y-2 text-gray-400">
               <div className="flex justify-between">
-                <span>Base Price</span>
+                <span>Listing Price</span>
                 <span className="text-white">${subtotal.toFixed(2)}</span>
               </div>
-              <div className="flex justify-between">
-                <span>Escrow Service Fee (10%)</span>
-                <span className="text-white">${fee.toFixed(2)}</span>
-              </div>
+              <p className="text-[11px] text-gray-500 pt-1">
+                A 10% escrow fee is deducted from the seller&apos;s payout — you pay the listed price.
+              </p>
             </div>
 
             <div className="border-t border-borderBg pt-4 flex justify-between font-black text-white text-lg">

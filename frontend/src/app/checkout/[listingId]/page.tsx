@@ -1,8 +1,8 @@
-import React from 'react';
 import CheckoutContent from './checkout-content';
 
 export const dynamic = 'force-dynamic';
 
-export default function CheckoutPage({ params }: { params: Promise<{ listingId: string }> }) {
-  return <CheckoutContent params={params} />;
+export default async function CheckoutPage({ params }: { params: Promise<{ listingId: string }> }) {
+  const { listingId } = await params;
+  return <CheckoutContent listingId={listingId} />;
 }

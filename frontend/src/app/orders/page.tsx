@@ -22,11 +22,12 @@ interface Order {
 
 export default function OrdersPage() {
   const router = useRouter();
-  const { user } = useAuth();
+  const { user, loading: authLoading } = useAuth();
   const [orders, setOrders] = useState<Order[]>([]);
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
+    if (authLoading) return;
     if (!user) {
       router.push('/auth/login');
       return;
@@ -45,7 +46,7 @@ export default function OrdersPage() {
       }
     }
     loadOrders();
-  }, [user, router]);
+  }, [user, authLoading, router]);
 
   if (loading) {
     return <div className="text-center py-20 text-gray-400">Loading order history...</div>;

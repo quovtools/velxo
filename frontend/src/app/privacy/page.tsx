@@ -1,6 +1,19 @@
 import React from 'react';
 import Link from 'next/link';
+import type { Metadata } from 'next';
 import { ShieldCheck } from 'lucide-react';
+
+export const metadata: Metadata = {
+  title: 'Privacy Policy | Velxo Market',
+  description: 'How Velxo collects, uses, shares, and protects your personal data, plus your privacy rights and cookie practices.',
+  alternates: { canonical: 'https://market.velxo.shop/privacy' },
+  openGraph: {
+    title: 'Privacy Policy | Velxo Market',
+    description: 'How Velxo protects your data and your privacy rights.',
+    url: 'https://market.velxo.shop/privacy',
+    type: 'website',
+  },
+};
 
 const sections = [
   {

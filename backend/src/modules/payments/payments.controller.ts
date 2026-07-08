@@ -27,6 +27,7 @@ export class PaymentsController {
         amount,
         provider,
         callbackUrl,
+        userId,
       )
       return ApiResponseDto.ok(result, 'Payment initiated')
     } catch (error) {

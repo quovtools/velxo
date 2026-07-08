@@ -1,7 +1,21 @@
 import React from 'react';
+import type { Metadata } from 'next';
 import Navbar from '@/components/Navbar';
 import Footer from '@/components/Footer';
 import { MessageCircle, Twitter, Youtube, Instagram, Users, Trophy, Gamepad2, ArrowRight } from 'lucide-react';
+
+export const metadata: Metadata = {
+  title: "Community — Velxo",
+  description: "Join tens of thousands of African gamers, traders, and creators in the Velxo community. Discord, social channels, events, referrals, and more.",
+  alternates: { canonical: "https://velxo.shop/community" },
+  openGraph: {
+    title: "Community — Velxo",
+    description: "Join Africa's fastest-growing gaming trade community.",
+    url: "https://velxo.shop/community",
+    siteName: "Velxo",
+    type: "website",
+  },
+};
 
 const CHANNELS = [
   {

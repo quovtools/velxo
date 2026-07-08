@@ -131,9 +131,8 @@ export class DisputesService {
 
       const order = updatedDispute.order
 
-      // Handle escrow based on resolution
+      // Resolve escrow + move money + set the correct order status.
       if (dto.resolutionType === 'REFUND_BUYER') {
-        // Refund buyer
         const escrow = await tx.escrowTransactions.findUnique({
           where: { orderId: order.id },
         })
@@ -146,11 +145,41 @@ export class DisputesService {
               refundedAt: new Date(),
             },
           })
-
-          // TODO: Process refund to buyer payment method
         }
-      } else if (dto.resolutionType === 'RELEASE_TO_SELLER') {
-        // Release to seller
+
+        // Credit the buyer up to the order total (never more than was held).
+        const requested = dto.refundAmount ? new Decimal(dto.refundAmount) : order.totalAmount
+        const refundAmount = requested.lessThan(order.totalAmount)
+          ? requested
+          : order.totalAmount
+        const buyerWallet = await tx.wallet.findUnique({
+          where: { userId: order.buyerId },
+        })
+        if (buyerWallet) {
+          const newBalance = buyerWallet.balance.plus(refundAmount)
+          await tx.wallet.update({
+            where: { id: buyerWallet.id },
+            data: { balance: newBalance },
+          })
+          await tx.walletTransactions.create({
+            data: {
+              walletId: buyerWallet.id,
+              type: 'REFUND',
+              amount: refundAmount,
+              currency: order.currency,
+              balanceAfter: newBalance,
+              description: `Dispute refund for order ${order.orderNumber}`,
+              relatedId: order.id,
+            },
+          })
+        }
+
+        await tx.orders.update({
+          where: { id: order.id },
+          data: { status: OrderStatus.REFUNDED, refundedAt: new Date() },
+        })
+      } else {
+        // RELEASE_TO_SELLER, SPLIT, OTHER → pay out the seller and complete.
         const escrow = await tx.escrowTransactions.findUnique({
           where: { orderId: order.id },
         })
@@ -163,16 +192,42 @@ export class DisputesService {
               releasedAt: new Date(),
             },
           })
-
-          // TODO: Credit seller wallet
         }
-      }
 
-      // Update order status
-      await tx.orders.update({
-        where: { id: order.id },
-        data: { status: OrderStatus.COMPLETED },
-      })
+        const sellerWallet = await tx.wallet.findUnique({
+          where: { userId: order.sellerId },
+        })
+        if (sellerWallet) {
+          const newBalance = sellerWallet.balance.plus(order.sellerPayout)
+          await tx.wallet.update({
+            where: { id: sellerWallet.id },
+            data: {
+              balance: newBalance,
+              totalEarnings: sellerWallet.totalEarnings.plus(order.sellerPayout),
+            },
+          })
+          await tx.walletTransactions.create({
+            data: {
+              walletId: sellerWallet.id,
+              type: 'CREDIT',
+              amount: order.sellerPayout,
+              currency: order.currency,
+              balanceAfter: newBalance,
+              description: `Dispute payout for order ${order.orderNumber}`,
+              relatedId: order.id,
+            },
+          })
+        }
+
+        await tx.orders.update({
+          where: { id: order.id },
+          data: {
+            status: OrderStatus.COMPLETED,
+            completedAt: new Date(),
+            paidAt: new Date(),
+          },
+        })
+      }
 
       return updatedDispute
     })
@@ -181,10 +236,19 @@ export class DisputesService {
   async addDisputeMessage(disputeId: string, senderId: string, content: string, attachments?: string[]) {
     const dispute = await this.prisma.disputes.findUnique({
       where: { id: disputeId },
+      include: { order: true },
     })
 
     if (!dispute) {
       throw new NotFoundException('Dispute')
+    }
+
+    if (
+      senderId !== dispute.initiatedById &&
+      senderId !== dispute.order?.buyerId &&
+      senderId !== dispute.order?.sellerId
+    ) {
+      throw new ForbiddenException('You are not a participant in this dispute')
     }
 
     return this.prisma.disputeMessages.create({

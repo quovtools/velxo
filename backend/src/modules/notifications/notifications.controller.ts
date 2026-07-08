@@ -44,9 +44,9 @@ export class NotificationsController {
 
   @Patch(':id/read')
   @UseGuards(SupabaseJwtGuard)
-  async markAsRead(@Param('id') notificationId: string) {
+  async markAsRead(@Param('id') notificationId: string, @CurrentUserId() userId: string) {
     try {
-      const notification = await this.notificationsService.markAsRead(notificationId)
+      const notification = await this.notificationsService.markAsRead(notificationId, userId)
       return ApiResponseDto.ok(notification, 'Notification marked as read')
     } catch (error) {
       this.logger.error('Error marking notification as read:', error)
@@ -68,9 +68,9 @@ export class NotificationsController {
 
   @Delete(':id')
   @UseGuards(SupabaseJwtGuard)
-  async deleteNotification(@Param('id') notificationId: string) {
+  async deleteNotification(@Param('id') notificationId: string, @CurrentUserId() userId: string) {
     try {
-      await this.notificationsService.deleteNotification(notificationId)
+      await this.notificationsService.deleteNotification(notificationId, userId)
       return ApiResponseDto.ok(null, 'Notification deleted')
     } catch (error) {
       this.logger.error('Error deleting notification:', error)

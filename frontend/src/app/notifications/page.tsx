@@ -55,12 +55,13 @@ function timeAgo(date: string) {
 
 export default function NotificationsPage() {
   const router                          = useRouter();
-  const { user }                        = useAuth();
+  const { user, loading: authLoading }  = useAuth();
   const [notifications, setNotifs]      = useState<Notification[]>([]);
   const [loading, setLoading]           = useState(true);
   const [filter, setFilter]             = useState<'all' | 'unread'>('all');
 
   useEffect(() => {
+    if (authLoading) return;
     if (!user) { router.push('/auth/login'); return; }
     (async () => {
       try {
@@ -69,7 +70,7 @@ export default function NotificationsPage() {
       } catch { /* silent */ }
       finally { setLoading(false); }
     })();
-  }, [user, router]);
+  }, [user, authLoading, router]);
 
   const markRead = async (id: string) => {
     await api.patch(`/notifications/${id}/read`).catch(() => {});

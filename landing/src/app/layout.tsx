@@ -2,6 +2,7 @@ import type { Metadata, Viewport } from "next";
 import "./globals.css";
 
 export const metadata: Metadata = {
+  metadataBase: new URL('https://velxo.shop'),
   title: "Velxo — Africa's No.1 Gaming Marketplace",
   description: "Buy and sell game accounts, top-ups, gift cards and boosting services with full escrow protection. Built for Africa's gaming community.",
   keywords: "gaming marketplace, free fire accounts, pubg mobile, cod mobile, escrow gaming, buy game accounts africa, velxo",
@@ -29,7 +30,6 @@ export const metadata: Metadata = {
 export const viewport: Viewport = {
   width: "device-width",
   initialScale: 1,
-  maximumScale: 1,
   themeColor: '#0f172a',
 };
 
@@ -49,6 +49,18 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
     ],
   };
 
+  const websiteJsonLd = {
+    "@context": "https://schema.org",
+    "@type": "WebSite",
+    "name": "Velxo",
+    "url": "https://velxo.shop",
+    "potentialAction": {
+      "@type": "SearchAction",
+      "target": "https://market.velxo.shop/?q={search_term_string}",
+      "query-input": "required name=search_term_string",
+    },
+  };
+
   return (
     <html lang="en">
       <head>
@@ -61,6 +73,10 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
         <script
           type="application/ld+json"
           dangerouslySetInnerHTML={{ __html: JSON.stringify(jsonLd) }}
+        />
+        <script
+          type="application/ld+json"
+          dangerouslySetInnerHTML={{ __html: JSON.stringify(websiteJsonLd) }}
         />
       </head>
       <body className="antialiased">{children}</body>

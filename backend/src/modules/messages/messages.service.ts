@@ -14,8 +14,10 @@ export class MessagesService {
 
     let conversation = await this.prisma.conversations.findFirst({
       where: {
-        buyerId,
-        sellerId,
+        OR: [
+          { buyerId, sellerId },
+          { buyerId: sellerId, sellerId: buyerId },
+        ],
       },
     })
 
@@ -49,13 +51,17 @@ export class MessagesService {
     })
   }
 
-  async getConversationMessages(conversationId: string, limit: number = 50) {
+  async getConversationMessages(conversationId: string, userId?: string, limit: number = 50) {
     const conversation = await this.prisma.conversations.findUnique({
       where: { id: conversationId },
     })
 
     if (!conversation) {
       throw new NotFoundException('Conversation')
+    }
+
+    if (userId && conversation.buyerId !== userId && conversation.sellerId !== userId) {
+      throw new ForbiddenException('You are not part of this conversation')
     }
 
     return this.prisma.messages.findMany({

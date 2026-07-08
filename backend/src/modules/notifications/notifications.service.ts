@@ -1,6 +1,7 @@
 import { Injectable, Logger } from '@nestjs/common'
 import { PrismaService } from '@/common/services/prisma.service'
 import { NotificationType } from '@prisma/client'
+import { NotFoundException } from '@/common/exceptions/custom-exceptions'
 
 @Injectable()
 export class NotificationsService {
@@ -41,7 +42,15 @@ export class NotificationsService {
     })
   }
 
-  async markAsRead(notificationId: string) {
+  async markAsRead(notificationId: string, userId?: string) {
+    if (userId) {
+      const existing = await this.prisma.notifications.findUnique({
+        where: { id: notificationId },
+      })
+      if (!existing || existing.userId !== userId) {
+        throw new NotFoundException('Notification')
+      }
+    }
     return this.prisma.notifications.update({
       where: { id: notificationId },
       data: { isRead: true, readAt: new Date() },
@@ -55,7 +64,15 @@ export class NotificationsService {
     })
   }
 
-  async deleteNotification(notificationId: string) {
+  async deleteNotification(notificationId: string, userId?: string) {
+    if (userId) {
+      const existing = await this.prisma.notifications.findUnique({
+        where: { id: notificationId },
+      })
+      if (!existing || existing.userId !== userId) {
+        throw new NotFoundException('Notification')
+      }
+    }
     return this.prisma.notifications.delete({
       where: { id: notificationId },
     })

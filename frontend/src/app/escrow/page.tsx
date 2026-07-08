@@ -1,6 +1,19 @@
 import React from 'react';
 import Link from 'next/link';
+import type { Metadata } from 'next';
 import { ShieldCheck, Lock, CheckCircle, AlertTriangle, ArrowRight, Clock, Banknote, RefreshCcw } from 'lucide-react';
+
+export const metadata: Metadata = {
+  title: 'How Velxo Escrow Works | Safe Gaming Trades',
+  description: 'Learn how Velxo Escrow protects every gaming transaction — funds are held securely until you confirm delivery. Dispute resolution, fees, and buyer protection explained.',
+  alternates: { canonical: 'https://market.velxo.shop/escrow' },
+  openGraph: {
+    title: 'How Velxo Escrow Works | Safe Gaming Trades',
+    description: 'Your money is locked in escrow until you confirm delivery. Learn how Velxo keeps every trade safe.',
+    url: 'https://market.velxo.shop/escrow',
+    type: 'website',
+  },
+};
 
 const steps = [
   {

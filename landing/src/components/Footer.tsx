@@ -1,5 +1,8 @@
 import React from 'react';
+import Link from 'next/link';
 import { Twitter, Instagram, Youtube, MessageCircle } from 'lucide-react';
+
+const isInternal = (href: string) => href.startsWith('/');
 
 const LINKS = {
   Marketplace: [
@@ -47,10 +50,10 @@ export default function Footer() {
         <div className="grid grid-cols-1 lg:grid-cols-6 gap-12">
           {/* Brand */}
           <div className="lg:col-span-2 space-y-5">
-            <a href="#" className="flex items-center gap-2">
-              <img src="/logo.png" alt="Velxo" className="w-9 h-9 rounded-xl object-cover" />
+            <Link href="/" className="flex items-center gap-2">
+              <img src="/logo.png" alt="Velxo" width={36} height={36} className="w-9 h-9 rounded-xl object-cover" />
               <span className="text-2xl font-black tracking-wider text-gray-900">VELXO</span>
-            </a>
+            </Link>
             <p className="text-gray-600 text-sm leading-relaxed max-w-xs">
               Africa&apos;s most trusted escrow-backed gaming marketplace. Buy and sell safely — every trade, every time.
             </p>
@@ -72,12 +75,18 @@ export default function Footer() {
           {Object.entries(LINKS).map(([section, links]) => (
             <div key={section} className="space-y-4">
               <h4 className="text-gray-900 font-bold text-sm uppercase tracking-wider">{section}</h4>
-              <ul className="space-y-2.5">
+               <ul className="space-y-2.5">
                 {links.map((link) => (
                   <li key={link.label}>
-                    <a href={link.href} className="text-gray-600 hover:text-brand text-sm transition">
-                      {link.label}
-                    </a>
+                    {isInternal(link.href) ? (
+                      <Link href={link.href} className="text-gray-600 hover:text-brand text-sm transition">
+                        {link.label}
+                      </Link>
+                    ) : (
+                      <a href={link.href} className="text-gray-600 hover:text-brand text-sm transition">
+                        {link.label}
+                      </a>
+                    )}
                   </li>
                 ))}
               </ul>
