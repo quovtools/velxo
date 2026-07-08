@@ -25,7 +25,7 @@ export class ListingsService {
 
     // If no categoryId or it's a placeholder, auto-resolve or use first available
     let categoryId = dto.categoryId
-    if (!categoryId || categoryId === 'cuid-placeholder-category') {
+    if (!categoryId || categoryId === 'cuid-placeholder-category' || categoryId === 'auto') {
       const firstCategory = await this.prisma.categories.findFirst({ where: { isActive: true } })
       if (!firstCategory) {
         // Create a default category if none exists
