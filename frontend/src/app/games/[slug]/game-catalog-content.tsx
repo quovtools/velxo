@@ -3,6 +3,8 @@
 import React, { useState, useEffect, use } from 'react';
 import Link from 'next/link';
 
+const API_BASE = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:3001/api/v1';
+
 interface Listing {
   id: string;
   title: string;
@@ -31,7 +33,7 @@ export default function GameCatalogContent({ params }: { params: Promise<{ slug:
   useEffect(() => {
     async function loadListings() {
       try {
-        const response = await fetch(`http://localhost:3001/api/v1/listings?gameName=${encodeURIComponent(gameName)}`);
+        const response = await fetch(`${API_BASE}/listings?gameName=${encodeURIComponent(gameName)}`);
         if (response.ok) {
           const result = await response.json();
           setListings(result.data?.listings || []);

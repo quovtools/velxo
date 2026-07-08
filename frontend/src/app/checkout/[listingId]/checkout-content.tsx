@@ -6,6 +6,8 @@ import { api } from '@/lib/api';
 import { useAuth } from '@/app/providers';
 import { CreditCard, ShieldCheck, Wallet, Sparkles } from 'lucide-react';
 
+const API_BASE = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:3001/api/v1';
+
 interface Listing {
   id: string;
   title: string;
@@ -35,7 +37,7 @@ export default function CheckoutContent({ params }: { params: Promise<{ listingI
 
     async function loadListing() {
       try {
-        const response = await fetch(`http://localhost:3001/api/v1/listings/${listingId}`);
+        const response = await fetch(`${API_BASE}/listings/${listingId}`);
         if (!response.ok) throw new Error('Listing details not found');
         const result = await response.json();
         setListing(result.data);

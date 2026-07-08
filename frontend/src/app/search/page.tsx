@@ -4,6 +4,8 @@ import React, { useState, useEffect, Suspense } from 'react';
 import { useSearchParams } from 'next/navigation';
 import Link from 'next/link';
 
+const API_BASE = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:3001/api/v1';
+
 interface Listing {
   id: string;
   title: string;
@@ -43,7 +45,7 @@ function SearchContent() {
       if (minPrice) params.append('minPrice', minPrice);
       if (maxPrice) params.append('maxPrice', maxPrice);
 
-      const response = await fetch(`http://localhost:3001/api/v1/listings?${params.toString()}`);
+      const response = await fetch(`${API_BASE}/listings?${params.toString()}`);
       if (response.ok) {
         const result = await response.json();
         setListings(result.data?.listings || []);
