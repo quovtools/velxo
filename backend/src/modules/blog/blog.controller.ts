@@ -1,9 +1,7 @@
 import { Controller, Get, Post, Patch, Delete, Body, Param, Query, UseGuards } from '@nestjs/common'
 import { BlogService } from './blog.service'
 import { CreatePostDto } from './dto/create-post.dto'
-import { SupabaseJwtGuard } from '@/common/guards/supabase-jwt.guard'
-import { RequireRoles } from '@/common/decorators/roles.decorator'
-import { Role } from '@prisma/client'
+import { AdminPasswordGuard } from '@/common/guards/admin-password.guard'
 import { ApiResponseDto } from '@/common/dto/api-response.dto'
 
 @Controller('blog')
@@ -17,8 +15,7 @@ export class BlogController {
   }
 
   @Get('all')
-  @UseGuards(SupabaseJwtGuard)
-  @RequireRoles(Role.ADMIN, Role.SUPER_ADMIN)
+  @UseGuards(AdminPasswordGuard)
   async getAllPosts() {
     const posts = await this.blogService.getAllPosts()
     return ApiResponseDto.ok(posts, 'All posts retrieved')
@@ -31,24 +28,21 @@ export class BlogController {
   }
 
   @Post()
-  @UseGuards(SupabaseJwtGuard)
-  @RequireRoles(Role.ADMIN, Role.SUPER_ADMIN)
+  @UseGuards(AdminPasswordGuard)
   async createPost(@Body() dto: CreatePostDto) {
     const post = await this.blogService.createPost(dto)
     return ApiResponseDto.ok(post, 'Post created')
   }
 
   @Patch(':id')
-  @UseGuards(SupabaseJwtGuard)
-  @RequireRoles(Role.ADMIN, Role.SUPER_ADMIN)
+  @UseGuards(AdminPasswordGuard)
   async updatePost(@Param('id') id: string, @Body() dto: Partial<CreatePostDto>) {
     const post = await this.blogService.updatePost(id, dto)
     return ApiResponseDto.ok(post, 'Post updated')
   }
 
   @Delete(':id')
-  @UseGuards(SupabaseJwtGuard)
-  @RequireRoles(Role.ADMIN, Role.SUPER_ADMIN)
+  @UseGuards(AdminPasswordGuard)
   async deletePost(@Param('id') id: string) {
     await this.blogService.deletePost(id)
     return ApiResponseDto.ok(null, 'Post deleted')

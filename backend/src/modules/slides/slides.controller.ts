@@ -11,9 +11,7 @@ import {
 } from '@nestjs/common'
 import { SlidesService } from './slides.service'
 import { CreateSlideDto, UpdateSlideDto } from './dto/create-slide.dto'
-import { SupabaseJwtGuard } from '@/common/guards/supabase-jwt.guard'
-import { RequireRoles } from '@/common/decorators/roles.decorator'
-import { Role } from '@prisma/client'
+import { AdminPasswordGuard } from '@/common/guards/admin-password.guard'
 import { ApiResponseDto } from '@/common/dto/api-response.dto'
 
 @Controller('slides')
@@ -36,8 +34,7 @@ export class SlidesController {
 
   // Admin only — get all including inactive
   @Get('all')
-  @UseGuards(SupabaseJwtGuard)
-  @RequireRoles(Role.ADMIN, Role.SUPER_ADMIN)
+  @UseGuards(AdminPasswordGuard)
   async getAllSlides() {
     try {
       const slides = await this.slidesService.getAllSlides()
@@ -49,8 +46,7 @@ export class SlidesController {
   }
 
   @Post()
-  @UseGuards(SupabaseJwtGuard)
-  @RequireRoles(Role.ADMIN, Role.SUPER_ADMIN)
+  @UseGuards(AdminPasswordGuard)
   async createSlide(@Body() dto: CreateSlideDto) {
     try {
       const slide = await this.slidesService.createSlide(dto)
@@ -62,8 +58,7 @@ export class SlidesController {
   }
 
   @Patch(':id')
-  @UseGuards(SupabaseJwtGuard)
-  @RequireRoles(Role.ADMIN, Role.SUPER_ADMIN)
+  @UseGuards(AdminPasswordGuard)
   async updateSlide(@Param('id') id: string, @Body() dto: UpdateSlideDto) {
     try {
       const slide = await this.slidesService.updateSlide(id, dto)
@@ -75,8 +70,7 @@ export class SlidesController {
   }
 
   @Delete(':id')
-  @UseGuards(SupabaseJwtGuard)
-  @RequireRoles(Role.ADMIN, Role.SUPER_ADMIN)
+  @UseGuards(AdminPasswordGuard)
   async deleteSlide(@Param('id') id: string) {
     try {
       await this.slidesService.deleteSlide(id)

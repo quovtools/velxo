@@ -4,6 +4,7 @@ import { ValidationPipe, Logger } from '@nestjs/common'
 import { RequestMethod } from '@nestjs/common'
 import helmet from 'helmet'
 import rateLimit from 'express-rate-limit'
+import express from 'express'
 import { AllExceptionsFilter } from './common/filters/all-exceptions.filter'
 import { PrismaService } from './common/services/prisma.service'
 
@@ -13,6 +14,9 @@ async function bootstrap() {
   const app = await NestFactory.create(AppModule, {
     // Ensure all log levels are visible in Render logs
     logger: ['log', 'warn', 'error', 'debug', 'verbose'],
+    // Disable the default body parser so we can raise the size limit below
+    // (base64 image uploads from the admin panel exceed the 100kb default)
+    bodyParser: false,
   })
 
   // Trust Render's proxy so rate limiter and IP detection work correctly
@@ -40,8 +44,13 @@ async function bootstrap() {
       : true, // Allow all origins if CORS_ORIGIN is not set
     credentials: true,
     methods: ['GET', 'POST', 'PATCH', 'PUT', 'DELETE', 'OPTIONS'],
-    allowedHeaders: ['Content-Type', 'Authorization'],
+    allowedHeaders: ['Content-Type', 'Authorization', 'x-admin-password'],
   })
+
+  // Allow larger request bodies (base64 image uploads via the admin panel).
+  // Default Nest/Express JSON limit is 100kb, which rejects base64 images.
+  expressApp.use(express.json({ limit: '25mb' }))
+  expressApp.use(express.urlencoded({ limit: '25mb', extended: true }))
 
   app.use(helmet())
   app.use(
