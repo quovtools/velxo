@@ -311,7 +311,7 @@ export default function ProfilePage() {
             {[
               { label: 'Email Address', value: profile?.email, status: profile?.emailVerified ? 'verified' : 'pending', icon: Mail },
               { label: 'Phone Number',  value: phone || 'Not provided', status: phone ? 'pending' : 'missing', icon: Phone },
-              { label: 'Identity (KYC)', value: profile?.isVerified ? 'Verified' : 'Not submitted', status: profile?.isVerified ? 'verified' : 'missing', icon: ShieldCheck },
+              { label: 'Identity (KYC)', value: 'Not submitted', status: 'missing', icon: ShieldCheck },
             ].map((item, i) => {
               const Icon = item.icon;
               return (
