@@ -5,6 +5,7 @@ import { RequestMethod } from '@nestjs/common'
 import helmet from 'helmet'
 import rateLimit from 'express-rate-limit'
 import { AllExceptionsFilter } from './common/filters/all-exceptions.filter'
+import { PrismaService } from './common/services/prisma.service'
 
 async function bootstrap() {
   const logger = new Logger('Bootstrap')
@@ -93,6 +94,22 @@ async function bootstrap() {
   expressApp.head('/api/v1', (_req, res) => {
     res.status(200).end()
   })
+
+  // Self-healing schema migration: ensure any columns added in newer code
+  // exist in the production database. Runs against the app's own runtime
+  // DATABASE_URL so it always targets the correct database.
+  try {
+    const prisma = app.get(PrismaService)
+    await prisma.$executeRawUnsafe(
+      `ALTER TABLE users ADD COLUMN IF NOT EXISTS "notificationPreferences" JSONB;`,
+    )
+    await prisma.$executeRawUnsafe(
+      `ALTER TABLE users ADD COLUMN IF NOT EXISTS "preferences" JSONB;`,
+    )
+    logger.log('Schema migration check complete')
+  } catch (schemaErr) {
+    logger.error('Schema migration check failed (app will still try to start):', schemaErr)
+  }
 
   const port = process.env.PORT || 3001
   const nodeEnv = process.env.NODE_ENV || 'development'
