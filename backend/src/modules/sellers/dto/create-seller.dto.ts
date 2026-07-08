@@ -1,4 +1,4 @@
-import { IsString, IsOptional, MaxLength, MinLength } from 'class-validator'
+import { IsString, IsOptional, IsNumber, MaxLength, MinLength } from 'class-validator'
 
 export class CreateSellerDto {
   @IsString()
@@ -10,6 +10,10 @@ export class CreateSellerDto {
   @IsOptional()
   @MaxLength(1000)
   storeDescription?: string
+
+  @IsNumber()
+  @IsOptional()
+  responseTime?: number // hours
 }
 
 export class UpdateSellerDto {
@@ -23,6 +27,10 @@ export class UpdateSellerDto {
   @IsOptional()
   @MaxLength(1000)
   storeDescription?: string
+
+  @IsNumber()
+  @IsOptional()
+  responseTime?: number // hours
 }
 
 export class UploadVerificationDocumentsDto {

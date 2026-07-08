@@ -128,4 +128,17 @@ export class AuthController {
     await this.authService.forgotPassword(email).catch(() => {})
     return ApiResponseDto.ok(null, 'If that email exists, a reset link was sent')
   }
+
+  /** Verify email */
+  @Post('verify-email')
+  @HttpCode(200)
+  async verifyEmail(@CurrentUserId() userId: string) {
+    try {
+      await this.authService.verifyUserEmail(userId)
+      return ApiResponseDto.ok(null, 'Email verified successfully')
+    } catch (error) {
+      this.logger.error('Email verification error:', error)
+      throw error
+    }
+  }
 }

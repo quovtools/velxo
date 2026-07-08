@@ -20,6 +20,7 @@ export default function RegisterPage() {
   const [showPw, setShowPw]       = useState(false);
   const [error, setError]         = useState<string | null>(null);
   const [loading, setLoading]     = useState(false);
+  const [showVerificationMessage, setShowVerificationMessage] = useState(false);
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -32,14 +33,37 @@ export default function RegisterPage() {
       );
       setSession(res.data.accessToken, res.data.user);
       refreshSession();
-      router.push('/');
-      router.refresh();
+      
+      // Show verification message instead of redirecting
+      setShowVerificationMessage(true);
     } catch (err: any) {
       setError(err.message || 'Something went wrong. Please try again.');
     } finally {
       setLoading(false);
     }
   };
+
+  if (showVerificationMessage) {
+    return (
+      <div className="min-h-[60vh] flex items-center justify-center py-12 px-4">
+        <div className="text-center space-y-4 max-w-md">
+          <div className="w-20 h-20 bg-emerald-500/20 rounded-full flex items-center justify-center mx-auto">
+            <ShieldCheck className="w-10 h-10 text-emerald-500" />
+          </div>
+          <h2 className="text-2xl font-bold text-white">Check Your Email!</h2>
+          <p className="text-gray-400 text-sm">
+            We've sent a verification link to <strong>{email}</strong>. Please click the link to verify your account.
+          </p>
+          <p className="text-xs text-gray-500">
+            If you don't see it, check your spam folder.
+          </p>
+          <Link href="/auth/login" className="inline-flex items-center gap-2 text-brand hover:text-brand-light font-semibold transition">
+            Back to Login <span aria-hidden="true">→</span>
+          </Link>
+        </div>
+      </div>
+    );
+  }
 
   return (
     <div className="min-h-[80vh] flex items-center justify-center py-12 px-4 fade-in">

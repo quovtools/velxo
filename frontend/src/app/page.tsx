@@ -5,7 +5,9 @@ import Link from 'next/link';
 import { useSearchParams } from 'next/navigation';
 import {
   Search, SlidersHorizontal, Gamepad2, ChevronRight,
-  Star, Flame, PlusCircle, ShieldCheck, X
+  Star, Flame, PlusCircle, ShieldCheck, X, 
+  Users, TrendingUp, Zap, Lock, Shield, Check,
+  Award, Heart, Gift, Bell, ArrowRight
 } from 'lucide-react';
 import GameSlideshow from '@/components/GameSlideshow';
 import GameIcon from '@/components/GameIcon';
@@ -99,7 +101,48 @@ function MarketplaceContent() {
   const hasFilters = search || activeGame || platform || region || category || minPrice || maxPrice;
 
   return (
-    <div className="space-y-6">
+    <div className="space-y-8">
+      {/* Stats Section */}
+      <div className="bg-gradient-to-r from-brand/10 to-purple-600/10 border border-brand/20 rounded-2xl p-6 md:p-8">
+        <div className="grid grid-cols-2 md:grid-cols-5 gap-4 md:gap-8">
+          <div className="text-center">
+            <div className="flex items-center justify-center gap-2 mb-1">
+              <Users className="w-6 h-6 text-brand" />
+              <span className="text-3xl md:text-4xl font-black text-white">10K+</span>
+            </div>
+            <p className="text-xs md:text-sm text-gray-400">Active Buyers</p>
+          </div>
+          <div className="text-center border-l border-brand/20 md:border-l-2">
+            <div className="flex items-center justify-center gap-2 mb-1">
+              <TrendingUp className="w-6 h-6 text-emerald-400" />
+              <span className="text-3xl md:text-4xl font-black text-white">50K+</span>
+            </div>
+            <p className="text-xs md:text-sm text-gray-400">Listings</p>
+          </div>
+          <div className="text-center border-l border-brand/20 md:border-l-2">
+            <div className="flex items-center justify-center gap-2 mb-1">
+              <Award className="w-6 h-6 text-yellow-400" />
+              <span className="text-3xl md:text-4xl font-black text-white">98%</span>
+            </div>
+            <p className="text-xs md:text-sm text-gray-400">Satisfaction</p>
+          </div>
+          <div className="text-center border-l border-brand/20 md:border-l-2">
+            <div className="flex items-center justify-center gap-2 mb-1">
+              <Shield className="w-6 h-6 text-purple-400" />
+              <span className="text-3xl md:text-4xl font-black text-white">100%</span>
+            </div>
+            <p className="text-xs md:text-sm text-gray-400">Escrow Protected</p>
+          </div>
+          <div className="text-center border-l border-brand/20 md:border-l-2">
+            <div className="flex items-center justify-center gap-2 mb-1">
+              <Zap className="w-6 h-6 text-orange-400" />
+              <span className="text-3xl md:text-4xl font-black text-white">24/7</span>
+            </div>
+            <p className="text-xs md:text-sm text-gray-400">Support</p>
+          </div>
+        </div>
+      </div>
+
       {/* Page header */}
       <div className="flex flex-col sm:flex-row sm:items-end justify-between gap-4">
         <div className="space-y-1">
@@ -116,6 +159,26 @@ function MarketplaceContent() {
               Clear game filter
             </button>
           )}
+        </div>
+      </div>
+
+      {/* Trust Badges */}
+      <div className="flex flex-wrap items-center justify-center gap-3 md:gap-6 text-sm text-gray-400">
+        <div className="flex items-center gap-2 bg-hoverBg/30 px-4 py-2 rounded-xl border border-borderBg/50">
+          <ShieldCheck className="w-4 h-4 text-emerald-400" />
+          <span>Escrow Protected</span>
+        </div>
+        <div className="flex items-center gap-2 bg-hoverBg/30 px-4 py-2 rounded-xl border border-borderBg/50">
+          <Lock className="w-4 h-4 text-blue-400" />
+          <span>Secure Transactions</span>
+        </div>
+        <div className="flex items-center gap-2 bg-hoverBg/30 px-4 py-2 rounded-xl border border-borderBg/50">
+          <Check className="w-4 h-4 text-purple-400" />
+          <span>Verified Sellers</span>
+        </div>
+        <div className="flex items-center gap-2 bg-hoverBg/30 px-4 py-2 rounded-xl border border-borderBg/50">
+          <Zap className="w-4 h-4 text-orange-400" />
+          <span>Fast Delivery</span>
         </div>
       </div>
 
@@ -149,7 +212,7 @@ function MarketplaceContent() {
         </button>
         <Link
           href="/sell"
-          className="flex items-center gap-2 bg-brand hover:bg-brand-dark px-4 py-3 rounded-xl text-sm font-bold text-white transition shadow-lg shadow-brand/20 whitespace-nowrap"
+          className="flex items-center gap-2 bg-gradient-to-r from-brand to-purple-600 hover:from-brand-dark hover:to-purple-700 px-4 py-3 rounded-xl text-sm font-bold text-white transition shadow-lg shadow-brand/20 whitespace-nowrap"
         >
           <PlusCircle className="w-4 h-4" />
           <span className="hidden sm:inline">Sell</span>
@@ -295,7 +358,7 @@ function MarketplaceContent() {
           <div className="pt-1">
             <Link
               href="/sell"
-              className="inline-flex items-center gap-2 bg-brand hover:bg-brand-dark px-5 py-2.5 rounded-xl text-sm font-bold text-white transition"
+              className="inline-flex items-center gap-2 bg-gradient-to-r from-brand to-purple-600 hover:from-brand-dark hover:to-purple-700 px-5 py-2.5 rounded-xl text-sm font-bold text-white transition shadow-lg shadow-brand/20"
             >
               <PlusCircle className="w-4 h-4" /> Be the first to list
             </Link>
@@ -307,16 +370,16 @@ function MarketplaceContent() {
             <Link
               key={item.id}
               href={`/listings/${item.id}`}
-              className="group bg-cardBg border border-borderBg hover:border-brand/40 rounded-2xl overflow-hidden transition-all duration-300 flex flex-col"
+              className="group bg-cardBg border border-borderBg hover:border-brand/40 rounded-2xl overflow-hidden transition-all duration-300 flex flex-col hover:shadow-lg hover:shadow-brand/10"
             >
               {/* Image area placeholder */}
               <div className="h-36 bg-gradient-to-br from-background to-cardBg flex items-center justify-center relative">
                 <span className="text-xs font-bold text-gray-600 uppercase tracking-wider">{item.gameName}</span>
-                  {item.isFeatured && (
-                    <span className="flex items-center gap-0.5 text-[10px] font-bold text-brand-accent flex-shrink-0">
-                      <Flame className="w-3 h-3" /> Hot
-                    </span>
-                  )}
+                {item.isFeatured && (
+                  <span className="flex items-center gap-0.5 text-[10px] font-bold text-brand-accent flex-shrink-0 absolute top-2 right-2">
+                    <Flame className="w-3 h-3" /> Hot
+                  </span>
+                )}
               </div>
               <div className="p-4 flex-1 flex flex-col justify-between space-y-3">
                 <div>
@@ -339,7 +402,7 @@ function MarketplaceContent() {
                 </div>
                 <div className="flex items-center justify-between border-t border-borderBg pt-3">
                   <span className="text-lg font-black text-white tracking-tight">${Number(item.price).toFixed(2)}</span>
-                  <span className="bg-brand hover:bg-brand-dark px-3 py-1.5 rounded-lg text-xs font-bold text-white transition">
+                  <span className="bg-gradient-to-r from-brand to-purple-600 hover:from-brand-dark hover:to-purple-700 px-3 py-1.5 rounded-lg text-xs font-bold text-white transition shadow-lg shadow-brand/20">
                     Buy Now
                   </span>
                 </div>
@@ -351,17 +414,19 @@ function MarketplaceContent() {
 
       {/* Bottom game grid for discovery */}
       {!activeGame && !loading && listings.length > 0 && (
-        <div className="space-y-3 pt-4">
+        <div className="space-y-4 pt-6">
           <div className="flex items-center justify-between">
             <h2 className="text-base font-bold text-white">Browse by Game</h2>
-            <ChevronRight className="w-4 h-4 text-gray-500" />
+            <Link href="/games" className="text-xs font-medium text-brand hover:text-brand-light flex items-center gap-1">
+              View All <ArrowRight className="w-3 h-3" />
+            </Link>
           </div>
           <div className="grid grid-cols-4 sm:grid-cols-8 gap-2">
             {GAMES.map((game) => (
               <button
                 key={game.slug}
                 onClick={() => setActiveGame(game.name)}
-                className="flex flex-col items-center gap-1.5 p-3 bg-cardBg border border-borderBg hover:border-brand/40 rounded-xl transition group"
+                className="flex flex-col items-center gap-1.5 p-3 bg-cardBg border border-borderBg hover:border-brand/40 hover:shadow-md rounded-xl transition group"
               >
                 <GameIcon game={game.slug} className="w-9 h-9 rounded-lg" />
                 <span className="text-[10px] font-bold text-gray-400 group-hover:text-white transition leading-tight text-center">{game.name}</span>
@@ -370,6 +435,55 @@ function MarketplaceContent() {
           </div>
         </div>
       )}
+
+      {/* Features Section */}
+      <div className="pt-8">
+        <h2 className="text-2xl font-black text-white mb-6">Why Choose Velxo?</h2>
+        <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
+          <div className="bg-cardBg border border-borderBg rounded-2xl p-6 hover:border-brand/30 transition-all duration-300">
+            <div className="w-12 h-12 bg-emerald-500/10 rounded-xl flex items-center justify-center mb-4">
+              <Shield className="w-6 h-6 text-emerald-400" />
+            </div>
+            <h3 className="text-lg font-bold text-white mb-2">Escrow Protection</h3>
+            <p className="text-sm text-gray-400">All transactions are protected by our secure escrow system. Your money is safe until you receive your items.</p>
+          </div>
+          <div className="bg-cardBg border border-borderBg rounded-2xl p-6 hover:border-brand/30 transition-all duration-300">
+            <div className="w-12 h-12 bg-purple-500/10 rounded-xl flex items-center justify-center mb-4">
+              <Award className="w-6 h-6 text-purple-400" />
+            </div>
+            <h3 className="text-lg font-bold text-white mb-2">Verified Sellers</h3>
+            <p className="text-sm text-gray-400">Our verified sellers have been vetted and maintain high ratings. Shop with confidence.</p>
+          </div>
+          <div className="bg-cardBg border border-borderBg rounded-2xl p-6 hover:border-brand/30 transition-all duration-300">
+            <div className="w-12 h-12 bg-orange-500/10 rounded-xl flex items-center justify-center mb-4">
+              <Zap className="w-6 h-6 text-orange-400" />
+            </div>
+            <h3 className="text-lg font-bold text-white mb-2">Fast Delivery</h3>
+            <p className="text-sm text-gray-400">Get your items quickly with our efficient delivery system. Most orders are completed within minutes.</p>
+          </div>
+        </div>
+      </div>
+
+      {/* How It Works */}
+      <div className="pt-8 pb-12">
+        <h2 className="text-2xl font-black text-white mb-6">How It Works</h2>
+        <div className="grid grid-cols-1 md:grid-cols-4 gap-6">
+          {[
+            { icon: Users, title: "Create Account", desc: "Sign up and verify your email" },
+            { icon: Search, title: "Browse Marketplace", desc: "Find exactly what you need" },
+            { icon: Lock, title: "Secure Payment", desc: "Pay through our escrow system" },
+            { icon: Check, title: "Receive Items", desc: "Get your items and confirm delivery" }
+          ].map((step, i) => (
+            <div key={i} className="text-center relative">
+              <div className="w-14 h-14 bg-gradient-to-br from-brand to-purple-600 rounded-2xl flex items-center justify-center mx-auto mb-4 shadow-lg shadow-brand/20">
+                <step.icon className="w-7 h-7 text-white" />
+              </div>
+              <h3 className="text-base font-bold text-white mb-2">{step.title}</h3>
+              <p className="text-xs text-gray-400">{step.desc}</p>
+            </div>
+          ))}
+        </div>
+      </div>
     </div>
   );
 }

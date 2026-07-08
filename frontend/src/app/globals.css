@@ -2,22 +2,22 @@
 @tailwind components;
 @tailwind utilities;
 
-/* ── Dark mode (default) ── */
+/* ── Light mode (default) ── */
 :root {
-  --background: #0f172a;
-  --foreground: #f8fafc;
-  --card-bg: #1e293b;
-  --border-bg: #334155;
-  --hover-bg: #475569;
-}
-
-/* ── Light mode ── */
-:root.light {
   --background: #f8fafc;
   --foreground: #0f172a;
   --card-bg: #ffffff;
   --border-bg: #e2e8f0;
   --hover-bg: #f1f5f9;
+}
+
+/* ── Dark mode ── */
+:root.dark {
+  --background: #0f172a;
+  --foreground: #f8fafc;
+  --card-bg: #1e293b;
+  --border-bg: #334155;
+  --hover-bg: #475569;
 }
 
 body {

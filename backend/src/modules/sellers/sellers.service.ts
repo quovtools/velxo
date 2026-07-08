@@ -83,6 +83,7 @@ export class SellersService {
       data: {
         storeName: dto.storeName,
         storeDescription: dto.storeDescription,
+        responseTime: dto.responseTime,
       },
       include: { user: true },
     })

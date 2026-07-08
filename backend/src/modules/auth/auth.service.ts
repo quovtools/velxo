@@ -5,6 +5,7 @@ import { PrismaService } from '@/common/services/prisma.service'
 import { LoginDto, RegisterDto } from './dto/login.dto'
 import { UnauthorizedException, ConflictException } from '@/common/exceptions/custom-exceptions'
 import { Role } from '@prisma/client'
+import { EmailService } from '@/shared/email.service'
 
 @Injectable()
 export class AuthService {
@@ -13,6 +14,7 @@ export class AuthService {
   constructor(
     private prisma: PrismaService,
     private jwtService: JwtService,
+    private emailService: EmailService,
   ) {}
 
   private signToken(userId: string, email: string, role: Role): string {
@@ -176,12 +178,46 @@ export class AuthService {
   }
 
   async forgotPassword(email: string) {
-    // Stub — in production send email via Resend/SendGrid
     const user = await this.prisma.users.findUnique({ where: { email } })
     if (user) {
       this.logger.log(`Password reset requested for ${email}`)
-      // TODO: generate reset token, send email
+      
+      // Generate reset token
+      const resetToken = this.jwtService.sign(
+        { userId: user.id, email: user.email },
+        { expiresIn: '24h' }
+      )
+      
+      // Send reset email
+      await this.emailService.sendPasswordResetEmail(user.email, resetToken)
     }
+    // Don't reveal if user exists or not for security
+  }
+
+  async verifyUserEmail(userId: string) {
+    const user = await this.prisma.users.update({
+      where: { id: userId },
+      data: { emailVerified: true },
+      select: {
+        id: true,
+        email: true,
+        firstName: true,
+        lastName: true,
+        role: true,
+        avatarUrl: true,
+        emailVerified: true,
+        createdAt: true,
+      },
+    })
+
+    // Send verification confirmation email
+    await this.emailService.sendNotificationEmail(
+      user.email,
+      'Email Verified - Velxo',
+      'Your email has been successfully verified. You can now enjoy all Velxo features.'
+    )
+
+    return user
   }
 
   async handleGoogleCallback(code: string) {

@@ -29,11 +29,11 @@ const AuthContext = createContext<AuthContextType>({
 export function Providers({ children }: { children: React.ReactNode }) {
   const [user, setUser] = useState<AuthUser | null>(null);
   const [loading, setLoading] = useState(true);
-  const [theme, setTheme] = useState<'dark' | 'light'>('dark');
+  const [theme, setTheme] = useState<'dark' | 'light'>('light');
 
   // Persist & apply theme
   useEffect(() => {
-    const saved = (localStorage.getItem('velxo_theme') as 'dark' | 'light') || 'dark';
+    const saved = (localStorage.getItem('velxo_theme') as 'dark' | 'light') || 'light';
     setTheme(saved);
     applyTheme(saved);
   }, []);

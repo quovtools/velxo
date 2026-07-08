@@ -1,0 +1,116 @@
+================================================================================
+VELXO PROJECT - QUICK SETUP
+================================================================================
+
+This file contains the essential steps to get the project running.
+
+--------------------------------------------------------------------------------
+STEP 1: Add Environment Variables
+--------------------------------------------------------------------------------
+
+Edit `.env.development` and add:
+--------------------------------
+
+# Google OAuth (Required for Google Sign-In)
+GOOGLE_CLIENT_ID=your-google-client-id-here
+GOOGLE_CLIENT_SECRET=your-google-client-secret-here
+GOOGLE_REDIRECT_URI=http://localhost:3001/api/v1/auth/google/callback
+
+# Resend Email (Required for email verification & password reset)
+RESEND_API_KEY=re_123456789_your-resend-api-key-here
+EMAIL_FROM=noreply@velxo.shop
+
+# Frontend URL
+FRONTEND_URL=http://localhost:3000
+
+--------------------------------------------------------------------------------
+STEP 2: Install Dependencies
+--------------------------------------------------------------------------------
+
+Backend:
+  cd backend
+  npm install
+
+Frontend:
+  cd frontend
+  npm install
+
+Landing:
+  cd landing
+  npm install
+
+--------------------------------------------------------------------------------
+STEP 3: Run Database Migrations
+--------------------------------------------------------------------------------
+
+cd backend
+npm run prisma:migrate
+npm run prisma:seed
+
+--------------------------------------------------------------------------------
+STEP 4: Start Development Servers
+--------------------------------------------------------------------------------
+
+Terminal 1 - Backend:
+  cd backend
+  npm run start:dev
+
+Terminal 2 - Frontend:
+  cd frontend
+  npm run dev
+
+Terminal 3 - Landing:
+  cd landing
+  npm run dev
+
+--------------------------------------------------------------------------------
+STEP 5: Access the Application
+--------------------------------------------------------------------------------
+
+Frontend: http://localhost:3000
+Backend API: http://localhost:3001/api/v1
+Landing: http://localhost:3002
+
+--------------------------------------------------------------------------------
+IMPORTANT: Google OAuth Setup
+--------------------------------------------------------------------------------
+
+1. Go to https://console.cloud.google.com/
+2. Create a new project
+3. Go to APIs & Services → Credentials
+4. Create OAuth 2.0 Client ID
+5. Add these redirect URIs:
+   - http://localhost:3001/api/v1/auth/google/callback
+   - http://localhost:3000/auth/callback
+6. Copy Client ID and Secret to .env.development
+
+--------------------------------------------------------------------------------
+IMPORTANT: Resend Email Setup
+--------------------------------------------------------------------------------
+
+1. Sign up at https://resend.com
+2. Get your API key from dashboard
+3. Verify your sender email (e.g., noreply@yourdomain.com)
+4. Add the API key to .env.development
+
+--------------------------------------------------------------------------------
+TROUBLESHOOTING
+--------------------------------------------------------------------------------
+
+Google Auth not working?
+→ Check GOOGLE_CLIENT_ID and GOOGLE_CLIENT_SECRET are set correctly
+→ Verify redirect URIs in Google Cloud Console match exactly
+
+Emails not sending?
+→ Verify RESEND_API_KEY is correct
+→ Check email domain is verified in Resend
+
+Database connection failed?
+→ Verify DATABASE_URL in .env.development
+→ Ensure PostgreSQL is running on port 54322
+
+--------------------------------------------------------------------------------
+For detailed setup, see SETUP_INSTRUCTIONS.md
+For completed features, see IMPLEMENTATION_COMPLETE.md
+
+================================================================================

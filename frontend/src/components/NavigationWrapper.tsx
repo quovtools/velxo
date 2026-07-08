@@ -46,11 +46,11 @@ export default function NavigationWrapper() {
             {/* Theme toggle */}
             <button
               onClick={toggleTheme}
-              className="p-2 text-gray-400 hover:text-white transition rounded-lg hover:bg-hoverBg"
-              title={theme === 'dark' ? 'Switch to light mode' : 'Switch to dark mode'}
+              className="p-2 text-gray-500 hover:text-brand transition rounded-lg hover:bg-brand/10"
+              title={theme === 'light' ? 'Switch to dark mode' : 'Switch to light mode'}
               aria-label="Toggle theme"
             >
-              {theme === 'dark' ? <Sun className="w-4 h-4" /> : <Moon className="w-4 h-4" />}
+              {theme === 'light' ? <Sun className="w-5 h-5" /> : <Moon className="w-5 h-5" />}
             </button>
 
             {user ? (
@@ -89,9 +89,18 @@ export default function NavigationWrapper() {
               </div>
             )}
 
+            {/* Theme toggle (mobile) */}
+            <button
+              onClick={toggleTheme}
+              className="sm:hidden p-2 text-gray-500 hover:text-brand transition"
+              title={theme === 'light' ? 'Switch to dark mode' : 'Switch to light mode'}
+            >
+              {theme === 'light' ? <Sun className="w-5 h-5" /> : <Moon className="w-5 h-5" />}
+            </button>
+
             {/* Mobile hamburger */}
             <button
-              className="sm:hidden p-2 text-gray-300 hover:text-white transition"
+              className="sm:hidden p-2 text-gray-500 hover:text-white transition"
               onClick={() => setMobileOpen(!mobileOpen)}
               aria-label="Toggle menu"
             >

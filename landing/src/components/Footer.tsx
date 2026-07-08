@@ -42,40 +42,40 @@ const SOCIALS = [
 
 export default function Footer() {
   return (
-    <footer className="border-t border-border bg-card mt-8">
+    <footer className="border-t border-gray-200 bg-white mt-8">
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-16">
         <div className="grid grid-cols-1 lg:grid-cols-6 gap-12">
           {/* Brand */}
           <div className="lg:col-span-2 space-y-5">
             <a href="#" className="flex items-center gap-2">
               <img src="/logo.png" alt="Velxo" className="w-9 h-9 rounded-xl object-cover" />
-              <span className="text-2xl font-black tracking-wider">VELXO</span>
+              <span className="text-2xl font-black tracking-wider text-gray-900">VELXO</span>
             </a>
-            <p className="text-gray-500 text-sm leading-relaxed max-w-xs">
+            <p className="text-gray-600 text-sm leading-relaxed max-w-xs">
               Africa&apos;s most trusted escrow-backed gaming marketplace. Buy and sell safely — every trade, every time.
             </p>
             <div className="flex gap-3">
               {SOCIALS.map((s) => (
                 <a key={s.label} href={s.href} target="_blank" rel="noopener noreferrer" aria-label={s.label}
-                  className="w-9 h-9 rounded-xl bg-background border border-border flex items-center justify-center text-gray-500 hover:text-white hover:border-brand/40 transition">
+                  className="w-9 h-9 rounded-xl bg-gray-100 border border-gray-200 flex items-center justify-center text-gray-600 hover:text-brand hover:border-brand/40 transition">
                   {s.icon}
                 </a>
               ))}
             </div>
-            <div className="inline-flex items-center gap-2 bg-brand-accent/10 border border-brand-accent/20 rounded-lg px-3 py-2">
-              <span className="w-2 h-2 rounded-full bg-brand-accent animate-pulse" />
-              <span className="text-brand-accent text-xs font-semibold">Escrow Protected Platform</span>
+            <div className="inline-flex items-center gap-2 bg-emerald-500/10 border border-emerald-500/20 rounded-lg px-3 py-2">
+              <span className="w-2 h-2 rounded-full bg-emerald-500 animate-pulse" />
+              <span className="text-emerald-500 text-xs font-semibold">Escrow Protected Platform</span>
             </div>
           </div>
 
           {/* Links */}
           {Object.entries(LINKS).map(([section, links]) => (
             <div key={section} className="space-y-4">
-              <h4 className="text-white font-bold text-sm uppercase tracking-wider">{section}</h4>
+              <h4 className="text-gray-900 font-bold text-sm uppercase tracking-wider">{section}</h4>
               <ul className="space-y-2.5">
                 {links.map((link) => (
                   <li key={link.label}>
-                    <a href={link.href} className="text-gray-500 hover:text-white text-sm transition">
+                    <a href={link.href} className="text-gray-600 hover:text-brand text-sm transition">
                       {link.label}
                     </a>
                   </li>
@@ -86,17 +86,17 @@ export default function Footer() {
         </div>
       </div>
 
-      <div className="border-t border-border">
+      <div className="border-t border-gray-200">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-5 flex flex-col md:flex-row justify-between items-center gap-3 text-xs text-gray-600">
           <p>&copy; {new Date().getFullYear()} Velxo.shop — All rights reserved. Built for Africa&apos;s gaming community.</p>
           <div className="flex gap-5">
-            <a href="https://market.velxo.shop/terms" className="hover:text-white transition">Terms</a>
-            <a href="https://market.velxo.shop/privacy" className="hover:text-white transition">Privacy</a>
-            <a href="https://market.velxo.shop/support" className="hover:text-white transition">Support</a>
+            <a href="https://market.velxo.shop/terms" className="hover:text-brand transition">Terms</a>
+            <a href="https://market.velxo.shop/privacy" className="hover:text-brand transition">Privacy</a>
+            <a href="https://market.velxo.shop/support" className="hover:text-brand transition">Support</a>
           </div>
           <div className="flex items-center gap-2">
             <span>Founder:</span>
-            <span className="text-brand-light font-semibold">Badeji Precious</span>
+            <span className="text-purple-600 font-semibold">Badeji Precious</span>
           </div>
         </div>
       </div>
