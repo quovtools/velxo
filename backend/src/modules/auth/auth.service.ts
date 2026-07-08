@@ -21,10 +21,16 @@ export class AuthService {
     return this.jwtService.sign({ sub: userId, email, role })
   }
 
+  private signVerificationToken(userId: string, email: string): string {
+    return this.jwtService.sign(
+      { sub: userId, email, purpose: 'email_verification' },
+      { expiresIn: '72h' },
+    )
+  }
+
   async register(dto: RegisterDto) {
     this.logger.log(`Registering new user: ${dto.email}`)
 
-    // Check for existing email
     const existing = await this.prisma.users.findUnique({ where: { email: dto.email } })
     if (existing) {
       throw new ConflictException('An account with this email already exists')
@@ -41,7 +47,8 @@ export class AuthService {
           firstName: dto.firstName,
           lastName: dto.lastName,
           emailVerified: false,
-          role: Role.BUYER,
+          role: dto.role ?? Role.BUYER,
+          preferences: dto.preferences ?? undefined,
         },
       })
     } catch (prismaError: any) {
@@ -52,11 +59,25 @@ export class AuthService {
       throw new Error('Failed to create user profile. Please try again.')
     }
 
-    // Create wallet for user
+    // Create wallet
     try {
       await this.prisma.wallet.create({ data: { userId: user.id } })
     } catch (walletError) {
-      this.logger.error('Prisma wallet creation error:', walletError)
+      this.logger.error('Wallet creation error:', walletError)
+    }
+
+    // Send verification email
+    let emailSent = false
+    try {
+      const verificationToken = this.signVerificationToken(user.id, user.email)
+      const result = await this.emailService.sendVerificationEmail(user.email, verificationToken)
+      emailSent = result.success
+      if (!result.success) {
+        this.logger.error('Verification email failed to send:', result.error)
+      }
+    } catch (emailError) {
+      this.logger.error('Verification email send error:', emailError)
+      // Non-fatal — user can resend from the verification page
     }
 
     const accessToken = this.signToken(user.id, user.email, user.role)
@@ -70,6 +91,7 @@ export class AuthService {
         role: user.role,
       },
       accessToken,
+      emailSent,
     }
   }
 
@@ -106,6 +128,8 @@ export class AuthService {
         firstName: user.firstName,
         lastName: user.lastName,
         role: user.role,
+        avatarUrl: user.avatarUrl,
+        emailVerified: user.emailVerified,
       },
       accessToken,
     }
@@ -121,7 +145,10 @@ export class AuthService {
         lastName: true,
         role: true,
         avatarUrl: true,
+        phone: true,
         emailVerified: true,
+        notificationPreferences: true,
+        preferences: true,
         createdAt: true,
       },
     })
@@ -133,34 +160,77 @@ export class AuthService {
     return user
   }
 
-  async verifyEmail(userId: string) {
-    const user = await this.prisma.users.update({
-      where: { id: userId },
-      data: { emailVerified: true },
-      select: {
-        id: true,
-        email: true,
-        firstName: true,
-        lastName: true,
-        role: true,
-        avatarUrl: true,
-        emailVerified: true,
-        createdAt: true,
-      },
-    })
-
-    if (!user) {
-      throw new UnauthorizedException('User not found')
+  async verifyEmailToken(token: string) {
+    try {
+      const decoded = this.jwtService.verify(token) as any
+      if (decoded.purpose !== 'email_verification') {
+        throw new UnauthorizedException('Invalid verification token')
+      }
+      const user = await this.prisma.users.update({
+        where: { id: decoded.sub },
+        data: { emailVerified: true },
+        select: { id: true, email: true, emailVerified: true },
+      })
+      return user
+    } catch {
+      throw new UnauthorizedException('Invalid or expired verification link')
     }
-
-    return user
   }
 
-  async resetPassword(userId: string, newPassword: string) {
-    this.logger.log(`Resetting password for user ${userId}`)
+  async resendVerificationEmail(userId: string) {
+    const user = await this.prisma.users.findUnique({ where: { id: userId } })
+    if (!user) throw new UnauthorizedException('User not found')
+    if (user.emailVerified) return { alreadyVerified: true }
+
+    const token = this.signVerificationToken(user.id, user.email)
+    const result = await this.emailService.sendVerificationEmail(user.email, token)
+    if (!result.success) {
+      throw new Error(result.error || 'Failed to send verification email')
+    }
+    return { sent: true }
+  }
+
+  async changePassword(userId: string, currentPassword: string, newPassword: string) {
+    const user = await this.prisma.users.findUnique({ where: { id: userId } })
+    if (!user) throw new UnauthorizedException('User not found')
+
+    if (user.passwordHash) {
+      const valid = await bcrypt.compare(currentPassword, user.passwordHash)
+      if (!valid) throw new UnauthorizedException('Current password is incorrect')
+    }
+
     const passwordHash = await bcrypt.hash(newPassword, 12)
     await this.prisma.users.update({ where: { id: userId }, data: { passwordHash } })
     return { success: true }
+  }
+
+  async forgotPassword(email: string) {
+    const user = await this.prisma.users.findUnique({ where: { email } })
+    if (user) {
+      const resetToken = this.jwtService.sign(
+        { sub: user.id, email: user.email, purpose: 'password_reset' },
+        { expiresIn: '24h' },
+      )
+      await this.emailService.sendPasswordResetEmail(user.email, resetToken)
+    }
+    // Silent — don't reveal if email exists
+  }
+
+  async resetPasswordWithToken(token: string, newPassword: string) {
+    try {
+      const decoded = this.jwtService.verify(token) as any
+      if (decoded.purpose !== 'password_reset') {
+        throw new UnauthorizedException('Invalid reset token')
+      }
+      const passwordHash = await bcrypt.hash(newPassword, 12)
+      await this.prisma.users.update({
+        where: { id: decoded.sub },
+        data: { passwordHash },
+      })
+      return { success: true }
+    } catch {
+      throw new UnauthorizedException('Invalid or expired reset link')
+    }
   }
 
   async logout(userId: string) {
@@ -169,7 +239,6 @@ export class AuthService {
   }
 
   async updateUserRole(userId: string, role: Role, moderatorId: string) {
-    this.logger.log(`Updating role for user ${userId} to ${role}`)
     const user = await this.prisma.users.update({ where: { id: userId }, data: { role } })
     await this.prisma.adminAuditLogs.create({
       data: { actorId: moderatorId, action: 'ROLE_CHANGE', entityType: 'user', entityId: userId, newValue: { role } },
@@ -177,51 +246,7 @@ export class AuthService {
     return user
   }
 
-  async forgotPassword(email: string) {
-    const user = await this.prisma.users.findUnique({ where: { email } })
-    if (user) {
-      this.logger.log(`Password reset requested for ${email}`)
-      
-      // Generate reset token
-      const resetToken = this.jwtService.sign(
-        { userId: user.id, email: user.email },
-        { expiresIn: '24h' }
-      )
-      
-      // Send reset email
-      await this.emailService.sendPasswordResetEmail(user.email, resetToken)
-    }
-    // Don't reveal if user exists or not for security
-  }
-
-  async verifyUserEmail(userId: string) {
-    const user = await this.prisma.users.update({
-      where: { id: userId },
-      data: { emailVerified: true },
-      select: {
-        id: true,
-        email: true,
-        firstName: true,
-        lastName: true,
-        role: true,
-        avatarUrl: true,
-        emailVerified: true,
-        createdAt: true,
-      },
-    })
-
-    // Send verification confirmation email
-    await this.emailService.sendNotificationEmail(
-      user.email,
-      'Email Verified - Velxo',
-      'Your email has been successfully verified. You can now enjoy all Velxo features.'
-    )
-
-    return user
-  }
-
   async handleGoogleCallback(code: string) {
-    // Exchange code for tokens
     const tokenRes = await fetch('https://oauth2.googleapis.com/token', {
       method: 'POST',
       headers: { 'Content-Type': 'application/x-www-form-urlencoded' },
@@ -241,16 +266,12 @@ export class AuthService {
     }
 
     const tokens: any = await tokenRes.json()
-
-    // Get user info from Google
     const userInfoRes = await fetch('https://www.googleapis.com/oauth2/v3/userinfo', {
       headers: { Authorization: `Bearer ${tokens.access_token}` },
     })
     const googleUser: any = await userInfoRes.json()
+    const { email, given_name, family_name } = googleUser
 
-    const { email, given_name, family_name, sub: googleId } = googleUser
-
-    // Upsert user in DB
     let user = await this.prisma.users.findUnique({ where: { email } })
 
     if (!user) {
@@ -261,19 +282,14 @@ export class AuthService {
           lastName: family_name || '',
           emailVerified: true,
           role: Role.BUYER,
-          // No passwordHash — Google-only account
         },
       })
-      // Create wallet
       await this.prisma.wallet.create({ data: { userId: user.id } }).catch(() => {})
-    } else {
-      // Update name if missing
-      if (!user.firstName) {
-        await this.prisma.users.update({
-          where: { id: user.id },
-          data: { firstName: given_name, lastName: family_name, emailVerified: true },
-        })
-      }
+    } else if (!user.firstName) {
+      await this.prisma.users.update({
+        where: { id: user.id },
+        data: { firstName: given_name, lastName: family_name, emailVerified: true },
+      })
     }
 
     if (user.isBanned) throw new Error('Your account has been suspended')
@@ -288,7 +304,6 @@ export class AuthService {
   }
 
   async banUser(userId: string, reason: string, moderatorId: string) {
-    this.logger.log(`Banning user ${userId}`)
     const user = await this.prisma.users.update({
       where: { id: userId },
       data: { isBanned: true, banReason: reason },

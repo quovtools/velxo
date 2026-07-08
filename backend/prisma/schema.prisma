@@ -161,6 +161,8 @@ model users {
   lastName         String?
   avatarUrl        String?
   role             Role     @default(BUYER)
+  notificationPreferences Json?
+  preferences      Json?
   isActive         Boolean  @default(true)
   isBanned         Boolean  @default(false)
   banReason        String?

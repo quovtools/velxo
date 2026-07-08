@@ -26,8 +26,10 @@ services:
         sync: false
       - key: JWT_EXPIRES_IN
         value: 7d
-       - key: CORS_ORIGIN
-         value: https://velxo.shop,https://market.velxo.shop
+      - key: FRONTEND_URL
+        value: https://market.velxo.shop
+      - key: CORS_ORIGIN
+        value: https://velxo.shop,https://market.velxo.shop
 
   # Next.js Landing (velxo.shop)
   - type: web

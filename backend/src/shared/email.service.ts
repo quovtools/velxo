@@ -3,23 +3,33 @@ import { Resend } from 'resend';
 
 @Injectable()
 export class EmailService {
-  private readonly resend: Resend;
+  private readonly resend: Resend | null;
   private readonly fromEmail: string;
   private readonly logger = new Logger(EmailService.name);
 
   constructor() {
     const apiKey = process.env.RESEND_API_KEY;
     if (!apiKey) {
-      this.logger.warn('RESEND_API_KEY not set. Email functionality will not work.');
+      this.logger.error(
+        'RESEND_API_KEY is NOT set. Emails will NOT be sent. Set RESEND_API_KEY in your environment.',
+      );
     }
     this.resend = apiKey ? new Resend(apiKey) : null;
-    this.fromEmail = process.env.EMAIL_FROM || 'noreply@velxo.shop';
+    // Resend only allows sending from a verified domain. Until the sender domain
+    // is verified in the Resend dashboard, use the built-in test sender.
+    this.fromEmail = process.env.EMAIL_FROM || 'onboarding@resend.dev';
+  }
+
+  isConfigured(): boolean {
+    return this.resend !== null;
   }
 
   async sendEmail(to: string, subject: string, html: string): Promise<{ success: boolean; messageId?: string; error?: string }> {
     if (!this.resend) {
-      this.logger.log(`[DRY RUN] Would send email to ${to}: ${subject}`);
-      return { success: true };
+      this.logger.error(
+        `[EMAIL NOT SENT] RESEND_API_KEY missing. Would have sent "${subject}" to ${to}`,
+      );
+      return { success: false, error: 'Email service is not configured (missing RESEND_API_KEY).' };
     }
 
     try {
@@ -37,9 +47,9 @@ export class EmailService {
 
       this.logger.log(`Email sent to ${to}: ${subject} (ID: ${data?.id})`);
       return { success: true, messageId: data?.id };
-    } catch (err) {
+    } catch (err: any) {
       this.logger.error(`Email sending failed to ${to}:`, err);
-      return { success: false, error: err.message };
+      return { success: false, error: err?.message || 'Unknown email error' };
     }
   }
 

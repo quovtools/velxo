@@ -9,15 +9,21 @@
   --card-bg: #ffffff;
   --border-bg: #e2e8f0;
   --hover-bg: #f1f5f9;
+  --brand: #2563eb;
+  --brand-dark: #1d4ed8;
+  --brand-light: #60a5fa;
 }
 
-/* ── Dark mode ── */
+/* ── Dark mode — toggled by adding .dark to <html> ── */
 :root.dark {
   --background: #0f172a;
   --foreground: #f8fafc;
   --card-bg: #1e293b;
   --border-bg: #334155;
   --hover-bg: #475569;
+  --brand: #2563eb;
+  --brand-dark: #1d4ed8;
+  --brand-light: #60a5fa;
 }
 
 body {
@@ -28,6 +34,13 @@ body {
   transition: background-color 0.2s, color 0.2s;
 }
 
+/* In dark mode, all text-white stays white, in light mode it stays dark */
+:root.dark .text-white { color: #f8fafc; }
+:root:not(.dark) .text-white { color: #0f172a; }
+:root:not(.dark) .text-gray-300 { color: #475569; }
+:root:not(.dark) .text-gray-400 { color: #64748b; }
+:root:not(.dark) .text-gray-500 { color: #94a3b8; }
+
 /* Scrollbar */
 ::-webkit-scrollbar { width: 5px; height: 5px; }
 ::-webkit-scrollbar-track { background: var(--background); }
@@ -36,10 +49,10 @@ body {
 
 /* Animations */
 @keyframes fadeIn {
-  from { opacity: 0; transform: translateY(16px); }
+  from { opacity: 0; transform: translateY(12px); }
   to   { opacity: 1; transform: translateY(0); }
 }
-.fade-in { animation: fadeIn 0.4s ease-out forwards; }
+.fade-in { animation: fadeIn 0.35s ease-out forwards; }
 
 @keyframes shimmer {
   from { background-position: -200% 0; }
@@ -55,9 +68,3 @@ body {
 .safe-area-pb { padding-bottom: env(safe-area-inset-bottom, 0px); }
 .scrollbar-none::-webkit-scrollbar { display: none; }
 .scrollbar-none { -ms-overflow-style: none; scrollbar-width: none; }
-
-/* Light mode text overrides */
-:root.light .text-gray-400 { color: #64748b; }
-:root.light .text-gray-300 { color: #475569; }
-:root.light .text-gray-500 { color: #94a3b8; }
-:root.light .text-white    { color: #0f172a; }

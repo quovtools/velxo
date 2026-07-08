@@ -28,8 +28,14 @@ export class SellersService {
           userId,
           storeName: dto.storeName,
           storeDescription: dto.storeDescription,
-          reputationScore: 5.0, // Start with neutral score
+          reputationScore: 5.0,
         },
+      })
+
+      // Update user role to SELLER
+      await tx.users.update({
+        where: { id: userId },
+        data: { role: 'SELLER' },
       })
 
       // Create wallet for seller

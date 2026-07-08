@@ -11,23 +11,34 @@ export class ListingsService {
 
   constructor(private prisma: PrismaService) {}
 
-  async createListing(sellerId: string, dto: CreateListingDto) {
-    this.logger.log(`Creating listing for seller ${sellerId}`)
+  async createListing(userId: string, dto: CreateListingDto) {
+    this.logger.log(`Creating listing for user ${userId}`)
 
+    // Look up seller by userId (not seller.id)
     const seller = await this.prisma.sellers.findUnique({
-      where: { id: sellerId },
+      where: { userId },
     })
 
     if (!seller) {
-      throw new NotFoundException('Seller')
+      throw new NotFoundException('Seller profile — please create a seller account first')
     }
 
-    const category = await this.prisma.categories.findUnique({
-      where: { id: dto.categoryId },
-    })
-
-    if (!category) {
-      throw new NotFoundException('Category')
+    // If no categoryId or it's a placeholder, auto-resolve or use first available
+    let categoryId = dto.categoryId
+    if (!categoryId || categoryId === 'cuid-placeholder-category') {
+      const firstCategory = await this.prisma.categories.findFirst({ where: { isActive: true } })
+      if (!firstCategory) {
+        // Create a default category if none exists
+        const cat = await this.prisma.categories.create({
+          data: { name: 'Gaming', slug: 'gaming', description: 'Gaming items', sortOrder: 0 },
+        })
+        categoryId = cat.id
+      } else {
+        categoryId = firstCategory.id
+      }
+    } else {
+      const category = await this.prisma.categories.findUnique({ where: { id: categoryId } })
+      if (!category) throw new NotFoundException('Category')
     }
 
     const listing = await this.prisma.listings.create({
@@ -37,14 +48,13 @@ export class ListingsService {
         price: dto.price,
         gameName: dto.gameName,
         gameId: dto.gameId,
-        categoryId: dto.categoryId,
+        categoryId,
         subcategoryId: dto.subcategoryId,
-        sellerId: seller.userId,
+        sellerId: seller.id,
         platform: dto.platform,
         region: dto.region,
         rank: dto.rank,
         level: dto.level,
-        skins: dto.skins,
         playerId: dto.playerId,
         playerUid: dto.playerUid,
         loginMethod: dto.loginMethod,

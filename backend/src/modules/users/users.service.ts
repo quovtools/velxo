@@ -37,13 +37,21 @@ export class UsersService {
       firstName?: string
       lastName?: string
       phone?: string
+      notificationPreferences?: any
+      preferences?: any
     },
   ) {
     this.logger.log(`Updating profile for user ${userId}`)
 
+    const { notificationPreferences, preferences, ...rest } = data
+
+    const updateData: any = { ...rest }
+    if (notificationPreferences !== undefined) updateData.notificationPreferences = notificationPreferences
+    if (preferences !== undefined) updateData.preferences = preferences
+
     const user = await this.prisma.users.update({
       where: { id: userId },
-      data,
+      data: updateData,
       select: {
         id: true,
         email: true,
@@ -51,6 +59,8 @@ export class UsersService {
         lastName: true,
         phone: true,
         role: true,
+        notificationPreferences: true,
+        preferences: true,
       },
     })
 

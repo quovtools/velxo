@@ -39,12 +39,16 @@ export class UsersController {
     @Body('firstName') firstName?: string,
     @Body('lastName') lastName?: string,
     @Body('phone') phone?: string,
+    @Body('notificationPreferences') notificationPreferences?: any,
+    @Body('preferences') preferences?: any,
   ) {
     try {
       const profile = await this.usersService.updateProfile(userId, {
         firstName,
         lastName,
         phone,
+        notificationPreferences,
+        preferences,
       })
       return ApiResponseDto.ok(profile, 'Profile updated successfully')
     } catch (error) {

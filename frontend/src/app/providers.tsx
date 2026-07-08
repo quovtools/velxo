@@ -2,7 +2,7 @@
 
 import React, { createContext, useContext, useEffect, useState } from 'react';
 import { QueryClient, QueryClientProvider } from '@tanstack/react-query';
-import { getToken, getUser, clearSession, AuthUser } from '@/lib/auth';
+import { getToken, getUser, clearSession, setSession, AuthUser } from '@/lib/auth';
 
 const QueryClientInstance = new QueryClient({
   defaultOptions: { queries: { refetchOnWindowFocus: false, retry: 1 } },
@@ -15,15 +15,17 @@ interface AuthContextType {
   toggleTheme: () => void;
   logout: () => void;
   refreshSession: () => void;
+  updateUser: (updates: Partial<AuthUser>) => void;
 }
 
 const AuthContext = createContext<AuthContextType>({
   user: null,
   loading: true,
-  theme: 'dark',
+  theme: 'light',
   toggleTheme: () => {},
   logout: () => {},
   refreshSession: () => {},
+  updateUser: () => {},
 });
 
 export function Providers({ children }: { children: React.ReactNode }) {
@@ -31,7 +33,7 @@ export function Providers({ children }: { children: React.ReactNode }) {
   const [loading, setLoading] = useState(true);
   const [theme, setTheme] = useState<'dark' | 'light'>('light');
 
-  // Persist & apply theme
+  // Apply theme class to <html> immediately on mount
   useEffect(() => {
     const saved = (localStorage.getItem('velxo_theme') as 'dark' | 'light') || 'light';
     setTheme(saved);
@@ -40,10 +42,12 @@ export function Providers({ children }: { children: React.ReactNode }) {
 
   const applyTheme = (t: 'dark' | 'light') => {
     const root = document.documentElement;
-    if (t === 'light') {
-      root.classList.add('light');
-    } else {
+    if (t === 'dark') {
+      root.classList.add('dark');
       root.classList.remove('light');
+    } else {
+      root.classList.remove('dark');
+      root.classList.add('light');
     }
   };
 
@@ -65,9 +69,19 @@ export function Providers({ children }: { children: React.ReactNode }) {
     setLoading(false);
   };
 
+  // Update user in state + localStorage without full reload
+  const updateUser = (updates: Partial<AuthUser>) => {
+    const current = getUser();
+    const token = getToken();
+    if (current && token) {
+      const updated = { ...current, ...updates };
+      setSession(token, updated);
+      setUser(updated);
+    }
+  };
+
   useEffect(() => {
     refreshSession();
-    // Warm up backend (Render free-tier cold start)
     const apiUrl = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:3001/api/v1';
     fetch(apiUrl, { method: 'GET' }).catch(() => {});
   }, []);
@@ -80,7 +94,7 @@ export function Providers({ children }: { children: React.ReactNode }) {
 
   return (
     <QueryClientProvider client={QueryClientInstance}>
-      <AuthContext.Provider value={{ user, loading, theme, toggleTheme, logout, refreshSession }}>
+      <AuthContext.Provider value={{ user, loading, theme, toggleTheme, logout, refreshSession, updateUser }}>
         {children}
       </AuthContext.Provider>
     </QueryClientProvider>

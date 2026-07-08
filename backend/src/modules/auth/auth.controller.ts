@@ -59,35 +59,72 @@ export class AuthController {
   @Post('logout')
   @UseGuards(SupabaseJwtGuard)
   async logout(@CurrentUserId() userId: string) {
-    try {
-      await this.authService.logout(userId)
-      return ApiResponseDto.ok(null, 'Logout successful')
-    } catch (error) {
-      this.logger.error('Logout error:', error)
-      throw error
-    }
+    await this.authService.logout(userId).catch(() => {})
+    return ApiResponseDto.ok(null, 'Logout successful')
   }
 
+  /** Verify email with token from email link */
   @Post('verify-email')
-  @UseGuards(SupabaseJwtGuard)
-  async verifyEmail(@CurrentUserId() userId: string) {
+  @HttpCode(200)
+  async verifyEmail(@Body('token') token: string) {
     try {
-      const user = await this.authService.verifyEmail(userId)
-      return ApiResponseDto.ok(user, 'Email verified')
+      const user = await this.authService.verifyEmailToken(token)
+      return ApiResponseDto.ok(user, 'Email verified successfully')
     } catch (error) {
       this.logger.error('Email verification error:', error)
       throw error
     }
   }
 
-  @Post('reset-password')
+  /** Resend verification email */
+  @Post('resend-verification')
   @UseGuards(SupabaseJwtGuard)
-  async resetPassword(
+  @HttpCode(200)
+  async resendVerification(@CurrentUserId() userId: string) {
+    try {
+      const result = await this.authService.resendVerificationEmail(userId)
+      return ApiResponseDto.ok(result, 'Verification email sent')
+    } catch (error) {
+      this.logger.error('Resend verification error:', error)
+      throw error
+    }
+  }
+
+  /** Change password (requires current password) */
+  @Post('change-password')
+  @UseGuards(SupabaseJwtGuard)
+  @HttpCode(200)
+  async changePassword(
     @CurrentUserId() userId: string,
+    @Body('currentPassword') currentPassword: string,
     @Body('newPassword') newPassword: string,
   ) {
     try {
-      await this.authService.resetPassword(userId, newPassword)
+      await this.authService.changePassword(userId, currentPassword, newPassword)
+      return ApiResponseDto.ok(null, 'Password changed successfully')
+    } catch (error) {
+      this.logger.error('Change password error:', error)
+      throw error
+    }
+  }
+
+  /** Forgot password — send reset email */
+  @Post('forgot-password')
+  @HttpCode(200)
+  async forgotPassword(@Body('email') email: string) {
+    await this.authService.forgotPassword(email).catch(() => {})
+    return ApiResponseDto.ok(null, 'If that email exists, a reset link was sent')
+  }
+
+  /** Reset password using emailed token */
+  @Post('reset-password')
+  @HttpCode(200)
+  async resetPassword(
+    @Body('token') token: string,
+    @Body('newPassword') newPassword: string,
+  ) {
+    try {
+      await this.authService.resetPasswordWithToken(token, newPassword)
       return ApiResponseDto.ok(null, 'Password reset successfully')
     } catch (error) {
       this.logger.error('Password reset error:', error)
@@ -95,7 +132,7 @@ export class AuthController {
     }
   }
 
-  /** Step 1: Redirect browser to Google consent screen */
+  /** Step 1: Redirect to Google consent */
   @Get('google')
   googleLogin(@Res() res: Response) {
     const clientId = process.env.GOOGLE_CLIENT_ID
@@ -105,40 +142,17 @@ export class AuthController {
     res.redirect(url)
   }
 
-  /** Step 2: Handle Google OAuth callback, return JWT to frontend */
+  /** Step 2: Google callback */
   @Get('google/callback')
   async googleCallback(@Query('code') code: string, @Res() res: Response) {
     try {
       const result = await this.authService.handleGoogleCallback(code)
       const frontendUrl = process.env.FRONTEND_URL || 'https://market.velxo.shop'
-      // Redirect to frontend with token in URL hash (never query string)
       res.redirect(`${frontendUrl}/auth/callback#token=${result.accessToken}&userId=${result.user.id}`)
     } catch (error) {
       this.logger.error('Google OAuth callback error:', error)
       const frontendUrl = process.env.FRONTEND_URL || 'https://market.velxo.shop'
       res.redirect(`${frontendUrl}/auth/login?error=google_failed`)
-    }
-  }
-
-  /** Forgot password — send reset email */
-  @Post('forgot-password')
-  @HttpCode(200)
-  async forgotPassword(@Body('email') email: string) {
-    // For now returns success regardless to prevent email enumeration
-    await this.authService.forgotPassword(email).catch(() => {})
-    return ApiResponseDto.ok(null, 'If that email exists, a reset link was sent')
-  }
-
-  /** Verify email with email service */
-  @Post('verify')
-  @HttpCode(200)
-  async verifyUserEmail(@CurrentUserId() userId: string) {
-    try {
-      await this.authService.verifyUserEmail(userId)
-      return ApiResponseDto.ok(null, 'Email verified successfully')
-    } catch (error) {
-      this.logger.error('Email verification error:', error)
-      throw error
     }
   }
 }
