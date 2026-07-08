@@ -145,7 +145,17 @@ export class AuthController {
     try {
       const result = await this.authService.handleGoogleCallback(code, req)
       const frontendUrl = process.env.FRONTEND_URL || 'https://market.velxo.shop'
-      res.redirect(`${frontendUrl}/auth/callback#token=${result.accessToken}&userId=${result.user.id}`)
+      const u = result.user
+      const hash = [
+        `token=${result.accessToken}`,
+        `userId=${u.id}`,
+        `email=${encodeURIComponent(u.email || '')}`,
+        `firstName=${encodeURIComponent(u.firstName || '')}`,
+        `lastName=${encodeURIComponent(u.lastName || '')}`,
+        `role=${encodeURIComponent(u.role || 'BUYER')}`,
+        `emailVerified=${u.emailVerified ? 1 : 0}`,
+      ].join('&')
+      res.redirect(`${frontendUrl}/auth/callback#${hash}`)
     } catch (error) {
       this.logger.error('Google OAuth callback error:', error)
       const frontendUrl = process.env.FRONTEND_URL || 'https://market.velxo.shop'

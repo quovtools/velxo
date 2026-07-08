@@ -23,13 +23,23 @@ export default function AuthCallbackPage() {
       return;
     }
 
-    // Fetch user profile with the token
+    // Build the user object directly from the OAuth redirect (no extra API call
+    // needed) so Google sign-in works even if /auth/me is slow/unavailable.
+    const googleUser = {
+      id: userId,
+      email: params.get('email') || '',
+      firstName: params.get('firstName') || '',
+      lastName: params.get('lastName') || '',
+      role: params.get('role') || 'BUYER',
+      emailVerified: params.get('emailVerified') === '1',
+    };
+    setSession(token, googleUser);
+
+    // Enrich with extra profile fields (phone, avatar) when possible — non-fatal.
     (async () => {
       try {
-        // Temporarily set token so api.ts can use it
-        setSession(token, { id: userId, email: '', role: 'BUYER' });
         const res = await api.get<{ success: boolean; data: any }>('/auth/me');
-        if (res.success) {
+        if (res.success && res.data) {
           setSession(token, {
             id: res.data.id,
             email: res.data.email,
