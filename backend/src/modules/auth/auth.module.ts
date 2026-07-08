@@ -4,6 +4,7 @@ import { AuthController } from './auth.controller'
 import { AuthService } from './auth.service'
 import { PrismaService } from '@/common/services/prisma.service'
 import { EmailModule } from '@/modules/email/email.module'
+import { AffiliateModule } from '@/modules/affiliate/affiliate.module'
 import { ConfigModule, ConfigService } from '@nestjs/config'
 
 @Module({
@@ -17,6 +18,7 @@ import { ConfigModule, ConfigService } from '@nestjs/config'
       }),
     }),
     EmailModule,
+    AffiliateModule,
   ],
   controllers: [AuthController],
   providers: [AuthService, PrismaService],

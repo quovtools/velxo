@@ -12,4 +12,9 @@ export class RegisterDto {
   @IsOptional()
   @IsObject()
   preferences?: Record<string, any>
+
+  @ApiProperty({ required: false, description: 'Referral code from an affiliate link' })
+  @IsOptional()
+  @IsString()
+  referralCode?: string
 }

@@ -54,7 +54,9 @@ export class AdminService {
     }
   }
 
-  async getPendingListings(limit: number = 50) {
+  async getPendingListings(limit?: number | string) {
+    const parsed = typeof limit === 'string' ? parseInt(limit, 10) : limit
+    const take = Number.isFinite(parsed) && parsed! > 0 ? parsed! : 50
     return this.prisma.listings.findMany({
       where: { status: ListingStatus.PENDING_APPROVAL },
       include: {
@@ -62,7 +64,7 @@ export class AdminService {
         category: true,
       },
       orderBy: { createdAt: 'asc' },
-      take: limit,
+      take,
     })
   }
 
@@ -102,6 +104,8 @@ export class AdminService {
   }
 
   async getFlaggedListings(limit: number = 50) {
+    const parsed = typeof limit === 'string' ? parseInt(limit, 10) : limit
+    const take = Number.isFinite(parsed) && parsed! > 0 ? parsed! : 50
     return this.prisma.fraudFlags.findMany({
       where: { listingId: { not: null } },
       include: {
@@ -111,16 +115,18 @@ export class AdminService {
         user: true,
       },
       orderBy: { createdAt: 'desc' },
-      take: limit,
+      take,
     })
   }
 
   async getSuspiciousUsers(limit: number = 50) {
+    const parsed = typeof limit === 'string' ? parseInt(limit, 10) : limit
+    const take = Number.isFinite(parsed) && parsed! > 0 ? parsed! : 50
     return this.prisma.fraudFlags.findMany({
       where: { listingId: null, orderId: null },
       include: { user: true },
       orderBy: { createdAt: 'desc' },
-      take: limit,
+      take,
     })
   }
 
