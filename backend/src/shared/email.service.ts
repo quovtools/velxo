@@ -55,7 +55,7 @@ export class EmailService {
 
   // Email Templates
   async sendVerificationEmail(email: string, verificationToken: string): Promise<{ success: boolean; error?: string }> {
-    const verificationUrl = `${process.env.FRONTEND_URL || 'https://market.velxo.shop'}/auth/verify-email?token=${verificationToken}`;
+    const verificationUrl = `${process.env.FRONTEND_URL || 'https://market.velxo.shop'}/verify-email?token=${verificationToken}`;
     
     const html = `
       <!DOCTYPE html>
