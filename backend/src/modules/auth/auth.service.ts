@@ -1,5 +1,6 @@
 import { Injectable, Logger } from '@nestjs/common'
 import { JwtService } from '@nestjs/jwt'
+import { Request } from 'express'
 import * as bcrypt from 'bcrypt'
 import { PrismaService } from '@/common/services/prisma.service'
 import { LoginDto, RegisterDto } from './dto/login.dto'
@@ -20,6 +21,22 @@ export class AuthService {
   private signToken(userId: string, email: string, role: Role): string {
     return this.jwtService.sign({ sub: userId, email, role })
   }
+
+  private googleRedirectUri(req?: Request): string {
+    if (process.env.GOOGLE_REDIRECT_URI) return process.env.GOOGLE_REDIRECT_URI
+    const proto = (req?.headers?.['x-forwarded-proto'] as string) || req?.protocol || 'https'
+    const host = req?.get?.('host') || process.env.API_URL || 'http://localhost:3001'
+    const base = String(host).startsWith('http') ? String(host) : `${proto}://${host}`
+    return `${base.replace(/\/$/, '')}/api/v1/auth/google/callback`
+  }
+
+  getGoogleAuthUrl(req?: Request): string {
+    const clientId = process.env.GOOGLE_CLIENT_ID
+    const redirectUri = this.googleRedirectUri(req)
+    const scope = 'openid email profile'
+    return `https://accounts.google.com/o/oauth2/v2/auth?client_id=${clientId}&redirect_uri=${encodeURIComponent(redirectUri)}&response_type=code&scope=${encodeURIComponent(scope)}&access_type=offline&prompt=select_account`
+  }
+
 
   private signVerificationToken(userId: string, email: string): string {
     return this.jwtService.sign(
@@ -246,7 +263,7 @@ export class AuthService {
     return user
   }
 
-  async handleGoogleCallback(code: string) {
+  async handleGoogleCallback(code: string, req?: Request) {
     const tokenRes = await fetch('https://oauth2.googleapis.com/token', {
       method: 'POST',
       headers: { 'Content-Type': 'application/x-www-form-urlencoded' },
@@ -254,7 +271,7 @@ export class AuthService {
         code,
         client_id: process.env.GOOGLE_CLIENT_ID!,
         client_secret: process.env.GOOGLE_CLIENT_SECRET!,
-        redirect_uri: process.env.GOOGLE_REDIRECT_URI || `${process.env.API_URL || 'http://localhost:3001/api/v1'}/auth/google/callback`,
+        redirect_uri: this.googleRedirectUri(req),
         grant_type: 'authorization_code',
       }),
     })

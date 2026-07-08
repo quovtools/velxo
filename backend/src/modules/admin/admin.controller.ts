@@ -9,21 +9,18 @@ import {
   Logger,
 } from '@nestjs/common'
 import { AdminService } from './admin.service'
-import { SupabaseJwtGuard } from '@/common/guards/supabase-jwt.guard'
-import { RequireRoles } from '@/common/decorators/roles.decorator'
-import { Role } from '@prisma/client'
+import { AdminPasswordGuard } from '@/common/guards/admin-password.guard'
 import { CurrentUserId } from '@/common/decorators/current-user.decorator'
 import { ApiResponseDto } from '@/common/dto/api-response.dto'
 
 @Controller('admin')
-@RequireRoles(Role.ADMIN, Role.SUPER_ADMIN)
 export class AdminController {
   private readonly logger = new Logger(AdminController.name)
 
   constructor(private adminService: AdminService) {}
 
   @Get('dashboard')
-  @UseGuards(SupabaseJwtGuard)
+  @UseGuards(AdminPasswordGuard)
   async getDashboard() {
     try {
       const stats = await this.adminService.getDashboardStats()
@@ -35,7 +32,7 @@ export class AdminController {
   }
 
   @Get('listings/pending')
-  @UseGuards(SupabaseJwtGuard)
+  @UseGuards(AdminPasswordGuard)
   async getPendingListings(@Query('limit') limit?: number) {
     try {
       const listings = await this.adminService.getPendingListings(limit)
@@ -47,7 +44,7 @@ export class AdminController {
   }
 
   @Patch('listings/:id/approve')
-  @UseGuards(SupabaseJwtGuard)
+  @UseGuards(AdminPasswordGuard)
   async approveListing(@Param('id') listingId: string, @CurrentUserId() moderatorId: string) {
     try {
       const listing = await this.adminService.approveListing(listingId, moderatorId)
@@ -59,7 +56,7 @@ export class AdminController {
   }
 
   @Patch('listings/:id/reject')
-  @UseGuards(SupabaseJwtGuard)
+  @UseGuards(AdminPasswordGuard)
   async rejectListing(
     @Param('id') listingId: string,
     @CurrentUserId() moderatorId: string,
@@ -75,7 +72,7 @@ export class AdminController {
   }
 
   @Get('fraud/flagged-listings')
-  @UseGuards(SupabaseJwtGuard)
+  @UseGuards(AdminPasswordGuard)
   async getFlaggedListings(@Query('limit') limit?: number) {
     try {
       const listings = await this.adminService.getFlaggedListings(limit)
@@ -87,7 +84,7 @@ export class AdminController {
   }
 
   @Get('fraud/suspicious-users')
-  @UseGuards(SupabaseJwtGuard)
+  @UseGuards(AdminPasswordGuard)
   async getSuspiciousUsers(@Query('limit') limit?: number) {
     try {
       const users = await this.adminService.getSuspiciousUsers(limit)
@@ -99,7 +96,7 @@ export class AdminController {
   }
 
   @Get('analytics/revenue')
-  @UseGuards(SupabaseJwtGuard)
+  @UseGuards(AdminPasswordGuard)
   async getRevenueAnalytics(
     @Query('startDate') startDate: string,
     @Query('endDate') endDate: string,
@@ -117,7 +114,7 @@ export class AdminController {
   }
 
   @Get('sellers/:sellerId/metrics')
-  @UseGuards(SupabaseJwtGuard)
+  @UseGuards(AdminPasswordGuard)
   async getSellerMetrics(@Param('sellerId') sellerId: string) {
     try {
       const metrics = await this.adminService.getSellerMetrics(sellerId)

@@ -10,6 +10,7 @@ import {
 
 const ADMIN_PASSWORD = 'Fsdekemi123@';
 const SESSION_KEY = 'velxo_admin_auth';
+const PASSWORD_KEY = 'velxo_admin_password';
 
 function PasswordGate({ onUnlock }: { onUnlock: () => void }) {
   const [password, setPassword] = useState('');
@@ -22,6 +23,7 @@ function PasswordGate({ onUnlock }: { onUnlock: () => void }) {
     setTimeout(() => {
       if (password === ADMIN_PASSWORD) {
         sessionStorage.setItem(SESSION_KEY, 'true');
+        sessionStorage.setItem(PASSWORD_KEY, password);
         onUnlock();
       } else {
         setError('Incorrect password. Access denied.');
@@ -97,6 +99,7 @@ export default function AdminLayout({ children }: { children: React.ReactNode })
 
   const handleLogout = () => {
     sessionStorage.removeItem(SESSION_KEY);
+    sessionStorage.removeItem(PASSWORD_KEY);
     setUnlocked(false);
     router.push('/');
   };

@@ -29,6 +29,12 @@ async function request<T>(endpoint: string, options: RequestOptions = {}): Promi
   const token = getToken();
   if (token) headers.set('Authorization', `Bearer ${token}`);
 
+  // Inject admin console password when present (admin pages)
+  if (typeof window !== 'undefined') {
+    const adminPassword = sessionStorage.getItem('velxo_admin_password');
+    if (adminPassword) headers.set('x-admin-password', adminPassword);
+  }
+
   const config: RequestInit = { ...customOptions, headers };
 
   // Retry once — handles Render cold-start timeouts
