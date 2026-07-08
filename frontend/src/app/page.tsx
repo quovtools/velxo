@@ -5,7 +5,7 @@ import Link from 'next/link';
 import { useSearchParams } from 'next/navigation';
 import {
   Search, SlidersHorizontal, Gamepad2, ChevronRight,
-  Star, Flame, PlusCircle, ShieldCheck, X, 
+  Star, Flame, PlusCircle, ShieldCheck, X,
   Users, TrendingUp, Zap, Lock, Shield, Check,
   Award, Heart, Gift, Bell, ArrowRight
 } from 'lucide-react';
@@ -101,48 +101,7 @@ function MarketplaceContent() {
   const hasFilters = search || activeGame || platform || region || category || minPrice || maxPrice;
 
   return (
-    <div className="space-y-8">
-      {/* Stats Section */}
-      <div className="bg-gradient-to-r from-brand/10 to-purple-600/10 border border-brand/20 rounded-2xl p-6 md:p-8">
-        <div className="grid grid-cols-2 md:grid-cols-5 gap-4 md:gap-8">
-          <div className="text-center">
-            <div className="flex items-center justify-center gap-2 mb-1">
-              <Users className="w-6 h-6 text-brand" />
-              <span className="text-3xl md:text-4xl font-black text-white">10K+</span>
-            </div>
-            <p className="text-xs md:text-sm text-gray-400">Active Buyers</p>
-          </div>
-          <div className="text-center border-l border-brand/20 md:border-l-2">
-            <div className="flex items-center justify-center gap-2 mb-1">
-              <TrendingUp className="w-6 h-6 text-emerald-400" />
-              <span className="text-3xl md:text-4xl font-black text-white">50K+</span>
-            </div>
-            <p className="text-xs md:text-sm text-gray-400">Listings</p>
-          </div>
-          <div className="text-center border-l border-brand/20 md:border-l-2">
-            <div className="flex items-center justify-center gap-2 mb-1">
-              <Award className="w-6 h-6 text-yellow-400" />
-              <span className="text-3xl md:text-4xl font-black text-white">98%</span>
-            </div>
-            <p className="text-xs md:text-sm text-gray-400">Satisfaction</p>
-          </div>
-          <div className="text-center border-l border-brand/20 md:border-l-2">
-            <div className="flex items-center justify-center gap-2 mb-1">
-              <Shield className="w-6 h-6 text-purple-400" />
-              <span className="text-3xl md:text-4xl font-black text-white">100%</span>
-            </div>
-            <p className="text-xs md:text-sm text-gray-400">Escrow Protected</p>
-          </div>
-          <div className="text-center border-l border-brand/20 md:border-l-2">
-            <div className="flex items-center justify-center gap-2 mb-1">
-              <Zap className="w-6 h-6 text-orange-400" />
-              <span className="text-3xl md:text-4xl font-black text-white">24/7</span>
-            </div>
-            <p className="text-xs md:text-sm text-gray-400">Support</p>
-          </div>
-        </div>
-      </div>
-
+    <div className="space-y-6">
       {/* Page header */}
       <div className="flex flex-col sm:flex-row sm:items-end justify-between gap-4">
         <div className="space-y-1">
@@ -436,54 +395,6 @@ function MarketplaceContent() {
         </div>
       )}
 
-      {/* Features Section */}
-      <div className="pt-8">
-        <h2 className="text-2xl font-black text-white mb-6">Why Choose Velxo?</h2>
-        <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
-          <div className="bg-cardBg border border-borderBg rounded-2xl p-6 hover:border-brand/30 transition-all duration-300">
-            <div className="w-12 h-12 bg-emerald-500/10 rounded-xl flex items-center justify-center mb-4">
-              <Shield className="w-6 h-6 text-emerald-400" />
-            </div>
-            <h3 className="text-lg font-bold text-white mb-2">Escrow Protection</h3>
-            <p className="text-sm text-gray-400">All transactions are protected by our secure escrow system. Your money is safe until you receive your items.</p>
-          </div>
-          <div className="bg-cardBg border border-borderBg rounded-2xl p-6 hover:border-brand/30 transition-all duration-300">
-            <div className="w-12 h-12 bg-purple-500/10 rounded-xl flex items-center justify-center mb-4">
-              <Award className="w-6 h-6 text-purple-400" />
-            </div>
-            <h3 className="text-lg font-bold text-white mb-2">Verified Sellers</h3>
-            <p className="text-sm text-gray-400">Our verified sellers have been vetted and maintain high ratings. Shop with confidence.</p>
-          </div>
-          <div className="bg-cardBg border border-borderBg rounded-2xl p-6 hover:border-brand/30 transition-all duration-300">
-            <div className="w-12 h-12 bg-orange-500/10 rounded-xl flex items-center justify-center mb-4">
-              <Zap className="w-6 h-6 text-orange-400" />
-            </div>
-            <h3 className="text-lg font-bold text-white mb-2">Fast Delivery</h3>
-            <p className="text-sm text-gray-400">Get your items quickly with our efficient delivery system. Most orders are completed within minutes.</p>
-          </div>
-        </div>
-      </div>
-
-      {/* How It Works */}
-      <div className="pt-8 pb-12">
-        <h2 className="text-2xl font-black text-white mb-6">How It Works</h2>
-        <div className="grid grid-cols-1 md:grid-cols-4 gap-6">
-          {[
-            { icon: Users, title: "Create Account", desc: "Sign up and verify your email" },
-            { icon: Search, title: "Browse Marketplace", desc: "Find exactly what you need" },
-            { icon: Lock, title: "Secure Payment", desc: "Pay through our escrow system" },
-            { icon: Check, title: "Receive Items", desc: "Get your items and confirm delivery" }
-          ].map((step, i) => (
-            <div key={i} className="text-center relative">
-              <div className="w-14 h-14 bg-gradient-to-br from-brand to-purple-600 rounded-2xl flex items-center justify-center mx-auto mb-4 shadow-lg shadow-brand/20">
-                <step.icon className="w-7 h-7 text-white" />
-              </div>
-              <h3 className="text-base font-bold text-white mb-2">{step.title}</h3>
-              <p className="text-xs text-gray-400">{step.desc}</p>
-            </div>
-          ))}
-        </div>
-      </div>
     </div>
   );
 }

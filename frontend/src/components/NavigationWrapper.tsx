@@ -6,7 +6,7 @@ import { useState } from 'react';
 import {
   MessageSquare, Wallet, User, PlusCircle, LayoutDashboard,
   ShieldCheck, LogOut, Menu, X, Search, Home, Users,
-  ShoppingBag, Bell, Award, Sun, Moon,
+  ShoppingBag, Bell, Award, Sun, Moon, Check,
 } from 'lucide-react';
 
 export default function NavigationWrapper() {
@@ -43,10 +43,10 @@ export default function NavigationWrapper() {
 
           {/* Right side */}
           <div className="flex items-center gap-2 md:gap-3">
-            {/* Theme toggle */}
+            {/* Theme toggle - only show on desktop */}
             <button
               onClick={toggleTheme}
-              className="p-2 text-gray-500 hover:text-brand transition rounded-lg hover:bg-brand/10"
+              className="hidden md:block p-2 text-gray-500 hover:text-brand transition rounded-lg hover:bg-brand/10"
               title={theme === 'light' ? 'Switch to dark mode' : 'Switch to light mode'}
               aria-label="Toggle theme"
             >
@@ -89,15 +89,6 @@ export default function NavigationWrapper() {
               </div>
             )}
 
-            {/* Theme toggle (mobile) */}
-            <button
-              onClick={toggleTheme}
-              className="sm:hidden p-2 text-gray-500 hover:text-brand transition"
-              title={theme === 'light' ? 'Switch to dark mode' : 'Switch to light mode'}
-            >
-              {theme === 'light' ? <Sun className="w-5 h-5" /> : <Moon className="w-5 h-5" />}
-            </button>
-
             {/* Mobile hamburger */}
             <button
               className="sm:hidden p-2 text-gray-500 hover:text-white transition"
@@ -130,6 +121,13 @@ export default function NavigationWrapper() {
              <Link href="/affiliate" onClick={() => setMobileOpen(false)} className="flex items-center gap-3 px-3 py-3 rounded-xl text-gray-300 hover:bg-background hover:text-white transition text-sm font-medium">
                <Users className="w-4 h-4" /> Refer & Earn
              </Link>
+             <div className="flex items-center justify-between px-3 py-3 rounded-xl text-gray-300 hover:bg-background hover:text-white transition text-sm font-medium" onClick={() => { toggleTheme(); setMobileOpen(false); }}>
+               <div className="flex items-center gap-3">
+                 {theme === 'light' ? <Sun className="w-4 h-4" /> : <Moon className="w-4 h-4" />}
+                 <span>{theme === 'light' ? 'Switch to Dark' : 'Switch to Light'}</span>
+               </div>
+               {theme === 'light' ? <Moon className="w-4 h-4" /> : <Sun className="w-4 h-4" />}
+             </div>
 
              {user ? (
               <>
