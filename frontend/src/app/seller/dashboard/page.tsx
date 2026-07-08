@@ -103,12 +103,27 @@ export default function SellerDashboard() {
     );
   }
 
-  const tierInfo = {
-    FREE: { name: 'Free', color: 'text-gray-400', border: 'border-gray-500/20' },
-    BASIC: { name: 'Basic', color: 'text-blue-400', border: 'border-blue-500/30' },
-    PRO: { name: 'Pro', color: 'text-purple-400', border: 'border-purple-500/30' },
-    PREMIUM: { name: 'Premium', color: 'text-yellow-400', border: 'border-yellow-500/30' },
-  }[seller?.subscriptionTier as keyof typeof tierInfo] || tierInfo.FREE;
+interface TierInfo {
+  name: string;
+  color: string;
+  border: string;
+}
+
+interface TierConfig {
+  FREE: TierInfo;
+  BASIC: TierInfo;
+  PRO: TierInfo;
+  PREMIUM: TierInfo;
+}
+
+const tierConfig: TierConfig = {
+  FREE: { name: 'Free', color: 'text-gray-400', border: 'border-gray-500/20' },
+  BASIC: { name: 'Basic', color: 'text-blue-400', border: 'border-blue-500/30' },
+  PRO: { name: 'Pro', color: 'text-purple-400', border: 'border-purple-500/30' },
+  PREMIUM: { name: 'Premium', color: 'text-yellow-400', border: 'border-yellow-500/30' },
+};
+
+const currentTier = tierConfig[seller?.subscriptionTier as keyof TierConfig] || tierConfig.FREE;
 
   return (
     <div className="max-w-7xl mx-auto space-y-6 py-4">
@@ -169,7 +184,7 @@ export default function SellerDashboard() {
           </div>
           <div className="hidden md:block">
             <span className="text-xs text-emerald-400/70 font-medium px-3 py-1 bg-emerald-500/10 rounded-full border border-emerald-500/20">
-              {seller.subscriptionTier} Tier
+              {seller?.subscriptionTier || 'FREE'} Tier
             </span>
           </div>
         </div>
