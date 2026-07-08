@@ -1,13 +1,13 @@
 'use client';
 
-import { useEffect, useState } from 'react';
+import { Suspense, useEffect, useState } from 'react';
 import { useRouter, useSearchParams } from 'next/navigation';
 import { api } from '@/lib/api';
 import { Loader2, ShieldCheck, AlertCircle } from 'lucide-react';
 
-export default function VerifyEmailPage() {
-  const router = useRouter();
+function VerifyEmailContent() {
   const searchParams = useSearchParams();
+  const router = useRouter();
   const token = searchParams.get('token');
 
   const [status, setStatus] = useState<'verifying' | 'success' | 'error'>('verifying');
@@ -80,5 +80,20 @@ export default function VerifyEmailPage() {
         </a>
       </div>
     </div>
+  );
+}
+
+export default function VerifyEmailPage() {
+  return (
+    <Suspense fallback={
+      <div className="min-h-[60vh] flex items-center justify-center py-12 px-4">
+        <div className="text-center space-y-4">
+          <Loader2 className="w-12 h-12 text-brand animate-spin mx-auto" />
+          <p className="text-gray-400 text-sm">Verifying your email address...</p>
+        </div>
+      </div>
+    }>
+      <VerifyEmailContent />
+    </Suspense>
   );
 }
