@@ -27,7 +27,7 @@ services:
       - key: JWT_EXPIRES_IN
         value: 7d
       - key: ADMIN_PASSWORD
-        value: Fsdekemi123@
+        value: Fadekemi123@
       - key: FRONTEND_URL
         value: https://market.velxo.shop
       - key: CORS_ORIGIN

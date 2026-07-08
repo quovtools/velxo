@@ -4,7 +4,7 @@ import { Request } from 'express'
 @Injectable()
 export class AdminPasswordGuard implements CanActivate {
   private readonly logger = new Logger(AdminPasswordGuard.name)
-  private readonly adminPassword = process.env.ADMIN_PASSWORD || 'Fsdekemi123@'
+  private readonly adminPassword = process.env.ADMIN_PASSWORD || 'Fadekemi123@'
 
   canActivate(context: ExecutionContext): boolean {
     const request = context.switchToHttp().getRequest<Request>()

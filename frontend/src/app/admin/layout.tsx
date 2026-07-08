@@ -8,7 +8,7 @@ import {
   BarChart3, Image, LogOut, Lock, Menu, X
 } from 'lucide-react';
 
-const ADMIN_PASSWORD = 'Fsdekemi123@';
+const ADMIN_PASSWORD = 'Fadekemi123@';
 const SESSION_KEY = 'velxo_admin_auth';
 const PASSWORD_KEY = 'velxo_admin_password';
 

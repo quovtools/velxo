@@ -36,6 +36,7 @@ export default function AuthCallbackPage() {
             firstName: res.data.firstName,
             lastName: res.data.lastName,
             role: res.data.role,
+            emailVerified: res.data.emailVerified,
           });
         }
       } catch {}

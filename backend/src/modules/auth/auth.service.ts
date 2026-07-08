@@ -302,10 +302,13 @@ export class AuthService {
         },
       })
       await this.prisma.wallet.create({ data: { userId: user.id } }).catch(() => {})
-    } else if (!user.firstName) {
+    } else {
       await this.prisma.users.update({
         where: { id: user.id },
-        data: { firstName: given_name, lastName: family_name, emailVerified: true },
+        data: {
+          emailVerified: true,
+          ...(user.firstName ? {} : { firstName: given_name, lastName: family_name }),
+        },
       })
     }
 
@@ -315,7 +318,7 @@ export class AuthService {
 
     const accessToken = this.signToken(user.id, user.email, user.role)
     return {
-      user: { id: user.id, email: user.email, firstName: user.firstName, lastName: user.lastName, role: user.role },
+      user: { id: user.id, email: user.email, firstName: user.firstName, lastName: user.lastName, role: user.role, emailVerified: true },
       accessToken,
     }
   }
