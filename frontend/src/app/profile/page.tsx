@@ -79,6 +79,21 @@ export default function ProfilePage() {
 
   useEffect(() => {
     if (!user) { router.push('/auth/login'); return; }
+
+    // Seed from the session so the profile is never empty while /auth/me loads
+    // (or if it fails) — important for Google sign-in where session already has the data.
+    setProfile(prev => prev ?? {
+      id: user.id,
+      email: user.email || '',
+      firstName: user.firstName || '',
+      lastName: user.lastName || '',
+      phone: '',
+      avatarUrl: '',
+      emailVerified: !!user.emailVerified,
+      role: user.role,
+      createdAt: '',
+    });
+
     api.get<{ success: boolean; data: ProfileData }>('/auth/me')
       .then(res => {
         if (res.success && res.data) {
@@ -88,9 +103,6 @@ export default function ProfilePage() {
           setLastName(p.lastName || '');
           setPhone(p.phone || '');
           setAvatar(p.avatarUrl || '');
-          if (p.notificationPreferences) {
-            setNotifPrefs(prev => ({ ...prev, ...p.notificationPreferences }));
-          }
         }
       })
       .catch(() => {})
