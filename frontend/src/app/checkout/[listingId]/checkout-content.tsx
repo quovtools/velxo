@@ -4,7 +4,7 @@ import React, { useState, useEffect, use } from 'react';
 import { useRouter } from 'next/navigation';
 import { api } from '@/lib/api';
 import { useAuth } from '@/app/providers';
-import { CreditCard, ShieldCheck, Wallet, Sparkles } from 'lucide-react';
+import { ShieldCheck, Wallet, Sparkles } from 'lucide-react';
 
 const API_BASE = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:3001/api/v1';
 
@@ -24,7 +24,7 @@ export default function CheckoutContent({ params }: { params: Promise<{ listingI
 
   const [listing, setListing] = useState<Listing | null>(null);
   const [loadingListing, setLoadingListing] = useState(true);
-  const [paymentProvider, setPaymentProvider] = useState<'PAYSTACK' | 'FLUTTERWAVE' | 'CRYPTO'>('PAYSTACK');
+  const [paymentProvider, setPaymentProvider] = useState<'FLUTTERWAVE' | 'PAYMENT_IO'>('FLUTTERWAVE');
   const [buyerNote, setBuyerNote] = useState('');
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
@@ -65,12 +65,19 @@ export default function CheckoutContent({ params }: { params: Promise<{ listingI
       if (response.success && response.data) {
         const orderId = response.data.id;
 
-        await api.post(`/payments`, {
+        const payRes = await api.post(`/payments`, {
           orderId,
           provider: paymentProvider,
           amount: parseFloat(listing?.price || '0'),
           currency: 'USD',
         });
+
+        const paymentUrl = (payRes as any)?.data?.paymentUrl;
+        if (paymentUrl) {
+          // Redirect to the Payment.io crypto checkout
+          window.location.href = paymentUrl;
+          return;
+        }
 
         router.push(`/orders/${orderId}`);
       } else {
@@ -107,19 +114,19 @@ export default function CheckoutContent({ params }: { params: Promise<{ listingI
           <p className="text-gray-400 text-sm">Select payment provider to process and lock funds in escrow.</p>
 
           <form onSubmit={handleCheckout} className="space-y-6">
-            <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
               <button
                 type="button"
-                onClick={() => setPaymentProvider('PAYSTACK')}
+                onClick={() => setPaymentProvider('PAYMENT_IO')}
                 className={`flex flex-col items-center justify-center p-6 rounded-2xl border text-center transition ${
-                  paymentProvider === 'PAYSTACK'
+                  paymentProvider === 'PAYMENT_IO'
                     ? 'border-brand bg-brand/5 text-white'
                     : 'border-borderBg bg-background text-gray-400 hover:border-brand/40'
                 }`}
               >
-                <CreditCard className="w-8 h-8 mb-2" />
-                <span className="font-bold text-sm">Paystack</span>
-                <span className="text-[10px] text-gray-500 mt-1">Cards / Bank Transfers</span>
+                <Sparkles className="w-8 h-8 mb-2" />
+                <span className="font-bold text-sm">Payment.io</span>
+                <span className="text-[10px] text-gray-500 mt-1">Crypto (BTC, USDT, SOL)</span>
               </button>
 
               <button
@@ -134,20 +141,6 @@ export default function CheckoutContent({ params }: { params: Promise<{ listingI
                 <Wallet className="w-8 h-8 mb-2" />
                 <span className="font-bold text-sm">Flutterwave</span>
                 <span className="text-[10px] text-gray-500 mt-1">Mobile Money / Cards</span>
-              </button>
-
-              <button
-                type="button"
-                onClick={() => setPaymentProvider('CRYPTO')}
-                className={`flex flex-col items-center justify-center p-6 rounded-2xl border text-center transition ${
-                  paymentProvider === 'CRYPTO'
-                    ? 'border-brand bg-brand/5 text-white'
-                    : 'border-borderBg bg-background text-gray-400 hover:border-brand/40'
-                }`}
-              >
-                <Sparkles className="w-8 h-8 mb-2" />
-                <span className="font-bold text-sm">Crypto</span>
-                <span className="text-[10px] text-gray-500 mt-1">Bitcoin, USDT, Solana</span>
               </button>
             </div>
 

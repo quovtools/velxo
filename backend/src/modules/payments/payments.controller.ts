@@ -1,6 +1,9 @@
-import { Controller, Post, Body, Logger, Headers } from '@nestjs/common'
+import { Controller, Post, Body, Logger, Headers, Req, UseGuards } from '@nestjs/common'
 import { PaymentsService } from './payments.service'
+import { PaymentProvider } from '@prisma/client'
 import { ApiResponseDto } from '@/common/dto/api-response.dto'
+import { SupabaseJwtGuard } from '@/common/guards/supabase-jwt.guard'
+import { CurrentUserId } from '@/common/decorators/current-user.decorator'
 
 @Controller('payments')
 export class PaymentsController {
@@ -8,14 +11,26 @@ export class PaymentsController {
 
   constructor(private paymentsService: PaymentsService) {}
 
-  @Post('webhook/stripe')
-  async handleStripeWebhook(@Body() event: any, @Headers('stripe-signature') signature: string) {
+  @Post()
+  @UseGuards(SupabaseJwtGuard)
+  async createPayment(
+    @CurrentUserId() userId: string,
+    @Body('orderId') orderId: string,
+    @Body('provider') provider: PaymentProvider,
+    @Body('amount') amount: number,
+    @Body('currency') currency?: string,
+  ) {
     try {
-      // TODO: Verify stripe signature
-      await this.paymentsService.handleStripeWebhook(event)
-      return ApiResponseDto.ok(null, 'Webhook processed')
+      const callbackUrl = `${process.env.FRONTEND_URL || 'https://market.velxo.shop'}/orders/${orderId}`
+      const result = await this.paymentsService.initiatePayment(
+        orderId,
+        amount,
+        provider,
+        callbackUrl,
+      )
+      return ApiResponseDto.ok(result, 'Payment initiated')
     } catch (error) {
-      this.logger.error('Error processing Stripe webhook:', error)
+      this.logger.error('Error initiating payment:', error)
       throw error
     }
   }
@@ -31,13 +46,30 @@ export class PaymentsController {
     }
   }
 
-  @Post('webhook/paypal')
-  async handlePayPalWebhook(@Body() event: any) {
+  @Post('webhook/paymentio')
+  async handlePaymentIoWebhook(
+    @Req() req: any,
+    @Body() event: any,
+    @Headers('x-paymentio-signature') signature: string,
+  ) {
     try {
-      await this.paymentsService.handlePayPalWebhook(event)
+      // Raw body is required for HMAC verification; fall back to JSON stringify.
+      const rawBody =
+        typeof req.rawBody === 'string'
+          ? req.rawBody
+          : typeof req.body === 'string'
+            ? req.body
+            : JSON.stringify(event)
+
+      if (signature && !this.paymentsService.verifyPaymentIoIpn(rawBody, signature)) {
+        this.logger.warn('Payment.io IPN signature verification failed')
+        return ApiResponseDto.ok(null, 'Ignored')
+      }
+
+      await this.paymentsService.handlePaymentIoWebhook(event)
       return ApiResponseDto.ok(null, 'Webhook processed')
     } catch (error) {
-      this.logger.error('Error processing PayPal webhook:', error)
+      this.logger.error('Error processing Payment.io webhook:', error)
       throw error
     }
   }

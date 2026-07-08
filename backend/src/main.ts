@@ -6,7 +6,7 @@ import helmet from 'helmet'
 import rateLimit from 'express-rate-limit'
 import express from 'express'
 import { AllExceptionsFilter } from './common/filters/all-exceptions.filter'
-import { PrismaService } from './common/services/prisma.service'
+import { execSync } from 'child_process'
 
 async function bootstrap() {
   const logger = new Logger('Bootstrap')
@@ -49,7 +49,13 @@ async function bootstrap() {
 
   // Allow larger request bodies (base64 image uploads via the admin panel).
   // Default Nest/Express JSON limit is 100kb, which rejects base64 images.
-  expressApp.use(express.json({ limit: '25mb' }))
+  // `verify` captures the raw body so payment webhooks can verify their HMAC signature.
+  expressApp.use(express.json({
+    limit: '25mb',
+    verify: (req: any, _res, buf) => {
+      if (buf && buf.length) req.rawBody = buf.toString('utf8')
+    },
+  }))
   expressApp.use(express.urlencoded({ limit: '25mb', extended: true }))
 
   app.use(helmet())
@@ -104,20 +110,19 @@ async function bootstrap() {
     res.status(200).end()
   })
 
-  // Self-healing schema migration: ensure any columns added in newer code
-  // exist in the production database. Runs against the app's own runtime
-  // DATABASE_URL so it always targets the correct database.
+  // Self-healing schema migration: apply the full Prisma schema to the
+  // production database at startup, using the app's own runtime DATABASE_URL.
+  // This guarantees every table/column added in newer code exists, regardless
+  // of whether the build-time push reached the runtime database.
   try {
-    const prisma = app.get(PrismaService)
-    await prisma.$executeRawUnsafe(
-      `ALTER TABLE users ADD COLUMN IF NOT EXISTS "notificationPreferences" JSONB;`,
-    )
-    await prisma.$executeRawUnsafe(
-      `ALTER TABLE users ADD COLUMN IF NOT EXISTS "preferences" JSONB;`,
-    )
-    logger.log('Schema migration check complete')
+    logger.log('Running schema migration (prisma db push)...')
+    execSync('npx prisma db push --accept-data-loss --skip-generate', {
+      stdio: 'inherit',
+      env: process.env,
+    })
+    logger.log('Schema migration complete')
   } catch (schemaErr) {
-    logger.error('Schema migration check failed (app will still try to start):', schemaErr)
+    logger.error('Schema migration failed (app will still try to start):', schemaErr)
   }
 
   const port = process.env.PORT || 3001

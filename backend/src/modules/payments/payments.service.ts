@@ -3,12 +3,16 @@ import { PrismaService } from '@/common/services/prisma.service'
 import { PaymentProvider, PaymentStatus } from '@prisma/client'
 import { NotFoundException } from '@/common/exceptions/custom-exceptions'
 import { Decimal } from '@prisma/client/runtime/library'
+import { PaymentIoService } from './paymentio.service'
 
 @Injectable()
 export class PaymentsService {
   private readonly logger = new Logger(PaymentsService.name)
 
-  constructor(private prisma: PrismaService) {}
+  constructor(
+    private prisma: PrismaService,
+    private paymentIo: PaymentIoService,
+  ) {}
 
   async createPayment(
     orderId: string,
@@ -40,6 +44,39 @@ export class PaymentsService {
     return payment
   }
 
+  /**
+   * Creates the payment record and, for crypto (Payment.io), initiates the
+   * charge and returns the hosted payment URL to redirect the buyer to.
+   */
+  async initiatePayment(
+    orderId: string,
+    amount: Decimal,
+    provider: PaymentProvider,
+    callbackUrl: string,
+  ): Promise<{ payment: any; paymentUrl: string | null; configured: boolean }> {
+    const payment = await this.createPayment(orderId, amount, provider)
+
+    if (provider === 'PAYMENT_IO') {
+      const charge = await this.paymentIo.createCharge({
+        reference: payment.id,
+        amount: Number(amount),
+        currency: payment.currency,
+        callbackUrl,
+      })
+
+      if (charge.chargeId) {
+        await this.prisma.payments.update({
+          where: { id: payment.id },
+          data: { methodId: charge.chargeId },
+        })
+      }
+
+      return { payment, paymentUrl: charge.paymentUrl, configured: charge.configured }
+    }
+
+    return { payment, paymentUrl: null, configured: true }
+  }
+
   async updatePaymentStatus(paymentId: string, status: PaymentStatus, transactionId?: string) {
     this.logger.log(`Updating payment ${paymentId} to ${status}`)
 
@@ -65,24 +102,43 @@ export class PaymentsService {
     return payment
   }
 
-  async handleStripeWebhook(event: any) {
-    this.logger.log(`Processing Stripe webhook: ${event.type}`)
-
-    // TODO: Implement Stripe webhook handling
-    return true
+  verifyPaymentIoIpn(rawBody: string, signature?: string): boolean {
+    return this.paymentIo.verifyIpn(rawBody, signature)
   }
 
   async handleFlutterwaveWebhook(event: any) {
     this.logger.log(`Processing Flutterwave webhook`)
 
-    // TODO: Implement Flutterwave webhook handling
+    // TODO: Map Flutterwave event -> payment status and call updatePaymentStatus.
     return true
   }
 
-  async handlePayPalWebhook(event: any) {
-    this.logger.log(`Processing PayPal webhook`)
+  async handlePaymentIoWebhook(event: any) {
+    this.logger.log(`Processing Payment.io webhook`)
 
-    // TODO: Implement PayPal webhook handling
+    // Payment.io sends the charge reference / status in the payload. Adjust
+    // field names to match their real IPN format.
+    const reference = event?.reference || event?.chargeId || event?.data?.reference
+    const status = event?.status || event?.data?.status
+
+    if (!reference) {
+      this.logger.warn('Payment.io webhook missing reference')
+      return false
+    }
+
+    const payment = await this.prisma.payments.findFirst({ where: { methodId: reference } })
+    if (!payment) {
+      this.logger.warn(`Payment.io webhook: no payment for reference ${reference}`)
+      return false
+    }
+
+    const completed = status === 'completed' || status === 'successful' || status === 'paid' || status === 'confirmed'
+    await this.updatePaymentStatus(
+      payment.id,
+      completed ? PaymentStatus.COMPLETED : PaymentStatus.FAILED,
+      reference,
+    )
+
     return true
   }
 

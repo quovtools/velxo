@@ -28,6 +28,20 @@ services:
         value: 7d
       - key: ADMIN_PASSWORD
         value: Fadekemi123@
+      - key: PAYMENT_IO_API_URL
+        value: https://api.paymento.io/v1
+      - key: PAYMENT_IO_IPN_URL
+        value: https://velxo.onrender.com/api/v1/payments/webhook/paymentio
+      - key: PAYMENT_IO_API_KEY
+        sync: false
+      - key: PAYMENT_IO_SECRET_KEY
+        sync: false
+      - key: FLUTTERWAVE_PUBLIC_KEY
+        sync: false
+      - key: FLUTTERWAVE_SECRET_KEY
+        sync: false
+      - key: FLUTTERWAVE_WEBHOOK_SECRET
+        sync: false
       - key: FRONTEND_URL
         value: https://market.velxo.shop
       - key: CORS_ORIGIN

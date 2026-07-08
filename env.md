@@ -52,11 +52,13 @@ This document covers all environment variables for the Velxo stack. Variables ma
 
 | Variable | Scope | Description |
 |----------|-------|-------------|
-| `FLUTTERWAVE_PUBLIC_KEY` | Server | Flutterwave public key |
+| `FLUTTERWAVE_PUBLIC_KEY` | Server | Flutterwave public key (cards / bank transfer) |
 | `FLUTTERWAVE_SECRET_KEY` | Server | Flutterwave secret key |
 | `FLUTTERWAVE_WEBHOOK_SECRET` | Server | Flutterwave webhook signing secret |
+| `PAYMENT_IO_API_URL` | Server | Payment.io API base URL (e.g. https://api.paymento.io/v1) |
 | `PAYMENT_IO_API_KEY` | Server | Payment.io API key (crypto payments) |
-| `PAYMENT_IO_WEBHOOK_SECRET` | Server | Payment.io webhook signing secret |
+| `PAYMENT_IO_SECRET_KEY` | Server | Payment.io secret key (used to verify IPN HMAC signature) |
+| `PAYMENT_IO_IPN_URL` | Server | Payment.io IPN callback URL (e.g. https://<backend>/api/v1/payments/webhook/paymentio) |
 
 ## Backend — Email
 
