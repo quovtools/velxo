@@ -65,10 +65,17 @@ export class PaymentIoService {
       }
 
       // Paymento returns the payment token. It may be plain text or JSON.
+      // The token lives in `body` (e.g. {"body":"<token>","success":true,...}).
       let token = text.trim()
       try {
         const json = JSON.parse(text)
-        if (json?.token) token = String(json.token)
+        token = String(
+          json?.body ??
+            json?.token ??
+            json?.data?.body ??
+            json?.data?.token ??
+            token,
+        )
       } catch {
         // plain-text token — keep as-is
       }
@@ -85,6 +92,38 @@ export class PaymentIoService {
     } catch (err: any) {
       this.logger.error('Paymento createCharge error:', err?.message || err)
       throw err
+    }
+  }
+
+  /**
+   * Verify a payment token with Paymento's Verify API before trusting an IPN.
+   * Paymento recommends always confirming server-side rather than relying on
+   * the callback body alone. Docs: POST {apiUrl}/payment/verify { token }.
+   */
+  async verifyPayment(token: string): Promise<boolean> {
+    if (!this.isConfigured) return false
+    try {
+      const res = await fetch(`${this.apiUrl}/payment/verify`, {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+          'Api-key': this.apiKey,
+        },
+        body: JSON.stringify({ token }),
+      })
+      if (!res.ok) return false
+      const data = await res.json().catch(() => null)
+      if (!data) return false
+      return (
+        data.success === true ||
+        data.status === 'completed' ||
+        data.status === 'confirmed' ||
+        data.status === 'paid' ||
+        data.paid === true
+      )
+    } catch (err: any) {
+      this.logger.error('Paymento verifyPayment error:', err?.message || err)
+      return false
     }
   }
 

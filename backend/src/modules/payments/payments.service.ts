@@ -244,8 +244,14 @@ export class PaymentsService implements OnModuleInit {
 
     // Payment.io sends the charge reference / status in the payload. Adjust
     // field names to match their real IPN format.
-    const reference = event?.token || event?.reference || event?.chargeId || event?.data?.token || event?.data?.reference
-    const status = event?.status || event?.data?.status
+    const reference =
+      event?.body ||
+      event?.token ||
+      event?.reference ||
+      event?.chargeId ||
+      event?.data?.body ||
+      event?.data?.token ||
+      event?.data?.reference
 
     if (!reference) {
       this.logger.warn('Payment.io webhook missing reference')
@@ -258,12 +264,15 @@ export class PaymentsService implements OnModuleInit {
       return false
     }
 
-    const completed = status === 'completed' || status === 'successful' || status === 'paid' || status === 'confirmed'
-    await this.updatePaymentStatus(
-      payment.id,
-      completed ? PaymentStatus.COMPLETED : PaymentStatus.FAILED,
-      reference,
-    )
+    // Never trust the IPN body alone — confirm with Paymento's Verify API so a
+    // spurious/early callback can't mark the order paid without a real payment.
+    const verified = await this.paymentIo.verifyPayment(reference).catch(() => false)
+    if (!verified) {
+      this.logger.warn(`Payment.io webhook: token ${reference} not verified by Verify API — leaving order pending`)
+      return false
+    }
+
+    await this.updatePaymentStatus(payment.id, PaymentStatus.COMPLETED, reference)
 
     return true
   }
