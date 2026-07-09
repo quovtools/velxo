@@ -5,9 +5,10 @@ import Link from 'next/link';
 import {
   Shield, Sparkles, UserCheck, MessageSquare, Star,
   ChevronLeft, ChevronRight, Clock, MapPin, Monitor,
-  Award, ShoppingCart, Loader2,
+  Award, ShoppingCart, Loader2, Flag, Store,
 } from 'lucide-react';
 import { useAuth } from '@/app/providers';
+import SellerReportModal from '@/components/SellerReportModal';
 
 interface Listing {
   id: string;
@@ -23,6 +24,7 @@ interface Listing {
   deliveryTime: number;
   images: string[];
   seller: {
+    id: string;
     userId: string;
     storeName: string;
     averageRating: number;
@@ -56,6 +58,7 @@ export default function ListingDetailsContent({ id }: { id: string }) {
   const [loading, setLoading]   = useState(true);
   const [error, setError]       = useState<string | null>(null);
   const [imgIdx, setImgIdx]     = useState(0);
+  const [reportOpen, setReportOpen] = useState(false);
 
   useEffect(() => {
     (async () => {
@@ -264,13 +267,15 @@ export default function ListingDetailsContent({ id }: { id: string }) {
             {/* Seller card */}
             <div className="border-t border-borderBg pt-4 space-y-3">
               <p className="text-xs font-bold text-gray-500 uppercase tracking-wider">Seller</p>
-              <div className="flex items-center gap-3">
-                <div className="w-10 h-10 rounded-full bg-brand/10 border border-brand/20 flex items-center justify-center">
-                  <Award className="w-5 h-5 text-brand-light" />
+              <Link href={`/seller/${listing.seller?.id}`} className="flex items-center gap-3 group">
+                <div className="w-11 h-11 rounded-full bg-gradient-to-br from-brand to-purple-600 p-[2px] flex-shrink-0">
+                  <div className="w-full h-full rounded-full bg-brand/10 border border-brand/20 flex items-center justify-center overflow-hidden">
+                    <Award className="w-5 h-5 text-brand-light" />
+                  </div>
                 </div>
                 <div className="flex-1 min-w-0">
                   <div className="flex items-center gap-1.5">
-                    <span className="font-bold text-sm truncate">{listing.seller?.storeName}</span>
+                    <span className="font-bold text-sm truncate group-hover:text-brand transition">{listing.seller?.storeName}</span>
                     {listing.seller?.isVerified && (
                       <span className="text-[9px] bg-emerald-900/30 text-emerald-400 border border-emerald-500/20 px-1.5 py-0.5 rounded font-bold flex-shrink-0">VERIFIED</span>
                     )}
@@ -280,8 +285,34 @@ export default function ListingDetailsContent({ id }: { id: string }) {
                     <span className="text-xs text-gray-500">{avgRating.toFixed(1)} · {listing.seller?.totalSales || 0} sales</span>
                   </div>
                 </div>
+                <ChevronRight className="w-4 h-4 text-gray-600 group-hover:text-brand transition flex-shrink-0" />
+              </Link>
+
+              <div className="flex items-center gap-2 pt-1">
+                <Link
+                  href={`/seller/${listing.seller?.id}`}
+                  className="flex-1 flex items-center justify-center gap-1.5 bg-background border border-borderBg hover:border-brand/40 py-2.5 rounded-xl text-xs font-bold text-gray-300 hover:text-white transition"
+                >
+                  <Store className="w-3.5 h-3.5" /> View store &amp; listings
+                </Link>
+                {user && (user as any).id !== listing.seller?.userId && (
+                  <button
+                    onClick={() => setReportOpen(true)}
+                    className="flex items-center justify-center gap-1.5 bg-background border border-borderBg hover:border-red-500/40 py-2.5 px-3 rounded-xl text-xs font-bold text-gray-300 hover:text-red-400 transition"
+                    title="Report seller"
+                  >
+                    <Flag className="w-3.5 h-3.5" />
+                  </button>
+                )}
               </div>
             </div>
+
+            <SellerReportModal
+              open={reportOpen}
+              onClose={() => setReportOpen(false)}
+              sellerId={listing.seller?.id || ''}
+              sellerName={listing.seller?.storeName || ''}
+            />
           </div>
         </div>
       </div>

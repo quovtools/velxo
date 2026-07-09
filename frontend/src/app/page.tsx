@@ -22,7 +22,7 @@ interface Listing {
   region: string;
   rank: string;
   isFeatured: boolean;
-  seller: { storeName: string; averageRating: number };
+  seller: { storeName: string; averageRating: number; id?: string };
 }
 
 const GAMES = [
@@ -363,7 +363,13 @@ function MarketplaceContent() {
                     {item.title}
                   </h3>
                   <div className="flex items-center justify-between text-[11px] text-gray-500 mt-2">
-                    <span className="truncate">{item.seller?.storeName}</span>
+                    {item.seller?.id ? (
+                      <Link href={`/seller/${item.seller.id}`} className="truncate hover:text-brand transition">
+                        {item.seller?.storeName}
+                      </Link>
+                    ) : (
+                      <span className="truncate">{item.seller?.storeName}</span>
+                    )}
                     <span className="flex items-center gap-0.5 flex-shrink-0">
                       <Star className="w-3 h-3 text-brand fill-brand" />
                       {item.seller?.averageRating?.toFixed(1) || '0.0'}

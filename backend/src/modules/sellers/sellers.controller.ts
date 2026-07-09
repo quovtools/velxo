@@ -56,6 +56,23 @@ export class SellersController {
     }
   }
 
+  @Post(':id/report')
+  @UseGuards(SupabaseJwtGuard)
+  async reportSeller(
+    @Param('id') sellerId: string,
+    @CurrentUserId() reporterId: string,
+    @Body('reason') reason: string,
+    @Body('details') details?: string,
+  ) {
+    try {
+      const result = await this.sellersService.reportSeller(sellerId, reporterId, reason, details)
+      return ApiResponseDto.ok(result, 'Report submitted successfully')
+    } catch (error) {
+      this.logger.error('Error reporting seller:', error)
+      throw error
+    }
+  }
+
   @Get('top-sellers')
   async getTopSellers(@Query('limit') limit?: number) {
     try {

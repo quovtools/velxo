@@ -65,7 +65,103 @@ export class SellersService {
       throw new NotFoundException('Seller')
     }
 
-    return seller
+    const [totalListings, activeListings, recentListings] = await Promise.all([
+      this.prisma.listings.count({ where: { sellerId: seller.id } }),
+      this.prisma.listings.count({ where: { sellerId: seller.id, status: 'ACTIVE' } }),
+      this.prisma.listings.findMany({
+        where: { sellerId: seller.id, status: 'ACTIVE' },
+        orderBy: { createdAt: 'desc' },
+        take: 12,
+        select: {
+          id: true,
+          title: true,
+          price: true,
+          gameName: true,
+          platform: true,
+          region: true,
+          images: true,
+          status: true,
+          salesCount: true,
+          createdAt: true,
+        },
+      }),
+    ])
+
+    return {
+      id: seller.id,
+      storeName: seller.storeName,
+      storeDescription: seller.storeDescription,
+      isVerified: seller.isVerified,
+      verifiedAt: seller.verifiedAt,
+      averageRating: seller.averageRating,
+      totalSales: seller.totalSales,
+      totalRevenue: Number(seller.totalRevenue || 0),
+      responseTime: seller.responseTime,
+      responseRate: seller.responseRate,
+      reputationScore: seller.reputationScore,
+      subscriptionTier: seller.subscriptionTier,
+      isSuspended: seller.isSuspended,
+      createdAt: seller.createdAt,
+      user: seller.user,
+      stats: {
+        totalListings,
+        activeListings,
+        totalSales: seller.totalSales,
+        averageRating: seller.averageRating,
+        responseTime: seller.responseTime,
+        responseRate: seller.responseRate,
+        memberSince: seller.createdAt,
+      },
+      listings: recentListings.map((l) => ({
+        id: l.id,
+        title: l.title,
+        price: Number(l.price),
+        gameName: l.gameName,
+        platform: l.platform,
+        region: l.region,
+        images: l.images,
+        status: l.status,
+        salesCount: l.salesCount,
+        createdAt: l.createdAt,
+      })),
+    }
+  }
+
+  async reportSeller(
+    sellerId: string,
+    reporterUserId: string,
+    reason: string,
+    details?: string,
+  ) {
+    this.logger.log(`Report submitted for seller ${sellerId} by user ${reporterUserId}`)
+
+    const seller = await this.prisma.sellers.findUnique({
+      where: { id: sellerId },
+      select: { id: true, storeName: true, userId: true },
+    })
+
+    if (!seller) {
+      throw new NotFoundException('Seller')
+    }
+
+    const ticket = await this.prisma.supportTickets.create({
+      data: {
+        userId: reporterUserId,
+        subject: `Seller report: ${seller.storeName}`,
+        category: 'OTHER',
+        priority: 'MEDIUM',
+        metadata: {
+          type: 'SELLER_REPORT',
+          reportedSellerId: seller.id,
+          reportedSellerUserId: seller.userId,
+          reportedStoreName: seller.storeName,
+          reason,
+          details: details || null,
+        },
+      },
+    })
+
+    return { id: ticket.id, message: 'Report submitted successfully' }
   }
 
   async getSellerByUserId(userId: string) {
