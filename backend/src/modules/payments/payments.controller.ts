@@ -1,4 +1,4 @@
-import { Controller, Post, Body, Logger, Headers, Req, UseGuards } from '@nestjs/common'
+import { Controller, Post, Body, Logger, Headers, Req, UseGuards, Get } from '@nestjs/common'
 import { PaymentsService } from './payments.service'
 import { PaymentProvider } from '@prisma/client'
 import { ApiResponseDto } from '@/common/dto/api-response.dto'
@@ -11,6 +11,12 @@ export class PaymentsController {
   private readonly logger = new Logger(PaymentsController.name)
 
   constructor(private paymentsService: PaymentsService) {}
+
+  @Get('config')
+  async getConfig() {
+    return ApiResponseDto.ok(this.paymentsService.getProviderConfig(), 'Payment provider configuration')
+  }
+
 
   @Post()
   @UseGuards(SupabaseJwtGuard)

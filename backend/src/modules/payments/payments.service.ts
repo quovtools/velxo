@@ -1,18 +1,18 @@
-import { Injectable, Logger } from '@nestjs/common'
+import { Injectable, Logger, OnModuleInit } from '@nestjs/common'
 import { PrismaService } from '@/common/services/prisma.service'
 import { PaymentProvider, PaymentStatus, OrderStatus, ListingStatus } from '@prisma/client'
 import {
   NotFoundException,
   ForbiddenException,
   BadRequestException,
-} from '@/common/exceptions/custom-exceptions'
+} from '@common/exceptions/custom-exceptions'
 import { Decimal } from '@prisma/client/runtime/library'
 import { PaymentIoService } from './paymentio.service'
 import { FlutterwaveService } from './flutterwave.service'
 import { NotificationsService } from '../notifications/notifications.service'
 
 @Injectable()
-export class PaymentsService {
+export class PaymentsService implements OnModuleInit {
   private readonly logger = new Logger(PaymentsService.name)
 
   constructor(
@@ -21,6 +21,32 @@ export class PaymentsService {
     private flutterwave: FlutterwaveService,
     private notifications: NotificationsService,
   ) {}
+
+  onModuleInit() {
+    this.logger.log(`Payment provider config: ${JSON.stringify(this.getProviderConfig())}`)
+  }
+
+  /**
+   * Reports which payment providers are configured from environment variables.
+   * Exposes only booleans (and non-secret URLs) so it is safe to call/log.
+   */
+  getProviderConfig() {
+    return {
+      paymentIo: {
+        configured: this.paymentIo.isConfigured,
+        hasApiUrl: Boolean(process.env.PAYMENT_IO_API_URL),
+        hasApiKey: Boolean(process.env.PAYMENT_IO_API_KEY),
+        hasSecretKey: Boolean(process.env.PAYMENT_IO_SECRET_KEY),
+        apiUrl: process.env.PAYMENT_IO_API_URL || null,
+      },
+      flutterwave: {
+        configured: this.flutterwave.isConfigured,
+        hasApiUrl: Boolean(process.env.FLUTTERWAVE_API_URL),
+        hasSecretKey: Boolean(process.env.FLUTTERWAVE_SECRET_KEY),
+      },
+    }
+  }
+
 
   async createPayment(
     orderId: string,
