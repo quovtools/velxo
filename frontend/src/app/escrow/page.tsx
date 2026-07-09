@@ -1,7 +1,8 @@
-import React from 'react';
+import React, { Suspense } from 'react';
 import Link from 'next/link';
 import type { Metadata } from 'next';
-import { ShieldCheck, Lock, CheckCircle, AlertTriangle, ArrowRight, Clock, Banknote, RefreshCcw } from 'lucide-react';
+import { ShieldCheck, Lock, CheckCircle, AlertTriangle, ArrowRight, Clock, Banknote, RefreshCcw, Loader2 } from 'lucide-react';
+import EscrowTracker from './escrow-tracker';
 
 export const metadata: Metadata = {
   title: 'How Velxo Escrow Works | Safe Gaming Trades',
@@ -93,9 +94,22 @@ const faqs = [
   },
 ];
 
+function TrackerFallback() {
+  return (
+    <div className="bg-cardBg border border-borderBg rounded-3xl p-8 flex items-center justify-center text-gray-500 gap-2">
+      <Loader2 className="w-5 h-5 animate-spin" /> Loading escrow dashboard...
+    </div>
+  );
+}
+
 export default function EscrowPage() {
   return (
     <div className="space-y-16 my-8">
+      {/* Live escrow tracker — appears when arriving from checkout */}
+      <Suspense fallback={<TrackerFallback />}>
+        <EscrowTracker />
+      </Suspense>
+
       {/* Hero */}
       <div className="text-center space-y-5 max-w-2xl mx-auto">
         <div className="w-16 h-16 bg-brand/10 rounded-2xl flex items-center justify-center mx-auto border border-brand/20">

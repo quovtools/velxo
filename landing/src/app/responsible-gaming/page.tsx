@@ -5,8 +5,9 @@ import Footer from '@/components/Footer';
 import { ShieldCheck, AlertTriangle, Phone, Heart, CheckCircle, BookOpen } from 'lucide-react';
 
 export const metadata: Metadata = {
-  title: "Responsible Gaming — Velxo",
+  title: "Responsible Gaming",
   description: "Velxo is a safe, fair, and transparent peer-to-peer gaming marketplace — not a gambling platform. Learn about our safety principles and commitments.",
+  keywords: ["responsible gaming", "safe gaming marketplace", "velxo safety", "anti scam gaming"],
   alternates: { canonical: "https://velxo.shop/responsible-gaming" },
   openGraph: {
     title: "Responsible Gaming — Velxo",
@@ -14,6 +15,13 @@ export const metadata: Metadata = {
     url: "https://velxo.shop/responsible-gaming",
     siteName: "Velxo",
     type: "website",
+    images: [{ url: "/og.png", width: 1200, height: 630, alt: "Velxo Responsible Gaming" }],
+  },
+  twitter: {
+    card: "summary_large_image",
+    title: "Responsible Gaming — Velxo",
+    description: "Safe trading, always. How Velxo protects its community.",
+    images: ["/og.png"],
   },
 };
 

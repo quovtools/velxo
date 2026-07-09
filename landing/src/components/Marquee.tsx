@@ -10,15 +10,15 @@ const ITEMS = [
 export default function Marquee() {
   const doubled = [...ITEMS, ...ITEMS];
   return (
-    <div className="relative overflow-hidden border-y border-[#1F2937] bg-[#111827]/50 py-4">
-      <div className="flex animate-marquee whitespace-nowrap gap-0">
+    <section aria-label="Supported games" className="relative overflow-hidden border-y border-white/10 bg-white/[0.02] py-4">
+      <div className="flex animate-marquee whitespace-nowrap will-change-transform">
         {doubled.map((item, i) => (
           <span key={i} aria-hidden={i >= ITEMS.length} className="inline-flex items-center gap-2 px-6 text-sm font-semibold text-gray-500">
-            <ShieldCheck className="w-3.5 h-3.5 text-[#8B5CF6]" />
+            <ShieldCheck className="h-3.5 w-3.5 text-brand-500" />
             {item}
           </span>
         ))}
       </div>
-    </div>
+    </section>
   );
 }

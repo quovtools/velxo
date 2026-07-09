@@ -5,24 +5,7 @@ import { useRouter } from 'next/navigation';
 import { api } from '@/lib/api';
 import { useAuth } from '@/app/providers';
 import LoadingLogo from '@/components/LoadingLogo';
-import { ShieldCheck, Wallet, Sparkles, Zap, Gamepad2, Check, Lock } from 'lucide-react';
-
-const PROVIDERS = [
-  {
-    id: 'FLUTTERWAVE' as const,
-    name: 'Flutterwave',
-    description: 'Cards, bank transfer & Mobile Money',
-    icon: Wallet,
-    accent: 'text-brand',
-  },
-  {
-    id: 'PAYMENT_IO' as const,
-    name: 'Payment.io',
-    description: 'Crypto (BTC, USDT, SOL)',
-    icon: Sparkles,
-    accent: 'text-brand-accent',
-  },
-];
+import { ShieldCheck, Zap, Gamepad2, Lock } from 'lucide-react';
 
 export default function OrderCheckoutContent({ orderId }: { orderId: string }) {
   const router = useRouter();
@@ -30,7 +13,6 @@ export default function OrderCheckoutContent({ orderId }: { orderId: string }) {
 
   const [order, setOrder] = useState<any | null>(null);
   const [loadingOrder, setLoadingOrder] = useState(true);
-  const [paymentProvider, setPaymentProvider] = useState<'FLUTTERWAVE' | 'PAYMENT_IO'>('FLUTTERWAVE');
   const [buyerNote, setBuyerNote] = useState('');
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
@@ -62,28 +44,12 @@ export default function OrderCheckoutContent({ orderId }: { orderId: string }) {
     setLoading(true);
 
     try {
-      const payRes = await api.post<{ success: boolean; data: { paymentUrl: string | null; configured: boolean } }>(
-        `/payments`,
-        {
-          orderId,
-          provider: paymentProvider,
-          amount: parseFloat(order?.totalAmount || '0'),
-          currency: order?.currency || 'USD',
-        },
-      );
+      if (!order) throw new Error('Order not loaded');
 
-      const paymentUrl = payRes?.data?.paymentUrl;
-      const configured = payRes?.data?.configured;
-
-      if (paymentUrl && configured) {
-        window.location.href = paymentUrl;
-        return;
-      }
-
-      throw new Error(
-        `The selected payment method (${paymentProvider}) is currently unavailable. ` +
-          `Please choose a different payment method or try again later.`,
-      );
+      // The order is already held in escrow. Instead of auto-redirecting to the
+      // hosted payment page, send the buyer to the escrow dashboard where they
+      // can open the payment link when ready.
+      router.push(`/escrow?orderId=${orderId}`);
     } catch (err: any) {
       setError(err.message || 'Payment execution failed');
     } finally {
@@ -127,50 +93,6 @@ export default function OrderCheckoutContent({ orderId }: { orderId: string }) {
             </div>
 
             <form onSubmit={handleCheckout} className="space-y-7">
-              <div>
-                <p className="text-sm font-semibold text-gray-200 mb-3">Choose payment method</p>
-                <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
-                  {PROVIDERS.map((p) => {
-                    const selected = paymentProvider === p.id;
-                    const Icon = p.icon;
-                    return (
-                      <button
-                        key={p.id}
-                        type="button"
-                        aria-pressed={selected}
-                        onClick={() => setPaymentProvider(p.id)}
-                        className={`relative flex items-start gap-3 p-4 rounded-2xl border text-left transition ${
-                          selected
-                            ? 'border-brand bg-brand/5 ring-1 ring-brand/40'
-                            : 'border-borderBg bg-background hover:border-brand/40'
-                        }`}
-                      >
-                        <span
-                          className={`mt-0.5 flex items-center justify-center w-9 h-9 rounded-xl bg-white/5 ${p.accent}`}
-                        >
-                          <Icon className="w-5 h-5" />
-                        </span>
-                        <span className="flex-1 min-w-0">
-                          <span className="flex items-center gap-2">
-                            <span className={`font-bold text-sm ${selected ? 'text-white' : 'text-gray-300'}`}>
-                              {p.name}
-                            </span>
-                          </span>
-                          <span className="block text-xs text-gray-500 mt-0.5">{p.description}</span>
-                        </span>
-                        <span
-                          className={`flex items-center justify-center w-5 h-5 rounded-full border flex-shrink-0 ${
-                            selected ? 'bg-brand border-brand text-white' : 'border-borderBg text-transparent'
-                          }`}
-                        >
-                          <Check className="w-3 h-3" strokeWidth={3} />
-                        </span>
-                      </button>
-                    );
-                  })}
-                </div>
-              </div>
-
               <div>
                 <label htmlFor="buyerNote" className="block text-sm font-semibold text-gray-300 mb-2">
                   Delivery Note <span className="text-gray-500 font-normal">(Optional)</span>

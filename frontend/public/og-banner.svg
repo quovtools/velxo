@@ -1,0 +1,56 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="1200" height="630" viewBox="0 0 1200 630" role="img" aria-label="Velxo — The Safe Marketplace for Gaming Accounts, Items & Top-Ups">
+  <defs>
+    <linearGradient id="bg" x1="0" y1="0" x2="1" y2="1">
+      <stop offset="0%" stop-color="#0f172a"/>
+      <stop offset="45%" stop-color="#1e293b"/>
+      <stop offset="100%" stop-color="#1d4ed8"/>
+    </linearGradient>
+    <linearGradient id="logo" x1="0" y1="0" x2="1" y2="1">
+      <stop offset="0%" stop-color="#3b82f6"/>
+      <stop offset="100%" stop-color="#1d4ed8"/>
+    </linearGradient>
+  </defs>
+
+  <rect width="1200" height="630" fill="url(#bg)"/>
+
+  <!-- Top bar: logo + trust pill -->
+  <g>
+    <rect x="72" y="64" width="64" height="64" rx="16" fill="url(#logo)"/>
+    <text x="104" y="110" font-family="Arial, Helvetica, sans-serif" font-size="40" font-weight="800" fill="#ffffff" text-anchor="middle">V</text>
+    <text x="156" y="112" font-family="Arial, Helvetica, sans-serif" font-size="44" font-weight="800" letter-spacing="-1" fill="#ffffff">Velxo</text>
+
+    <rect x="936" y="76" width="192" height="44" rx="22" fill="#10b981" fill-opacity="0.15" stroke="#10b981" stroke-opacity="0.4"/>
+    <text x="1032" y="104" font-family="Arial, Helvetica, sans-serif" font-size="22" font-weight="700" fill="#6ee7b7" text-anchor="middle">Escrow Protected</text>
+  </g>
+
+  <!-- Center: tagline -->
+  <g font-family="Arial, Helvetica, sans-serif" font-weight="800">
+    <text x="72" y="318" font-size="60" fill="#ffffff">The Safe Marketplace</text>
+    <text x="72" y="392" font-size="60" fill="#60a5fa">for Gaming Accounts, Items</text>
+    <text x="72" y="466" font-size="60" fill="#60a5fa">&amp; Top-Ups</text>
+  </g>
+
+  <!-- Bottom: category pills -->
+  <g font-family="Arial, Helvetica, sans-serif" font-weight="600" font-size="24" fill="#e2e8f0">
+    <g>
+      <rect x="72" y="540" width="180" height="52" rx="26" fill="#ffffff" fill-opacity="0.08" stroke="#ffffff" stroke-opacity="0.18"/>
+      <text x="162" y="573" text-anchor="middle">Buy &amp; Sell</text>
+    </g>
+    <g>
+      <rect x="268" y="540" width="216" height="52" rx="26" fill="#ffffff" fill-opacity="0.08" stroke="#ffffff" stroke-opacity="0.18"/>
+      <text x="376" y="573" text-anchor="middle">Game Accounts</text>
+    </g>
+    <g>
+      <rect x="500" y="540" width="148" height="52" rx="26" fill="#ffffff" fill-opacity="0.08" stroke="#ffffff" stroke-opacity="0.18"/>
+      <text x="574" y="573" text-anchor="middle">Top-Ups</text>
+    </g>
+    <g>
+      <rect x="664" y="540" width="116" height="52" rx="26" fill="#ffffff" fill-opacity="0.08" stroke="#ffffff" stroke-opacity="0.18"/>
+      <text x="722" y="573" text-anchor="middle">Coins</text>
+    </g>
+    <g>
+      <rect x="796" y="540" width="148" height="52" rx="26" fill="#ffffff" fill-opacity="0.08" stroke="#ffffff" stroke-opacity="0.18"/>
+      <text x="870" y="573" text-anchor="middle">Boosting</text>
+    </g>
+  </g>
+</svg>

@@ -30,10 +30,10 @@ export default function SectionNav() {
             <Link
               key={section.href}
               href={section.href}
-              className={`px-4 py-3 text-sm font-semibold transition ${
+              className={`px-4 py-2.5 text-sm font-semibold rounded-full transition whitespace-nowrap ${
                 active
-                  ? 'text-brand border-b-2 border-brand'
-                  : 'text-gray-400 hover:text-white'
+                  ? 'text-white bg-brand shadow-sm shadow-brand/30'
+                  : 'text-gray-400 hover:text-white hover:bg-hoverBg/50'
               }`}
             >
               {section.label}

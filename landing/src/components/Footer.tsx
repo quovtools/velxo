@@ -1,6 +1,6 @@
 import React from 'react';
 import Link from 'next/link';
-import { Twitter, Instagram, Youtube, MessageCircle } from 'lucide-react';
+import { Twitter, Instagram, Youtube, MessageCircle, ShieldCheck } from 'lucide-react';
 
 const isInternal = (href: string) => href.startsWith('/');
 
@@ -37,75 +37,78 @@ const LINKS = {
 };
 
 const SOCIALS = [
-  { icon: <Twitter className="w-4 h-4" />, href: 'https://twitter.com/velxoshop', label: 'Twitter' },
-  { icon: <Instagram className="w-4 h-4" />, href: 'https://instagram.com/velxoshop', label: 'Instagram' },
-  { icon: <Youtube className="w-4 h-4" />, href: 'https://youtube.com/@velxo', label: 'YouTube' },
-  { icon: <MessageCircle className="w-4 h-4" />, href: 'https://discord.gg/velxo', label: 'Discord' },
+  { icon: <Twitter className="h-4 w-4" />, href: 'https://twitter.com/velxoshop', label: 'Twitter' },
+  { icon: <Instagram className="h-4 w-4" />, href: 'https://instagram.com/velxoshop', label: 'Instagram' },
+  { icon: <Youtube className="h-4 w-4" />, href: 'https://youtube.com/@velxo', label: 'YouTube' },
+  { icon: <MessageCircle className="h-4 w-4" />, href: 'https://discord.gg/velxo', label: 'Discord' },
 ];
 
 export default function Footer() {
   return (
-    <footer className="border-t border-gray-200 bg-white mt-8">
-      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-16">
-        <div className="grid grid-cols-1 lg:grid-cols-6 gap-12">
-          {/* Brand */}
-          <div className="lg:col-span-2 space-y-5">
-            <Link href="/" className="flex items-center gap-2">
-              <img src="/logo.png" alt="Velxo" width={36} height={36} className="w-9 h-9 rounded-xl object-cover" />
-              <span className="text-2xl font-black tracking-wider text-gray-900">VELXO</span>
+    <footer className="border-t border-white/10 bg-[#080b14]">
+      <div className="container-x py-16">
+        <div className="grid grid-cols-1 gap-12 lg:grid-cols-6">
+          <div className="space-y-5 lg:col-span-2">
+            <Link href="/" className="flex items-center gap-2" aria-label="Velxo home">
+              <span className="flex h-9 w-9 items-center justify-center rounded-xl bg-gradient-to-br from-brand-500 to-accent shadow-glow">
+                <ShieldCheck className="h-5 w-5 text-white" />
+              </span>
+              <span className="text-2xl font-black tracking-wider text-white">VELXO</span>
             </Link>
-            <p className="text-gray-600 text-sm leading-relaxed max-w-xs">
+            <p className="max-w-xs text-sm leading-relaxed text-gray-400">
               Africa&apos;s most trusted escrow-backed gaming marketplace. Buy and sell safely — every trade, every time.
             </p>
             <div className="flex gap-3">
               {SOCIALS.map((s) => (
                 <a key={s.label} href={s.href} target="_blank" rel="noopener noreferrer" aria-label={s.label}
-                  className="w-9 h-9 rounded-xl bg-gray-100 border border-gray-200 flex items-center justify-center text-gray-600 hover:text-brand hover:border-brand/40 transition">
+                  className="flex h-9 w-9 items-center justify-center rounded-xl border border-white/10 bg-white/[0.04] text-gray-400 transition hover:border-brand/40 hover:text-brand-light">
                   {s.icon}
                 </a>
               ))}
             </div>
-            <div className="inline-flex items-center gap-2 bg-emerald-500/10 border border-emerald-500/20 rounded-lg px-3 py-2">
-              <span className="w-2 h-2 rounded-full bg-emerald-500 animate-pulse" />
-              <span className="text-emerald-500 text-xs font-semibold">Escrow Protected Platform</span>
+            <div className="inline-flex items-center gap-2 rounded-lg border border-accent-emerald/20 bg-accent-emerald/10 px-3 py-2">
+              <span className="relative flex h-2 w-2">
+                <span className="absolute inline-flex h-full w-full animate-ping rounded-full bg-accent-emerald opacity-75" />
+                <span className="relative inline-flex h-2 w-2 rounded-full bg-accent-emerald" />
+              </span>
+              <span className="text-xs font-semibold text-accent-emerald">Escrow Protected Platform</span>
             </div>
           </div>
 
-          {/* Links */}
           {Object.entries(LINKS).map(([section, links]) => (
-            <div key={section} className="space-y-4">
-              <h4 className="text-gray-900 font-bold text-sm uppercase tracking-wider">{section}</h4>
-               <ul className="space-y-2.5">
+            <nav key={section} aria-label={section} className="space-y-4">
+              <h4 className="text-sm font-bold uppercase tracking-wider text-white">{section}</h4>
+              <ul className="space-y-2.5">
                 {links.map((link) => (
                   <li key={link.label}>
                     {isInternal(link.href) ? (
-                      <Link href={link.href} className="text-gray-600 hover:text-brand text-sm transition">
+                      <Link href={link.href} className="text-sm text-gray-400 transition hover:text-brand-light">
                         {link.label}
                       </Link>
                     ) : (
-                      <a href={link.href} className="text-gray-600 hover:text-brand text-sm transition">
+                      <a href={link.href} className="text-sm text-gray-400 transition hover:text-brand-light">
                         {link.label}
                       </a>
                     )}
                   </li>
                 ))}
               </ul>
-            </div>
+            </nav>
           ))}
         </div>
       </div>
 
-      <div className="border-t border-gray-200">
-        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-5 flex flex-col md:flex-row justify-between items-center gap-3 text-xs text-gray-600">
+      <div className="border-t border-white/10">
+        <div className="container-x flex flex-col items-center justify-between gap-3 py-5 text-xs text-gray-500 md:flex-row">
           <p>&copy; {new Date().getFullYear()} Velxo.shop — All rights reserved. Built for Africa&apos;s gaming community.</p>
           <div className="flex gap-5">
-            <a href="https://market.velxo.shop/terms" className="hover:text-brand transition">Terms</a>
-            <a href="https://market.velxo.shop/privacy" className="hover:text-brand transition">Privacy</a>
-            <a href="https://market.velxo.shop/support" className="hover:text-brand transition">Support</a>
+            <a href="https://market.velxo.shop/terms" className="transition hover:text-brand-light">Terms</a>
+            <a href="https://market.velxo.shop/privacy" className="transition hover:text-brand-light">Privacy</a>
+            <a href="https://market.velxo.shop/support" className="transition hover:text-brand-light">Support</a>
           </div>
           <div className="flex items-center gap-2">
             <span>Founder:</span>
-            <span className="text-purple-600 font-semibold">Badeji Precious</span>
+            <span className="font-semibold text-brand-light">Badeji Precious</span>
           </div>
         </div>
       </div>

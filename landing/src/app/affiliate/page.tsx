@@ -5,8 +5,9 @@ import Footer from '@/components/Footer';
 import { TrendingUp, Users, DollarSign, ArrowRight, CheckCircle, Share2 } from 'lucide-react';
 
 export const metadata: Metadata = {
-  title: "Affiliate Program — Velxo",
+  title: "Affiliate Program",
   description: "Earn commission by referring traders to Africa's No.1 gaming marketplace. Tiered commissions up to 5% per trade, no cap, no expiry.",
+  keywords: ["gaming affiliate", "earn money gaming", "velxo affiliate", "referral program africa"],
   alternates: { canonical: "https://velxo.shop/affiliate" },
   openGraph: {
     title: "Affiliate Program — Velxo",
@@ -14,6 +15,13 @@ export const metadata: Metadata = {
     url: "https://velxo.shop/affiliate",
     siteName: "Velxo",
     type: "website",
+    images: [{ url: "/og.png", width: 1200, height: 630, alt: "Velxo Affiliate Program" }],
+  },
+  twitter: {
+    card: "summary_large_image",
+    title: "Affiliate Program — Velxo",
+    description: "Earn by sharing Velxo. Up to 5% commission per trade.",
+    images: ["/og.png"],
   },
 };
 

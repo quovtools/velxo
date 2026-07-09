@@ -108,31 +108,10 @@ export default function CheckoutContent({ listingId }: { listingId: string }) {
 
       const orderId = response.data.id;
 
-      const payRes = await api.post<{ success: boolean; data: { paymentUrl: string | null; configured: boolean } }>(
-        `/payments`,
-        {
-          orderId,
-          provider: paymentProvider,
-          amount: parseFloat(listing?.price || '0'),
-          currency: 'USD',
-        },
-      );
-
-      const paymentUrl = payRes?.data?.paymentUrl;
-      const configured = payRes?.data?.configured;
-
-      // Only redirect to the hosted checkout when a real payment URL exists and
-      // the provider is configured. Otherwise surface an inline error and keep
-      // the order PENDING — never silently pretend the order is paid.
-      if (paymentUrl && configured) {
-        window.location.href = paymentUrl;
-        return;
-      }
-
-      throw new Error(
-        `The selected payment method (${paymentProvider}) is currently unavailable. ` +
-          `Please choose a different payment method or try again later.`,
-      );
+      // The order is now created and held in escrow. Instead of auto-redirecting
+      // straight to the hosted payment page, send the buyer to the escrow
+      // dashboard where they can open the payment link when ready.
+      router.push(`/escrow?orderId=${orderId}`);
     } catch (err: any) {
       setError(err.message || 'Payment execution failed');
     } finally {

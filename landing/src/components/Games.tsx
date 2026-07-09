@@ -16,74 +16,60 @@ const GAMES = [
 
 export default function Games() {
   return (
-    <section id="games" className="py-24 px-4 sm:px-6 lg:px-8 max-w-7xl mx-auto">
-      <div className="flex flex-col sm:flex-row sm:items-end justify-between mb-12 gap-4">
+    <section id="games" aria-labelledby="games-heading" className="section container-x">
+      <div className="mb-12 flex flex-col gap-4 sm:flex-row sm:items-end sm:justify-between">
         <div className="space-y-3">
-          <span className="inline-block text-xs font-bold text-[#A78BFA] uppercase tracking-widest bg-[#8B5CF6]/10 px-4 py-2 rounded-full border border-[#8B5CF6]/20">
-            Top Games
-          </span>
-          <h2 className="text-4xl sm:text-5xl font-black text-white">
+          <span className="eyebrow">Top Games</span>
+          <h2 id="games-heading" className="heading-xl">
             Your favourite games,{' '}
             <span className="text-gradient">all in one place</span>
           </h2>
         </div>
-        <a
-          href="https://market.velxo.shop"
-          className="flex items-center gap-2 text-[#A78BFA] hover:text-white font-semibold text-sm transition whitespace-nowrap group"
-        >
+        <a href="https://market.velxo.shop" className="group inline-flex shrink-0 items-center gap-2 whitespace-nowrap text-sm font-semibold text-brand-light transition hover:text-white">
           Browse all games
-          <ArrowRight className="w-4 h-4 group-hover:translate-x-1 transition-transform" />
+          <ArrowRight className="h-4 w-4 transition-transform group-hover:translate-x-1" />
         </a>
       </div>
 
-      <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-4 gap-4">
+      <ul className="grid grid-cols-2 gap-4 sm:grid-cols-3 lg:grid-cols-4">
         {GAMES.map((game) => (
-          <a
-            key={game.slug}
-            href={`https://market.velxo.shop/games/${game.slug}`}
-            className="group relative bg-[#111827] border border-[#1F2937] hover:border-[#8B5CF6]/40 rounded-2xl p-5 transition-all duration-300 card-glow overflow-hidden"
-          >
-            {/* Colored top accent */}
-            <div
-              className="absolute top-0 left-0 right-0 h-0.5 opacity-60 group-hover:opacity-100 transition-opacity"
-              style={{ background: `linear-gradient(90deg, ${game.color}, transparent)` }}
-            />
-
-            {/* Icon using local SVG */}
-            <div className="w-14 h-14 rounded-xl overflow-hidden mb-4 bg-[#0b0f19] border border-[#1F2937]">
-              <img
-                src={`/games/${game.slug}.png`}
-                alt={game.name}
-                loading="lazy"
-                decoding="async"
-                className="w-full h-full object-cover"
-                onError={(e) => {
-                  const target = e.currentTarget;
-                  const tried = target.src;
-                  const base = `/games/${game.slug}`;
-                  if (!tried.includes('.jpg')) {
-                    target.src = `${base}.jpg`;
-                    return;
-                  }
-                  if (!tried.includes('.svg')) {
-                    target.src = `${base}.svg`;
-                    return;
-                  }
-                  target.src = 'data:image/svg+xml,%3Csvg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 64 64"%3E%3Crect width="64" height="64" rx="14" fill="%231a1a2e"/%3E%3C/svg%3E';
-                }}
+          <li key={game.slug}>
+            <a
+              href={`https://market.velxo.shop/games/${game.slug}`}
+              className="card-surface group block h-full"
+            >
+              <div
+                className="absolute inset-x-0 top-0 h-0.5 opacity-60 transition-opacity group-hover:opacity-100"
+                style={{ background: `linear-gradient(90deg, ${game.color}, transparent)` }}
               />
-            </div>
-
-            <h3 className="font-bold text-white text-sm mb-1 group-hover:text-[#A78BFA] transition-colors">
-              {game.name}
-            </h3>
-            <p className="text-xs text-gray-600 mb-2">{game.tag}</p>
-            <p className="text-xs font-bold" style={{ color: game.color }}>
-              {game.listings} listings
-            </p>
-          </a>
+              <div className="mb-4 flex h-14 w-14 items-center justify-center overflow-hidden rounded-xl border border-white/10 bg-white/[0.04]">
+                <img
+                  src={`/games/${game.slug}.png`}
+                  alt={`${game.name} marketplace listings on Velxo`}
+                  loading="lazy"
+                  decoding="async"
+                  className="h-full w-full object-cover"
+                  onError={(e) => {
+                    const target = e.currentTarget;
+                    const tried = target.src;
+                    const base = `/games/${game.slug}`;
+                    if (!tried.includes('.jpg')) { target.src = `${base}.jpg`; return; }
+                    if (!tried.includes('.svg')) { target.src = `${base}.svg`; return; }
+                    target.src = 'data:image/svg+xml,%3Csvg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 64 64"%3E%3Crect width="64" height="64" rx="14" fill="%231a1a2e"/%3E%3C/svg%3E';
+                  }}
+                />
+              </div>
+              <h3 className="text-sm font-bold text-white transition-colors group-hover:text-brand-light">
+                {game.name}
+              </h3>
+              <p className="mt-0.5 text-xs text-gray-500">{game.tag}</p>
+              <p className="mt-2 text-xs font-bold" style={{ color: game.color }}>
+                {game.listings} listings
+              </p>
+            </a>
+          </li>
         ))}
-      </div>
+      </ul>
     </section>
   );
 }

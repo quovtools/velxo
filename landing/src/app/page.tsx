@@ -13,18 +13,20 @@ import Footer from '@/components/Footer';
 
 export default function LandingPage() {
   return (
-    <main className="min-h-screen bg-[#0b0f19]">
+    <>
       <Navbar />
-      <Hero />
-      <Marquee />
-      <HowItWorks />
-      <Games />
-      <Features />
-      <Pricing />
-      <Testimonials />
-      <About />
-      <CTA />
+      <main>
+        <Hero />
+        <Marquee />
+        <HowItWorks />
+        <Games />
+        <Features />
+        <Pricing />
+        <Testimonials />
+        <About />
+        <CTA />
+      </main>
       <Footer />
-    </main>
+    </>
   );
 }

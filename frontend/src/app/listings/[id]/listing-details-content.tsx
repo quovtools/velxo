@@ -55,15 +55,16 @@ function StarRating({ rating }: { rating: number }) {
   );
 }
 
-export default function ListingDetailsContent({ id }: { id: string }) {
+export default function ListingDetailsContent({ id, initialData }: { id: string; initialData?: Listing | null }) {
   const { user } = useAuth();
-  const [listing, setListing]   = useState<Listing | null>(null);
-  const [loading, setLoading]   = useState(true);
+  const [listing, setListing]   = useState<Listing | null>(initialData ?? null);
+  const [loading, setLoading]   = useState(!initialData);
   const [error, setError]       = useState<string | null>(null);
   const [imgIdx, setImgIdx]     = useState(0);
   const [reportOpen, setReportOpen] = useState(false);
 
   useEffect(() => {
+    if (initialData) return;
     (async () => {
       try {
         const res = await fetch(`${API_BASE}/listings/${id}`);
@@ -76,7 +77,7 @@ export default function ListingDetailsContent({ id }: { id: string }) {
         setLoading(false);
       }
     })();
-  }, [id]);
+  }, [id, initialData]);
 
   if (loading) return (
     <div className="space-y-6 py-8 fade-in">

@@ -5,8 +5,9 @@ import Footer from '@/components/Footer';
 import { Mail, MessageCircle, Twitter, MapPin, Clock } from 'lucide-react';
 
 export const metadata: Metadata = {
-  title: "Contact Us — Velxo",
+  title: "Contact Us",
   description: "Get in touch with Velxo — general enquiries, live chat support, safety reporting, press, and partnerships. We reply within 24 hours, 7 days a week.",
+  keywords: ["contact velxo", "velxo support", "gaming marketplace support", "report scam"],
   alternates: { canonical: "https://velxo.shop/contact" },
   openGraph: {
     title: "Contact Us — Velxo",
@@ -14,6 +15,13 @@ export const metadata: Metadata = {
     url: "https://velxo.shop/contact",
     siteName: "Velxo",
     type: "website",
+    images: [{ url: "/og.png", width: 1200, height: 630, alt: "Contact Velxo" }],
+  },
+  twitter: {
+    card: "summary_large_image",
+    title: "Contact Us — Velxo",
+    description: "Reach the right Velxo team for fast help.",
+    images: ["/og.png"],
   },
 };
 

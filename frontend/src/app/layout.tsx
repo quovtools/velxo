@@ -5,9 +5,15 @@ import NavigationWrapper from "@/components/NavigationWrapper";
 import AppLoader from "@/components/AppLoader";
 import InstallPrompt from "@/components/InstallPrompt";
 
+const SITE_URL = "https://market.velxo.shop";
+
 export const metadata: Metadata = {
-  title: "Velxo Market | Buy & Sell Game Accounts, Coins & More",
-  description: "Browse thousands of verified gaming listings — accounts, top-ups, gift cards and boosting services. All trades protected by Velxo Escrow.",
+  metadataBase: new URL(SITE_URL),
+  title: {
+    default: "Velxo Market | Buy & Sell Game Accounts, Coins & More",
+    template: "%s | Velxo Market",
+  },
+  description: "Browse thousands of verified gaming listings — accounts, top-ups, gift cards and boosting services. All trades protected by Velxo Escrow, Africa's trusted gaming marketplace.",
   applicationName: "Velxo Market",
   manifest: "/manifest.json",
   appleWebApp: {
@@ -16,25 +22,53 @@ export const metadata: Metadata = {
     title: "Velxo",
   },
   formatDetection: { telephone: false },
-  keywords: "gaming marketplace, buy game accounts, sell game accounts, escrow gaming, velxo, africa gaming marketplace, free fire, pubg mobile",
+  keywords: [
+    "gaming marketplace",
+    "buy game accounts",
+    "sell game accounts",
+    "escrow gaming",
+    "velxo",
+    "africa gaming marketplace",
+    "free fire accounts",
+    "pubg mobile uc",
+    "game top ups",
+    "rank boosting",
+    "gift cards",
+  ],
+  authors: [{ name: "Velxo" }],
+  creator: "Velxo",
+  category: "marketplace",
   icons: {
     icon: "/favicon.png",
     apple: "/favicon.png",
   },
   openGraph: {
+    type: "website",
+    url: SITE_URL,
+    siteName: "Velxo Market",
     title: "Velxo Market | Buy & Sell Game Accounts, Coins & More",
     description: "Browse thousands of verified gaming listings — accounts, top-ups, gift cards and boosting services. All trades protected by Velxo Escrow.",
-    url: "https://market.velxo.shop",
-    siteName: "Velxo Market",
-    type: "website",
+    locale: "en_US",
   },
   twitter: {
     card: "summary_large_image",
+    site: "@velxoshop",
+    creator: "@velxoshop",
     title: "Velxo Market | Buy & Sell Game Accounts, Coins & More",
     description: "Browse thousands of verified gaming listings with escrow protection.",
   },
   alternates: {
-    canonical: "https://market.velxo.shop",
+    canonical: SITE_URL,
+  },
+  robots: {
+    index: true,
+    follow: true,
+    googleBot: {
+      index: true,
+      follow: true,
+      "max-image-preview": "large",
+      "max-snippet": -1,
+    },
   },
 };
 
@@ -50,19 +84,32 @@ export default function RootLayout({
 }: Readonly<{
   children: React.ReactNode;
 }>) {
-  const jsonLd = {
-    "@context": "https://schema.org",
-    "@type": "Organization",
-    "name": "Velxo Market",
-    "url": "https://market.velxo.shop",
-    "logo": "https://market.velxo.shop/favicon.png",
-    "description": "Africa's trusted escrow-backed gaming marketplace. Buy and sell game accounts, coins, gift cards safely.",
-    "sameAs": [
-      "https://twitter.com/velxoshop",
-      "https://instagram.com/velxoshop",
-      "https://youtube.com/@velxo",
-    ],
-  };
+  const jsonLd = [
+    {
+      "@context": "https://schema.org",
+      "@type": "Organization",
+      "name": "Velxo Market",
+      "url": SITE_URL,
+      "logo": `${SITE_URL}/favicon.png`,
+      "description": "Africa's trusted escrow-backed gaming marketplace. Buy and sell game accounts, coins, gift cards safely.",
+      "sameAs": [
+        "https://twitter.com/velxoshop",
+        "https://instagram.com/velxoshop",
+        "https://youtube.com/@velxo",
+      ],
+    },
+    {
+      "@context": "https://schema.org",
+      "@type": "WebSite",
+      "name": "Velxo Market",
+      "url": SITE_URL,
+      "potentialAction": {
+        "@type": "SearchAction",
+        "target": `${SITE_URL}/search?query={search_term_string}`,
+        "query-input": "required name=search_term_string",
+      },
+    },
+  ];
 
   return (
     <html lang="en">
@@ -83,6 +130,7 @@ export default function RootLayout({
           type="application/ld+json"
           dangerouslySetInnerHTML={{ __html: JSON.stringify(jsonLd) }}
         />
+        <link rel="sitemap" type="application/xml" href="/sitemap.xml" />
       </head>
       <body className="antialiased min-h-screen flex flex-col">
         <Providers>

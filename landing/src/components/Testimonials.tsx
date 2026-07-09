@@ -1,5 +1,5 @@
 import React from 'react';
-import { Star } from 'lucide-react';
+import { Star, Quote } from 'lucide-react';
 
 const TESTIMONIALS = [
   {
@@ -60,43 +60,42 @@ const TESTIMONIALS = [
 
 export default function Testimonials() {
   return (
-    <section className="py-24 px-4 sm:px-6 lg:px-8 max-w-7xl mx-auto">
-      <div className="text-center mb-16 space-y-4">
-        <span className="inline-block text-xs font-bold text-[#A78BFA] uppercase tracking-widest bg-[#8B5CF6]/10 px-4 py-2 rounded-full border border-[#8B5CF6]/20">
-          Testimonials
-        </span>
-        <h2 className="text-4xl sm:text-5xl font-black text-white">
+    <section aria-labelledby="testimonials-heading" className="section container-x">
+      <div className="mx-auto mb-16 max-w-2xl space-y-4 text-center">
+        <span className="eyebrow">Testimonials</span>
+        <h2 id="testimonials-heading" className="heading-xl">
           Trusted by gamers{' '}
           <span className="text-gradient">across Africa</span>
         </h2>
-        <p className="text-gray-400 text-lg">Real traders. Real transactions. Real results.</p>
+        <p className="text-lg text-gray-400">Real traders. Real transactions. Real results.</p>
       </div>
 
-      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-5">
-        {TESTIMONIALS.map((t, i) => (
-          <div
-            key={i}
-            className="bg-[#111827] border border-[#1F2937] hover:border-[#8B5CF6]/20 rounded-2xl p-6 space-y-4 transition-all duration-300 card-glow"
-          >
-            <div className="flex items-center gap-1">
+      <div className="grid grid-cols-1 gap-5 md:grid-cols-2 lg:grid-cols-3">
+        {TESTIMONIALS.map((t) => (
+          <figure key={t.handle} className="card-surface flex flex-col">
+            <Quote className="h-6 w-6 text-brand-500/60" />
+            <div className="mt-3 flex items-center gap-1" aria-label={`${t.rating} out of 5 stars`}>
               {Array.from({ length: t.rating }).map((_, j) => (
-                <Star key={j} className="w-4 h-4 fill-[#F5A623] text-[#F5A623]" />
+                <Star key={j} className="h-4 w-4 fill-yellow-400 text-yellow-400" />
               ))}
             </div>
-            <p className="text-sm text-gray-300 leading-relaxed">&ldquo;{t.text}&rdquo;</p>
-            <div className="flex items-center gap-3 pt-2 border-t border-[#1F2937]">
+            <blockquote className="mt-3 flex-1 text-sm leading-relaxed text-gray-300">
+              &ldquo;{t.text}&rdquo;
+            </blockquote>
+            <figcaption className="mt-4 flex items-center gap-3 border-t border-white/10 pt-4">
               <div
-                className="w-10 h-10 rounded-full flex items-center justify-center text-white font-black text-sm flex-shrink-0"
+                className="flex h-10 w-10 shrink-0 items-center justify-center rounded-full text-sm font-black text-white"
                 style={{ background: `${t.color}30`, border: `1.5px solid ${t.color}50` }}
+                aria-hidden="true"
               >
                 {t.initials}
               </div>
               <div>
-                <p className="font-bold text-white text-sm">{t.name}</p>
-                <p className="text-xs text-gray-600">{t.handle} · {t.location}</p>
+                <p className="text-sm font-bold text-white">{t.name}</p>
+                <p className="text-xs text-gray-500">{t.handle} · {t.location}</p>
               </div>
-            </div>
-          </div>
+            </figcaption>
+          </figure>
         ))}
       </div>
     </section>

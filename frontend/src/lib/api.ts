@@ -84,6 +84,19 @@ async function request<T>(endpoint: string, options: RequestOptions = {}): Promi
   return responseData;
 }
 
+export interface EscrowData {
+  id: string;
+  status: string;
+  amount: number | string;
+  currency: string;
+  paymentLink?: string | null;
+  order?: any;
+}
+
+export async function getEscrowByOrder(orderId: string): Promise<EscrowData> {
+  return api.get<EscrowData>(`/escrow/order/${orderId}`);
+}
+
 export const api = {
   get: <T>(endpoint: string, options?: RequestOptions) =>
     request<T>(endpoint, { ...options, method: 'GET' }),

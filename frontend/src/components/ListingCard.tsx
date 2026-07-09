@@ -14,7 +14,8 @@ export interface ListingCardData {
   status?: string
   isSold?: boolean
   isFeatured?: boolean
-  seller?: { id?: string; storeName?: string; averageRating?: number | string }
+  salesCount?: number
+  seller?: { id?: string; storeName?: string; averageRating?: number | string; verified?: boolean }
 }
 
 export default function ListingCard({ item }: { item: ListingCardData }) {
@@ -41,14 +42,14 @@ export default function ListingCard({ item }: { item: ListingCardData }) {
             onError={() => setImgError(true)}
           />
         ) : (
-          <div className="w-full h-full flex flex-col items-center justify-center gap-1">
-            <Gamepad2 className="w-10 h-10 text-gray-700" />
-            <span className="text-[10px] text-gray-600">No image</span>
+          <div className="w-full h-full bg-gradient-to-br from-brand/20 via-cardBg to-background flex flex-col items-center justify-center gap-1">
+            <Gamepad2 className="w-10 h-10 text-brand/40" />
+            <span className="text-[10px] text-gray-500">No image</span>
           </div>
         )}
-        <div className="absolute inset-0 bg-gradient-to-t from-cardBg/80 via-transparent to-transparent pointer-events-none" />
+        <div className="absolute inset-0 bg-gradient-to-t from-black/70 via-black/5 to-transparent pointer-events-none" />
         {item.isFeatured && (
-          <span className="flex items-center gap-0.5 text-[10px] font-bold text-brand-accent absolute top-2 right-2 bg-black/50 px-1.5 py-0.5 rounded backdrop-blur-sm">
+          <span className="flex items-center gap-0.5 text-[10px] font-bold text-white absolute top-2 right-2 bg-gradient-to-r from-orange-500 to-amber-500 px-1.5 py-0.5 rounded-full shadow-md">
             <Flame className="w-3 h-3" /> Hot
           </span>
         )}
@@ -77,22 +78,31 @@ export default function ListingCard({ item }: { item: ListingCardData }) {
               <Link
                 href={`/seller/${item.seller.id}`}
                 onClick={(e) => e.stopPropagation()}
-                className="relative z-10 truncate hover:text-brand transition"
+                className="relative z-10 flex items-center gap-1 truncate hover:text-brand transition max-w-[70%]"
               >
                 {item.seller.storeName}
+                {item.seller.verified && (
+                  <svg viewBox="0 0 24 24" className="w-3 h-3 text-brand fill-brand flex-shrink-0" aria-label="Verified">
+                    <path d="M12 2l2.4 1.8 3 .1 1 2.8 2.4 1.8-1 2.8 1 2.8-2.4 1.8-1 2.8-3 .1L12 22l-2.4-1.8-3-.1-1-2.8L3.2 15.5l1-2.8-1-2.8 2.4-1.8 1-2.8 3-.1z" />
+                    <path d="M10.5 14.6l-2.1-2.1 1.1-1.1 1 1 3-3 1.1 1.1z" fill="#fff" />
+                  </svg>
+                )}
               </Link>
             ) : (
               <span className="truncate">{item.seller?.storeName || 'Seller'}</span>
             )}
-            <span className="flex items-center gap-0.5 flex-shrink-0">
-              <Star className="w-3 h-3 text-brand fill-brand" />
+            <span className="flex items-center gap-0.5 flex-shrink-0 font-semibold text-gray-400">
+              <Star className="w-3 h-3 text-amber-400 fill-amber-400" />
               {rating}
             </span>
           </div>
         </div>
         <div className="flex items-center justify-between border-t border-borderBg pt-3">
-          <span className="text-lg font-black text-white tracking-tight">${price}</span>
-          <span className="bg-gradient-to-r from-brand to-purple-600 px-3 py-1.5 rounded-lg text-xs font-bold text-white transition group-hover:from-brand-dark group-hover:to-purple-700 group-hover:shadow-md group-hover:shadow-brand/30">
+          <div className="flex flex-col">
+            <span className="text-[10px] text-gray-500 font-medium leading-none">Price</span>
+            <span className="text-lg font-black text-white tracking-tight leading-tight">${price}</span>
+          </div>
+          <span className="bg-gradient-to-r from-brand to-brand-dark px-3.5 py-1.5 rounded-lg text-xs font-bold text-white transition group-hover:shadow-md group-hover:shadow-brand/40 group-hover:scale-[1.03]">
             Buy Now
           </span>
         </div>

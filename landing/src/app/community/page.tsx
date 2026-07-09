@@ -5,8 +5,9 @@ import Footer from '@/components/Footer';
 import { MessageCircle, Twitter, Youtube, Instagram, Users, Trophy, Gamepad2, ArrowRight } from 'lucide-react';
 
 export const metadata: Metadata = {
-  title: "Community — Velxo",
+  title: "Community",
   description: "Join tens of thousands of African gamers, traders, and creators in the Velxo community. Discord, social channels, events, referrals, and more.",
+  keywords: ["gaming community africa", "velxo discord", "esports africa", "gamer community"],
   alternates: { canonical: "https://velxo.shop/community" },
   openGraph: {
     title: "Community — Velxo",
@@ -14,6 +15,13 @@ export const metadata: Metadata = {
     url: "https://velxo.shop/community",
     siteName: "Velxo",
     type: "website",
+    images: [{ url: "/og.png", width: 1200, height: 630, alt: "Velxo Community" }],
+  },
+  twitter: {
+    card: "summary_large_image",
+    title: "Community — Velxo",
+    description: "Join Africa's fastest-growing gaming trade community.",
+    images: ["/og.png"],
   },
 };
 

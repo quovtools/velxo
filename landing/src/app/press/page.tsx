@@ -5,8 +5,9 @@ import Footer from '@/components/Footer';
 import { Download, Mail, ExternalLink } from 'lucide-react';
 
 export const metadata: Metadata = {
-  title: "Press & Media — Velxo",
+  title: "Press & Media",
   description: "Velxo press releases, media resources, and brand assets for journalists covering Africa's No.1 escrow-backed gaming marketplace.",
+  keywords: ["velxo press", "gaming marketplace news", "velxo media kit", "africa gaming startup"],
   alternates: { canonical: "https://velxo.shop/press" },
   openGraph: {
     title: "Press & Media — Velxo",
@@ -14,6 +15,13 @@ export const metadata: Metadata = {
     url: "https://velxo.shop/press",
     siteName: "Velxo",
     type: "website",
+    images: [{ url: "/og.png", width: 1200, height: 630, alt: "Velxo Press" }],
+  },
+  twitter: {
+    card: "summary_large_image",
+    title: "Press & Media — Velxo",
+    description: "Press releases, media resources, and brand assets.",
+    images: ["/og.png"],
   },
 };
 

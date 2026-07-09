@@ -31,91 +31,78 @@ const FEE_EXAMPLES = [
 
 export default function Pricing() {
   return (
-    <section id="pricing" className="py-24 px-4 sm:px-6 lg:px-8 max-w-7xl mx-auto">
-      <div className="text-center mb-16 space-y-4">
-        <span className="inline-block text-xs font-bold text-brand-light uppercase tracking-widest bg-brand/10 px-4 py-2 rounded-full border border-brand/20">
-          Pricing
-        </span>
-        <h2 className="text-4xl sm:text-5xl font-black text-white">
-          Simple, <span>transparent pricing</span>
+    <section id="pricing" aria-labelledby="pricing-heading" className="section container-x">
+      <div className="mx-auto mb-16 max-w-2xl space-y-4 text-center">
+        <span className="eyebrow">Pricing</span>
+        <h2 id="pricing-heading" className="heading-xl">
+          Simple, <span className="text-gradient">transparent pricing</span>
         </h2>
-        <p className="text-gray-400 text-lg max-w-xl mx-auto">
+        <p className="text-lg text-gray-400">
           No subscriptions. No hidden fees. Buyers always free. Sellers pay only when they earn.
         </p>
       </div>
 
-      <div className="grid grid-cols-1 md:grid-cols-2 gap-6 mb-12 max-w-4xl mx-auto">
-        {/* Buyer card */}
-        <div className="bg-card border border-border rounded-3xl p-8 space-y-6">
-          <div>
-            <p className="text-xs font-bold text-gray-500 uppercase tracking-wider mb-1">For Buyers</p>
-            <div className="flex items-end gap-2">
-              <span className="text-5xl font-black text-white">Free</span>
-            </div>
-            <p className="text-gray-500 text-sm mt-1">Zero fees. Always.</p>
+      <div className="mx-auto grid max-w-4xl grid-cols-1 gap-6 md:grid-cols-2">
+        <div className="card-surface flex flex-col">
+          <p className="text-xs font-bold uppercase tracking-wider text-gray-500">For Buyers</p>
+          <div className="mt-3 flex items-end gap-2">
+            <span className="text-5xl font-black text-white">Free</span>
           </div>
-          <ul className="space-y-3">
+          <p className="mt-1 text-sm text-gray-500">Zero fees. Always.</p>
+          <ul className="mt-6 flex-1 space-y-3">
             {BUYER_FEATURES.map((f) => (
               <li key={f} className="flex items-center gap-2.5 text-sm text-gray-300">
-                <CheckCircle className="w-4 h-4 text-brand-accent flex-shrink-0" />
+                <CheckCircle className="h-4 w-4 shrink-0 text-accent-emerald" />
                 {f}
               </li>
             ))}
           </ul>
-          <a href="https://market.velxo.shop/auth/register"
-            className="block text-center py-3.5 rounded-xl border border-border text-gray-300 hover:border-brand/40 hover:text-white font-semibold text-sm transition">
+          <a href="https://market.velxo.shop/auth/register" className="btn-secondary mt-8 w-full">
             Create Buyer Account
           </a>
         </div>
 
-        {/* Seller card */}
-        <div className="bg-card border border-brand/40 rounded-3xl p-8 space-y-6 relative ring-1 ring-brand/20">
-          <div className="absolute -top-3.5 left-7">
-            <span className="bg-brand text-white text-xs font-black uppercase tracking-wide px-4 py-1.5 rounded-full shadow-lg shadow-brand/30">
-              Sellers
-            </span>
+        <div className="card-highlight flex flex-col">
+          <span className="absolute -top-3 left-7 rounded-full bg-brand-500 px-4 py-1.5 text-xs font-black uppercase tracking-wide text-white shadow-glow">
+            Sellers
+          </span>
+          <p className="mt-2 text-xs font-bold uppercase tracking-wider text-gray-500">Per Sale</p>
+          <div className="mt-3 flex items-end gap-2">
+            <span className="text-5xl font-black text-white">10%</span>
           </div>
-          <div>
-            <p className="text-xs font-bold text-gray-500 uppercase tracking-wider mb-1 mt-2">Per Sale</p>
-            <div className="flex items-end gap-2">
-              <span className="text-5xl font-black text-white">10%</span>
-            </div>
-            <p className="text-gray-500 text-sm mt-1">Only pay when you earn.</p>
-          </div>
-          <ul className="space-y-3">
+          <p className="mt-1 text-sm text-gray-500">Only pay when you earn.</p>
+          <ul className="mt-6 flex-1 space-y-3">
             {SELLER_FEATURES.map((f) => (
               <li key={f} className="flex items-center gap-2.5 text-sm text-gray-300">
-                <CheckCircle className="w-4 h-4 text-brand-accent flex-shrink-0" />
+                <CheckCircle className="h-4 w-4 shrink-0 text-accent-emerald" />
                 {f}
               </li>
             ))}
           </ul>
-          <a href="https://market.velxo.shop/sell"
-            className="group flex items-center justify-center gap-2 py-3.5 rounded-xl bg-brand hover:bg-brand-dark text-white font-bold text-sm transition shadow-lg shadow-brand/25">
+          <a href="https://market.velxo.shop/sell" className="btn-primary mt-8 w-full">
             Start Selling Today
-            <ArrowRight className="w-4 h-4 group-hover:translate-x-1 transition-transform" />
+            <ArrowRight className="h-4 w-4 transition-transform group-hover:translate-x-1" />
           </a>
         </div>
       </div>
 
-      {/* Fee table */}
-      <div className="max-w-2xl mx-auto">
-        <h3 className="text-center text-lg font-bold text-white mb-4">Fee Calculator</h3>
-        <div className="bg-card border border-border rounded-2xl overflow-hidden">
+      <div className="mx-auto mt-12 max-w-2xl">
+        <h3 className="mb-4 text-center text-lg font-bold text-white">Fee Calculator</h3>
+        <div className="overflow-hidden rounded-2xl border border-white/10 bg-white/[0.03]">
           <table className="w-full text-sm">
-            <thead className="border-b border-border">
-              <tr className="text-xs text-gray-500 uppercase font-bold">
+            <thead className="border-b border-white/10">
+              <tr className="text-xs font-bold uppercase text-gray-500">
                 <th className="px-6 py-4 text-left">Sale Price</th>
                 <th className="px-6 py-4 text-left">Velxo Fee (10%)</th>
-                <th className="px-6 py-4 text-left text-brand-accent">You Receive</th>
+                <th className="px-6 py-4 text-left text-accent-emerald">You Receive</th>
               </tr>
             </thead>
-            <tbody className="divide-y divide-border">
+            <tbody className="divide-y divide-white/5">
               {FEE_EXAMPLES.map((row) => (
-                <tr key={row.sale} className="hover:bg-background/50 transition">
+                <tr key={row.sale} className="transition hover:bg-white/[0.04]">
                   <td className="px-6 py-4 font-bold text-white">{row.sale}</td>
                   <td className="px-6 py-4 text-gray-500">{row.fee}</td>
-                  <td className="px-6 py-4 font-bold text-brand-accent">{row.payout}</td>
+                  <td className="px-6 py-4 font-bold text-accent-emerald">{row.payout}</td>
                 </tr>
               ))}
             </tbody>
