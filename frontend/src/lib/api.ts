@@ -90,6 +90,7 @@ export interface EscrowData {
   amount: number | string;
   currency: string;
   paymentLink?: string | null;
+  paymentMethod?: 'FLUTTERWAVE' | 'PAYMENT_IO' | null;
   order?: any;
 }
 

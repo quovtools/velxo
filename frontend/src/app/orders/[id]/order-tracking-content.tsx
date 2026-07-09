@@ -2,11 +2,11 @@
 
 import React, { useState, useEffect, useCallback } from 'react';
 import { useRouter } from 'next/navigation';
-import { api } from '@/lib/api';
+import { api, getEscrowByOrder } from '@/lib/api';
 import { useAuth } from '@/app/providers';
 import {
   ShieldCheck, MessageSquare, AlertTriangle, CheckCircle, Truck,
-  HandCoins, FileText, X, Lock,
+  HandCoins, FileText, X, Lock, ExternalLink, Loader2,
 } from 'lucide-react';
 import Link from 'next/link';
 
@@ -120,6 +120,10 @@ export default function OrderTrackingContent({ id }: { id: string }) {
   const [deliveryMsg, setDeliveryMsg] = useState('');
   const [submittingDelivery, setSubmittingDelivery] = useState(false);
 
+  // Escrow payment link shown to the buyer while the order is awaiting payment.
+  const [paymentLink, setPaymentLink] = useState<string | null>(null);
+  const [paymentLoading, setPaymentLoading] = useState(false);
+
   // Live clock so countdowns tick every second.
   const [now, setNow] = useState<number>(() => Date.now());
   useEffect(() => {
@@ -157,6 +161,30 @@ export default function OrderTrackingContent({ id }: { id: string }) {
     const interval = setInterval(() => loadOrder(true), 10000);
     return () => clearInterval(interval);
   }, [order, loadOrder]);
+
+  // While the order is awaiting payment, fetch the escrow payment link so the
+  // buyer can complete payment directly from this tracking page.
+  useEffect(() => {
+    if (!order || order.status !== 'PENDING' || user?.id !== order.buyerId) {
+      setPaymentLink(null);
+      return;
+    }
+    let active = true;
+    (async () => {
+      setPaymentLoading(true);
+      try {
+        const escrow = await getEscrowByOrder(id);
+        if (active) setPaymentLink(escrow.paymentLink || null);
+      } catch {
+        if (active) setPaymentLink(null);
+      } finally {
+        if (active) setPaymentLoading(false);
+      }
+    })();
+    return () => {
+      active = false;
+    };
+  }, [order, id, user?.id]);
 
   const handleConfirmDelivery = async () => {
     if (!confirm('Are you sure you want to release funds to the seller? This action is irreversible.')) return;
@@ -308,13 +336,36 @@ export default function OrderTrackingContent({ id }: { id: string }) {
       </div>
 
       {order.status === 'PENDING' && (
-        <div className="bg-yellow-950/20 border border-yellow-500/20 rounded-2xl p-4 flex gap-3 text-yellow-200 text-sm">
+        <div className="bg-yellow-950/20 border border-yellow-500/20 rounded-2xl p-4 flex flex-col sm:flex-row gap-3 text-yellow-200 text-sm">
           <Lock className="w-5 h-5 flex-shrink-0" />
-          <div>
+          <div className="flex-1">
             <p className="font-bold">Awaiting payment confirmation</p>
             <p className="mt-1 text-xs text-gray-400">
-              This order is reserved but not yet paid. Complete the payment to lock funds in escrow. If you were redirected back, your payment may still be processing.
+              This order is reserved but not yet paid. Complete the payment below to lock funds in escrow. If you were redirected back, your payment may still be processing.
             </p>
+            {isBuyer && (
+              <div className="mt-3">
+                {paymentLoading ? (
+                  <span className="inline-flex items-center gap-2 bg-white/5 border border-borderBg px-4 py-3 rounded-xl text-gray-400 text-sm">
+                    <Loader2 className="w-4 h-4 animate-spin" /> Loading payment link...
+                  </span>
+                ) : paymentLink ? (
+                  <a
+                    href={paymentLink}
+                    target="_blank"
+                    rel="noopener noreferrer"
+                    onClick={() => setTimeout(() => loadOrder(), 4000)}
+                    className="inline-flex items-center justify-center gap-2 bg-brand hover:bg-brand-dark px-5 py-3 rounded-xl font-bold text-white text-sm shadow-lg shadow-brand/20 transition"
+                  >
+                    <ExternalLink className="w-4 h-4" /> Pay Now — Complete Your Payment
+                  </a>
+                ) : (
+                  <span className="inline-flex items-center gap-2 bg-white/5 border border-borderBg px-4 py-3 rounded-xl text-gray-400 text-sm">
+                    <AlertTriangle className="w-4 h-4" /> Payment link is not available yet. Refresh to check again.
+                  </span>
+                )}
+              </div>
+            )}
           </div>
         </div>
       )}
@@ -482,11 +533,28 @@ export default function OrderTrackingContent({ id }: { id: string }) {
                     </div>
                   )
                 }
-                return (
-                  <div className="bg-background border border-borderBg rounded-2xl p-4 text-sm text-gray-400">
-                    {order.status === 'PENDING' ? 'This order is awaiting payment.' : 'No actions available for this order state.'}
-                  </div>
-                )
+              return (
+                <div className="bg-background border border-borderBg rounded-2xl p-4 text-sm text-gray-400 space-y-3">
+                  <p>This order is awaiting payment.</p>
+                  {paymentLoading ? (
+                    <span className="inline-flex items-center gap-2 bg-white/5 border border-borderBg px-4 py-3 rounded-xl text-gray-400 text-sm">
+                      <Loader2 className="w-4 h-4 animate-spin" /> Loading payment link...
+                    </span>
+                  ) : paymentLink ? (
+                    <a
+                      href={paymentLink}
+                      target="_blank"
+                      rel="noopener noreferrer"
+                      onClick={() => setTimeout(() => loadOrder(), 4000)}
+                      className="inline-flex items-center justify-center gap-2 bg-brand hover:bg-brand-dark px-5 py-3 rounded-xl font-bold text-white text-sm shadow-lg shadow-brand/20 transition w-full"
+                    >
+                      <ExternalLink className="w-4 h-4" /> Pay Now — Complete Your Payment
+                    </a>
+                  ) : (
+                    <p>Complete payment from the banner above to lock funds in escrow.</p>
+                  )}
+                </div>
+              )
               }
 
               // ── BUYER VIEW ──

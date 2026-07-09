@@ -104,6 +104,7 @@ export class OrdersService {
           currency: listing.currency,
           buyerNote: dto.buyerNote,
           status: OrderStatus.PENDING,
+          metadata: dto.paymentMethodId ? { paymentMethod: dto.paymentMethodId } : undefined,
           orderItems: {
             create: {
               listingId: dto.listingId,

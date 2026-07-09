@@ -85,8 +85,13 @@ export class EscrowService {
       order.status === 'IN_PROGRESS' ||
       order.status === 'DELIVERED'
 
+    const chosenProvider = (order.metadata as Record<string, any>)?.paymentMethod as
+      | 'FLUTTERWAVE'
+      | 'PAYMENT_IO'
+      | undefined
+
     if (!paymentLink && !isPaid) {
-      const link = await this.payments.createPaymentLink(orderId)
+      const link = await this.payments.createPaymentLink(orderId, chosenProvider)
       paymentLink = link.url
     }
 
@@ -96,6 +101,7 @@ export class EscrowService {
       amount: escrow.amount,
       currency: escrow.currency,
       paymentLink,
+      paymentMethod: chosenProvider ?? null,
       order: {
         id: order.id,
         orderNumber: order.orderNumber,

@@ -46,10 +46,9 @@ export default function OrderCheckoutContent({ orderId }: { orderId: string }) {
     try {
       if (!order) throw new Error('Order not loaded');
 
-      // The order is already held in escrow. Instead of auto-redirecting to the
-      // hosted payment page, send the buyer to the escrow dashboard where they
-      // can open the payment link when ready.
-      router.push(`/escrow?orderId=${orderId}`);
+      // The order is already held in escrow. Send the buyer to the track order
+      // page where they can complete payment from the escrow dashboard.
+      router.push(`/orders/${orderId}`);
     } catch (err: any) {
       setError(err.message || 'Payment execution failed');
     } finally {

@@ -100,6 +100,7 @@ export default function CheckoutContent({ listingId }: { listingId: string }) {
         listingId,
         quantity: 1,
         buyerNote,
+        paymentMethodId: paymentProvider,
       });
 
       if (!response.success || !response.data) {
@@ -108,10 +109,10 @@ export default function CheckoutContent({ listingId }: { listingId: string }) {
 
       const orderId = response.data.id;
 
-      // The order is now created and held in escrow. Instead of auto-redirecting
-      // straight to the hosted payment page, send the buyer to the escrow
-      // dashboard where they can open the payment link when ready.
-      router.push(`/escrow?orderId=${orderId}`);
+      // The order is now created and held in escrow. Send the buyer to the
+      // track-order page where they complete payment via the hosted link and
+      // watch the escrow status update live.
+      router.push(`/orders/${orderId}`);
     } catch (err: any) {
       setError(err.message || 'Payment execution failed');
     } finally {

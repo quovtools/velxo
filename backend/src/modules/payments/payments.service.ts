@@ -200,8 +200,9 @@ export class PaymentsService implements OnModuleInit {
    */
   async createPaymentLink(
     orderId: string,
+    provider?: PaymentProvider,
   ): Promise<{ url: string | null; provider: PaymentProvider | null; configured: boolean }> {
-    this.logger.log(`Generating payment link for order ${orderId}`)
+    this.logger.log(`Generating payment link for order ${orderId}${provider ? ` (provider: ${provider})` : ''}`)
 
     const order = await this.prisma.orders.findUnique({
       where: { id: orderId },
@@ -220,7 +221,7 @@ export class PaymentsService implements OnModuleInit {
       return { url: null, provider: null, configured: true }
     }
 
-    const provider = this.resolveProvider()
+    const provider = provider ?? this.resolveProvider()
     const callbackUrl = `${process.env.FRONTEND_URL || 'https://market.velxo.shop'}/orders/${orderId}`
 
     let charge: { chargeId: string | null; paymentUrl: string | null; configured: boolean } = {
