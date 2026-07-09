@@ -202,6 +202,19 @@ export class EscrowService {
       )
     }
 
+    // Defense-in-depth: only release funds that were actually captured. The
+    // escrow row is created in HELD state at order creation, so the escrow
+    // status alone does not prove the buyer paid. Require a verified, completed
+    // payment before crediting the seller.
+    const completedPayment = await this.prisma.payments.findFirst({
+      where: { orderId, status: 'COMPLETED' },
+    })
+    if (!completedPayment) {
+      throw new InvalidEscrowStateException(
+        'Cannot release funds — no completed payment exists for this order',
+      )
+    }
+
     const updated = await this.prisma.$transaction(async (tx) => {
       // Update escrow status
       const updatedEscrow = await tx.escrowTransactions.update({

@@ -8,7 +8,7 @@ import {
   InvalidEscrowStateException,
   BadRequestException,
 } from '@/common/exceptions/custom-exceptions'
-import { OrderStatus, EscrowStatus, ListingStatus } from '@prisma/client'
+import { OrderStatus, EscrowStatus, ListingStatus, PaymentStatus } from '@prisma/client'
 import { Decimal } from '@prisma/client/runtime/library'
 
 // Escrow timing windows (milliseconds).
@@ -356,6 +356,17 @@ export class OrdersService {
 
     if (order.escrow.status !== EscrowStatus.HELD) {
       throw new InvalidEscrowStateException('Escrow is not held')
+    }
+
+    // Defense-in-depth: never release funds / mark an order completed unless a
+    // payment was actually captured and verified. The escrow row is created in
+    // HELD state at order time, so the escrow check alone is not sufficient to
+    // prove the buyer paid.
+    const completedPayment = await this.prisma.payments.findFirst({
+      where: { orderId, status: PaymentStatus.COMPLETED },
+    })
+    if (!completedPayment) {
+      throw new InvalidEscrowStateException('Cannot release funds — no completed payment exists for this order')
     }
 
     // Release escrow and complete order

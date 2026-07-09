@@ -172,19 +172,70 @@ export class PaymentsService implements OnModuleInit {
   }
 
   /**
-   * Resolves the payment provider to use for hosted payment links.
-   * Honours an explicit PAYMENT_PROVIDER env override, then falls back to the
-   * first configured provider (Flutterwave preferred), and finally to a safe
-   * default so the method never throws when nothing is configured.
+   * Builds the ordered list of providers to try when minting a payment link.
+   * Order: explicit PAYMENT_PROVIDER env override → the provider the buyer
+   * chose at checkout (order metadata) → any other configured provider.
+   *
+   * Crucially we do NOT hard-default to an *unconfigured* provider. If the
+   * buyer picked Flutterwave but only Payment.io is configured (or vice
+   * versa), we fall through to the configured provider instead of failing the
+   * link generation outright.
    */
-  private resolveProvider(): PaymentProvider {
+  private buildProviderCandidates(order?: { metadata?: any }): PaymentProvider[] {
+    const candidates: PaymentProvider[] = []
+    const push = (p?: PaymentProvider) => {
+      if (p && !candidates.includes(p)) candidates.push(p)
+    }
+
     const override = process.env.PAYMENT_PROVIDER?.toUpperCase()
     if (override === 'FLUTTERWAVE' || override === 'PAYMENT_IO' || override === 'CRYPTO') {
-      return override as PaymentProvider
+      push(override === 'CRYPTO' ? PaymentProvider.PAYMENT_IO : (override as PaymentProvider))
     }
-    if (this.flutterwave.isConfigured) return PaymentProvider.FLUTTERWAVE
-    if (this.paymentIo.isConfigured) return PaymentProvider.PAYMENT_IO
-    return PaymentProvider.FLUTTERWAVE
+
+    const chosen = (order?.metadata as Record<string, any> | undefined)?.paymentMethod as
+      | PaymentProvider
+      | undefined
+    push(chosen)
+
+    if (this.flutterwave.isConfigured) push(PaymentProvider.FLUTTERWAVE)
+    if (this.paymentIo.isConfigured) push(PaymentProvider.PAYMENT_IO)
+
+    return candidates
+  }
+
+  /**
+   * Ask a specific provider to create a hosted charge. Returns null when the
+   * provider is not configured or cannot produce a link, so callers can try
+   * the next candidate instead of failing.
+   */
+  private async createProviderCharge(
+    provider: PaymentProvider,
+    order: { id: string; totalAmount: any; currency: string; buyer?: { email?: string } | null },
+    callbackUrl: string,
+  ): Promise<{ chargeId: string | null; paymentUrl: string | null; configured: boolean } | null> {
+    try {
+      if (provider === PaymentProvider.PAYMENT_IO) {
+        return await this.paymentIo.createCharge({
+          reference: order.id,
+          amount: Number(order.totalAmount),
+          currency: order.currency,
+          callbackUrl,
+        })
+      }
+      if (provider === PaymentProvider.FLUTTERWAVE) {
+        return await this.flutterwave.createCharge({
+          reference: order.id,
+          amount: Number(order.totalAmount),
+          currency: order.currency,
+          email: order.buyer?.email || 'buyer@velxo.shop',
+          callbackUrl,
+        })
+      }
+      return null
+    } catch (err: any) {
+      this.logger.error(`Provider ${provider} charge failed for order ${order.id}:`, err?.message || err)
+      return null
+    }
   }
 
   /**
@@ -221,48 +272,43 @@ export class PaymentsService implements OnModuleInit {
       return { url: null, provider: null, configured: true }
     }
 
-    const activeProvider = provider ?? this.resolveProvider()
     const callbackUrl = `${process.env.FRONTEND_URL || 'https://market.velxo.shop'}/orders/${orderId}`
 
-    let charge: { chargeId: string | null; paymentUrl: string | null; configured: boolean } = {
-      chargeId: null,
-      paymentUrl: null,
-      configured: false,
-    }
+    // Resolve the providers to try. An explicit `provider` argument pins the
+    // first attempt (e.g. the buyer's choice), but we still fall back to any
+    // other configured provider so a link is always produced when at least one
+    // provider is usable.
+    const candidates = this.buildProviderCandidates(order)
+    if (provider && !candidates.includes(provider)) candidates.unshift(provider)
 
-    try {
-      if (activeProvider === PaymentProvider.PAYMENT_IO) {
-        charge = await this.paymentIo.createCharge({
-          reference: orderId,
-          amount: Number(order.totalAmount),
-          currency: order.currency,
-          callbackUrl,
-        })
-      } else if (activeProvider === PaymentProvider.FLUTTERWAVE) {
-        charge = await this.flutterwave.createCharge({
-          reference: orderId,
-          amount: Number(order.totalAmount),
-          currency: order.currency,
-          email: order.buyer?.email || 'buyer@velxo.shop',
-          callbackUrl,
-        })
+    let charge: { chargeId: string | null; paymentUrl: string | null; configured: boolean } | null = null
+    let activeProvider: PaymentProvider | null = null
+
+    for (const candidate of candidates) {
+      const result = await this.createProviderCharge(candidate, order, callbackUrl)
+      if (result && result.configured && result.paymentUrl) {
+        charge = result
+        activeProvider = candidate
+        break
       }
-    } catch (err: any) {
-      this.logger.error(`Payment link generation failed for order ${orderId}:`, err?.message || err)
-      return { url: null, provider: activeProvider, configured: false }
+      this.logger.warn(`Payment provider (${candidate}) not available for order ${orderId} — trying next.`)
     }
 
-    if (!charge.configured || !charge.paymentUrl) {
-      this.logger.warn(`Payment provider (${activeProvider}) not configured for order ${orderId}`)
-      return { url: null, provider: activeProvider, configured: false }
+    if (!charge || !charge.configured || !charge.paymentUrl) {
+      this.logger.warn(
+        `No configured payment provider could produce a link for order ${orderId}. ` +
+          `Configured: Flutterwave=${this.flutterwave.isConfigured}, Payment.io=${this.paymentIo.isConfigured}`,
+      )
+      return { url: null, provider: candidates[0] ?? null, configured: false }
     }
 
     const paymentUrl = charge.paymentUrl
+    const usedProvider = activeProvider as PaymentProvider
 
     // Reuse an existing PENDING payment for this order+provider when present so
     // we don't accumulate duplicate payment rows across calls.
     const existing = await this.prisma.payments.findFirst({
-      where: { orderId, provider: activeProvider, status: PaymentStatus.PENDING },
+      where: { orderId, provider: usedProvider, status: PaymentStatus.PENDING },
       orderBy: { createdAt: 'desc' },
     })
 
@@ -278,7 +324,7 @@ export class PaymentsService implements OnModuleInit {
       await this.prisma.payments.create({
         data: {
           orderId,
-          provider: activeProvider,
+          provider: usedProvider,
           amount: order.totalAmount,
           currency: order.currency,
           status: PaymentStatus.PENDING,
@@ -364,7 +410,45 @@ export class PaymentsService implements OnModuleInit {
   async handleFlutterwaveWebhook(event: any) {
     this.logger.log(`Processing Flutterwave webhook`)
 
-    // TODO: Map Flutterwave event -> payment status and call updatePaymentStatus.
+    // Flutterwave sends the order reference in `data.tx_ref` (we set it to the
+    // order id) and the transaction id in `data.id`. Resolve the payment by the
+    // order reference, then confirm server-side with Flutterwave's Verify API so
+    // a spurious/early callback can't mark the order paid without a real
+    // transaction.
+    const data = event?.data || event || {}
+    const txRef: string | undefined = data.tx_ref || data.txRef
+    const transactionId: string | number | undefined = data.id || data.transaction_id
+
+    if (!txRef) {
+      this.logger.warn('Flutterwave webhook missing tx_ref')
+      return false
+    }
+
+    const payment = await this.prisma.payments.findFirst({
+      where: { orderId: txRef, provider: PaymentProvider.FLUTTERWAVE },
+      orderBy: { createdAt: 'desc' },
+    })
+
+    if (!payment) {
+      this.logger.warn(`Flutterwave webhook: no payment for order ${txRef}`)
+      return false
+    }
+
+    if (payment.status === PaymentStatus.COMPLETED) {
+      return true
+    }
+
+    const verified =
+      transactionId != null
+        ? await this.flutterwave.verifyTransaction(transactionId)
+        : false
+
+    if (!verified) {
+      this.logger.warn(`Flutterwave webhook: transaction for order ${txRef} not verified — leaving pending`)
+      return false
+    }
+
+    await this.updatePaymentStatus(payment.id, PaymentStatus.COMPLETED, String(transactionId))
     return true
   }
 

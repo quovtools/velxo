@@ -76,4 +76,30 @@ export class FlutterwaveService {
       throw err
     }
   }
+
+  /**
+   * Verify a Flutterwave transaction server-side before trusting a webhook.
+   * Flutterwave recommends confirming via the Verify API rather than relying on
+   * the webhook body alone, so a spurious/early callback can't mark an order
+   * paid without a real transaction. Docs: GET {apiUrl}/transactions/{id}/verify
+   */
+  async verifyTransaction(transactionId: string | number): Promise<boolean> {
+    if (!this.isConfigured) return false
+    try {
+      const res = await fetch(`${this.apiUrl}/transactions/${transactionId}/verify`, {
+        method: 'GET',
+        headers: {
+          'Content-Type': 'application/json',
+          Authorization: `Bearer ${this.secretKey}`,
+        },
+      })
+      if (!res.ok) return false
+      const data = await res.json().catch(() => null)
+      const status = data?.data?.status
+      return status === 'successful'
+    } catch (err: any) {
+      this.logger.error('Flutterwave verifyTransaction error:', err?.message || err)
+      return false
+    }
+  }
 }
