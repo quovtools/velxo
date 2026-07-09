@@ -625,6 +625,12 @@ CREATE INDEX affiliate_status_idx ON affiliate_referrals(status);
 CREATE OR REPLACE FUNCTION update_updated_at()
 RETURNS TRIGGER AS $$
 BEGIN
+  -- DELETE-safe: on a DELETE there is no NEW record, so return OLD.
+  -- This prevents "column new does not exist" errors if the trigger is
+  -- ever attached to a DELETE (or INSERT/UPDATE/DELETE) event.
+  IF (TG_OP = 'DELETE') THEN
+    RETURN OLD;
+  END IF;
   NEW."updatedAt" = now();
   RETURN NEW;
 END;
