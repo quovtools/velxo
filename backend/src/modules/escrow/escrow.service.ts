@@ -1,7 +1,8 @@
 import { Injectable, Logger } from '@nestjs/common'
 import { PrismaService } from '@/common/services/prisma.service'
 import { NotFoundException, InvalidEscrowStateException } from '@/common/exceptions/custom-exceptions'
-import { EscrowStatus, Decimal } from '@prisma/client'
+import { EscrowStatus } from '@prisma/client'
+import { Decimal } from '@prisma/client/runtime/library'
 import { NotificationsService } from '../notifications/notifications.service'
 
 @Injectable()
