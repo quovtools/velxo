@@ -32,7 +32,6 @@ const COLOR_MAP: Record<string, string> = {
 
 export default function Marquee() {
   const [items, setItems] = useState<MarqueeItem[]>([]);
-  const [loading, setLoading] = useState(true);
 
   useEffect(() => {
     async function load() {
@@ -45,14 +44,10 @@ export default function Marquee() {
         }
       } catch {
         // Marquee is non-critical; ignore network errors.
-      } finally {
-        setLoading(false);
       }
     }
     load();
   }, []);
-
-  if (!loading && items.length === 0) return null;
 
   const renderItem = (item: MarqueeItem, key: string) => {
     const Icon = item.icon ? ICON_MAP[item.icon] : null;
