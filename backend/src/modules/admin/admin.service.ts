@@ -166,11 +166,11 @@ export class AdminService {
     if (!seller) return null
 
     const [orders, reviews, disputes] = await Promise.all([
-      this.prisma.orders.findMany({ where: { sellerId: seller.userId } }),
-      this.prisma.reviews.findMany({ where: { sellerId: seller.userId } }),
+      this.prisma.orders.findMany({ where: { sellerId: seller.id } }),
+      this.prisma.reviews.findMany({ where: { sellerId: seller.id } }),
       this.prisma.disputes.findMany({
         where: {
-          order: { sellerId: seller.userId },
+          order: { sellerId: seller.id },
         },
       }),
     ])

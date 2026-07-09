@@ -68,7 +68,7 @@ export class ReviewsService {
       const avgRating = allReviews.reduce((sum, r) => sum + r.rating, 0) / allReviews.length
 
       await tx.sellers.update({
-        where: { userId: order.sellerId },
+        where: { id: order.sellerId },
         data: { averageRating: avgRating },
       })
 
@@ -101,13 +101,14 @@ export class ReviewsService {
 
     const review = await this.prisma.reviews.findUnique({
       where: { id: reviewId },
+      include: { seller: true },
     })
 
     if (!review) {
       throw new NotFoundException('Review')
     }
 
-    if (review.sellerId !== sellerId) {
+    if (review.seller?.userId !== sellerId) {
       throw new ForbiddenException('Only the seller can respond to this review')
     }
 

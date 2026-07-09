@@ -16,6 +16,7 @@ interface Order {
   createdAt: string;
   buyerId: string;
   sellerId: string;
+  seller?: { userId: string };
   orderItems: Array<{
     listing: {
       id: string;
@@ -245,9 +246,9 @@ export default function OrderTrackingContent({ id }: { id: string }) {
                 <span>${Number(order.totalAmount).toFixed(2)}</span>
               </div>
 
-              {user && user.id !== order.sellerId && (
+              {user && user.id !== order.seller?.userId && (
                 <Link
-                  href={`/messages?userId=${order.sellerId}`}
+                  href={`/messages?userId=${order.seller?.userId}`}
                   className="flex items-center justify-center gap-2 w-full bg-background border border-borderBg hover:border-brand/40 py-3.5 rounded-xl font-bold transition text-gray-300 mt-4 text-xs"
                 >
                   <MessageSquare className="w-4 h-4" />

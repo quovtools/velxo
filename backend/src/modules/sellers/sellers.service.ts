@@ -204,7 +204,7 @@ export class SellersService {
 
     // Get completed orders
     const completedOrders = await this.prisma.orders.findMany({
-      where: { sellerId: seller.userId, status: 'COMPLETED' },
+      where: { sellerId: seller.id, status: 'COMPLETED' },
     })
 
     const totalSales = completedOrders.length
@@ -212,7 +212,7 @@ export class SellersService {
 
     // Calculate average rating
     const allReviews = await this.prisma.reviews.findMany({
-      where: { sellerId: seller.userId },
+      where: { sellerId: seller.id },
     })
 
     const avgRating = allReviews.length > 0 

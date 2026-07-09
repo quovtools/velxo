@@ -21,13 +21,14 @@ export class DisputesService {
 
     const order = await this.prisma.orders.findUnique({
       where: { id: dto.orderId },
+      include: { seller: true },
     })
 
     if (!order) {
       throw new NotFoundException('Order')
     }
 
-    if (order.buyerId !== initiatorId && order.sellerId !== initiatorId) {
+    if (order.buyerId !== initiatorId && order.seller.userId !== initiatorId) {
       throw new ForbiddenException('Only order participants can create disputes')
     }
 
@@ -125,7 +126,7 @@ export class DisputesService {
           refundAmount: dto.refundAmount ? new Decimal(dto.refundAmount) : undefined,
         },
         include: {
-          order: true,
+          order: { include: { seller: true } },
         },
       })
 
@@ -195,7 +196,7 @@ export class DisputesService {
         }
 
         const sellerWallet = await tx.wallet.findUnique({
-          where: { userId: order.sellerId },
+          where: { userId: order.seller.userId },
         })
         if (sellerWallet) {
           const newBalance = sellerWallet.balance.plus(order.sellerPayout)
@@ -236,7 +237,7 @@ export class DisputesService {
   async addDisputeMessage(disputeId: string, senderId: string, content: string, attachments?: string[]) {
     const dispute = await this.prisma.disputes.findUnique({
       where: { id: disputeId },
-      include: { order: true },
+      include: { order: { include: { seller: true } } },
     })
 
     if (!dispute) {
@@ -246,7 +247,7 @@ export class DisputesService {
     if (
       senderId !== dispute.initiatedById &&
       senderId !== dispute.order?.buyerId &&
-      senderId !== dispute.order?.sellerId
+      senderId !== dispute.order?.seller?.userId
     ) {
       throw new ForbiddenException('You are not a participant in this dispute')
     }
