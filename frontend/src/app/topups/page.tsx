@@ -4,7 +4,7 @@ import React, { useState, useEffect, useCallback } from 'react';
 import { useRouter } from 'next/navigation';
 import { useAuth } from '@/app/providers';
 import { api } from '@/lib/api';
-import { Footer } from '@/components/Footer';
+import Footer from '@/components/Footer';
 import { Zap, ShieldCheck, Loader2, ChevronRight, Check } from 'lucide-react';
 
 const GAMES = [
