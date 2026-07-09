@@ -11,13 +11,18 @@ import {
 import { OrderStatus, EscrowStatus, ListingStatus } from '@prisma/client'
 import { Decimal } from '@prisma/client/runtime/library'
 import { RewardsService } from '../rewards/rewards.service'
+import { NotificationsService } from '../notifications/notifications.service'
 
 @Injectable()
 export class OrdersService {
   private readonly logger = new Logger(OrdersService.name)
   private readonly COMMISSION_RATE = 0.1 // 10%
 
-  constructor(private prisma: PrismaService, private rewardsService: RewardsService) {}
+  constructor(
+    private prisma: PrismaService,
+    private rewardsService: RewardsService,
+    private notifications: NotificationsService,
+  ) {}
 
   async createOrder(buyerId: string, dto: CreateOrderDto) {
     this.logger.log(`Creating order for buyer ${buyerId}`)
@@ -133,6 +138,9 @@ export class OrdersService {
       return newOrder
     })
 
+    // Notify the seller that a new order was placed.
+    await this.notifications.notifyNewOrder(order).catch(() => {})
+
     return order
   }
 
@@ -230,6 +238,9 @@ export class OrdersService {
       return newOrder
     })
 
+    // Notify the seller that a new order was placed.
+    await this.notifications.notifyNewOrder(order).catch(() => {})
+
     return order
   }
 
@@ -251,7 +262,7 @@ export class OrdersService {
     }
 
     // Authorize access
-    if (order.buyerId !== userId && order.seller.userId !== userId) {
+    if (order.buyerId !== userId && order.seller?.userId !== userId) {
       throw new ForbiddenException('You do not have access to this order')
     }
 
@@ -314,7 +325,7 @@ export class OrdersService {
 
       // Credit seller wallet (balance + transaction) atomically
       const wallet = await tx.wallet.findUnique({
-        where: { userId: order.seller.userId },
+        where: { userId: order.seller?.userId ?? '' },
       })
 
       if (wallet) {
@@ -362,13 +373,16 @@ export class OrdersService {
         orderId,
       )
 
-      await this.rewardsService.creditCoins(
-        order.seller.userId,
-        sellerCoinAmount,
-        'SALE',
-        `Earned ${sellerCoinAmount} coins from order ${order.orderNumber}`,
-        orderId,
-      )
+      const sellerUserId = order.seller?.userId
+      if (sellerUserId) {
+        await this.rewardsService.creditCoins(
+          sellerUserId,
+          sellerCoinAmount,
+          'SALE',
+          `Earned ${sellerCoinAmount} coins from order ${order.orderNumber}`,
+          orderId,
+        )
+      }
 
       // Credit affiliate commission if applicable
       const referral = await tx.affiliateReferrals.findFirst({
@@ -398,6 +412,11 @@ export class OrdersService {
 
       return updatedOrder
     })
+
+    // Notify both parties that the order is complete and funds were released.
+    await this.notifications.notifyCompleted(updatedOrder).catch(() => {})
+
+    return updatedOrder
   }
 
   async getBuyerOrders(buyerId: string) {
@@ -434,7 +453,7 @@ export class OrdersService {
       throw new NotFoundException('Order')
     }
 
-    if (order.seller.userId !== sellerId) {
+    if (order.seller?.userId !== sellerId) {
       throw new ForbiddenException('Only the seller can mark this order as delivered')
     }
 
@@ -442,7 +461,7 @@ export class OrdersService {
       throw new BadRequestException('Order must be paid before it can be marked delivered')
     }
 
-    return this.prisma.orders.update({
+    const updated = await this.prisma.orders.update({
       where: { id: orderId },
       data: {
         status: OrderStatus.IN_PROGRESS,
@@ -455,5 +474,10 @@ export class OrdersService {
         orderItems: { include: { listing: true } },
       },
     })
+
+    // Notify the buyer that the seller has delivered.
+    await this.notifications.notifyDelivered(updated).catch(() => {})
+
+    return updated
   }
 }

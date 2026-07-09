@@ -3,6 +3,7 @@ import { PrismaService } from '@/common/services/prisma.service'
 import { NotFoundException, ForbiddenException, BadRequestException } from '@/common/exceptions/custom-exceptions'
 import { MessageSenderType } from '@prisma/client'
 import { MessagesGateway } from '@/modules/gateways/messages.gateway'
+import { NotificationsService } from '@/modules/notifications/notifications.service'
 import { CreateConversationDto } from './dto/create-conversation.dto'
 
 @Injectable()
@@ -12,6 +13,7 @@ export class MessagesService {
   constructor(
     private prisma: PrismaService,
     private gateway: MessagesGateway,
+    private notifications: NotificationsService,
   ) {}
 
   async getOrCreateConversation(buyerId: string, sellerId: string, orderId?: string) {
@@ -58,10 +60,10 @@ export class MessagesService {
         include: { seller: true },
       })
       if (!order) throw new NotFoundException('Order')
-      if (order.buyerId !== userId && order.seller.userId !== userId) {
+      if (order.buyerId !== userId && order.seller?.userId !== userId) {
         throw new ForbiddenException('You are not part of this order')
       }
-      return { buyerId: order.buyerId, sellerId: order.seller.userId, orderId: dto.orderId }
+      return { buyerId: order.buyerId, sellerId: order.seller?.userId ?? '', orderId: dto.orderId }
     }
 
     if (dto.recipientId) {
@@ -198,6 +200,28 @@ export class MessagesService {
       this.gateway?.emitToConversation(conversationId, 'newMessage', message)
     } catch (err) {
       this.logger.warn(`Failed to emit real-time message: ${err}`)
+    }
+
+    // Notify the recipient (the other participant) of the new message.
+    try {
+      const recipientId =
+        senderId === conversation.buyerId ? conversation.sellerId : conversation.buyerId
+      if (recipientId && recipientId !== senderId) {
+        const senderName =
+          [message.sender?.firstName, message.sender?.lastName]
+            .filter(Boolean)
+            .join(' ') || 'Someone'
+        const preview = content.length > 80 ? `${content.slice(0, 77)}...` : content
+        await this.notifications.notifyNewMessage(
+          recipientId,
+          senderName,
+          preview,
+          conversationId,
+          conversation.orderId || undefined,
+        )
+      }
+    } catch (err) {
+      this.logger.warn(`Failed to notify message recipient: ${err}`)
     }
 
     return message

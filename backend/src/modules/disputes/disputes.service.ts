@@ -28,7 +28,7 @@ export class DisputesService {
       throw new NotFoundException('Order')
     }
 
-    if (order.buyerId !== initiatorId && order.seller.userId !== initiatorId) {
+    if (order.buyerId !== initiatorId && order.seller?.userId !== initiatorId) {
       throw new ForbiddenException('Only order participants can create disputes')
     }
 
@@ -196,7 +196,7 @@ export class DisputesService {
         }
 
         const sellerWallet = await tx.wallet.findUnique({
-          where: { userId: order.seller.userId },
+          where: { userId: order.seller?.userId ?? '' },
         })
         if (sellerWallet) {
           const newBalance = sellerWallet.balance.plus(order.sellerPayout)

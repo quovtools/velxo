@@ -73,7 +73,7 @@ export class EscrowService {
       if (order) {
         // Credit seller wallet
         const wallet = await tx.wallet.findUnique({
-          where: { userId: order.seller.userId },
+          where: { userId: order.seller?.userId ?? '' },
         })
 
         if (wallet) {
