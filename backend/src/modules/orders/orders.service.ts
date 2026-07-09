@@ -51,7 +51,7 @@ export class OrdersService {
         data: {
           orderNumber: `ORD-${Date.now()}-${Math.random().toString(36).substr(2, 9).toUpperCase()}`,
           buyerId,
-          sellerId: listing.seller.userId,
+          sellerId: listing.sellerId,
           subtotal,
           totalAmount: subtotal,
           commissionRate: new Decimal(this.COMMISSION_RATE),
@@ -125,7 +125,7 @@ export class OrdersService {
     }
 
     // Authorize access
-    if (order.buyerId !== userId && order.sellerId !== userId) {
+    if (order.buyerId !== userId && order.seller.userId !== userId) {
       throw new ForbiddenException('You do not have access to this order')
     }
 
@@ -137,7 +137,7 @@ export class OrdersService {
 
     const order = await this.prisma.orders.findUnique({
       where: { id: orderId },
-      include: { escrow: true },
+      include: { escrow: true, seller: true },
     })
 
     if (!order) {
@@ -188,7 +188,7 @@ export class OrdersService {
 
       // Credit seller wallet (balance + transaction) atomically
       const wallet = await tx.wallet.findUnique({
-        where: { userId: order.sellerId },
+        where: { userId: order.seller.userId },
       })
 
       if (wallet) {
@@ -237,7 +237,7 @@ export class OrdersService {
       )
 
       await this.rewardsService.creditCoins(
-        order.sellerId,
+        order.seller.userId,
         sellerCoinAmount,
         'SALE',
         `Earned ${sellerCoinAmount} coins from order ${order.orderNumber}`,

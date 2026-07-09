@@ -373,7 +373,7 @@ model orders {
   updatedAt       DateTime @updatedAt
 
   buyer           users            @relation("OrderBuyer", fields: [buyerId], references: [id])
-  seller          users            @relation("SellerOrders", fields: [sellerId], references: [id])
+  seller          sellers          @relation("SellerOrders", fields: [sellerId], references: [id])
   escrow          escrowTransactions?
   orderItems      orderItems[]
   disputes        disputes[]
@@ -482,7 +482,7 @@ model reviews {
 
   order       orders    @relation("OrderReviews", fields: [orderId], references: [id], onDelete: Cascade)
   buyer       users     @relation("ReviewBuyer", fields: [buyerId], references: [id])
-  seller      users     @relation("ReviewSeller", fields: [sellerId], references: [id])
+  seller      sellers   @relation("ReviewSeller", fields: [sellerId], references: [id])
   listing     listings  @relation("ListingReviews", fields: [listingId], references: [id])
 
   @@index([sellerId])
