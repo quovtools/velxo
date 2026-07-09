@@ -505,10 +505,10 @@ export default function ProfilePage() {
           <div className="bg-gradient-to-r from-brand/10 to-purple-600/10 border border-brand/20 rounded-xl p-4 space-y-2">
             <p className="text-sm font-semibold text-white">Get Verified Seller Status</p>
             <p className="text-xs text-gray-400">Complete identity verification to unlock higher limits, verified badge, and buyer trust.</p>
-            <Link href="/seller/settings"
-              className="inline-flex items-center gap-2 bg-brand hover:bg-brand-dark px-4 py-2 rounded-xl text-xs font-bold text-white transition mt-1">
-              <ShieldCheck className="w-3.5 h-3.5" /> Start KYC
-            </Link>
+              <Link href="/seller/kyc"
+                className="inline-flex items-center gap-2 bg-brand hover:bg-brand-dark px-4 py-2 rounded-xl text-xs font-bold text-white transition mt-1">
+                <ShieldCheck className="w-3.5 h-3.5" /> Start KYC
+              </Link>
           </div>
         </div>
       )}

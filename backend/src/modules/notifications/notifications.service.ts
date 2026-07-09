@@ -232,4 +232,24 @@ export class NotificationsService {
       { listingId, reason },
     )
   }
+
+  async notifyKycApproved(sellerId: string, storeName: string) {
+    await this.createNotification(
+      sellerId,
+      'KYC_APPROVED',
+      'Identity Verified',
+      `Congratulations! Your seller identity for ${storeName} has been verified. You now have a verified badge.`,
+      { storeName },
+    )
+  }
+
+  async notifyKycRejected(sellerId: string, storeName: string, reason: string) {
+    await this.createNotification(
+      sellerId,
+      'KYC_REJECTED',
+      'Verification Rejected',
+      `Your identity verification for ${storeName} was rejected: ${reason}`,
+      { storeName, reason },
+    )
+  }
 }

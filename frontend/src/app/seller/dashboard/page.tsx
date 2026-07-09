@@ -6,6 +6,7 @@ import { api } from '@/lib/api';
 import { useAuth } from '@/app/providers';
 import { DollarSign, Star, TrendingUp, Package, Clock, Shield, Users, AlertCircle, Menu, X, CheckCircle, PlusCircle, ShieldCheck, MessageSquare, Gamepad2 } from 'lucide-react';
 import Link from 'next/link';
+import VerifiedBadge from '@/components/VerifiedBadge';
 
 interface SellerProfile {
   id: string;
@@ -213,23 +214,23 @@ const currentTier = tierConfig[seller?.subscriptionTier as keyof TierConfig] || 
 
       {/* Verification Status Banner */}
       {seller?.isVerified && seller.verifiedAt && (
-        <div className="bg-gradient-to-r from-emerald-900/30 to-emerald-800/20 border border-emerald-500/30 rounded-2xl p-6 flex items-center justify-between">
+        <div className="bg-gradient-to-r from-blue-900/30 to-blue-800/20 border border-blue-500/30 rounded-2xl p-6 flex items-center justify-between">
           <div className="flex items-center gap-4">
-            <div className="p-3 bg-emerald-500/20 rounded-xl">
-              <Shield className="w-8 h-8 text-emerald-400" />
+            <div className="p-3 bg-blue-500/20 rounded-xl">
+              <ShieldCheck className="w-8 h-8 text-blue-400" />
             </div>
             <div>
               <h3 className="text-lg font-bold text-white flex items-center gap-2">
                 Verified Seller
-                <CheckCircle className="w-5 h-5 text-emerald-400" />
+                <VerifiedBadge size="sm" variant="badge" />
               </h3>
-              <p className="text-sm text-emerald-200/80 mt-1">
+              <p className="text-sm text-blue-200/80 mt-1">
                 Verified since {new Date(seller.verifiedAt).toLocaleDateString()}
               </p>
             </div>
           </div>
           <div className="hidden md:block">
-            <span className="text-xs text-emerald-400/70 font-medium px-3 py-1 bg-emerald-500/10 rounded-full border border-emerald-500/20">
+            <span className="text-xs text-blue-400/70 font-medium px-3 py-1 bg-blue-500/10 rounded-full border border-blue-500/20">
               {seller?.subscriptionTier || 'FREE'} Tier
             </span>
           </div>
@@ -249,7 +250,7 @@ const currentTier = tierConfig[seller?.subscriptionTier as keyof TierConfig] || 
             <div className="flex-1">
               <div className="flex items-center gap-2">
                 <h2 className="text-xl font-black text-white">{seller?.storeName}</h2>
-                {seller?.isVerified && <ShieldCheck className="w-5 h-5 text-blue-400" />}
+                {seller?.isVerified && <VerifiedBadge size="md" />}
               </div>
               <p className="text-gray-400 text-sm mt-2 max-w-2xl">{seller?.storeDescription || 'No description provided.'}</p>
               

@@ -40,3 +40,21 @@ export class UploadVerificationDocumentsDto {
   @IsString()
   documentUrl: string // URL from Supabase storage
 }
+
+export class SubmitKycDto {
+  @IsString()
+  idType: string // 'NATIONAL_ID' | 'PASSPORT' | 'DRIVERS_LICENSE'
+
+  @IsString()
+  fullName: string
+
+  @IsOptional()
+  @IsString()
+  documentNumber?: string
+
+  @IsString()
+  idImageUrl: string // snapped ID image
+
+  @IsString()
+  selfieImageUrl: string // facial verification selfie
+}

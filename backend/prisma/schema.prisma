@@ -207,6 +207,15 @@ model sellers {
   accountType     SellerAccountType @default(STANDARD)
   isVerified      Boolean  @default(false)
   verificationDocuments Json?
+  kycStatus       String   @default("NOT_SUBMITTED") // NOT_SUBMITTED | SUBMITTED | APPROVED | REJECTED
+  kycIdType       String?
+  kycFullName     String?
+  kycDocumentNumber String?
+  kycIdImageUrl   String?
+  kycSelfieImageUrl String?
+  kycSubmittedAt  DateTime?
+  kycReviewedAt   DateTime?
+  kycRejectionReason String?
   reputationScore Float    @default(0.0)
   totalSales      Int      @default(0)
   totalRevenue    Decimal  @default(0) @db.Decimal(12, 2)
@@ -232,6 +241,7 @@ model sellers {
 
   @@index([userId])
   @@index([isVerified])
+  @@index([kycStatus])
   @@index([reputationScore])
   @@index([totalSales])
   @@map("sellers")

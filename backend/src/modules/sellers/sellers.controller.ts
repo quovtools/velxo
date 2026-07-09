@@ -10,7 +10,7 @@ import {
   Query,
 } from '@nestjs/common'
 import { SellersService } from './sellers.service'
-import { CreateSellerDto, UpdateSellerDto, UploadVerificationDocumentsDto } from './dto/create-seller.dto'
+import { CreateSellerDto, UpdateSellerDto, UploadVerificationDocumentsDto, SubmitKycDto } from './dto/create-seller.dto'
 import { SupabaseJwtGuard } from '@/common/guards/supabase-jwt.guard'
 import { CurrentUserId } from '@/common/decorators/current-user.decorator'
 import { ApiResponseDto } from '@/common/dto/api-response.dto'
@@ -109,6 +109,22 @@ export class SellersController {
       return ApiResponseDto.ok(updated, 'Documents uploaded successfully')
     } catch (error) {
       this.logger.error('Error uploading documents:', error)
+      throw error
+    }
+  }
+
+  @Post('kyc/submit')
+  @UseGuards(SupabaseJwtGuard)
+  async submitKyc(
+    @CurrentUserId() userId: string,
+    @Body() dto: SubmitKycDto,
+  ) {
+    try {
+      const seller = await this.sellersService.getSellerByUserId(userId)
+      const updated = await this.sellersService.submitKyc(seller.id, dto)
+      return ApiResponseDto.ok(updated, 'KYC submitted successfully')
+    } catch (error) {
+      this.logger.error('Error submitting KYC:', error)
       throw error
     }
   }

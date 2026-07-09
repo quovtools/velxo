@@ -2,6 +2,7 @@
 
 import React, { useState, useEffect } from 'react';
 import Link from 'next/link';
+import VerifiedBadge from '@/components/VerifiedBadge';
 
 const API_BASE = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:3001/api/v1';
 
@@ -91,9 +92,7 @@ export default function TopSellersPage() {
                       <Link href={`/seller/${seller.id}`}>{seller.storeName}</Link>
                     </h3>
                     {seller.isVerified && (
-                      <span className="bg-brand/10 text-brand-light text-[10px] font-semibold px-2 py-0.5 rounded border border-brand/20">
-                        Verified
-                      </span>
+                      <VerifiedBadge size="sm" label="Verified" />
                     )}
                   </div>
                   <p className="text-xs text-gray-400 mt-0.5">

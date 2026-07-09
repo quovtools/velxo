@@ -9,6 +9,7 @@ import {
 } from 'lucide-react';
 import { useAuth } from '@/app/providers';
 import SellerReportModal from '@/components/SellerReportModal';
+import VerifiedBadge from '@/components/VerifiedBadge';
 
 interface Listing {
   id: string;
@@ -285,7 +286,7 @@ export default function ListingDetailsContent({ id }: { id: string }) {
                   <div className="flex items-center gap-1.5">
                     <span className="font-bold text-sm truncate group-hover:text-brand transition">{listing.seller?.storeName}</span>
                     {listing.seller?.isVerified && (
-                      <span className="text-[9px] bg-emerald-900/30 text-emerald-400 border border-emerald-500/20 px-1.5 py-0.5 rounded font-bold flex-shrink-0">VERIFIED</span>
+                      <VerifiedBadge size="sm" label="Verified" />
                     )}
                   </div>
                   <div className="flex items-center gap-2 mt-0.5">

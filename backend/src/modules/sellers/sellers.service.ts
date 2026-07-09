@@ -2,13 +2,17 @@ import { Injectable, Logger } from '@nestjs/common'
 import { PrismaService } from '@/common/services/prisma.service'
 import { CreateSellerDto, UpdateSellerDto, UploadVerificationDocumentsDto } from './dto/create-seller.dto'
 import { NotFoundException, ConflictException } from '@/common/exceptions/custom-exceptions'
+import { NotificationsService } from '@/modules/notifications/notifications.service'
 import { Decimal } from '@prisma/client/runtime/library'
 
 @Injectable()
 export class SellersService {
   private readonly logger = new Logger(SellersService.name)
 
-  constructor(private prisma: PrismaService) {}
+  constructor(
+    private prisma: PrismaService,
+    private notifications: NotificationsService,
+  ) {}
 
   async createSeller(userId: string, dto: CreateSellerDto) {
     this.logger.log(`Creating seller account for user ${userId}`)
@@ -221,6 +225,150 @@ export class SellersService {
         verificationDocuments: updatedDocs,
       },
     })
+
+    return updated
+  }
+
+  async submitKyc(
+    sellerId: string,
+    dto: {
+      idType: string
+      fullName: string
+      documentNumber?: string
+      idImageUrl: string
+      selfieImageUrl: string
+    },
+  ) {
+    this.logger.log(`Submitting KYC for seller ${sellerId}`)
+
+    const seller = await this.prisma.sellers.findUnique({
+      where: { id: sellerId },
+    })
+
+    if (!seller) {
+      throw new NotFoundException('Seller')
+    }
+
+    if (seller.isVerified) {
+      throw new ConflictException('Seller is already verified')
+    }
+
+    const updated = await this.prisma.sellers.update({
+      where: { id: sellerId },
+      data: {
+        kycStatus: 'SUBMITTED',
+        kycIdType: dto.idType,
+        kycFullName: dto.fullName,
+        kycDocumentNumber: dto.documentNumber || null,
+        kycIdImageUrl: dto.idImageUrl,
+        kycSelfieImageUrl: dto.selfieImageUrl,
+        kycSubmittedAt: new Date(),
+        kycRejectionReason: null,
+      },
+    })
+
+    return updated
+  }
+
+  async getPendingKyc(limit: number = 50) {
+    return this.prisma.sellers.findMany({
+      where: { kycStatus: 'SUBMITTED' },
+      include: {
+        user: {
+          select: {
+            id: true,
+            email: true,
+            firstName: true,
+            lastName: true,
+            avatarUrl: true,
+            phone: true,
+          },
+        },
+      },
+      orderBy: { kycSubmittedAt: 'asc' },
+      take: limit,
+    })
+  }
+
+  async approveKyc(sellerId: string, moderatorId: string) {
+    this.logger.log(`Approving KYC for seller ${sellerId}`)
+
+    const seller = await this.prisma.sellers.findUnique({
+      where: { id: sellerId },
+      include: { user: true },
+    })
+
+    if (!seller) {
+      throw new NotFoundException('Seller')
+    }
+
+    const updated = await this.prisma.sellers.update({
+      where: { id: sellerId },
+      data: {
+        kycStatus: 'APPROVED',
+        isVerified: true,
+        verifiedAt: new Date(),
+        kycReviewedAt: new Date(),
+        kycRejectionReason: null,
+      },
+    })
+
+    await this.prisma.adminAuditLogs.create({
+      data: {
+        actorId: moderatorId,
+        action: 'VERIFICATION_CHANGE',
+        entityType: 'seller',
+        entityId: sellerId,
+        newValue: { kycStatus: 'APPROVED', isVerified: true },
+      },
+    })
+
+    if (seller.userId) {
+      await this.notifications
+        .notifyKycApproved(seller.userId, seller.storeName)
+        .catch(() => {})
+    }
+
+    return updated
+  }
+
+  async rejectKyc(sellerId: string, moderatorId: string, reason: string) {
+    this.logger.log(`Rejecting KYC for seller ${sellerId}`)
+
+    const seller = await this.prisma.sellers.findUnique({
+      where: { id: sellerId },
+      include: { user: true },
+    })
+
+    if (!seller) {
+      throw new NotFoundException('Seller')
+    }
+
+    const updated = await this.prisma.sellers.update({
+      where: { id: sellerId },
+      data: {
+        kycStatus: 'REJECTED',
+        isVerified: false,
+        kycReviewedAt: new Date(),
+        kycRejectionReason: reason,
+      },
+    })
+
+    await this.prisma.adminAuditLogs.create({
+      data: {
+        actorId: moderatorId,
+        action: 'VERIFICATION_CHANGE',
+        entityType: 'seller',
+        entityId: sellerId,
+        newValue: { kycStatus: 'REJECTED', reason },
+      },
+    })
+
+    if (seller.userId) {
+      await this.notifications
+        .notifyKycRejected(seller.userId, seller.storeName, reason)
+        .catch(() => {})
+    }
 
     return updated
   }

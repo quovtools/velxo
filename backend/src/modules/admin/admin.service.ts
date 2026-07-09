@@ -2,6 +2,7 @@ import { Injectable, Logger } from '@nestjs/common'
 import { PrismaService } from '@/common/services/prisma.service'
 import { ListingStatus, OrderStatus, AuditAction } from '@prisma/client'
 import { NotificationsService } from '@/modules/notifications/notifications.service'
+import { SellersService } from '@/modules/sellers/sellers.service'
 
 @Injectable()
 export class AdminService {
@@ -10,6 +11,7 @@ export class AdminService {
   constructor(
     private prisma: PrismaService,
     private notifications: NotificationsService,
+    private sellersService: SellersService,
   ) {}
 
   async getDashboardStats() {
@@ -211,5 +213,37 @@ export class AdminService {
         newValue,
       },
     })
+  }
+
+  async getPendingKyc(limit?: number | string) {
+    const parsed = typeof limit === 'string' ? parseInt(limit, 10) : limit
+    const take = Number.isFinite(parsed) && parsed! > 0 ? parsed! : 50
+    return this.prisma.sellers.findMany({
+      where: { kycStatus: 'SUBMITTED' },
+      include: {
+        user: {
+          select: {
+            id: true,
+            email: true,
+            firstName: true,
+            lastName: true,
+            avatarUrl: true,
+            phone: true,
+          },
+        },
+      },
+      orderBy: { kycSubmittedAt: 'asc' },
+      take,
+    })
+  }
+
+  async approveKyc(sellerId: string, moderatorId: string) {
+    this.logger.log(`Admin approving KYC for seller ${sellerId}`)
+    return this.sellersService.approveKyc(sellerId, moderatorId)
+  }
+
+  async rejectKyc(sellerId: string, moderatorId: string, reason: string) {
+    this.logger.log(`Admin rejecting KYC for seller ${sellerId}`)
+    return this.sellersService.rejectKyc(sellerId, moderatorId, reason)
   }
 }

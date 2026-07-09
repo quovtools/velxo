@@ -5,7 +5,7 @@ import { useRouter, usePathname } from 'next/navigation';
 import Link from 'next/link';
 import {
   ShieldCheck, LayoutDashboard, Eye, Scale,
-  BarChart3, Image, LogOut, Lock, Menu, X, Megaphone
+  BarChart3, Image, LogOut, Lock, Menu, X, Megaphone, UserCheck
 } from 'lucide-react';
 
 const ADMIN_PASSWORD = 'Fadekemi123@';
@@ -83,6 +83,7 @@ const navItems = [
   { href: '/admin/analytics', label: 'Analytics', icon: BarChart3 },
   { href: '/admin/slides', label: 'Slides', icon: Image },
   { href: '/admin/marquee', label: 'News Marquee', icon: Megaphone },
+  { href: '/admin/kyc', label: 'KYC Review', icon: UserCheck },
 ];
 
 export default function AdminLayout({ children }: { children: React.ReactNode }) {

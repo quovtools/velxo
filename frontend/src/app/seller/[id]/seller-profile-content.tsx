@@ -9,6 +9,7 @@ import {
 } from 'lucide-react';
 import { useAuth } from '@/app/providers';
 import SellerReportModal from '@/components/SellerReportModal';
+import VerifiedBadge from '@/components/VerifiedBadge';
 
 interface SellerListing {
   id: string;
@@ -268,8 +269,8 @@ export default function SellerProfileContent({ id }: { id: string }) {
             </div>
           </div>
           {profile.isVerified && (
-            <span className="absolute -bottom-1 -right-1 w-8 h-8 rounded-full bg-emerald-500 border-4 border-cardBg flex items-center justify-center">
-              <BadgeCheck className="w-4 h-4 text-white" />
+            <span className="absolute -bottom-1 -right-1">
+              <VerifiedBadge size="lg" variant="badge" />
             </span>
           )}
         </div>

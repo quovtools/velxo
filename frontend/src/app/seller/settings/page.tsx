@@ -2,8 +2,10 @@
 
 import React, { useState, useEffect } from 'react';
 import { useRouter } from 'next/navigation';
+import Link from 'next/link';
 import { api } from '@/lib/api';
 import { useAuth } from '@/app/providers';
+import VerifiedBadge from '@/components/VerifiedBadge';
 import { Store, FileText, Shield, CreditCard, Bell, Image, X, Check, Loader2, Lock, Users, TrendingUp } from 'lucide-react';
 
 interface SellerProfile {
@@ -108,10 +110,15 @@ export default function SellerSettingsPage() {
           }`}>
             {seller?.subscriptionTier} Tier
           </span>
-          {seller?.isVerified && (
-            <span className="text-xs font-bold px-3 py-1 rounded-full bg-emerald-500/10 text-emerald-400 border border-emerald-500/20 flex items-center gap-1">
-              <Shield className="w-3 h-3" /> Verified
-            </span>
+          {seller?.isVerified ? (
+            <VerifiedBadge size="md" label="Verified Seller" />
+          ) : (
+            <Link
+              href="/seller/kyc"
+              className="text-xs font-bold px-3 py-1 rounded-full bg-blue-500/10 text-blue-400 border border-blue-500/20 flex items-center gap-1 hover:bg-blue-500/20 transition"
+            >
+              <Shield className="w-3 h-3" /> Get Verified
+            </Link>
           )}
         </div>
       </div>
@@ -242,9 +249,9 @@ export default function SellerSettingsPage() {
                       <Check className="w-4 h-4 text-emerald-400" /> Better search ranking
                     </li>
                   </ul>
-                  <button className="flex items-center gap-2 bg-yellow-500 hover:bg-yellow-600 px-6 py-2.5 rounded-xl text-sm font-bold transition text-white shadow-lg shadow-yellow-500/20">
+                  <Link href="/seller/kyc" className="inline-flex items-center gap-2 bg-yellow-500 hover:bg-yellow-600 px-6 py-2.5 rounded-xl text-sm font-bold transition text-white shadow-lg shadow-yellow-500/20">
                     <Shield className="w-4 h-4" /> Start Verification
-                  </button>
+                  </Link>
                 </div>
               </div>
             </div>

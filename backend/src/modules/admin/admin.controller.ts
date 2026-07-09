@@ -124,4 +124,47 @@ export class AdminController {
       throw error
     }
   }
+
+  @Get('kyc/pending')
+  @UseGuards(AdminPasswordGuard)
+  async getPendingKyc(@Query('limit') limit?: number) {
+    try {
+      const submissions = await this.adminService.getPendingKyc(limit)
+      return ApiResponseDto.ok(submissions, 'Pending KYC submissions retrieved')
+    } catch (error) {
+      this.logger.error('Error fetching pending KYC:', error)
+      throw error
+    }
+  }
+
+  @Patch('kyc/:sellerId/approve')
+  @UseGuards(AdminPasswordGuard)
+  async approveKyc(
+    @Param('sellerId') sellerId: string,
+    @CurrentUserId() moderatorId: string,
+  ) {
+    try {
+      const seller = await this.adminService.approveKyc(sellerId, moderatorId)
+      return ApiResponseDto.ok(seller, 'KYC approved successfully')
+    } catch (error) {
+      this.logger.error('Error approving KYC:', error)
+      throw error
+    }
+  }
+
+  @Patch('kyc/:sellerId/reject')
+  @UseGuards(AdminPasswordGuard)
+  async rejectKyc(
+    @Param('sellerId') sellerId: string,
+    @CurrentUserId() moderatorId: string,
+    @Body('reason') reason: string,
+  ) {
+    try {
+      const seller = await this.adminService.rejectKyc(sellerId, moderatorId, reason)
+      return ApiResponseDto.ok(seller, 'KYC rejected')
+    } catch (error) {
+      this.logger.error('Error rejecting KYC:', error)
+      throw error
+    }
+  }
 }
