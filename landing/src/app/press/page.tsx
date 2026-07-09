@@ -78,11 +78,11 @@ export default function PressPage() {
               {PRESS_RELEASES.map((pr, i) => (
                 <div key={i} className="bg-[#111827] border border-[#1F2937] hover:border-[#8B5CF6]/30 rounded-2xl p-6 transition flex items-start justify-between gap-4">
                   <div className="space-y-2">
-                    <p className="text-xs text-gray-600 font-semibold uppercase tracking-wider">{pr.date}</p>
+                    <p className="text-xs text-gray-500 font-semibold uppercase tracking-wider">{pr.date}</p>
                     <h3 className="font-bold text-white">{pr.title}</h3>
                     <p className="text-sm text-gray-400 leading-relaxed">{pr.summary}</p>
                   </div>
-                  <ExternalLink className="w-4 h-4 text-gray-600 flex-shrink-0 mt-1" />
+                   <ExternalLink className="w-4 h-4 text-gray-500 flex-shrink-0 mt-1" />
                 </div>
               ))}
             </div>
@@ -96,7 +96,7 @@ export default function PressPage() {
                 <div key={i} className={`flex items-center justify-between px-6 py-4 hover:bg-[#0b0f19]/50 transition ${i < BRAND_ASSETS.length - 1 ? 'border-b border-[#1F2937]' : ''}`}>
                   <div>
                     <p className="font-semibold text-white text-sm">{asset.name}</p>
-                    <p className="text-xs text-gray-600">{asset.size}</p>
+                     <p className="text-xs text-gray-500">{asset.size}</p>
                   </div>
                   <button className="flex items-center gap-2 text-xs font-bold text-[#A78BFA] hover:text-white transition">
                     <Download className="w-3.5 h-3.5" /> Download
@@ -104,7 +104,7 @@ export default function PressPage() {
                 </div>
               ))}
             </div>
-            <p className="text-xs text-gray-600">All brand assets are for editorial use only. Do not alter logos or brand colors.</p>
+             <p className="text-xs text-gray-500">All brand assets are for editorial use only. Do not alter logos or brand colors.</p>
           </div>
 
           {/* Media contact */}

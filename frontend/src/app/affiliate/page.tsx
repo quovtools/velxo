@@ -57,6 +57,19 @@ export default function AffiliateDashboardPage() {
 
   const currentTier = tierThresholds.find(t => (stats?.totalTrades || 0) >= t.minTrades && (Number(stats?.totalEarned) || 0) >= t.minEarned) || tierThresholds[0];
   const nextTier = tierThresholds.find(t => t.minTrades > currentTier.minTrades && t.minEarned > currentTier.minEarned);
+  const tierTarget = nextTier || currentTier;
+  const tradesProgress = Math.min(
+    100,
+    ((stats?.totalTrades || 0) - currentTier.minTrades) /
+      Math.max(1, tierTarget.minTrades - currentTier.minTrades) *
+      100,
+  );
+  const earnedProgress = Math.min(
+    100,
+    (Number(stats?.totalEarned || 0) - currentTier.minEarned) /
+      Math.max(1, tierTarget.minEarned - currentTier.minEarned) *
+      100,
+  );
 
   if (!user) {
     return (
@@ -167,22 +180,22 @@ export default function AffiliateDashboardPage() {
             <div className="bg-cardBg/50 rounded-xl p-4 space-y-2">
               <div className="flex justify-between text-sm">
                 <span className="text-gray-400">Trades needed</span>
-                <span className="text-white font-medium">{stats?.totalTrades || 0} / {currentTier.minTrades}</span>
+                <span className="text-white font-medium">{stats?.totalTrades || 0} / {tierTarget.minTrades}</span>
               </div>
               <div className="w-full bg-gray-700 rounded-full h-2">
                 <div 
                   className="bg-yellow-400 h-2 rounded-full" 
-                  style={{ width: `${Math.min(100, (stats?.totalTrades || 0) / currentTier.minTrades * 100)}%` }}
+                  style={{ width: `${tradesProgress}%` }}
                 />
               </div>
               <div className="flex justify-between text-sm">
                 <span className="text-gray-400">Earnings needed</span>
-                <span className="text-white font-medium">${Number(stats?.totalEarned || 0).toFixed(2)} / ${currentTier.minEarned}</span>
+                <span className="text-white font-medium">${Number(stats?.totalEarned || 0).toFixed(2)} / ${tierTarget.minEarned}</span>
               </div>
               <div className="w-full bg-gray-700 rounded-full h-2">
                 <div 
                   className="bg-yellow-400 h-2 rounded-full" 
-                  style={{ width: `${Math.min(100, (Number(stats?.totalEarned || 0) / currentTier.minEarned) * 100)}%` }}
+                  style={{ width: `${earnedProgress}%` }}
                 />
               </div>
             </div>

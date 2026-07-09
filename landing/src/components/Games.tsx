@@ -51,11 +51,15 @@ export default function Games() {
                   className="h-full w-full object-cover"
                   onError={(e) => {
                     const target = e.currentTarget;
-                    const tried = target.src;
+                    const current = target.src;
                     const base = `/games/${game.slug}`;
-                    if (!tried.includes('.jpg')) { target.src = `${base}.jpg`; return; }
-                    if (!tried.includes('.svg')) { target.src = `${base}.svg`; return; }
-                    target.src = 'data:image/svg+xml,%3Csvg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 64 64"%3E%3Crect width="64" height="64" rx="14" fill="%231a1a2e"/%3E%3C/svg%3E';
+                    if (current.endsWith('.png')) {
+                      target.src = `${base}.jpg`;
+                    } else if (current.endsWith('.jpg')) {
+                      target.src = `${base}.svg`;
+                    } else {
+                      target.src = 'data:image/svg+xml,%3Csvg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 64 64"%3E%3Crect width="64" height="64" rx="14" fill="%231a1a2e"/%3E%3C/svg%3E';
+                    }
                   }}
                 />
               </div>

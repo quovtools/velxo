@@ -45,6 +45,17 @@ export class SellersController {
     }
   }
 
+  @Get('top-sellers')
+  async getTopSellers(@Query('limit') limit?: number) {
+    try {
+      const sellers = await this.sellersService.getTopSellers(limit)
+      return ApiResponseDto.ok(sellers, 'Top sellers retrieved')
+    } catch (error) {
+      this.logger.error('Error fetching top sellers:', error)
+      throw error
+    }
+  }
+
   @Get(':id')
   async getSellerProfile(@Param('id') sellerId: string) {
     try {
@@ -69,17 +80,6 @@ export class SellersController {
       return ApiResponseDto.ok(result, 'Report submitted successfully')
     } catch (error) {
       this.logger.error('Error reporting seller:', error)
-      throw error
-    }
-  }
-
-  @Get('top-sellers')
-  async getTopSellers(@Query('limit') limit?: number) {
-    try {
-      const sellers = await this.sellersService.getTopSellers(limit)
-      return ApiResponseDto.ok(sellers, 'Top sellers retrieved')
-    } catch (error) {
-      this.logger.error('Error fetching top sellers:', error)
       throw error
     }
   }

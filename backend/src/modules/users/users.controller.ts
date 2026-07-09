@@ -81,17 +81,6 @@ export class UsersController {
     }
   }
 
-  @Get(':id')
-  async getUserById(@Param('id') userId: string) {
-    try {
-      const profile = await this.usersService.getUserProfile(userId)
-      return ApiResponseDto.ok(profile, 'User profile retrieved')
-    } catch (error) {
-      this.logger.error('Error fetching user:', error)
-      throw error
-    }
-  }
-
   @Get('search')
   async searchUsers(@Query('q') query: string, @Query('limit') limit?: number) {
     try {
@@ -99,6 +88,17 @@ export class UsersController {
       return ApiResponseDto.ok(users, 'Users found')
     } catch (error) {
       this.logger.error('Error searching users:', error)
+      throw error
+    }
+  }
+
+  @Get(':id')
+  async getUserById(@Param('id') userId: string) {
+    try {
+      const profile = await this.usersService.getUserProfile(userId)
+      return ApiResponseDto.ok(profile, 'User profile retrieved')
+    } catch (error) {
+      this.logger.error('Error fetching user:', error)
       throw error
     }
   }

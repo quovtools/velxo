@@ -150,7 +150,7 @@ export default function SupportPage() {
         <MessageSquare className="w-12 h-12 text-brand mx-auto" />
         <h3 className="text-2xl font-extrabold text-white">Still need help?</h3>
         <p className="text-gray-400 text-sm">
-          Our support team is available 7 days a week. Reach us via live chat or email and we'll get back to you within a few hours.
+          Our support team is available 7 days a week. Reach us via live chat or email and we&apos;ll get back to you within a few hours.
         </p>
         <div className="flex flex-col sm:flex-row gap-3 justify-center">
           <a

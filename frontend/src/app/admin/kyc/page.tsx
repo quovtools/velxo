@@ -3,7 +3,6 @@
 import React, { useEffect, useState } from 'react';
 import { ShieldCheck, CheckCircle, XCircle, Loader2, RefreshCw, UserCheck, AlertTriangle } from 'lucide-react';
 import { api } from '@/lib/api';
-import VerifiedBadge from '@/components/VerifiedBadge';
 
 interface KycSubmission {
   id: string;

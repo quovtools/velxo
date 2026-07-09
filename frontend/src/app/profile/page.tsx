@@ -360,7 +360,7 @@ export default function ProfilePage() {
                 placeholder="Repeat new password"
                 className="w-full bg-background border border-borderBg rounded-xl px-4 py-3 text-sm focus:outline-none focus:border-brand transition" />
               {confirmPw && newPw !== confirmPw && (
-                <p className="text-xs text-red-400 mt-1 flex items-center gap-1"><AlertCircle className="w-3 h-3" /> Passwords don't match</p>
+                <p className="text-xs text-red-400 mt-1 flex items-center gap-1"><AlertCircle className="w-3 h-3" /> Passwords don&apos;t match</p>
               )}
             </div>
             <button type="submit" disabled={saving || !currentPw || !newPw || newPw !== confirmPw}

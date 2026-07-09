@@ -1,7 +1,7 @@
 'use client';
 
 import React, { useEffect, useState, useCallback } from 'react';
-import { LifeBuoy, Search, RefreshCw, Flag } from 'lucide-react';
+import { LifeBuoy, RefreshCw } from 'lucide-react';
 import { api } from '@/lib/api';
 import { Badge, statusColor, Pagination, EmptyState, ErrorBanner, ActionButton, Modal, formatDate } from '@/components/admin/ui';
 

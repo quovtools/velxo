@@ -5,9 +5,9 @@ import { Menu, X, ShieldCheck } from 'lucide-react';
 
 const NAV_LINKS = [
   { label: 'Home', href: '/' },
-  { label: 'How It Works', href: '#how-it-works' },
-  { label: 'Games', href: '#games' },
-  { label: 'Pricing', href: '#pricing' },
+  { label: 'How It Works', href: '/#how-it-works' },
+  { label: 'Games', href: '/#games' },
+  { label: 'Pricing', href: '/#pricing' },
   { label: 'Blog', href: '/blog' },
   { label: 'Community', href: '/community' },
 ];
@@ -84,8 +84,7 @@ export default function Navbar() {
           </button>
         </div>
 
-        {open && (
-          <div id="mobile-menu" className="border-t border-white/10 bg-[#0b0f19]/95 px-4 py-4 backdrop-blur-xl md:hidden">
+        <div id="mobile-menu" className={`border-t border-white/10 bg-[#0b0f19]/95 px-4 py-4 backdrop-blur-xl md:hidden ${open ? '' : 'hidden'}`}>
             <div className="flex flex-col gap-1">
               {NAV_LINKS.map((link) =>
                 isHash(link.href) ? (
@@ -112,8 +111,7 @@ export default function Navbar() {
               </a>
             </div>
           </div>
-        )}
-      </nav>
+        </nav>
     </header>
   );
 }

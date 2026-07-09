@@ -66,7 +66,7 @@ body {
     @apply relative overflow-hidden rounded-3xl border border-white/[0.08] bg-white/[0.03] p-6 backdrop-blur-sm transition duration-300 hover:-translate-y-1 hover:border-brand/40 hover:bg-white/[0.05] hover:shadow-card;
   }
   .card-highlight {
-    @apply relative overflow-hidden rounded-3xl border border-brand/40 bg-gradient-to-b from-brand/[0.08] to-transparent p-6 ring-1 ring-brand/20 transition duration-300 hover:-translate-y-1 hover:shadow-glow;
+    @apply relative rounded-3xl border border-brand/40 bg-gradient-to-b from-brand/[0.08] to-transparent p-6 ring-1 ring-brand/20 transition duration-300 hover:-translate-y-1 hover:shadow-glow;
   }
 
   /* Section heading helpers */

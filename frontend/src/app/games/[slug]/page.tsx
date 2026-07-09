@@ -5,11 +5,26 @@ const SITE_URL = 'https://market.velxo.shop';
 
 export const dynamic = 'force-dynamic';
 
+const GAME_SLUG_TO_NAME: Record<string, string> = {
+  'free-fire': 'Free Fire',
+  'cod-mobile': 'COD Mobile',
+  'blood-strike': 'Blood Strike',
+  'delta-force': 'Delta Force',
+  'pubg-mobile': 'PUBG Mobile',
+  valorant: 'Valorant',
+  roblox: 'Roblox',
+  'mobile-legends': 'Mobile Legends',
+  efootball: 'eFootball',
+};
+
 function formatGameName(slug: string) {
-  return slug
-    .split('-')
-    .map((word) => word.charAt(0).toUpperCase() + word.slice(1))
-    .join(' ');
+  return (
+    GAME_SLUG_TO_NAME[slug] ||
+    slug
+      .split('-')
+      .map((word) => word.charAt(0).toUpperCase() + word.slice(1))
+      .join(' ')
+  );
 }
 
 export async function generateMetadata({

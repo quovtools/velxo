@@ -1,7 +1,7 @@
 'use client';
 
 import React, { useEffect, useState } from 'react';
-import { FileText, Plus, RefreshCw, Trash2, Save, Send } from 'lucide-react';
+import { FileText, RefreshCw, Trash2, Send } from 'lucide-react';
 import { api } from '@/lib/api';
 import { Badge, EmptyState, ErrorBanner, ActionButton } from '@/components/admin/ui';
 

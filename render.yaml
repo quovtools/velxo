@@ -1,7 +1,7 @@
 services:
   # NestJS Backend
   - type: web
-    name: velxo-backend
+    name: velxo
     env: node
     plan: free
     rootDir: backend

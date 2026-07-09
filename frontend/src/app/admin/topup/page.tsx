@@ -1,7 +1,7 @@
 'use client';
 
 import React, { useEffect, useState } from 'react';
-import { Gamepad2, Plus, RefreshCw, Trash2, Save } from 'lucide-react';
+import { Gamepad2, RefreshCw, Trash2 } from 'lucide-react';
 import { api } from '@/lib/api';
 import { Badge, EmptyState, ErrorBanner, ActionButton, formatMoney } from '@/components/admin/ui';
 

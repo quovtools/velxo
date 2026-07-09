@@ -90,7 +90,7 @@ export default function CameraCapture({
   if (capturedPreview) {
     return (
       <div className="space-y-3">
-        // eslint-disable-next-line @next/next/no-img-element
+        {/* eslint-disable-next-line @next/next/no-img-element */}
         <img
           src={capturedPreview}
           alt={label}

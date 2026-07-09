@@ -4,7 +4,7 @@ import React, { useEffect, useState, useCallback } from 'react';
 import { useSearchParams } from 'next/navigation';
 import { ShieldCheck, Lock, ExternalLink, RefreshCw, AlertTriangle, CheckCircle, Clock, Loader2 } from 'lucide-react';
 import { getEscrowByOrder, EscrowData } from '@/lib/api';
-import { statusColor, formatMoney, formatDate, EmptyState, ErrorBanner } from '@/components/admin/ui';
+import { formatMoney, formatDate, ErrorBanner } from '@/components/admin/ui';
 
 const STATUS_ICON: Record<string, React.ReactNode> = {
   HELD: <Lock className="w-5 h-5" />,
@@ -20,6 +20,14 @@ const STATUS_LABEL: Record<string, string> = {
   RELEASED: 'Released to Seller',
   REFUNDED: 'Refunded',
   DISPUTED: 'In Dispute',
+};
+
+const STATUS_BADGE_CLASS: Record<string, string> = {
+  HELD: 'bg-yellow-500/20 text-yellow-400 border border-yellow-500/20',
+  PENDING: 'bg-yellow-500/20 text-yellow-400 border border-yellow-500/20',
+  RELEASED: 'bg-emerald-500/20 text-emerald-400 border border-emerald-500/20',
+  REFUNDED: 'bg-blue-500/20 text-blue-400 border border-blue-500/20',
+  DISPUTED: 'bg-red-500/20 text-red-400 border border-red-500/20',
 };
 
 export default function EscrowTracker() {
@@ -116,7 +124,7 @@ export default function EscrowTracker() {
                 {STATUS_LABEL[status] || status}
               </p>
             </div>
-            {escrow && <span className={`inline-flex items-center px-3 py-1 rounded-full text-xs font-semibold ${statusColor(status)}`}>{status}</span>}
+            {escrow && <span className={`inline-flex items-center px-3 py-1 rounded-full text-xs font-semibold ${STATUS_BADGE_CLASS[status] || 'bg-gray-700 text-gray-300'}`}>{status}</span>}
           </div>
 
           {/* Payment link — prominent */}

@@ -114,7 +114,7 @@ export default function CommunityPage() {
                     <div className="w-12 h-12 rounded-xl bg-[#0b0f19] border border-[#1F2937] flex items-center justify-center">
                       {ch.icon}
                     </div>
-                    <span className="text-[10px] font-bold text-gray-600 bg-[#0b0f19] px-2 py-1 rounded-full border border-[#1F2937]">
+                     <span className="text-[10px] font-bold text-gray-500 bg-[#0b0f19] px-2 py-1 rounded-full border border-[#1F2937]">
                       {ch.badge}
                     </span>
                   </div>

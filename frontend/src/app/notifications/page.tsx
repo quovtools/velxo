@@ -6,7 +6,7 @@ import { useAuth } from '@/app/providers';
 import { api } from '@/lib/api';
 import {
   Bell, CheckCheck, Trash2, ShoppingBag, MessageSquare,
-  ShieldAlert, Wallet, Star, Info, Loader2, Package,
+  ShieldAlert, Wallet, Info, Loader2, Package,
 } from 'lucide-react';
 
 interface Notification {

@@ -124,7 +124,7 @@ export default function AffiliatePage() {
                   )}
                   <div>
                     <h3 className="text-xl font-black text-white">{tier.name}</h3>
-                    <p className="text-xs text-gray-600 mt-1">{tier.referrals}</p>
+                     <p className="text-xs text-gray-500 mt-1">{tier.referrals}</p>
                     <p className="text-3xl font-black text-[#A78BFA] mt-3">{tier.commission}</p>
                   </div>
                   <ul className="space-y-2.5">

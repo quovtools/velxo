@@ -1,7 +1,7 @@
 'use client';
 
 import React, { useEffect, useState, useCallback } from 'react';
-import { CreditCard, Search, XCircle, RefreshCw } from 'lucide-react';
+import { CreditCard, XCircle, RefreshCw } from 'lucide-react';
 import { api } from '@/lib/api';
 import { Badge, statusColor, Pagination, EmptyState, ErrorBanner, ActionButton, Modal, formatDate, formatMoney } from '@/components/admin/ui';
 

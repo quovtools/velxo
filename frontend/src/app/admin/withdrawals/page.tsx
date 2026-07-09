@@ -3,7 +3,7 @@
 import React, { useEffect, useState, useCallback } from 'react';
 import { LifeBuoy, Search, CheckCircle, XCircle, RefreshCw } from 'lucide-react';
 import { api } from '@/lib/api';
-import { Badge, statusColor, Pagination, EmptyState, ErrorBanner, ActionButton, Modal, formatDate, formatMoney } from '@/components/admin/ui';
+import { Badge, statusColor, Pagination, EmptyState, ErrorBanner, ActionButton, formatDate, formatMoney } from '@/components/admin/ui';
 
 interface Withdrawal {
   id: string;

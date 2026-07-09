@@ -124,7 +124,7 @@ export default function GameSlideshow() {
 
       {/* Content */}
       <div
-        className={`relative h-full flex flex-col justify-end p-6 sm:p-8 md:p-12 transition-all duration-400 ${
+        className={`relative h-full flex flex-col justify-end p-6 sm:p-8 md:p-12 transition-all duration-[400ms] ${
           isAnimating ? 'opacity-0 translate-y-2' : 'opacity-100 translate-y-0'
         }`}
       >

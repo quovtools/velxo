@@ -7,6 +7,7 @@ import { fileToDataUrl } from './file';
  * KYC flow still works end-to-end without extra storage configuration.
  */
 export async function uploadKycImage(file: File, path: string): Promise<string> {
+  if (!supabase) return fileToDataUrl(file);
   try {
     const { data, error } = await supabase.storage
       .from('kyc')
@@ -28,6 +29,7 @@ export async function uploadKycImage(file: File, path: string): Promise<string> 
  * listing flow still works end-to-end without extra storage config.
  */
 export async function uploadListingImage(file: File, _path?: string): Promise<string> {
+  if (!supabase) return fileToDataUrl(file);
   try {
     const ext = file.name.split('.').pop()?.toLowerCase() || 'jpg';
     const safeExt = /^[a-z0-9]+$/.test(ext) ? ext : 'jpg';

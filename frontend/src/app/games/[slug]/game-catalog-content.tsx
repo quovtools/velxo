@@ -23,11 +23,26 @@ export default function GameCatalogContent({ slug }: { slug: string }) {
   const [listings, setListings] = useState<Listing[]>([]);
   const [loading, setLoading] = useState(true);
 
-  // Format game name based on slug
-  const gameName = slug
-    .split('-')
-    .map((word) => word.charAt(0).toUpperCase() + word.slice(1))
-    .join(' ');
+  // Map slug → canonical game name. Must match the stored listing gameName
+  // exactly (e.g. 'PUBG Mobile', not title-cased 'Pubg Mobile'), otherwise the
+  // listings API filter returns nothing for those games.
+  const GAME_SLUG_TO_NAME: Record<string, string> = {
+    'free-fire': 'Free Fire',
+    'cod-mobile': 'COD Mobile',
+    'blood-strike': 'Blood Strike',
+    'delta-force': 'Delta Force',
+    'pubg-mobile': 'PUBG Mobile',
+    valorant: 'Valorant',
+    roblox: 'Roblox',
+    'mobile-legends': 'Mobile Legends',
+    efootball: 'eFootball',
+  };
+  const gameName =
+    GAME_SLUG_TO_NAME[slug] ||
+    slug
+      .split('-')
+      .map((word) => word.charAt(0).toUpperCase() + word.slice(1))
+      .join(' ');
 
   useEffect(() => {
     async function loadListings() {

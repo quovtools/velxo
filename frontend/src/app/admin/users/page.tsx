@@ -1,7 +1,7 @@
 'use client';
 
 import React, { useEffect, useState, useCallback } from 'react';
-import { Users, Search, Ban, CheckCircle, Shield, Mail, RefreshCw, ChevronDown } from 'lucide-react';
+import { Users, Search, Mail, RefreshCw } from 'lucide-react';
 import { api } from '@/lib/api';
 import { Badge, statusColor, Pagination, EmptyState, ErrorBanner, ActionButton, Modal, formatDate } from '@/components/admin/ui';
 

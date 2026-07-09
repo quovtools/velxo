@@ -1,7 +1,7 @@
 'use client';
 
 import React, { useEffect, useState } from 'react';
-import { FolderTree, Plus, RefreshCw, Trash2, Save, ChevronDown } from 'lucide-react';
+import { FolderTree, RefreshCw, Trash2, Save } from 'lucide-react';
 import { api } from '@/lib/api';
 import { Badge, EmptyState, ErrorBanner, ActionButton, Modal } from '@/components/admin/ui';
 
