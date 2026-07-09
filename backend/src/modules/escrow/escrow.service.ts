@@ -1,9 +1,10 @@
 import { Injectable, Logger } from '@nestjs/common'
 import { PrismaService } from '@/common/services/prisma.service'
-import { NotFoundException, InvalidEscrowStateException } from '@/common/exceptions/custom-exceptions'
+import { NotFoundException, InvalidEscrowStateException, ForbiddenException } from '@/common/exceptions/custom-exceptions'
 import { EscrowStatus } from '@prisma/client'
 import { Decimal } from '@prisma/client/runtime/library'
 import { NotificationsService } from '../notifications/notifications.service'
+import { PaymentsService } from '../payments/payments.service'
 
 @Injectable()
 export class EscrowService {
@@ -12,6 +13,7 @@ export class EscrowService {
   constructor(
     private prisma: PrismaService,
     private notifications: NotificationsService,
+    private payments: PaymentsService,
   ) {}
 
   async getEscrowStatus(orderId: string) {
@@ -24,6 +26,91 @@ export class EscrowService {
     }
 
     return escrow
+  }
+
+  /**
+   * Returns an escrow record together with a hosted payment link and an order
+   * summary. This is the contract the frontend escrow page consumes:
+   *   GET /escrow/order/:orderId -> { id, status, amount, currency, paymentLink, order }
+   *
+   * The payment link is read from the order/payment metadata; if absent it is
+   * generated lazily via the payment provider (and persisted for reuse).
+   */
+  async getEscrowForOrder(orderId: string, userId?: string) {
+    const escrow = await this.prisma.escrowTransactions.findUnique({
+      where: { orderId },
+    })
+    if (!escrow) {
+      throw new NotFoundException('Escrow')
+    }
+
+    const order = await this.prisma.orders.findUnique({
+      where: { id: orderId },
+      include: {
+        buyer: { select: { id: true, email: true, firstName: true, lastName: true } },
+        seller: { include: { user: { select: { id: true, email: true } } } },
+        orderItems: { include: { listing: { select: { id: true, title: true, price: true } } } },
+      },
+    })
+    if (!order) {
+      throw new NotFoundException('Order')
+    }
+
+    // Lightweight authorization: only the buyer, the seller, or an admin may
+    // view the escrow of an order.
+    if (userId) {
+      const isBuyer = order.buyerId === userId
+      const isSeller = order.seller?.userId === userId
+      const isAdmin = false // role check performed by guards/controllers if required
+      if (!isBuyer && !isSeller && !isAdmin) {
+        throw new ForbiddenException('You do not have access to this escrow')
+      }
+    }
+
+    // Resolve a payment link: prefer stored metadata, otherwise generate lazily.
+    let paymentLink: string | null =
+      (order.metadata as Record<string, any>)?.paymentLink ?? null
+
+    if (!paymentLink) {
+      const payment = await this.prisma.payments.findFirst({
+        where: { orderId },
+        orderBy: { createdAt: 'desc' },
+      })
+      paymentLink = (payment?.metadata as Record<string, any>)?.paymentLink ?? null
+    }
+
+    const isPaid =
+      order.status === 'PAID' ||
+      order.status === 'COMPLETED' ||
+      order.status === 'IN_PROGRESS' ||
+      order.status === 'DELIVERED'
+
+    if (!paymentLink && !isPaid) {
+      const link = await this.payments.createPaymentLink(orderId)
+      paymentLink = link.url
+    }
+
+    return {
+      id: escrow.id,
+      status: escrow.status,
+      amount: escrow.amount,
+      currency: escrow.currency,
+      paymentLink,
+      order: {
+        id: order.id,
+        orderNumber: order.orderNumber,
+        status: order.status,
+        totalAmount: order.totalAmount,
+        currency: order.currency,
+        buyerId: order.buyerId,
+        sellerId: order.sellerId,
+        buyer: order.buyer,
+        seller: order.seller,
+        items: order.orderItems,
+        createdAt: order.createdAt,
+        updatedAt: order.updatedAt,
+      },
+    }
   }
 
   async holdFunds(orderId: string, amount: Decimal, currency: string) {

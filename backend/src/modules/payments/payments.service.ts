@@ -171,6 +171,134 @@ export class PaymentsService implements OnModuleInit {
     throw new BadRequestException('Unsupported payment provider')
   }
 
+  /**
+   * Resolves the payment provider to use for hosted payment links.
+   * Honours an explicit PAYMENT_PROVIDER env override, then falls back to the
+   * first configured provider (Flutterwave preferred), and finally to a safe
+   * default so the method never throws when nothing is configured.
+   */
+  private resolveProvider(): PaymentProvider {
+    const override = process.env.PAYMENT_PROVIDER?.toUpperCase()
+    if (override === 'FLUTTERWAVE' || override === 'PAYMENT_IO' || override === 'CRYPTO') {
+      return override as PaymentProvider
+    }
+    if (this.flutterwave.isConfigured) return PaymentProvider.FLUTTERWAVE
+    if (this.paymentIo.isConfigured) return PaymentProvider.PAYMENT_IO
+    return PaymentProvider.FLUTTERWAVE
+  }
+
+  /**
+   * Generates a hosted payment link URL for an order and persists it.
+   *
+   * - Resolves the active payment provider.
+   * - Asks the provider for a hosted redirect URL (charge).
+   * - Stores the link on the order's `metadata.paymentLink` and on the
+   *   matching `payments` record's `metadata.paymentLink` (reusing an existing
+   *   PENDING payment for this provider when present).
+   * - Returns `{ url, provider, configured }`. `url` is null when the provider
+   *   is not configured or the order is already paid.
+   */
+  async createPaymentLink(
+    orderId: string,
+  ): Promise<{ url: string | null; provider: PaymentProvider | null; configured: boolean }> {
+    this.logger.log(`Generating payment link for order ${orderId}`)
+
+    const order = await this.prisma.orders.findUnique({
+      where: { id: orderId },
+      include: { buyer: true, orderItems: true },
+    })
+    if (!order) {
+      throw new NotFoundException('Order')
+    }
+
+    if (
+      order.status === OrderStatus.PAID ||
+      order.status === OrderStatus.COMPLETED ||
+      order.status === OrderStatus.REFUNDED
+    ) {
+      this.logger.log(`Order ${orderId} already paid — no payment link generated`)
+      return { url: null, provider: null, configured: true }
+    }
+
+    const provider = this.resolveProvider()
+    const callbackUrl = `${process.env.FRONTEND_URL || 'https://market.velxo.shop'}/orders/${orderId}`
+
+    let charge: { chargeId: string | null; paymentUrl: string | null; configured: boolean } = {
+      chargeId: null,
+      paymentUrl: null,
+      configured: false,
+    }
+
+    try {
+      if (provider === PaymentProvider.PAYMENT_IO) {
+        charge = await this.paymentIo.createCharge({
+          reference: orderId,
+          amount: Number(order.totalAmount),
+          currency: order.currency,
+          callbackUrl,
+        })
+      } else if (provider === PaymentProvider.FLUTTERWAVE) {
+        charge = await this.flutterwave.createCharge({
+          reference: orderId,
+          amount: Number(order.totalAmount),
+          currency: order.currency,
+          email: order.buyer?.email || 'buyer@velxo.shop',
+          callbackUrl,
+        })
+      }
+    } catch (err: any) {
+      this.logger.error(`Payment link generation failed for order ${orderId}:`, err?.message || err)
+      return { url: null, provider, configured: false }
+    }
+
+    if (!charge.configured || !charge.paymentUrl) {
+      this.logger.warn(`Payment provider (${provider}) not configured for order ${orderId}`)
+      return { url: null, provider, configured: false }
+    }
+
+    const paymentUrl = charge.paymentUrl
+
+    // Reuse an existing PENDING payment for this order+provider when present so
+    // we don't accumulate duplicate payment rows across calls.
+    const existing = await this.prisma.payments.findFirst({
+      where: { orderId, provider, status: PaymentStatus.PENDING },
+      orderBy: { createdAt: 'desc' },
+    })
+
+    if (existing) {
+      await this.prisma.payments.update({
+        where: { id: existing.id },
+        data: {
+          providerTransactionId: charge.chargeId ?? existing.providerTransactionId,
+          metadata: { ...((existing.metadata as Record<string, any>) || {}), paymentLink: paymentUrl },
+        },
+      })
+    } else {
+      await this.prisma.payments.create({
+        data: {
+          orderId,
+          provider,
+          amount: order.totalAmount,
+          currency: order.currency,
+          status: PaymentStatus.PENDING,
+          providerTransactionId: charge.chargeId ?? undefined,
+          metadata: { paymentLink: paymentUrl },
+        },
+      })
+    }
+
+    // Also surface the link on the order metadata for convenience.
+    const currentMeta = (order.metadata as Record<string, any>) || {}
+    if (currentMeta.paymentLink !== paymentUrl) {
+      await this.prisma.orders.update({
+        where: { id: orderId },
+        data: { metadata: { ...currentMeta, paymentLink: paymentUrl } },
+      })
+    }
+
+    return { url: paymentUrl, provider, configured: true }
+  }
+
   async updatePaymentStatus(paymentId: string, status: PaymentStatus, transactionId?: string) {
     this.logger.log(`Updating payment ${paymentId} to ${status}`)
 

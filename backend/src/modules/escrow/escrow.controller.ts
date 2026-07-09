@@ -25,6 +25,21 @@ export class EscrowController {
     private prisma: PrismaService,
   ) {}
 
+  @Get('order/:orderId')
+  @UseGuards(SupabaseJwtGuard)
+  async getEscrowForOrder(
+    @Param('orderId') orderId: string,
+    @CurrentUserId() userId?: string,
+  ) {
+    try {
+      const result = await this.escrowService.getEscrowForOrder(orderId, userId)
+      return ApiResponseDto.ok(result, 'Escrow and payment details retrieved')
+    } catch (error) {
+      this.logger.error('Error fetching escrow for order:', error)
+      throw error
+    }
+  }
+
   @Get(':orderId')
   @UseGuards(SupabaseJwtGuard)
   async getEscrowStatus(@Param('orderId') orderId: string) {
