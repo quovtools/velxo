@@ -6,6 +6,7 @@ import helmet from 'helmet'
 import rateLimit from 'express-rate-limit'
 import express from 'express'
 import { AllExceptionsFilter } from './common/filters/all-exceptions.filter'
+import { execSync } from 'child_process'
 
 async function bootstrap() {
   const logger = new Logger('Bootstrap')
@@ -107,6 +108,21 @@ async function bootstrap() {
   expressApp.head('/api/v1', (_req, res) => {
     res.status(200).end()
   })
+
+  // Self-healing schema migration: apply the full Prisma schema to the
+  // production database at startup, using the app's own runtime DATABASE_URL.
+  // This guarantees every table/column added in newer code exists, regardless
+  // of whether the build-time push reached the runtime database.
+  try {
+    logger.log('Running schema migration (prisma db push)...')
+    execSync('npx prisma db push --accept-data-loss --skip-generate', {
+      stdio: 'inherit',
+      env: process.env,
+    })
+    logger.log('Schema migration complete')
+  } catch (schemaErr) {
+    logger.error('Schema migration failed (app will still try to start):', schemaErr)
+  }
 
   const port = process.env.PORT || 3001
   const nodeEnv = process.env.NODE_ENV || 'development'
