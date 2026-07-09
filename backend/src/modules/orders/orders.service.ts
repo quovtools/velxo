@@ -195,6 +195,7 @@ export class OrdersService {
           },
           orderItems: {
             create: {
+              listingId: null,
               quantity,
               unitPrice: new Decimal(dto.price),
               totalPrice: subtotal,
