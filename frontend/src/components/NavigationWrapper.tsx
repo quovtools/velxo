@@ -43,10 +43,10 @@ export default function NavigationWrapper() {
 
           {/* Right side */}
           <div className="flex items-center gap-2 md:gap-3">
-            {/* Theme toggle - only show on desktop */}
+            {/* Theme toggle - always visible on the nav bar */}
             <button
               onClick={toggleTheme}
-              className="hidden md:block p-2 text-gray-500 hover:text-brand transition rounded-lg hover:bg-brand/10"
+              className="p-2 text-gray-500 hover:text-brand transition rounded-lg hover:bg-brand/10"
               title={theme === 'light' ? 'Switch to dark mode' : 'Switch to light mode'}
               aria-label="Toggle theme"
             >
@@ -118,18 +118,11 @@ export default function NavigationWrapper() {
              <Link href="/pricing" onClick={() => setMobileOpen(false)} className="flex items-center gap-3 px-3 py-3 rounded-xl text-gray-300 hover:bg-background hover:text-white transition text-sm font-medium">
                <Wallet className="w-4 h-4" /> Pricing & Fees
              </Link>
-             <Link href="/affiliate" onClick={() => setMobileOpen(false)} className="flex items-center gap-3 px-3 py-3 rounded-xl text-gray-300 hover:bg-background hover:text-white transition text-sm font-medium">
-               <Users className="w-4 h-4" /> Refer & Earn
-             </Link>
-             <div className="flex items-center justify-between px-3 py-3 rounded-xl text-gray-300 hover:bg-background hover:text-white transition text-sm font-medium" onClick={() => { toggleTheme(); setMobileOpen(false); }}>
-               <div className="flex items-center gap-3">
-                 {theme === 'light' ? <Sun className="w-4 h-4" /> : <Moon className="w-4 h-4" />}
-                 <span>{theme === 'light' ? 'Switch to Dark' : 'Switch to Light'}</span>
-               </div>
-               {theme === 'light' ? <Moon className="w-4 h-4" /> : <Sun className="w-4 h-4" />}
-             </div>
+              <Link href="/affiliate" onClick={() => setMobileOpen(false)} className="flex items-center gap-3 px-3 py-3 rounded-xl text-gray-300 hover:bg-background hover:text-white transition text-sm font-medium">
+                <Users className="w-4 h-4" /> Refer & Earn
+              </Link>
 
-             {user ? (
+              {user ? (
               <>
                 <div className="border-t border-borderBg my-2" />
                 <Link href="/messages" onClick={() => setMobileOpen(false)} className="flex items-center gap-3 px-3 py-3 rounded-xl text-gray-300 hover:bg-background hover:text-white transition text-sm font-medium">

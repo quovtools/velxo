@@ -295,4 +295,39 @@ export class OrdersService {
       orderBy: { createdAt: 'desc' },
     })
   }
+
+  async markDelivered(orderId: string, sellerId: string, deliveryData?: any) {
+    this.logger.log(`Seller marking order ${orderId} as delivered`)
+
+    const order = await this.prisma.orders.findUnique({
+      where: { id: orderId },
+      include: { seller: true },
+    })
+
+    if (!order) {
+      throw new NotFoundException('Order')
+    }
+
+    if (order.seller.userId !== sellerId) {
+      throw new ForbiddenException('Only the seller can mark this order as delivered')
+    }
+
+    if (order.status !== OrderStatus.PAID) {
+      throw new BadRequestException('Order must be paid before it can be marked delivered')
+    }
+
+    return this.prisma.orders.update({
+      where: { id: orderId },
+      data: {
+        status: OrderStatus.IN_PROGRESS,
+        deliveryData: deliveryData ?? order.deliveryData,
+        deliveredAt: new Date(),
+      },
+      include: {
+        buyer: true,
+        seller: true,
+        orderItems: { include: { listing: true } },
+      },
+    })
+  }
 }

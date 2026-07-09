@@ -67,4 +67,20 @@ export class OrdersController {
       throw error
     }
   }
+
+  @Patch(':id/mark-delivered')
+  @UseGuards(SupabaseJwtGuard)
+  async markDelivered(
+    @Param('id') orderId: string,
+    @CurrentUserId() sellerId: string,
+    @Body() body: Record<string, any>,
+  ) {
+    try {
+      const order = await this.ordersService.markDelivered(orderId, sellerId, body?.deliveryData)
+      return ApiResponseDto.ok(order, 'Order marked as delivered')
+    } catch (error) {
+      this.logger.error('Error marking delivered:', error)
+      throw error
+    }
+  }
 }

@@ -1,6 +1,6 @@
 import { Injectable, Logger } from '@nestjs/common'
 import { PrismaService } from '@/common/services/prisma.service'
-import { PaymentProvider, PaymentStatus, OrderStatus } from '@prisma/client'
+import { PaymentProvider, PaymentStatus, OrderStatus, ListingStatus } from '@prisma/client'
 import {
   NotFoundException,
   ForbiddenException,
@@ -8,6 +8,7 @@ import {
 } from '@/common/exceptions/custom-exceptions'
 import { Decimal } from '@prisma/client/runtime/library'
 import { PaymentIoService } from './paymentio.service'
+import { FlutterwaveService } from './flutterwave.service'
 
 @Injectable()
 export class PaymentsService {
@@ -16,6 +17,7 @@ export class PaymentsService {
   constructor(
     private prisma: PrismaService,
     private paymentIo: PaymentIoService,
+    private flutterwave: FlutterwaveService,
   ) {}
 
   async createPayment(
@@ -95,6 +97,29 @@ export class PaymentsService {
       return { payment, paymentUrl: charge.paymentUrl, configured: charge.configured }
     }
 
+    if (provider === 'FLUTTERWAVE') {
+      const fullOrder = await this.prisma.orders.findUnique({
+        where: { id: orderId },
+        include: { buyer: true },
+      })
+      const charge = await this.flutterwave.createCharge({
+        reference: payment.id,
+        amount: Number(amount),
+        currency: payment.currency,
+        email: fullOrder?.buyer?.email || 'buyer@velxo.shop',
+        callbackUrl,
+      })
+
+      if (charge.chargeId) {
+        await this.prisma.payments.update({
+          where: { id: payment.id },
+          data: { methodId: charge.chargeId },
+        })
+      }
+
+      return { payment, paymentUrl: charge.paymentUrl, configured: charge.configured }
+    }
+
     return { payment, paymentUrl: null, configured: true }
   }
 
@@ -109,15 +134,22 @@ export class PaymentsService {
         paidAt: status === PaymentStatus.COMPLETED ? new Date() : undefined,
         refundedAt: status === PaymentStatus.REFUNDED ? new Date() : undefined,
       },
-      include: { order: true },
+      include: { order: { include: { orderItems: true } } },
     })
 
     // Update order status if payment completed
     if (status === PaymentStatus.COMPLETED && payment.order.status === 'PENDING') {
+      const listingId = payment.order.orderItems?.[0]?.listingId
       await this.prisma.orders.update({
         where: { id: payment.orderId },
         data: { status: 'PAID', paidAt: new Date() },
       })
+      if (listingId) {
+        await this.prisma.listings.update({
+          where: { id: listingId },
+          data: { isSold: true, status: ListingStatus.SOLD },
+        })
+      }
     }
 
     return payment

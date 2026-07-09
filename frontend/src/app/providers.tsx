@@ -21,7 +21,7 @@ interface AuthContextType {
 const AuthContext = createContext<AuthContextType>({
   user: null,
   loading: true,
-  theme: 'light',
+  theme: 'dark',
   toggleTheme: () => {},
   logout: () => {},
   refreshSession: () => {},
@@ -31,11 +31,11 @@ const AuthContext = createContext<AuthContextType>({
 export function Providers({ children }: { children: React.ReactNode }) {
   const [user, setUser] = useState<AuthUser | null>(null);
   const [loading, setLoading] = useState(true);
-  const [theme, setTheme] = useState<'dark' | 'light'>('light');
+  const [theme, setTheme] = useState<'dark' | 'light'>('dark');
 
   // Apply theme class to <html> immediately on mount
   useEffect(() => {
-    const saved = (localStorage.getItem('velxo_theme') as 'dark' | 'light') || 'light';
+    const saved = (localStorage.getItem('velxo_theme') as 'dark' | 'light') || 'dark';
     setTheme(saved);
     applyTheme(saved);
   }, []);
