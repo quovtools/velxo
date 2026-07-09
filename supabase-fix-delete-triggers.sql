@@ -1,73 +1,88 @@
 -- =============================================================================
--- FIX: "The column `new` does not exist in the current database"
+-- DEFINITIVE FIX: "The column `new` does not exist in the current database"
+-- (real Postgres error: 42703  record "new" has no field "updatedAt")
 -- =============================================================================
--- Symptom: admin actions that DELETE a row (e.g. delete listing) fail with a
--- Prisma error saying column `new` does not exist.
+-- Symptom: deleting a listing (or other admin actions) fails with a Prisma
+-- error "The column `new` does not exist in the current database".
 --
--- Cause: a trigger function that references NEW (such as update_updated_at,
--- which sets NEW."updatedAt") is firing during a DELETE. During a DELETE there
--- is no NEW record, so Postgres raises: column "new" does not exist.
+-- Root cause: several tables have an `*_updated_at` BEFORE UPDATE trigger that
+-- runs `NEW."updatedAt" = ...`, but those tables DO NOT have an `updatedAt`
+-- column (e.g. order_items, notifications, commissions, wallet_transactions,
+-- fraud_flags, dispute_messages, reward_coin_transactions, admin_audit_logs).
+-- Any UPDATE to such a table therefore throws `record "new" has no field
+-- "updatedAt"`. Deleting a listing that has order_items triggers a SetNull
+-- UPDATE on order_items, which hits this and fails.
 --
--- This script:
---   1. Redefines update_updated_at() so it is DELETE-safe.
---   2. Recreates every *_updated_at trigger as BEFORE UPDATE only, dropping any
---      copy that was mistakenly created for INSERT/DELETE events.
---   3. (Diagnostic) Lists any remaining triggers so you can spot other culprits.
+-- Fix: drop every `updated_at` trigger that sits on a table without an
+-- `updatedAt` column. (Tables that DO have `updatedAt` keep their trigger.)
 --
--- Safe to run multiple times. Run it in the Supabase SQL Editor.
+-- Run this ENTIRE script in the Supabase SQL Editor against the SAME database
+-- your Render service uses (check DATABASE_URL). Idempotent + safe to re-run.
 -- =============================================================================
 
--- 1) Make the shared trigger function DELETE-safe -----------------------------
+
+-- 1) Make the shared trigger functions DELETE-safe (defensive) -----------------
 CREATE OR REPLACE FUNCTION update_updated_at()
 RETURNS TRIGGER AS $$
 BEGIN
-  IF (TG_OP = 'DELETE') THEN
-    RETURN OLD;
-  END IF;
+  IF (TG_OP = 'DELETE') THEN RETURN OLD; END IF;
   NEW."updatedAt" = now();
   RETURN NEW;
 END;
 $$ LANGUAGE plpgsql;
 
--- 2) Recreate every updated_at trigger as BEFORE UPDATE only ------------------
--- Drops any existing trigger with the same name (regardless of which events it
--- was created for) and recreates it correctly.
+CREATE OR REPLACE FUNCTION set_updated_at()
+RETURNS TRIGGER AS $$
+BEGIN
+  IF (TG_OP = 'DELETE') THEN RETURN OLD; END IF;
+  NEW."updatedAt" = CURRENT_TIMESTAMP;
+  RETURN NEW;
+END;
+$$ LANGUAGE plpgsql;
+
+
+-- 2) Drop every updated_at trigger on a table that has NO updatedAt column -----
+--    This is the actual bug: these triggers break every UPDATE on those tables.
 DO $$
 DECLARE
-  t text;
-  tables text[] := ARRAY[
-    'users','sellers','categories','subcategories','listings','orders',
-    'escrow_transactions','wallets','reviews','conversations','messages',
-    'disputes','support_tickets','payment_methods','payments',
-    'withdrawal_requests','game_slides','blog_posts','affiliate_referrals'
-  ];
+  r record;
 BEGIN
-  FOREACH t IN ARRAY tables LOOP
-    -- Only touch tables that actually exist and have an updatedAt column.
-    IF EXISTS (
-      SELECT 1 FROM information_schema.columns
-      WHERE table_schema = 'public' AND table_name = t AND column_name = 'updatedAt'
-    ) THEN
-      EXECUTE format('DROP TRIGGER IF EXISTS %I ON public.%I;', t || '_updated_at', t);
-      EXECUTE format(
-        'CREATE TRIGGER %I BEFORE UPDATE ON public.%I FOR EACH ROW EXECUTE FUNCTION update_updated_at();',
-        t || '_updated_at', t
-      );
-    END IF;
+  FOR r IN
+    SELECT cl.relname AS table_name, tg.tgname AS trigger_name
+    FROM pg_trigger tg
+    JOIN pg_class cl     ON cl.oid = tg.tgrelid
+    JOIN pg_namespace ns ON ns.oid = cl.relnamespace
+    JOIN pg_proc pr      ON pr.oid = tg.tgfoid
+    WHERE NOT tg.tgisinternal
+      AND ns.nspname = 'public'
+      AND pr.proname IN ('set_updated_at','update_updated_at')
+      AND NOT EXISTS (
+        SELECT 1 FROM information_schema.columns c
+        WHERE c.table_schema = 'public'
+          AND c.table_name = cl.relname
+          AND c.column_name = 'updatedAt'
+      )
+  LOOP
+    EXECUTE format('DROP TRIGGER IF EXISTS %I ON public.%I;', r.trigger_name, r.table_name);
+    RAISE NOTICE 'Dropped invalid updated_at trigger "%" on table "%"', r.trigger_name, r.table_name;
   END LOOP;
 END $$;
 
--- 3) DIAGNOSTIC: list all remaining non-internal triggers --------------------
--- Review the output. Any trigger whose action_timing/manipulation includes
--- DELETE while its function references NEW is a potential culprit. Investigate
--- the function body with: SELECT pg_get_functiondef('<function>'::regproc);
-SELECT
-  event_object_table AS table_name,
-  trigger_name,
-  action_timing,
-  string_agg(event_manipulation, ', ') AS events,
-  action_statement
-FROM information_schema.triggers
-WHERE trigger_schema = 'public'
-GROUP BY event_object_table, trigger_name, action_timing, action_statement
-ORDER BY event_object_table, trigger_name;
+
+-- 3) DIAGNOSTIC: confirm no updated_at trigger remains on a table lacking ------
+--    an updatedAt column. This should return zero rows.
+SELECT cl.relname AS table_name, tg.tgname AS trigger_name, pr.proname AS function_name
+FROM pg_trigger tg
+JOIN pg_class cl     ON cl.oid = tg.tgrelid
+JOIN pg_namespace ns ON ns.oid = cl.relnamespace
+JOIN pg_proc pr      ON pr.oid = tg.tgfoid
+WHERE NOT tg.tgisinternal
+  AND ns.nspname = 'public'
+  AND pr.proname IN ('set_updated_at','update_updated_at')
+  AND NOT EXISTS (
+    SELECT 1 FROM information_schema.columns c
+    WHERE c.table_schema = 'public'
+      AND c.table_name = cl.relname
+      AND c.column_name = 'updatedAt'
+  )
+ORDER BY cl.relname;
