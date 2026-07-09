@@ -5,7 +5,7 @@ import {
   NotFoundException,
   ForbiddenException,
   BadRequestException,
-} from '@common/exceptions/custom-exceptions'
+} from '@/common/exceptions/custom-exceptions'
 import { Decimal } from '@prisma/client/runtime/library'
 import { PaymentIoService } from './paymentio.service'
 import { FlutterwaveService } from './flutterwave.service'
