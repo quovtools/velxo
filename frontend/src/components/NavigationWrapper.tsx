@@ -10,6 +10,7 @@ import {
   Zap,
 } from 'lucide-react';
 import Marquee from '@/components/Marquee';
+import SectionNav from '@/components/SectionNav';
 import NotificationBell from '@/components/NotificationBell';
 import { useNotifications } from '@/components/NotificationProvider';
 
@@ -183,6 +184,9 @@ export default function NavigationWrapper() {
 
       {/* ── News Marquee (admin-controlled) ── */}
       <Marquee />
+
+      {/* ── Section Navigation (slideable) ── */}
+      <SectionNav />
 
       {/* ── Mobile Bottom Tab Bar ── */}
       <nav className="sm:hidden fixed bottom-0 left-0 right-0 z-50 bg-cardBg border-t border-borderBg flex items-center justify-around px-1 py-2 safe-area-pb">
