@@ -8,7 +8,7 @@ import {
   InvalidEscrowStateException,
   BadRequestException,
 } from '@/common/exceptions/custom-exceptions'
-import { OrderStatus, EscrowStatus } from '@prisma/client'
+import { OrderStatus, EscrowStatus, ListingStatus } from '@prisma/client'
 import { Decimal } from '@prisma/client/runtime/library'
 import { RewardsService } from '../rewards/rewards.service'
 
