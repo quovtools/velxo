@@ -50,7 +50,10 @@ export class DisputesService {
         orderId: dto.orderId,
         initiatedById: initiatorId,
         reason: dto.reason,
-        evidence: dto.evidence ? { evidence: dto.evidence } : undefined,
+        evidence:
+          dto.evidence || dto.description
+            ? { evidence: dto.evidence ?? null, description: dto.description ?? null }
+            : undefined,
         status: DisputeStatus.OPEN,
       },
       include: {
@@ -124,11 +127,19 @@ export class DisputesService {
     }
 
     return await this.prisma.$transaction(async (tx) => {
+      // Map the resolution outcome to the correct dispute status label.
+      const resolvedStatus =
+        dto.resolutionType === 'REFUND_BUYER'
+          ? DisputeStatus.RESOLVED_BUYER
+          : dto.resolutionType === 'RELEASE_TO_SELLER'
+          ? DisputeStatus.RESOLVED_SELLER
+          : DisputeStatus.RESOLVED_PLATFORM
+
       // Update dispute
       const updatedDispute = await tx.disputes.update({
         where: { id: disputeId },
         data: {
-          status: DisputeStatus.RESOLVED_BUYER,
+          status: resolvedStatus,
           resolvedBy: resolverId,
           resolvedAt: new Date(),
           resolutionType: dto.resolutionType,

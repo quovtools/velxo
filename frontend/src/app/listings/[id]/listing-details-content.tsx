@@ -120,11 +120,13 @@ export default function ListingDetailsContent({ id }: { id: string }) {
 
           {/* Image gallery */}
           <div className="bg-cardBg border border-borderBg rounded-2xl overflow-hidden">
-            <div className="relative aspect-video bg-background flex items-center justify-center">
+            <div className="relative aspect-video sm:aspect-[16/10] lg:aspect-[4/3] bg-background flex items-center justify-center">
               {images.length > 0 ? (
                 <>
                   {/* eslint-disable-next-line @next/next/no-img-element */}
                   <img src={images[imgIdx]} alt={listing.title}
+                    loading="lazy"
+                    referrerPolicy="no-referrer"
                     className="w-full h-full object-cover" />
                   {images.length > 1 && (
                     <>
@@ -158,7 +160,7 @@ export default function ListingDetailsContent({ id }: { id: string }) {
               <div className="flex gap-2 p-3 overflow-x-auto scrollbar-none bg-background/30">
                 {images.map((img, i) => (
                   // eslint-disable-next-line @next/next/no-img-element
-                  <img key={i} src={img} alt="" onClick={() => setImgIdx(i)}
+                  <img key={i} src={img} alt="" loading="lazy" referrerPolicy="no-referrer" onClick={() => setImgIdx(i)}
                     className={`h-14 w-20 object-cover rounded-lg cursor-pointer flex-shrink-0 transition ${
                       i === imgIdx ? 'ring-2 ring-brand opacity-100' : 'opacity-50 hover:opacity-80'
                     }`} />
@@ -173,8 +175,11 @@ export default function ListingDetailsContent({ id }: { id: string }) {
               <span className="bg-brand/10 text-brand-light text-xs font-bold px-3 py-1 rounded-full border border-brand/20">{listing.gameName}</span>
               {listing.platform && <span className="bg-cyan-900/20 text-cyan-400 text-xs font-bold px-3 py-1 rounded-full border border-cyan-500/20 flex items-center gap-1"><Monitor className="w-3 h-3" />{listing.platform}</span>}
               {listing.region   && <span className="bg-emerald-950/20 text-emerald-400 text-xs font-bold px-3 py-1 rounded-full border border-emerald-500/20 flex items-center gap-1"><MapPin className="w-3 h-3" />{listing.region}</span>}
+              {(listing.isSold || listing.status === 'SOLD') && (
+                <span className="bg-red-900/20 text-red-400 text-xs font-bold px-3 py-1 rounded-full border border-red-500/20">Sold</span>
+              )}
             </div>
-            <h1 className="text-xl md:text-2xl font-bold leading-snug">{listing.title}</h1>
+            <h1 className="text-2xl md:text-3xl font-bold leading-snug">{listing.title}</h1>
 
             {/* Metadata grid */}
             <div className="grid grid-cols-2 sm:grid-cols-4 gap-3">
@@ -232,12 +237,12 @@ export default function ListingDetailsContent({ id }: { id: string }) {
 
         {/* ── Right: Purchase card ── */}
         <div>
-          <div className="bg-cardBg border border-borderBg rounded-2xl p-6 space-y-5 sticky top-20">
+          <div className="bg-cardBg border border-borderBg rounded-2xl p-6 space-y-5 lg:sticky lg:top-20">
             {/* Price */}
             <div>
               <p className="text-xs text-gray-500 uppercase tracking-wider">Price</p>
               <div className="flex items-end gap-2 mt-1">
-                <span className="text-4xl font-black">${Number(listing.price).toFixed(2)}</span>
+                <span className="text-4xl font-black text-white">${Number(listing.price).toFixed(2)}</span>
                 <span className="text-xs text-gray-500 mb-1">USD</span>
               </div>
             </div>
@@ -249,7 +254,10 @@ export default function ListingDetailsContent({ id }: { id: string }) {
                 { icon: <Clock className="w-4 h-4 text-emerald-400" />, text: listing.deliveryTime ? `Delivery in ~${listing.deliveryTime} min` : 'Instant delivery' },
                 { icon: <UserCheck className="w-4 h-4 text-brand" />, text: 'Verified seller account' },
               ].map((t, i) => (
-                <div key={i} className="flex items-center gap-2.5 text-sm text-gray-300">{t.icon}{t.text}</div>
+                <div key={i} className="flex items-center gap-2.5 text-sm text-gray-300">
+                  <span className="flex-shrink-0">{t.icon}</span>
+                  {t.text}
+                </div>
               ))}
             </div>
 

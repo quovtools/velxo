@@ -20,6 +20,10 @@ interface Order {
   buyerNote: string;
   deliveryData?: any;
   createdAt: string;
+  acceptedAt?: string;
+  sellerDeliverDeadline?: string;
+  deliveredAt?: string;
+  buyerConfirmDeadline?: string;
   buyerId: string;
   sellerId: string;
   buyer?: { id: string; firstName: string; lastName: string; email: string };
@@ -45,6 +49,20 @@ const STATUS_LABELS: Record<string, string> = {
   CANCELLED: 'Cancelled',
   REFUNDED: 'Refunded',
 };
+
+// Escrow timing windows (ms) — must match the backend ESCROW_*_WINDOW_MS.
+const ESCROW_SELLER_WINDOW_MS = 60 * 60 * 1000
+const ESCROW_BUYER_WINDOW_MS = 60 * 60 * 1000
+
+function formatCountdown(deadlineMs: number): string {
+  if (!deadlineMs || deadlineMs <= 0) return '00:00'
+  const totalSec = Math.floor(deadlineMs / 1000)
+  const h = Math.floor(totalSec / 3600)
+  const m = Math.floor((totalSec % 3600) / 60)
+  const s = totalSec % 60
+  const pad = (n: number) => String(n).padStart(2, '0')
+  return `${pad(h)}:${pad(m)}:${pad(s)}`
+}
 
 const STEP_KEYS = ['PENDING', 'PAID', 'IN_PROGRESS', 'COMPLETED'] as const;
 
@@ -95,8 +113,19 @@ export default function OrderTrackingContent({ id }: { id: string }) {
   const [disputeDescription, setDisputeDescription] = useState('');
   const [submittingDispute, setSubmittingDispute] = useState(false);
 
+  const [showComplaintModal, setShowComplaintModal] = useState(false);
+  const [complaintDescription, setComplaintDescription] = useState('');
+  const [submittingComplaint, setSubmittingComplaint] = useState(false);
+
   const [deliveryMsg, setDeliveryMsg] = useState('');
   const [submittingDelivery, setSubmittingDelivery] = useState(false);
+
+  // Live clock so countdowns tick every second.
+  const [now, setNow] = useState<number>(() => Date.now());
+  useEffect(() => {
+    const t = setInterval(() => setNow(Date.now()), 1000);
+    return () => clearInterval(t);
+  }, []);
 
   const loadOrder = useCallback(async (silent = false) => {
     try {
@@ -145,6 +174,20 @@ export default function OrderTrackingContent({ id }: { id: string }) {
     }
   };
 
+  const handleAccept = async () => {
+    setLoading(true);
+    try {
+      const response = await api.patch<{ success: boolean }>(`/orders/${id}/accept`);
+      if (response.success) {
+        await loadOrder();
+      }
+    } catch (err: any) {
+      alert(err.message || 'Failed to accept order');
+    } finally {
+      setLoading(false);
+    }
+  };
+
   const handleMarkDelivered = async (e: React.FormEvent) => {
     e.preventDefault();
     setSubmittingDelivery(true);
@@ -184,6 +227,26 @@ export default function OrderTrackingContent({ id }: { id: string }) {
     }
   };
 
+  const handleFileComplaint = async (e: React.FormEvent) => {
+    e.preventDefault();
+    setSubmittingComplaint(true);
+    try {
+      const response = await api.post<{ success: boolean }>('/support/complaints', {
+        orderId: id,
+        description: complaintDescription,
+      });
+      if (response.success) {
+        alert('Complaint filed. Our support team will review it and follow up shortly.');
+        setShowComplaintModal(false);
+        setComplaintDescription('');
+      }
+    } catch (err: any) {
+      alert(err.message || 'Failed to file complaint');
+    } finally {
+      setSubmittingComplaint(false);
+    }
+  };
+
   if (loading) {
     return <div className="text-center py-20 text-gray-400">Loading escrow tracking console...</div>;
   }
@@ -204,6 +267,26 @@ export default function OrderTrackingContent({ id }: { id: string }) {
   const escrowAmount = Number(order.escrow?.amount || order.totalAmount);
   const fee = Number(order.commissionAmount || 0);
   const payout = Number(order.sellerPayout || 0);
+
+  // Escrow countdown windows.
+  const acceptedAtMs = order.acceptedAt ? new Date(order.acceptedAt).getTime() : null;
+  // Prefer the server-persisted deadline; fall back to acceptedAt + window for
+  // legacy orders accepted before the deadline column existed.
+  const sellerDeadlineMs = order.sellerDeliverDeadline
+    ? new Date(order.sellerDeliverDeadline).getTime()
+    : acceptedAtMs
+    ? acceptedAtMs + ESCROW_SELLER_WINDOW_MS
+    : null;
+  const buyerDeadlineMs = order.buyerConfirmDeadline ? new Date(order.buyerConfirmDeadline).getTime() : null;
+  const sellerWindowRemaining = sellerDeadlineMs != null ? sellerDeadlineMs - now : null;
+  const buyerWindowRemaining = buyerDeadlineMs != null ? buyerDeadlineMs - now : null;
+
+  // Seller accepted but didn't deliver within 60 min → both can dispute.
+  const sellerOverdue =
+    order.status === 'PAID' && sellerDeadlineMs != null && sellerWindowRemaining != null && sellerWindowRemaining <= 0;
+  // Delivered but buyer hasn't confirmed within the buyer window → seller can complain.
+  const buyerOverdue =
+    order.status === 'IN_PROGRESS' && buyerDeadlineMs != null && buyerWindowRemaining != null && buyerWindowRemaining <= 0;
 
   const otherPartyName = isBuyer
     ? order.seller?.storeName || 'Seller'
@@ -301,81 +384,167 @@ export default function OrderTrackingContent({ id }: { id: string }) {
           <div className="bg-cardBg border border-borderBg rounded-3xl p-8 space-y-6">
             <h3 className="text-xl font-bold text-white">Order Actions</h3>
 
-            {isSeller ? (
-              // ── SELLER VIEW ──
-              order.status === 'PAID' ? (
-                <form onSubmit={handleMarkDelivered} className="space-y-4">
-                  <div className="bg-background border border-borderBg rounded-2xl p-4 flex gap-3 text-sm text-gray-300">
-                    <Truck className="w-5 h-5 text-brand flex-shrink-0" />
-                    <p>The buyer has paid and funds are held in escrow. Transfer the account credentials, then mark this order as delivered.</p>
-                  </div>
-                  <div>
-                    <label className="block text-xs font-bold text-gray-400 uppercase tracking-wider mb-2">Delivery Message (optional)</label>
-                    <textarea
-                      className="w-full bg-background border border-borderBg rounded-xl px-4 py-3 text-white focus:outline-none focus:border-brand h-24 resize-none"
-                      placeholder="e.g. Account email, password, and any recovery details the buyer needs..."
-                      value={deliveryMsg}
-                      onChange={(e) => setDeliveryMsg(e.target.value)}
-                    />
-                  </div>
+            {(() => {
+              const DisputeComplaint = (
+                <div className="flex flex-col sm:flex-row gap-3">
                   <button
-                    type="submit"
-                    disabled={submittingDelivery}
-                    className="w-full bg-brand hover:bg-brand-dark py-4 rounded-xl font-bold transition text-white shadow-lg shadow-brand/20 flex items-center justify-center gap-2 disabled:opacity-50"
+                    onClick={() => setShowDisputeModal(true)}
+                    className="flex-1 bg-red-600 hover:bg-red-700 px-4 py-3 rounded-xl font-bold transition text-white flex items-center justify-center gap-2"
                   >
-                    <Truck className="w-5 h-5" />
-                    {submittingDelivery ? 'Marking as Delivered...' : 'Mark as Delivered'}
+                    <AlertTriangle className="w-5 h-5" /> File a Dispute
                   </button>
-                </form>
-              ) : order.status === 'IN_PROGRESS' ? (
-                <div className="bg-brand/10 border border-brand/30 rounded-2xl p-4 flex gap-3 text-brand-light text-sm">
-                  <CheckCircle className="w-5 h-5 flex-shrink-0" />
-                  <p>Marked as delivered — awaiting the buyer to confirm receipt and release escrow funds.</p>
-                </div>
-              ) : order.status === 'COMPLETED' ? (
-                <div className="bg-emerald-950/20 border border-emerald-500/20 rounded-2xl p-4 flex gap-3 text-emerald-300 text-sm">
-                  <ShieldCheck className="w-5 h-5 flex-shrink-0" />
-                  <p>Order completed — escrow funds have been credited to your wallet.</p>
-                </div>
-              ) : (
-                <div className="bg-background border border-borderBg rounded-2xl p-4 text-sm text-gray-400">
-                  {order.status === 'PENDING'
-                    ? 'This order is awaiting payment. You can mark it delivered once the buyer pays.'
-                    : 'No actions available for this order state.'}
+                  <button
+                    onClick={() => setShowComplaintModal(true)}
+                    className="flex-1 bg-background border border-borderBg hover:border-brand/40 px-4 py-3 rounded-xl font-bold transition text-gray-300 flex items-center justify-center gap-2"
+                  >
+                    <MessageSquare className="w-5 h-5" /> File a Complaint
+                  </button>
                 </div>
               )
-            ) : (
+
+              if (isSeller) {
+                if (order.status === 'PAID' && !order.acceptedAt) {
+                  return (
+                    <div className="space-y-4">
+                      <div className="bg-background border border-borderBg rounded-2xl p-4 flex gap-3 text-sm text-gray-300">
+                        <Lock className="w-5 h-5 text-brand flex-shrink-0" />
+                        <p>The buyer has paid and funds are held in escrow. Accept the order to start the 60-minute delivery timer.</p>
+                      </div>
+                      <button
+                        onClick={handleAccept}
+                        disabled={loading}
+                        className="w-full bg-brand hover:bg-brand-dark py-4 rounded-xl font-bold transition text-white shadow-lg shadow-brand/20 flex items-center justify-center gap-2 disabled:opacity-50"
+                      >
+                        <CheckCircle className="w-5 h-5" /> Accept Order &amp; Start Timer
+                      </button>
+                    </div>
+                  )
+                }
+                if (order.status === 'PAID' && order.acceptedAt) {
+                  return (
+                    <div className="space-y-4">
+                      <div className="bg-yellow-950/20 border border-yellow-500/20 rounded-2xl p-4 flex gap-3 text-yellow-200 text-sm">
+                        <Truck className="w-5 h-5 flex-shrink-0" />
+                        <p>Deliver to the buyer within <span className="font-bold">{formatCountdown(sellerWindowRemaining ?? 0)}</span>. Miss this window and the buyer can open a dispute.</p>
+                      </div>
+                      <form onSubmit={handleMarkDelivered} className="space-y-4">
+                        <div>
+                          <label className="block text-xs font-bold text-gray-400 uppercase tracking-wider mb-2">Delivery Message (optional)</label>
+                          <textarea
+                            className="w-full bg-background border border-borderBg rounded-xl px-4 py-3 text-white focus:outline-none focus:border-brand h-24 resize-none"
+                            placeholder="e.g. Account email, password, and any recovery details the buyer needs..."
+                            value={deliveryMsg}
+                            onChange={(e) => setDeliveryMsg(e.target.value)}
+                          />
+                        </div>
+                        <button
+                          type="submit"
+                          disabled={submittingDelivery}
+                          className="w-full bg-brand hover:bg-brand-dark py-4 rounded-xl font-bold transition text-white shadow-lg shadow-brand/20 flex items-center justify-center gap-2 disabled:opacity-50"
+                        >
+                          <Truck className="w-5 h-5" />
+                          {submittingDelivery ? 'Marking as Delivered...' : 'Mark as Delivered'}
+                        </button>
+                      </form>
+                      {sellerOverdue && DisputeComplaint}
+                    </div>
+                  )
+                }
+                if (order.status === 'IN_PROGRESS') {
+                  return (
+                    <div className="space-y-4">
+                      <div className="bg-brand/10 border border-brand/30 rounded-2xl p-4 flex gap-3 text-brand-light text-sm">
+                        <CheckCircle className="w-5 h-5 flex-shrink-0" />
+                        <p>Marked as delivered — awaiting buyer confirmation{order.buyerConfirmDeadline ? ` within ${formatCountdown(buyerWindowRemaining ?? 0)}` : ''}.</p>
+                      </div>
+                      {buyerOverdue && (
+                        <div className="bg-red-950/20 border border-red-500/20 rounded-2xl p-4 flex gap-3 text-red-300 text-sm">
+                          <AlertTriangle className="w-5 h-5 flex-shrink-0" />
+                          <p>The buyer hasn&apos;t confirmed receipt in time. You can now file a complaint to escalate.</p>
+                        </div>
+                      )}
+                      {buyerOverdue && (
+                        <button
+                          onClick={() => setShowComplaintModal(true)}
+                          className="block w-full bg-background border border-borderBg hover:border-brand/40 px-4 py-3 rounded-xl font-bold transition text-gray-300 text-center"
+                        >
+                          File a Complaint
+                        </button>
+                      )}
+                    </div>
+                  )
+                }
+                if (order.status === 'COMPLETED') {
+                  return (
+                    <div className="bg-emerald-950/20 border border-emerald-500/20 rounded-2xl p-4 flex gap-3 text-emerald-300 text-sm">
+                      <ShieldCheck className="w-5 h-5 flex-shrink-0" />
+                      <p>Order completed — escrow funds have been credited to your wallet.</p>
+                    </div>
+                  )
+                }
+                return (
+                  <div className="bg-background border border-borderBg rounded-2xl p-4 text-sm text-gray-400">
+                    {order.status === 'PENDING' ? 'This order is awaiting payment.' : 'No actions available for this order state.'}
+                  </div>
+                )
+              }
+
               // ── BUYER VIEW ──
-              order.status !== 'COMPLETED' && order.status !== 'DISPUTED' && order.status !== 'CANCELLED' && order.status !== 'REFUNDED' ? (
-                <div className="flex flex-col sm:flex-row gap-4">
-                  {order.status === 'IN_PROGRESS' && (
+              if (order.status === 'PAID' && !order.acceptedAt) {
+                return (
+                  <div className="bg-background border border-borderBg rounded-2xl p-4 text-sm text-gray-400 flex gap-3">
+                    <Lock className="w-5 h-5 text-brand flex-shrink-0" />
+                    <p>Awaiting the seller to accept your order. The delivery timer starts once they accept.</p>
+                  </div>
+                )
+              }
+              if (order.status === 'PAID' && order.acceptedAt) {
+                return (
+                  <div className="space-y-4">
+                    <div className="bg-yellow-950/20 border border-yellow-500/20 rounded-2xl p-4 flex gap-3 text-yellow-200 text-sm">
+                      <Truck className="w-5 h-5 flex-shrink-0" />
+                      <p>Seller accepted — awaiting delivery. Seller must deliver within <span className="font-bold">{formatCountdown(sellerWindowRemaining ?? 0)}</span>.</p>
+                    </div>
+                    {sellerOverdue && DisputeComplaint}
+                  </div>
+                )
+              }
+              if (order.status === 'IN_PROGRESS') {
+                return (
+                  <div className="space-y-4">
                     <button
                       onClick={handleConfirmDelivery}
-                      className="flex-1 bg-brand hover:bg-brand-dark py-4 rounded-xl font-bold transition text-white shadow-lg shadow-brand/20 flex items-center justify-center gap-2"
+                      className="w-full bg-brand hover:bg-brand-dark py-4 rounded-xl font-bold transition text-white shadow-lg shadow-brand/20 flex items-center justify-center gap-2"
                     >
-                      <CheckCircle className="w-5 h-5" />
-                      Confirm Receipt / Release Funds
+                      <CheckCircle className="w-5 h-5" /> Confirm Receipt / Release Funds
                     </button>
-                  )}
-                  {(order.status === 'PAID' || order.status === 'IN_PROGRESS') && (
+                    {order.buyerConfirmDeadline && (
+                      <p className="text-center text-xs text-gray-500">
+                        Confirm receipt within <span className="text-yellow-400 font-bold">{formatCountdown(buyerWindowRemaining ?? 0)}</span>.
+                        {buyerOverdue ? ' Window expired — seller may file a complaint, but you can still confirm.' : ''}
+                      </p>
+                    )}
                     <button
-                      onClick={() => setShowDisputeModal(true)}
-                      className="bg-background border border-borderBg hover:border-red-500/40 px-6 py-4 rounded-xl font-bold transition text-red-400 flex items-center justify-center gap-2"
+                      onClick={() => setShowComplaintModal(true)}
+                      className="block w-full bg-background border border-borderBg hover:border-red-500/40 px-4 py-3 rounded-xl font-bold transition text-red-400 text-center flex items-center justify-center gap-2"
                     >
-                      <AlertTriangle className="w-5 h-5" />
-                      File a Dispute
+                      <MessageSquare className="w-5 h-5" /> File a Complaint
                     </button>
-                  )}
-                </div>
-              ) : order.status === 'DISPUTED' ? (
-                <div className="bg-red-950/20 border border-red-500/20 rounded-2xl p-4 flex gap-3 text-red-300 text-sm">
-                  <AlertTriangle className="w-5 h-5 flex-shrink-0" />
-                  <div>
-                    <p className="font-bold">This order is under moderation review.</p>
-                    <p className="mt-1 text-xs text-gray-400">Our support staff is reviewing statements and logs to execute the release/refund.</p>
                   </div>
-                </div>
-              ) : (
+                )
+              }
+              if (order.status === 'DISPUTED') {
+                return (
+                  <div className="bg-red-950/20 border border-red-500/20 rounded-2xl p-4 flex gap-3 text-red-300 text-sm">
+                    <AlertTriangle className="w-5 h-5 flex-shrink-0" />
+                    <div>
+                      <p className="font-bold">This order is under moderation review.</p>
+                      <p className="mt-1 text-xs text-gray-400">Our support staff is reviewing statements and logs to execute the release/refund.</p>
+                    </div>
+                  </div>
+                )
+              }
+              return (
                 <div className="bg-emerald-950/20 border border-emerald-500/20 rounded-2xl p-4 flex gap-3 text-emerald-300 text-sm">
                   <ShieldCheck className="w-5 h-5 flex-shrink-0" />
                   <div>
@@ -384,7 +553,7 @@ export default function OrderTrackingContent({ id }: { id: string }) {
                   </div>
                 </div>
               )
-            )}
+            })()}
           </div>
         </div>
 
@@ -508,6 +677,52 @@ export default function OrderTrackingContent({ id }: { id: string }) {
                   className="flex-1 bg-red-600 hover:bg-red-700 py-3 rounded-xl font-bold transition text-white text-xs disabled:opacity-50"
                 >
                   {submittingDispute ? 'Filing case...' : 'File Dispute'}
+                </button>
+              </div>
+            </form>
+          </div>
+        </div>
+      )}
+
+      {showComplaintModal && (
+        <div className="fixed inset-0 bg-black/60 backdrop-blur-sm flex items-center justify-center z-50 p-4">
+          <div className="bg-cardBg border border-borderBg rounded-3xl max-w-md w-full p-8 space-y-6">
+            <div className="flex items-center justify-between">
+              <div>
+                <h3 className="text-2xl font-extrabold text-white">File a Complaint</h3>
+                <p className="text-gray-400 text-xs mt-1">Raise a trackable support case for this order. Our team will review and follow up.</p>
+              </div>
+              <button onClick={() => setShowComplaintModal(false)} className="p-1.5 text-gray-400 hover:text-white rounded-lg">
+                <X className="w-5 h-5" />
+              </button>
+            </div>
+
+            <form onSubmit={handleFileComplaint} className="space-y-4">
+              <div>
+                <label className="block text-xs font-bold text-gray-400 uppercase tracking-wider mb-2">What went wrong?</label>
+                <textarea
+                  required
+                  className="w-full bg-background border border-borderBg rounded-xl px-4 py-2.5 text-sm text-white focus:outline-none focus:border-brand h-28 resize-none"
+                  placeholder="Describe the problem — e.g. the seller hasn't delivered, or the buyer hasn't confirmed receipt in time..."
+                  value={complaintDescription}
+                  onChange={(e) => setComplaintDescription(e.target.value)}
+                />
+              </div>
+
+              <div className="flex gap-3">
+                <button
+                  type="button"
+                  onClick={() => setShowComplaintModal(false)}
+                  className="flex-1 bg-background border border-borderBg py-3 rounded-xl font-bold transition text-gray-400 text-xs"
+                >
+                  Cancel
+                </button>
+                <button
+                  type="submit"
+                  disabled={submittingComplaint}
+                  className="flex-1 bg-brand hover:bg-brand-dark py-3 rounded-xl font-bold transition text-white text-xs disabled:opacity-50"
+                >
+                  {submittingComplaint ? 'Filing complaint...' : 'Submit Complaint'}
                 </button>
               </div>
             </form>

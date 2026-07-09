@@ -287,9 +287,15 @@ export class OrdersService {
       throw new BadRequestException('Order has already been accepted')
     }
 
+    // Persist an explicit delivery deadline so the frontend can rely on the
+    // server clock instead of computing acceptedAt + window itself.
+    const acceptedAt = new Date()
     const updated = await this.prisma.orders.update({
       where: { id: orderId },
-      data: { acceptedAt: new Date() },
+      data: {
+        acceptedAt,
+        sellerDeliverDeadline: new Date(acceptedAt.getTime() + ESCROW_SELLER_WINDOW_MS),
+      },
       include: { buyer: true, seller: true, orderItems: { include: { listing: true } } },
     })
 

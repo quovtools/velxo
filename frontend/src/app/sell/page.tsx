@@ -4,6 +4,7 @@ import React, { useState, useEffect } from 'react';
 import { useRouter } from 'next/navigation';
 import { api } from '@/lib/api';
 import { fileToDataUrl } from '@/lib/file';
+import { uploadListingImage } from '@/lib/upload';
 import { useAuth } from '@/app/providers';
 import {
   Gamepad2, Package, ChevronRight, ChevronLeft,
@@ -389,7 +390,7 @@ export default function SellPage() {
                     <Image className="w-4 h-4 text-gray-400 flex-shrink-0" />
                     <label className="flex-1 flex items-center gap-2 cursor-pointer bg-background border border-borderBg rounded-xl px-4 py-2.5 text-sm text-gray-400 focus-within:border-brand transition overflow-hidden">
                       {url ? (
-                        <span className="truncate text-white">{url.split(',')[1]?.slice(0, 16) || 'Image selected'}…</span>
+                        <span className="truncate text-white">{(decodeURIComponent(url.split('/').pop() || 'Image selected'))}</span>
                       ) : (
                         <span>Choose image {i + 1}</span>
                       )}
@@ -400,9 +401,9 @@ export default function SellPage() {
                         onChange={async e => {
                           const file = e.target.files?.[0];
                           if (!file) return;
-                          const dataUrl = await fileToDataUrl(file);
+                          const url = await uploadListingImage(file);
                           const next = [...imageUrls];
-                          next[i] = dataUrl;
+                          next[i] = url;
                           setImageUrls(next);
                         }}
                       />

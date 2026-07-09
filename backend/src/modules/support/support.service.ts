@@ -31,6 +31,57 @@ export class SupportService {
     return ticket
   }
 
+  /**
+   * Creates a trackable support ticket for an order-related complaint (e.g. the
+   * seller did not deliver in time, or the buyer did not confirm receipt). Only
+   * the buyer or seller of the order may file a complaint against it. The order
+   * link and free-text description are stored in the ticket metadata so support
+   * staff can trace it back to the escrow order.
+   */
+  async createOrderComplaint(
+    userId: string,
+    orderId: string,
+    description: string,
+    category: SupportTicketCategory = SupportTicketCategory.DELIVERY,
+  ) {
+    this.logger.log(`Creating order complaint for order ${orderId} by ${userId}`)
+
+    const order = await this.prisma.orders.findUnique({
+      where: { id: orderId },
+      include: { seller: true },
+    })
+
+    if (!order) {
+      throw new NotFoundException('Order')
+    }
+
+    if (order.buyerId !== userId && order.seller?.userId !== userId) {
+      throw new ForbiddenException('Only the buyer or seller of this order can file a complaint')
+    }
+
+    const role = order.buyerId === userId ? 'BUYER' : 'SELLER'
+
+    const ticket = await this.prisma.supportTickets.create({
+      data: {
+        userId,
+        subject: `Complaint on order ${order.orderNumber}`,
+        category,
+        priority: 'HIGH',
+        status: SupportTicketStatus.OPEN,
+        metadata: {
+          type: 'COMPLAINT',
+          orderId,
+          orderNumber: order.orderNumber,
+          filedByRole: role,
+          description: description || null,
+        },
+      },
+      include: { user: true },
+    })
+
+    return ticket
+  }
+
   async getUserTickets(userId: string, limit: number = 50) {
     return this.prisma.supportTickets.findMany({
       where: { userId },

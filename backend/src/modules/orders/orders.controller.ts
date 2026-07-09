@@ -95,4 +95,19 @@ export class OrdersController {
       throw error
     }
   }
+
+  @Patch(':id/accept')
+  @UseGuards(SupabaseJwtGuard)
+  async acceptOrder(
+    @Param('id') orderId: string,
+    @CurrentUserId() sellerId: string,
+  ) {
+    try {
+      const order = await this.ordersService.acceptOrder(orderId, sellerId)
+      return ApiResponseDto.ok(order, 'Order accepted — delivery timer started')
+    } catch (error) {
+      this.logger.error('Error accepting order:', error)
+      throw error
+    }
+  }
 }

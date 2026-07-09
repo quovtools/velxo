@@ -408,6 +408,7 @@ model orders {
   paidAt          DateTime?
   deliveredAt     DateTime?
   acceptedAt      DateTime?
+  sellerDeliverDeadline DateTime?
   buyerConfirmDeadline DateTime?
   completedAt     DateTime?
   cancelledAt     DateTime?

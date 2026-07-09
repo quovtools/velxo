@@ -38,6 +38,28 @@ export class SupportController {
     }
   }
 
+  @Post('complaints')
+  @UseGuards(SupabaseJwtGuard)
+  async createComplaint(
+    @CurrentUserId() userId: string,
+    @Body('orderId') orderId: string,
+    @Body('description') description: string,
+    @Body('category') category?: SupportTicketCategory,
+  ) {
+    try {
+      const ticket = await this.supportService.createOrderComplaint(
+        userId,
+        orderId,
+        description,
+        category,
+      )
+      return ApiResponseDto.ok(ticket, 'Complaint filed successfully')
+    } catch (error) {
+      this.logger.error('Error filing complaint:', error)
+      throw error
+    }
+  }
+
   @Get('tickets/me')
   @UseGuards(SupabaseJwtGuard)
   async getMyTickets(@CurrentUserId() userId: string, @Query('limit') limit?: number) {

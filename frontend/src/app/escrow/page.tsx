@@ -25,20 +25,20 @@ const steps = [
   {
     step: '02',
     icon: <Lock className="w-6 h-6 text-brand" />,
-    title: 'Funds Held Securely',
-    desc: 'The payment is held in our secure escrow wallet. Neither party can access the funds until the trade is completed.',
+    title: 'Seller Accepts',
+    desc: 'The seller accepts the paid order, which starts a 60-minute delivery timer. Funds stay locked in escrow the whole time.',
   },
   {
     step: '03',
     icon: <ArrowRight className="w-6 h-6 text-brand" />,
-    title: 'Seller Delivers',
-    desc: 'The seller transfers the game account, coins, gift card, or completes the boosting service as described in the listing.',
+    title: 'Seller Delivers (within 60 min)',
+    desc: 'The seller has 60 minutes to hand over the account, coins, gift card, or complete the service. Miss the window and both parties can open a dispute or complaint.',
   },
   {
     step: '04',
     icon: <CheckCircle className="w-6 h-6 text-brand" />,
-    title: 'Buyer Confirms',
-    desc: 'The buyer verifies the delivery and clicks "Confirm Receipt". This releases the escrow funds to the seller.',
+    title: 'Buyer Confirms (within 60 min)',
+    desc: 'Delivery resets the clock: the buyer has a fresh 60 minutes to log in and click "Confirm Receipt", which releases the escrow funds.',
   },
   {
     step: '05',
@@ -51,8 +51,8 @@ const steps = [
 const disputeSteps = [
   {
     icon: <AlertTriangle className="w-5 h-5 text-red-400" />,
-    title: 'Open a Dispute',
-    desc: 'Go to your Order page and click "File a Dispute". Choose a reason and describe the issue clearly.',
+    title: 'Open a Dispute or Complaint',
+    desc: 'When a 60-minute window is missed, go to your Order page and click "File a Dispute" or "File a Complaint". Choose a reason and describe the issue clearly.',
   },
   {
     icon: <Clock className="w-5 h-5 text-yellow-400" />,
@@ -69,11 +69,15 @@ const disputeSteps = [
 const faqs = [
   {
     q: 'What happens if the seller doesn\'t deliver?',
-    a: 'Open a dispute within 7 days of placing the order. If the seller cannot prove delivery, you will receive a full refund. Funds are never automatically released without buyer confirmation.',
+    a: 'Once the seller accepts, they have 60 minutes to deliver. If that window passes without delivery, both the buyer and seller get buttons to File a Dispute or File a Complaint. If the seller cannot prove delivery, the buyer receives a full refund. Funds are never automatically released without buyer confirmation.',
+  },
+  {
+    q: 'How long do I have to confirm receipt?',
+    a: 'When the seller marks the order as delivered, a fresh 60-minute window starts for you to log in and click "Confirm Receipt". If you don\'t confirm in time, the seller can file a complaint to escalate — but you can still confirm receipt afterwards to release the funds.',
   },
   {
     q: 'How long does escrow hold the funds?',
-    a: 'Funds are held until the buyer confirms delivery or a dispute is resolved. If neither happens within 14 days, our team will reach out to both parties to resolve the order manually.',
+    a: 'Funds are held until the buyer confirms delivery or a dispute is resolved. Nothing is released automatically — if a 60-minute window lapses, either party can raise a dispute or complaint and our team steps in to resolve it.',
   },
   {
     q: 'Can the seller cancel and take my money?',
@@ -164,7 +168,7 @@ export default function EscrowPage() {
         </div>
         <div className="bg-red-950/20 border border-red-500/20 rounded-2xl p-5 max-w-2xl mx-auto text-sm text-gray-400 space-y-2">
           <p className="font-bold text-red-300">Important:</p>
-          <p>Disputes must be opened within <strong className="text-white">7 days</strong> of order creation. After that, funds are automatically released to the seller. Open a dispute immediately if there is any problem with your delivery.</p>
+          <p>Velxo runs on tight <strong className="text-white">60-minute</strong> windows: the seller has 60 minutes to deliver after accepting, and the buyer has 60 minutes to confirm after delivery. If either window is missed, the affected party can open a dispute or complaint straight from the order page. Funds are <strong className="text-white">never</strong> released automatically without buyer confirmation or a support decision.</p>
         </div>
       </div>
 

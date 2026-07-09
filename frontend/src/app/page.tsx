@@ -12,6 +12,7 @@ import {
 import GameSlideshow from '@/components/GameSlideshow';
 import GameIcon from '@/components/GameIcon';
 import Footer from '@/components/Footer';
+import ListingCard from '@/components/ListingCard';
 import { storeReferralCode, trackReferralClick } from '@/lib/referral';
 
 interface Listing {
@@ -25,6 +26,7 @@ interface Listing {
   isFeatured: boolean;
   isSold: boolean;
   status: string;
+  images?: string[];
   seller: { storeName: string; averageRating: number; id?: string };
 }
 
@@ -340,59 +342,7 @@ function MarketplaceContent() {
       ) : (
         <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-4">
           {listings.map((item) => (
-            <Link
-              key={item.id}
-              href={`/listings/${item.id}`}
-              className="group bg-cardBg border border-borderBg hover:border-brand/40 rounded-2xl overflow-hidden transition-all duration-300 flex flex-col hover:shadow-lg hover:shadow-brand/10"
-            >
-              {/* Image area placeholder */}
-              <div className="h-36 bg-gradient-to-br from-background to-cardBg flex items-center justify-center relative">
-                <span className="text-xs font-bold text-gray-600 uppercase tracking-wider">{item.gameName}</span>
-                {item.isFeatured && (
-                  <span className="flex items-center gap-0.5 text-[10px] font-bold text-brand-accent flex-shrink-0 absolute top-2 right-2">
-                    <Flame className="w-3 h-3" /> Hot
-                  </span>
-                )}
-              </div>
-              <div className="p-4 flex-1 flex flex-col justify-between space-y-3">
-                <div>
-                  <div className="flex items-center gap-2 mb-2">
-                    <span className="bg-brand/10 text-brand-light text-[10px] font-bold px-2 py-0.5 rounded border border-brand/20 uppercase tracking-wide truncate max-w-[120px]">
-                      {item.gameName}
-                    </span>
-                    <span className="text-[10px] text-gray-600 truncate">{item.platform}</span>
-                  </div>
-                  <h3 className="font-bold text-sm text-white line-clamp-2 leading-snug group-hover:text-brand transition">
-                    {item.title}
-                  </h3>
-                  <div className="flex items-center justify-between text-[11px] text-gray-500 mt-2">
-                    {item.seller?.id ? (
-                      <Link href={`/seller/${item.seller.id}`} className="truncate hover:text-brand transition">
-                        {item.seller?.storeName}
-                      </Link>
-                    ) : (
-                      <span className="truncate">{item.seller?.storeName}</span>
-                    )}
-                    <span className="flex items-center gap-0.5 flex-shrink-0">
-                      <Star className="w-3 h-3 text-brand fill-brand" />
-                      {item.seller?.averageRating?.toFixed(1) || '0.0'}
-                    </span>
-                  </div>
-                </div>
-                <div className="flex items-center justify-between border-t border-borderBg pt-3">
-                  <span className="text-lg font-black text-white tracking-tight">${Number(item.price).toFixed(2)}</span>
-                  {item.isSold || item.status === 'SOLD' ? (
-                    <span className="bg-gray-700 px-3 py-1.5 rounded-lg text-xs font-bold text-gray-300">
-                      Sold
-                    </span>
-                  ) : (
-                    <span className="bg-gradient-to-r from-brand to-purple-600 hover:from-brand-dark hover:to-purple-700 px-3 py-1.5 rounded-lg text-xs font-bold text-white transition shadow-lg shadow-brand/20">
-                      Buy Now
-                    </span>
-                  )}
-                </div>
-              </div>
-            </Link>
+            <ListingCard key={item.id} item={item} />
           ))}
         </div>
       )}
