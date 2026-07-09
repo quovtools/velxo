@@ -1,12 +1,16 @@
 import { Injectable, Logger } from '@nestjs/common'
 import { PrismaService } from '@/common/services/prisma.service'
 import { ListingStatus, OrderStatus, AuditAction } from '@prisma/client'
+import { NotificationsService } from '@/modules/notifications/notifications.service'
 
 @Injectable()
 export class AdminService {
   private readonly logger = new Logger(AdminService.name)
 
-  constructor(private prisma: PrismaService) {}
+  constructor(
+    private prisma: PrismaService,
+    private notifications: NotificationsService,
+  ) {}
 
   async getDashboardStats() {
     this.logger.log('Fetching dashboard statistics')
@@ -82,6 +86,11 @@ export class AdminService {
     })
 
     // TODO: Send notification to seller
+    if (listing.seller?.userId) {
+      await this.notifications
+        .notifyListingApproved(listing.id, listing.seller.userId)
+        .catch(() => {})
+    }
     return listing
   }
 
@@ -100,6 +109,11 @@ export class AdminService {
     })
 
     // TODO: Send notification to seller with rejection reason
+    if (listing.seller?.userId) {
+      await this.notifications
+        .notifyListingRejected(listing.id, listing.seller.userId, reason)
+        .catch(() => {})
+    }
     return listing
   }
 

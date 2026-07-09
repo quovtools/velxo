@@ -6,13 +6,18 @@ import { useState } from 'react';
 import {
   MessageSquare, Wallet, User, PlusCircle, LayoutDashboard,
   ShieldCheck, LogOut, Menu, X, Search, Home, Users,
-  ShoppingBag, Bell, Award, Sun, Moon, Check,
+  ShoppingBag, Bell, Award, Sun, Moon, Check, Gamepad2,
+  Zap,
 } from 'lucide-react';
+import Marquee from '@/components/Marquee';
+import NotificationBell from '@/components/NotificationBell';
+import { useNotifications } from '@/components/NotificationProvider';
 
 export default function NavigationWrapper() {
   const { user, logout, theme, toggleTheme } = useAuth();
   const role = (user as any)?.role;
   const [mobileOpen, setMobileOpen] = useState(false);
+  const { unread: unreadNotifications } = useNotifications();
 
   return (
     <>
@@ -33,6 +38,14 @@ export default function NavigationWrapper() {
                 Sell
               </Link>
               <Link href="/escrow" className="hover:text-brand transition">How it Works</Link>
+              <Link href="/topups" className="hover:text-brand transition flex items-center gap-1.5">
+                <Zap className="w-4 h-4" />
+                Top-Ups
+              </Link>
+              <Link href="/boosting" className="hover:text-brand transition flex items-center gap-1.5">
+                <Gamepad2 className="w-4 h-4" />
+                Boosting
+              </Link>
               <Link href="/pricing" className="hover:text-brand transition">Pricing</Link>
               <Link href="/affiliate" className="hover:text-brand transition flex items-center gap-1.5">
                 <Users className="w-4 h-4" />
@@ -55,6 +68,7 @@ export default function NavigationWrapper() {
 
             {user ? (
               <>
+                <NotificationBell />
                 <Link href="/messages" className="hidden sm:flex text-gray-300 hover:text-brand p-2 transition" title="Messages">
                   <MessageSquare className="w-5 h-5" />
                 </Link>
@@ -167,14 +181,22 @@ export default function NavigationWrapper() {
         )}
       </header>
 
+      {/* ── News Marquee (admin-controlled) ── */}
+      <Marquee />
+
       {/* ── Mobile Bottom Tab Bar ── */}
       <nav className="sm:hidden fixed bottom-0 left-0 right-0 z-50 bg-cardBg border-t border-borderBg flex items-center justify-around px-1 py-2 safe-area-pb">
         <Link href="/" className="flex flex-col items-center gap-0.5 p-2 text-gray-400 hover:text-white transition" onClick={() => setMobileOpen(false)}>
           <ShoppingBag className="w-5 h-5" />
           <span className="text-[9px] font-semibold">Shop</span>
         </Link>
-        <Link href="/notifications" className="flex flex-col items-center gap-0.5 p-2 text-gray-400 hover:text-white transition" onClick={() => setMobileOpen(false)}>
+        <Link href="/notifications" className="relative flex flex-col items-center gap-0.5 p-2 text-gray-400 hover:text-white transition" onClick={() => setMobileOpen(false)}>
           <Bell className="w-5 h-5" />
+          {unreadNotifications > 0 && (
+            <span className="absolute top-1 right-3 min-w-[16px] h-[16px] px-1 rounded-full bg-red-500 text-white text-[9px] font-bold flex items-center justify-center">
+              {unreadNotifications > 9 ? '9+' : unreadNotifications}
+            </span>
+          )}
           <span className="text-[9px] font-semibold">Alerts</span>
         </Link>
         <Link href="/messages" className="flex flex-col items-center gap-0.5 p-2 -mt-5" onClick={() => setMobileOpen(false)}>

@@ -2,13 +2,16 @@ import { Injectable, Logger } from '@nestjs/common'
 import { PrismaService } from '@/common/services/prisma.service'
 import { NotFoundException, InvalidEscrowStateException } from '@/common/exceptions/custom-exceptions'
 import { EscrowStatus } from '@prisma/client'
-import { Decimal } from '@prisma/client/runtime/library'
+import { NotificationsService } from '../notifications/notifications.service'
 
 @Injectable()
 export class EscrowService {
   private readonly logger = new Logger(EscrowService.name)
 
-  constructor(private prisma: PrismaService) {}
+  constructor(
+    private prisma: PrismaService,
+    private notifications: NotificationsService,
+  ) {}
 
   async getEscrowStatus(orderId: string) {
     const escrow = await this.prisma.escrowTransactions.findUnique({
@@ -104,6 +107,17 @@ export class EscrowService {
 
       return updated
     })
+
+    // Notify both parties that the escrow was released.
+    const releasedOrder = await this.prisma.orders.findUnique({
+      where: { id: orderId },
+      include: { seller: true, buyer: true },
+    })
+    if (releasedOrder) {
+      await this.notifications.notifyCompleted(releasedOrder).catch(() => {})
+    }
+
+    return updated
   }
 
   async refundFunds(orderId: string, reason: string) {
@@ -160,6 +174,19 @@ export class EscrowService {
 
       return updated
     })
+
+    // Notify the buyer that the escrow was refunded.
+    const refundedOrder = await this.prisma.orders.findUnique({
+      where: { id: orderId },
+      include: { seller: true, buyer: true },
+    })
+    if (refundedOrder) {
+      await this.notifications
+        .notifyRefunded(refundedOrder, `${refundedOrder.totalAmount} ${refundedOrder.currency}`)
+        .catch(() => {})
+    }
+
+    return updated
   }
 
   async getEscrowHistory(limit: number = 50) {

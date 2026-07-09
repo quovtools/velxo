@@ -9,12 +9,16 @@ import {
 } from '@/common/exceptions/custom-exceptions'
 import { DisputeStatus, EscrowStatus, OrderStatus } from '@prisma/client'
 import { Decimal } from '@prisma/client/runtime/library'
+import { NotificationsService } from '../notifications/notifications.service'
 
 @Injectable()
 export class DisputesService {
   private readonly logger = new Logger(DisputesService.name)
 
-  constructor(private prisma: PrismaService) {}
+  constructor(
+    private prisma: PrismaService,
+    private notifications: NotificationsService,
+  ) {}
 
   async createDispute(initiatorId: string, dto: CreateDisputeDto) {
     this.logger.log(`Creating dispute for order ${dto.orderId}`)
@@ -61,8 +65,14 @@ export class DisputesService {
       data: { status: OrderStatus.DISPUTED },
     })
 
-    // Create notification for moderators
-    // TODO: Implement notification service
+    // Notify the other participant (not the initiator) of the dispute.
+    const counterpartyId =
+      initiatorId === order.buyerId ? order.seller?.userId : order.buyerId
+    if (counterpartyId) {
+      await this.notifications
+        .notifyDispute(dispute.id, counterpartyId)
+        .catch(() => {})
+    }
 
     return dispute
   }

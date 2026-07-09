@@ -2,12 +2,16 @@ import { Injectable, Logger } from '@nestjs/common'
 import { PrismaService } from '@/common/services/prisma.service'
 import { NotificationType } from '@prisma/client'
 import { NotFoundException } from '@/common/exceptions/custom-exceptions'
+import { NotificationsGateway } from '@/modules/gateways/notifications.gateway'
 
 @Injectable()
 export class NotificationsService {
   private readonly logger = new Logger(NotificationsService.name)
 
-  constructor(private prisma: PrismaService) {}
+  constructor(
+    private prisma: PrismaService,
+    private gateway: NotificationsGateway,
+  ) {}
 
   async createNotification(
     userId: string,
@@ -16,7 +20,7 @@ export class NotificationsService {
     body: string,
     data?: Record<string, any>,
   ) {
-    return this.prisma.notifications.create({
+    const notification = await this.prisma.notifications.create({
       data: {
         userId,
         type,
@@ -25,6 +29,111 @@ export class NotificationsService {
         data,
       },
     })
+
+    // Push the notification to the recipient in real time (best effort).
+    try {
+      this.gateway?.emitToUser(userId, 'newNotification', notification)
+    } catch (err) {
+      this.logger.warn(`Failed to push real-time notification: ${err}`)
+    }
+
+    return notification
+  }
+
+  async notifyNewMessage(
+    recipientId: string,
+    senderName: string,
+    preview: string,
+    conversationId: string,
+    orderId?: string,
+  ) {
+    if (!recipientId) return
+    return this.createNotification(
+      recipientId,
+      'MESSAGE',
+      `New message from ${senderName}`,
+      preview,
+      { conversationId, orderId },
+    )
+  }
+
+  async notifyNewOrder(order: any) {
+    const sellerUserId = order?.seller?.userId
+    if (!sellerUserId) return
+    const product =
+      order?.orderItems?.[0]?.listing?.title || order?.metadata?.title || 'your listing'
+    return this.createNotification(
+      sellerUserId,
+      'ORDER_STATUS',
+      'New Order Received',
+      `You have a new order (${order.orderNumber}) for ${product}`,
+      { orderId: order.id, orderNumber: order.orderNumber, status: 'PENDING' },
+    )
+  }
+
+  async notifyPaymentConfirmed(order: any) {
+    if (!order) return
+    await this.createNotification(
+      order.buyerId,
+      'ORDER_STATUS',
+      'Payment Confirmed',
+      `Your payment for order ${order.orderNumber} was received. The seller will begin fulfilment.`,
+      { orderId: order.id, orderNumber: order.orderNumber, status: 'PAID' },
+    )
+    const sellerUserId = order?.seller?.userId
+    if (sellerUserId) {
+      await this.createNotification(
+        sellerUserId,
+        'ORDER_STATUS',
+        'Payment Received',
+        `Payment for order ${order.orderNumber} has been received. Please begin fulfilment.`,
+        { orderId: order.id, orderNumber: order.orderNumber, status: 'PAID' },
+      )
+    }
+  }
+
+  async notifyDelivered(order: any) {
+    if (!order) return
+    return this.createNotification(
+      order.buyerId,
+      'ORDER_STATUS',
+      'Order Delivered',
+      `The seller marked order ${order.orderNumber} as delivered. Please confirm receipt.`,
+      { orderId: order.id, orderNumber: order.orderNumber, status: 'IN_PROGRESS' },
+    )
+  }
+
+  async notifyCompleted(order: any) {
+    if (!order) return
+    await this.createNotification(
+      order.buyerId,
+      'ORDER_STATUS',
+      'Order Completed',
+      `Order ${order.orderNumber} is complete. Funds have been released to the seller.`,
+      { orderId: order.id, orderNumber: order.orderNumber, status: 'COMPLETED' },
+    )
+    const sellerUserId = order?.seller?.userId
+    if (sellerUserId) {
+      await this.createNotification(
+        sellerUserId,
+        'ORDER_STATUS',
+        'Payment Released',
+        `Funds for order ${order.orderNumber} have been released to your wallet.`,
+        { orderId: order.id, orderNumber: order.orderNumber, status: 'COMPLETED' },
+      )
+    }
+  }
+
+  async notifyRefunded(order: any, amount?: string) {
+    if (!order) return
+    const amt = amount ? ` (${amount} ${order.currency})` : ''
+    return this.createNotification(
+      order.buyerId,
+      'ORDER_STATUS',
+      'Order Refunded',
+      `Order ${order.orderNumber} has been refunded${amt}.`,
+      { orderId: order.id, orderNumber: order.orderNumber, status: 'REFUNDED' },
+    )
   }
 
   async getNotifications(userId: string, limit: number = 50) {

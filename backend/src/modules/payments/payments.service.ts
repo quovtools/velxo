@@ -9,6 +9,7 @@ import {
 import { Decimal } from '@prisma/client/runtime/library'
 import { PaymentIoService } from './paymentio.service'
 import { FlutterwaveService } from './flutterwave.service'
+import { NotificationsService } from '../notifications/notifications.service'
 
 @Injectable()
 export class PaymentsService {
@@ -18,6 +19,7 @@ export class PaymentsService {
     private prisma: PrismaService,
     private paymentIo: PaymentIoService,
     private flutterwave: FlutterwaveService,
+    private notifications: NotificationsService,
   ) {}
 
   async createPayment(
@@ -169,6 +171,19 @@ export class PaymentsService {
           where: { id: listingId },
           data: { isSold: true, status: ListingStatus.SOLD },
         })
+      }
+
+      // Notify both parties that the payment went through (transaction progress).
+      const fullOrder = await this.prisma.orders.findUnique({
+        where: { id: payment.orderId },
+        include: {
+          seller: true,
+          buyer: true,
+          orderItems: { include: { listing: true } },
+        },
+      })
+      if (fullOrder) {
+        await this.notifications.notifyPaymentConfirmed(fullOrder).catch(() => {})
       }
     }
 
