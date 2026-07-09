@@ -1,13 +1,18 @@
 import { Injectable, Logger } from '@nestjs/common'
 import { PrismaService } from '@/common/services/prisma.service'
-import { NotFoundException, ForbiddenException } from '@/common/exceptions/custom-exceptions'
+import { NotFoundException, ForbiddenException, BadRequestException } from '@/common/exceptions/custom-exceptions'
 import { MessageSenderType } from '@prisma/client'
+import { MessagesGateway } from '@/modules/gateways/messages.gateway'
+import { CreateConversationDto } from './dto/create-conversation.dto'
 
 @Injectable()
 export class MessagesService {
   private readonly logger = new Logger(MessagesService.name)
 
-  constructor(private prisma: PrismaService) {}
+  constructor(
+    private prisma: PrismaService,
+    private gateway: MessagesGateway,
+  ) {}
 
   async getOrCreateConversation(buyerId: string, sellerId: string, orderId?: string) {
     this.logger.log(`Getting or creating conversation between ${buyerId} and ${sellerId}`)
@@ -34,8 +39,47 @@ export class MessagesService {
     return conversation
   }
 
+  /**
+   * Resolve the real buyer/seller pair for a new conversation so the
+   * Conversation row is always role-correct, regardless of who initiates the
+   * chat (buyer or seller). Preference order:
+   *   1. explicit buyerId + sellerId on the DTO
+   *   2. an orderId (read buyerId/sellerId from the order)
+   *   3. a recipientId, inferring roles from seller profiles
+   */
+  async resolveParticipants(userId: string, dto: CreateConversationDto): Promise<{ buyerId: string; sellerId: string; orderId?: string }> {
+    if (dto.buyerId && dto.sellerId) {
+      return { buyerId: dto.buyerId, sellerId: dto.sellerId, orderId: dto.orderId }
+    }
+
+    if (dto.orderId) {
+      const order = await this.prisma.orders.findUnique({
+        where: { id: dto.orderId },
+        include: { seller: true },
+      })
+      if (!order) throw new NotFoundException('Order')
+      if (order.buyerId !== userId && order.seller.userId !== userId) {
+        throw new ForbiddenException('You are not part of this order')
+      }
+      return { buyerId: order.buyerId, sellerId: order.seller.userId, orderId: dto.orderId }
+    }
+
+    if (dto.recipientId) {
+      const [meSeller, themSeller] = await Promise.all([
+        this.prisma.sellers.findUnique({ where: { userId } }),
+        this.prisma.sellers.findUnique({ where: { userId: dto.recipientId } }),
+      ])
+      if (meSeller && !themSeller) return { buyerId: dto.recipientId, sellerId: userId }
+      if (themSeller && !meSeller) return { buyerId: userId, sellerId: dto.recipientId }
+      // Ambiguous (both or neither are sellers): default recipient as seller.
+      return { buyerId: userId, sellerId: dto.recipientId }
+    }
+
+    throw new BadRequestException('Provide buyerId & sellerId, an orderId, or a recipientId')
+  }
+
   async getConversations(userId: string, limit: number = 50) {
-    return this.prisma.conversations.findMany({
+    const conversations = await this.prisma.conversations.findMany({
       where: {
         OR: [{ buyerId: userId }, { sellerId: userId }],
         isBlocked: false,
@@ -49,6 +93,37 @@ export class MessagesService {
       orderBy: { lastMessageAt: 'desc' },
       take: limit,
     })
+
+    return Promise.all(
+      conversations.map(async (c) => {
+        const [buyerUser, sellerProfile] = await Promise.all([
+          this.prisma.users.findUnique({
+            where: { id: c.buyerId },
+            select: { id: true, firstName: true, lastName: true, avatarUrl: true },
+          }),
+          this.prisma.sellers.findUnique({
+            where: { userId: c.sellerId },
+            select: { storeName: true },
+          }),
+        ])
+
+        const unreadCount = await this.prisma.messages.count({
+          where: {
+            conversationId: c.id,
+            isRead: false,
+            NOT: { senderId: userId },
+          },
+        })
+
+        return {
+          ...c,
+          buyer: buyerUser,
+          sellerStoreName: sellerProfile?.storeName ?? null,
+          unreadCount,
+          lastMessage: c.messages[0] ?? null,
+        }
+      }),
+    )
   }
 
   async getConversationMessages(conversationId: string, userId?: string, limit: number = 50) {
@@ -118,7 +193,12 @@ export class MessagesService {
       return newMessage
     })
 
-    // TODO: Emit WebSocket event for real-time updates
+    // Emit the new message over the real-time gateway (best effort).
+    try {
+      this.gateway?.emitToConversation(conversationId, 'newMessage', message)
+    } catch (err) {
+      this.logger.warn(`Failed to emit real-time message: ${err}`)
+    }
 
     return message
   }

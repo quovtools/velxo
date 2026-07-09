@@ -54,14 +54,11 @@ export class MessagesController {
     @Body() dto: CreateConversationDto,
   ) {
     try {
-      if (userId === dto.recipientId) {
+      const { buyerId, sellerId, orderId } = await this.messagesService.resolveParticipants(userId, dto)
+      if (buyerId === sellerId) {
         throw new ForbiddenException('You cannot start a conversation with yourself')
       }
-      const conversation = await this.messagesService.getOrCreateConversation(
-        userId,
-        dto.recipientId,
-        dto.orderId,
-      )
+      const conversation = await this.messagesService.getOrCreateConversation(buyerId, sellerId, orderId)
       return ApiResponseDto.ok(conversation, 'Conversation ready')
     } catch (error) {
       this.logger.error('Error creating conversation:', error)

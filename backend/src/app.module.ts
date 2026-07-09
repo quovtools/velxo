@@ -22,6 +22,7 @@ import { SlidesModule } from './modules/slides/slides.module'
 import { BlogModule } from './modules/blog/blog.module'
 import { AffiliateModule } from './modules/affiliate/affiliate.module'
 import { RewardsModule } from './modules/rewards/rewards.module'
+import { GatewayModule } from './modules/gateways'
 import { AllExceptionsFilter } from './common/filters/all-exceptions.filter'
 
 @Module({
@@ -52,6 +53,7 @@ import { AllExceptionsFilter } from './common/filters/all-exceptions.filter'
     BlogModule,
     AffiliateModule,
     RewardsModule,
+    GatewayModule,
   ],
   providers: [
     {

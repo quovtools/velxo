@@ -4,7 +4,7 @@ import React, { useState, useEffect } from 'react';
 import { useRouter } from 'next/navigation';
 import { api } from '@/lib/api';
 import { useAuth } from '@/app/providers';
-import { DollarSign, Star, TrendingUp, Package, Clock, Shield, Users, AlertCircle, Menu, X, CheckCircle, PlusCircle, ShieldCheck } from 'lucide-react';
+import { DollarSign, Star, TrendingUp, Package, Clock, Shield, Users, AlertCircle, Menu, X, CheckCircle, PlusCircle, ShieldCheck, MessageSquare } from 'lucide-react';
 import Link from 'next/link';
 
 interface SellerProfile {
@@ -30,6 +30,16 @@ interface SellerListing {
   status: string;
   salesCount: number;
   viewCount: number;
+}
+
+interface SellerOrder {
+  id: string;
+  orderNumber: string;
+  status: string;
+  totalAmount: string;
+  createdAt: string;
+  buyer: { id: string; firstName: string; lastName: string };
+  orderItems: Array<{ listing: { title: string; gameName: string } }>;
 }
 
 interface StatCardProps {
@@ -68,8 +78,10 @@ export default function SellerDashboard() {
   const { user, loading: authLoading } = useAuth();
   const [seller, setSeller] = useState<SellerProfile | null>(null);
   const [listings, setListings] = useState<SellerListing[]>([]);
+  const [sellerOrders, setSellerOrders] = useState<SellerOrder[]>([]);
   const [loading, setLoading] = useState(true);
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
+  const [deliveringId, setDeliveringId] = useState<string | null>(null);
 
   useEffect(() => {
     if (authLoading) return;
@@ -80,13 +92,15 @@ export default function SellerDashboard() {
 
     async function loadDashboard() {
       try {
-        const [sRes, lRes] = await Promise.all([
+        const [sRes, lRes, oRes] = await Promise.all([
           api.get<{ success: boolean; data: SellerProfile }>('/sellers/me'),
           api.get<{ success: boolean; data: { listings: SellerListing[] } }>('/listings?sellerId=' + user!.id),
+          api.get<{ success: boolean; data: SellerOrder[] }>('/orders/seller'),
         ]);
 
         if (sRes.success) setSeller(sRes.data);
         if (lRes.success) setListings(lRes.data?.listings || []);
+        if (oRes.success) setSellerOrders(oRes.data || []);
       } catch (e) {
         console.error(e);
       } finally {
@@ -95,6 +109,24 @@ export default function SellerDashboard() {
     }
     loadDashboard();
   }, [user, authLoading, router]);
+
+  const handleMarkDelivered = async (orderId: string) => {
+    if (!confirm('Mark this order as delivered? The buyer will be asked to confirm receipt and release escrow.')) return;
+    setDeliveringId(orderId);
+    try {
+      const res = await api.patch<{ success: boolean }>(`/orders/${orderId}/mark-delivered`, {
+        deliveryData: { message: 'Order marked as delivered by seller.', deliveredAt: new Date().toISOString() },
+      });
+      if (res.success) {
+        const oRes = await api.get<{ success: boolean; data: SellerOrder[] }>('/orders/seller');
+        if (oRes.success) setSellerOrders(oRes.data || []);
+      }
+    } catch (e: any) {
+      alert(e?.message || 'Failed to mark as delivered');
+    } finally {
+      setDeliveringId(null);
+    }
+  };
 
   if (loading) {
     return (
@@ -263,6 +295,98 @@ const currentTier = tierConfig[seller?.subscriptionTier as keyof TierConfig] || 
           value={(seller?.reputationScore || 0).toFixed(0)}
           icon={<TrendingUp className="w-6 h-6" />}
         />
+      </div>
+
+      {/* Orders / Inbox */}
+      <div className="bg-cardBg border border-borderBg rounded-2xl overflow-hidden">
+        <div className="px-6 py-4 border-b border-borderBg flex items-center justify-between">
+          <div className="flex items-center gap-2">
+            <Package className="w-5 h-5 text-brand" />
+            <h2 className="text-lg font-bold text-white">Orders &amp; Buyer Inbox</h2>
+          </div>
+          <span className="text-xs text-gray-500 bg-hoverBg/50 px-3 py-1 rounded-full border border-borderBg">
+            {sellerOrders.length} total
+          </span>
+        </div>
+
+        {sellerOrders.length === 0 ? (
+          <div className="py-12 text-center">
+            <p className="text-gray-400 text-sm">No orders yet. Sales will appear here once buyers purchase your listings.</p>
+          </div>
+        ) : (
+          <div className="overflow-x-auto">
+            <table className="w-full text-left text-sm">
+              <thead className="bg-hoverBg/30 text-xs uppercase font-semibold text-gray-400">
+                <tr>
+                  <th className="px-6 py-4">Order</th>
+                  <th className="px-6 py-4">Buyer</th>
+                  <th className="px-6 py-4">Item</th>
+                  <th className="px-6 py-4 text-center">Status</th>
+                  <th className="px-6 py-4 text-right">Actions</th>
+                </tr>
+              </thead>
+              <tbody className="divide-y divide-borderBg/50">
+                {sellerOrders.map((o) => {
+                  const item = o.orderItems?.[0];
+                  const buyerName = [o.buyer?.firstName, o.buyer?.lastName].filter(Boolean).join(' ') || 'Buyer';
+                  return (
+                    <tr key={o.id} className="hover:bg-hoverBg/20 transition">
+                      <td className="px-6 py-4">
+                        <div className="font-semibold text-white">#{o.orderNumber.slice(-8).toUpperCase()}</div>
+                        <div className="text-xs text-gray-500 mt-0.5">${Number(o.totalAmount).toFixed(2)}</div>
+                      </td>
+                      <td className="px-6 py-4 text-gray-300">{buyerName}</td>
+                      <td className="px-6 py-4">
+                        <div className="font-semibold text-white truncate max-w-[200px]" title={item?.listing?.title}>
+                          {item?.listing?.title || 'Gaming Assets'}
+                        </div>
+                        <div className="text-xs text-brand-light font-semibold mt-0.5">{item?.listing?.gameName}</div>
+                      </td>
+                      <td className="px-6 py-4 text-center">
+                        <span className={`inline-flex items-center gap-1.5 px-2.5 py-1 rounded-lg text-xs font-bold border ${
+                          o.status === 'COMPLETED'
+                            ? 'bg-emerald-500/10 text-emerald-400 border-emerald-500/20'
+                            : o.status === 'DISPUTED'
+                            ? 'bg-red-500/10 text-red-400 border-red-500/20'
+                            : o.status === 'IN_PROGRESS'
+                            ? 'bg-brand/10 text-brand-light border-brand/30'
+                            : 'bg-yellow-500/10 text-yellow-400 border-yellow-500/20'
+                        }`}>
+                          {o.status}
+                        </span>
+                      </td>
+                      <td className="px-6 py-4 text-right">
+                        <div className="flex items-center justify-end gap-2">
+                          <Link
+                            href={`/messages?buyerId=${o.buyer.id}&sellerId=${user?.id}`}
+                            className="text-brand hover:text-brand-light text-sm font-medium flex items-center gap-1"
+                          >
+                            <MessageSquare className="w-3.5 h-3.5" /> Chat
+                          </Link>
+                          {o.status === 'PAID' && (
+                            <button
+                              onClick={() => handleMarkDelivered(o.id)}
+                              disabled={deliveringId === o.id}
+                              className="text-emerald-400 hover:text-emerald-300 text-sm font-medium flex items-center gap-1 disabled:opacity-50"
+                            >
+                              <CheckCircle className="w-3.5 h-3.5" /> {deliveringId === o.id ? '...' : 'Deliver'}
+                            </button>
+                          )}
+                          <Link
+                            href={`/orders/${o.id}`}
+                            className="text-gray-400 hover:text-white text-sm font-medium"
+                          >
+                            View
+                          </Link>
+                        </div>
+                      </td>
+                    </tr>
+                  );
+                })}
+              </tbody>
+            </table>
+          </div>
+        )}
       </div>
 
       {/* Listings Table */}
