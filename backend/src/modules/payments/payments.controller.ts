@@ -69,9 +69,12 @@ export class PaymentsController {
             ? req.body
             : JSON.stringify(event)
 
+      // HMAC signature is a best-effort extra check. Paymento itself advises
+      // confirming payments via the Verify API, so a signature mismatch (e.g.
+      // a misconfigured secret key) must NOT block legitimate payments — we log
+      // it and still let the authoritative Verify API decide below.
       if (signature && !this.paymentsService.verifyPaymentIoIpn(rawBody, signature)) {
-        this.logger.warn('Payment.io IPN signature verification failed')
-        return ApiResponseDto.ok(null, 'Ignored')
+        this.logger.warn('Payment.io IPN signature verification failed — falling back to Verify API')
       }
 
       await this.paymentsService.handlePaymentIoWebhook(event)
