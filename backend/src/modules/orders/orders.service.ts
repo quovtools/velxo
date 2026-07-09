@@ -36,7 +36,7 @@ export class OrdersService {
       throw new BadRequestException('This listing is not available for purchase')
     }
 
-    if (listing.sellerId === buyerId) {
+    if (listing.seller.userId === buyerId) {
       throw new ForbiddenException('Cannot purchase your own listing')
     }
 
@@ -51,7 +51,7 @@ export class OrdersService {
         data: {
           orderNumber: `ORD-${Date.now()}-${Math.random().toString(36).substr(2, 9).toUpperCase()}`,
           buyerId,
-          sellerId: listing.sellerId,
+          sellerId: listing.seller.userId,
           subtotal,
           totalAmount: subtotal,
           commissionRate: new Decimal(this.COMMISSION_RATE),
@@ -217,7 +217,6 @@ export class OrdersService {
       await tx.commissions.updateMany({
         where: {
           orderId,
-          sellerId: order.sellerId,
         },
         data: {
           status: 'PAID',
