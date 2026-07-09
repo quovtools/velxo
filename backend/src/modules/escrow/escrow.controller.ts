@@ -40,6 +40,21 @@ export class EscrowController {
     }
   }
 
+  @Post('order/:orderId/pay')
+  @UseGuards(SupabaseJwtGuard)
+  async generatePaymentLink(
+    @Param('orderId') orderId: string,
+    @CurrentUserId() userId: string,
+  ) {
+    try {
+      const result = await this.escrowService.generatePaymentLink(orderId, userId)
+      return ApiResponseDto.ok(result, 'Payment link generated')
+    } catch (error) {
+      this.logger.error('Error generating payment link:', error)
+      throw error
+    }
+  }
+
   @Get('history')
   @UseGuards(SupabaseJwtGuard)
   async getEscrowHistory() {

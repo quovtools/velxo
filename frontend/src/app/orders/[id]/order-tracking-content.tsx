@@ -2,7 +2,7 @@
 
 import React, { useState, useEffect, useCallback } from 'react';
 import { useRouter } from 'next/navigation';
-import { api, getEscrowByOrder } from '@/lib/api';
+import { api, getEscrowByOrder, generateEscrowPaymentLink } from '@/lib/api';
 import { useAuth } from '@/app/providers';
 import {
   ShieldCheck, MessageSquare, AlertTriangle, CheckCircle, Truck,
@@ -186,6 +186,22 @@ export default function OrderTrackingContent({ id }: { id: string }) {
     };
   }, [order, id, user?.id]);
 
+  const handleGeneratePayment = async () => {
+    try {
+      const res = await generateEscrowPaymentLink(id)
+      if (res?.url) {
+        const win = window.open(res.url, '_blank', 'noopener,noreferrer')
+        if (!win) window.location.href = res.url
+        // Refresh the order + link shortly after the buyer is sent to pay.
+        setTimeout(() => loadOrder(), 4000)
+      } else if (res && res.configured === false) {
+        alert('The selected payment method is not available right now. Please choose a different one or contact support.')
+      }
+    } catch (err: any) {
+      alert(err?.message || 'Could not generate the payment link')
+    }
+  }
+
   const handleConfirmDelivery = async () => {
     if (!confirm('Are you sure you want to release funds to the seller? This action is irreversible.')) return;
     setLoading(true);
@@ -360,9 +376,13 @@ export default function OrderTrackingContent({ id }: { id: string }) {
                     <ExternalLink className="w-4 h-4" /> Pay Now — Complete Your Payment
                   </a>
                 ) : (
-                  <span className="inline-flex items-center gap-2 bg-white/5 border border-borderBg px-4 py-3 rounded-xl text-gray-400 text-sm">
-                    <AlertTriangle className="w-4 h-4" /> Payment link is not available yet. Refresh to check again.
-                  </span>
+                  <button
+                    type="button"
+                    onClick={handleGeneratePayment}
+                    className="inline-flex items-center justify-center gap-2 bg-brand hover:bg-brand-dark px-5 py-3 rounded-xl font-bold text-white text-sm shadow-lg shadow-brand/20 transition"
+                  >
+                    <ExternalLink className="w-4 h-4" /> Generate Payment Link
+                  </button>
                 )}
               </div>
             )}
@@ -551,7 +571,13 @@ export default function OrderTrackingContent({ id }: { id: string }) {
                       <ExternalLink className="w-4 h-4" /> Pay Now — Complete Your Payment
                     </a>
                   ) : (
-                    <p>Complete payment from the banner above to lock funds in escrow.</p>
+                    <button
+                      type="button"
+                      onClick={handleGeneratePayment}
+                      className="inline-flex items-center justify-center gap-2 bg-brand hover:bg-brand-dark px-5 py-3 rounded-xl font-bold text-white text-sm shadow-lg shadow-brand/20 transition w-full"
+                    >
+                      <ExternalLink className="w-4 h-4" /> Generate Payment Link
+                    </button>
                   )}
                 </div>
               )

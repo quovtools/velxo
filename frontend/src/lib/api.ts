@@ -98,6 +98,16 @@ export async function getEscrowByOrder(orderId: string): Promise<EscrowData> {
   return api.get<EscrowData>(`/escrow/order/${orderId}`);
 }
 
+export interface EscrowPaymentLink {
+  url: string | null;
+  provider: string | null;
+  configured: boolean;
+}
+
+export async function generateEscrowPaymentLink(orderId: string): Promise<EscrowPaymentLink> {
+  return api.post<EscrowPaymentLink>(`/escrow/order/${orderId}/pay`);
+}
+
 export const api = {
   get: <T>(endpoint: string, options?: RequestOptions) =>
     request<T>(endpoint, { ...options, method: 'GET' }),

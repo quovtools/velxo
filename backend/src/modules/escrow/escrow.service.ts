@@ -67,7 +67,10 @@ export class EscrowService {
       }
     }
 
-    // Resolve a payment link: prefer stored metadata, otherwise generate lazily.
+    // Resolve a payment link: read the stored link only. Generating a hosted
+    // charge is a deliberate, idempotent action performed via generatePaymentLink
+    // (triggered when the buyer clicks "Pay Now") — never as a side effect of a
+    // GET, so viewing the order can never create a charge or settle a payment.
     let paymentLink: string | null =
       (order.metadata as Record<string, any>)?.paymentLink ?? null
 
@@ -79,21 +82,10 @@ export class EscrowService {
       paymentLink = (payment?.metadata as Record<string, any>)?.paymentLink ?? null
     }
 
-    const isPaid =
-      order.status === 'PAID' ||
-      order.status === 'COMPLETED' ||
-      order.status === 'IN_PROGRESS' ||
-      order.status === 'DELIVERED'
-
     const chosenProvider = (order.metadata as Record<string, any>)?.paymentMethod as
       | 'FLUTTERWAVE'
       | 'PAYMENT_IO'
       | undefined
-
-    if (!paymentLink && !isPaid) {
-      const link = await this.payments.createPaymentLink(orderId, chosenProvider)
-      paymentLink = link.url
-    }
 
     return {
       id: escrow.id,
@@ -117,6 +109,65 @@ export class EscrowService {
         updatedAt: order.updatedAt,
       },
     }
+  }
+
+  /**
+   * Explicitly creates (or reuses) the hosted payment link for an order. This is
+   * the only place that calls out to the payment provider to mint a charge, and
+   * it is invoked deliberately when the buyer clicks "Pay Now" — never as a
+   * side effect of merely viewing the order.
+   *
+   * It is idempotent: if a PENDING payment with a link already exists for this
+   * order it is reused, so repeated clicks (or polling) never create duplicate
+   * charges that could auto-settle and falsely confirm the payment.
+   */
+  async generatePaymentLink(orderId: string, userId?: string) {
+    const order = await this.prisma.orders.findUnique({
+      where: { id: orderId },
+      include: { buyer: true, seller: true },
+    })
+    if (!order) {
+      throw new NotFoundException('Order')
+    }
+
+    // Only the buyer (or an admin) may generate a payment link for the order.
+    if (userId && order.buyerId !== userId) {
+      const isAdmin = false
+      if (!isAdmin) {
+        throw new ForbiddenException('Only the buyer can generate a payment link')
+      }
+    }
+
+    if (
+      order.status === 'PAID' ||
+      order.status === 'COMPLETED' ||
+      order.status === 'IN_PROGRESS' ||
+      order.status === 'DELIVERED'
+    ) {
+      throw new InvalidEscrowStateException('This order has already been paid')
+    }
+
+    const chosenProvider = (order.metadata as Record<string, any>)?.paymentMethod as
+      | 'FLUTTERWAVE'
+      | 'PAYMENT_IO'
+      | undefined
+
+    // Reuse an existing PENDING payment that already holds a link.
+    const existing = await this.prisma.payments.findFirst({
+      where: { orderId, status: 'PENDING' },
+      orderBy: { createdAt: 'desc' },
+    })
+    const existingLink = (existing?.metadata as Record<string, any>)?.paymentLink as
+      | string
+      | null
+      | undefined
+
+    if (existing && existingLink) {
+      return { url: existingLink, provider: existing.provider, configured: true }
+    }
+
+    const link = await this.payments.createPaymentLink(orderId, chosenProvider)
+    return { url: link.url, provider: link.provider, configured: link.configured }
   }
 
   async holdFunds(orderId: string, amount: Decimal, currency: string) {
