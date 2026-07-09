@@ -1,0 +1,46 @@
+{
+  "name": "Velxo Market",
+  "short_name": "Velxo",
+  "description": "Africa's trusted escrow-backed gaming marketplace. Buy and sell game accounts, coins, gift cards and services safely.",
+  "start_url": "/",
+  "scope": "/",
+  "display": "standalone",
+  "orientation": "portrait",
+  "background_color": "#0f172a",
+  "theme_color": "#0f172a",
+  "categories": ["shopping", "games", "business"],
+  "icons": [
+    {
+      "src": "/logo.png",
+      "sizes": "192x192",
+      "type": "image/png",
+      "purpose": "any"
+    },
+    {
+      "src": "/logo.png",
+      "sizes": "512x512",
+      "type": "image/png",
+      "purpose": "any"
+    },
+    {
+      "src": "/logo.png",
+      "sizes": "512x512",
+      "type": "image/png",
+      "purpose": "maskable"
+    }
+  ],
+  "shortcuts": [
+    {
+      "name": "Browse Listings",
+      "url": "/"
+    },
+    {
+      "name": "Sell an Item",
+      "url": "/sell"
+    },
+    {
+      "name": "My Wallet",
+      "url": "/wallet"
+    }
+  ]
+}

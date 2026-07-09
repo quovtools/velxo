@@ -3,10 +3,19 @@ import "./globals.css";
 import { Providers } from "./providers";
 import NavigationWrapper from "@/components/NavigationWrapper";
 import Footer from "@/components/Footer";
+import InstallPrompt from "@/components/InstallPrompt";
 
 export const metadata: Metadata = {
   title: "Velxo Market | Buy & Sell Game Accounts, Coins & More",
   description: "Browse thousands of verified gaming listings — accounts, top-ups, gift cards and boosting services. All trades protected by Velxo Escrow.",
+  applicationName: "Velxo Market",
+  manifest: "/manifest.json",
+  appleWebApp: {
+    capable: true,
+    statusBarStyle: "black-translucent",
+    title: "Velxo",
+  },
+  formatDetection: { telephone: false },
   keywords: "gaming marketplace, buy game accounts, sell game accounts, escrow gaming, velxo, africa gaming marketplace, free fire, pubg mobile",
   icons: {
     icon: "/favicon.png",
@@ -76,6 +85,7 @@ export default function RootLayout({
             {children}
           </main>
           <Footer />
+          <InstallPrompt />
         </Providers>
       </body>
     </html>
