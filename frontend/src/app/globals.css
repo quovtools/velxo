@@ -64,6 +64,20 @@ body {
   animation: shimmer 1.4s infinite;
 }
 
+/* Marquee news ticker */
+@keyframes marqueeScroll {
+  from { transform: translateX(0); }
+  to   { transform: translateX(-50%); }
+}
+.marquee-track {
+  display: inline-flex;
+  white-space: nowrap;
+  animation: marqueeScroll 28s linear infinite;
+}
+.marquee-wrap:hover .marquee-track {
+  animation-play-state: paused;
+}
+
 /* Helpers */
 .safe-area-pb { padding-bottom: env(safe-area-inset-bottom, 0px); }
 .scrollbar-none::-webkit-scrollbar { display: none; }

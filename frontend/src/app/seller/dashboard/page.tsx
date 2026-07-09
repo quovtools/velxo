@@ -171,21 +171,34 @@ const currentTier = tierConfig[seller?.subscriptionTier as keyof TierConfig] || 
           <h1 className="text-3xl font-black text-white">Seller Dashboard</h1>
           <p className="text-gray-400 text-sm mt-1">Manage your store, track performance, and grow your business</p>
         </div>
-        <Link
-          href="/sell"
-          className="hidden sm:flex items-center gap-2 bg-gradient-to-r from-brand to-purple-600 hover:from-brand-dark hover:to-purple-700 px-6 py-3 rounded-xl font-bold transition text-white shadow-lg shadow-brand/20"
-        >
-          <Package className="w-5 h-5" />
-          Create Listing
-        </Link>
+          <div className="flex items-center gap-2">
+            <Link
+              href="/seller/gigs"
+              className="hidden sm:flex items-center gap-2 bg-purple-600 hover:bg-purple-700 px-5 py-3 rounded-xl font-bold transition text-white shadow-lg shadow-purple-600/20"
+            >
+              <Gamepad2 className="w-5 h-5" />
+              Boosting Gigs
+            </Link>
+            <Link
+              href="/sell"
+              className="hidden sm:flex items-center gap-2 bg-gradient-to-r from-brand to-purple-600 hover:from-brand-dark hover:to-purple-700 px-6 py-3 rounded-xl font-bold transition text-white shadow-lg shadow-brand/20"
+            >
+              <Package className="w-5 h-5" />
+              Create Listing
+            </Link>
+          </div>
       </div>
 
       {/* Mobile menu */}
       {mobileMenuOpen && (
         <div className="md:hidden space-y-3 animate-fade-in">
-          <Link href="/sell" className="flex items-center gap-2 bg-brand hover:bg-brand-dark px-6 py-3 rounded-xl font-bold transition text-white">
+           <Link href="/sell" className="flex items-center gap-2 bg-brand hover:bg-brand-dark px-6 py-3 rounded-xl font-bold transition text-white">
             <Package className="w-5 h-5" />
             Create Listing
+          </Link>
+          <Link href="/seller/gigs" className="flex items-center gap-2 bg-purple-600 hover:bg-purple-700 px-6 py-3 rounded-xl font-bold transition text-white">
+            <Gamepad2 className="w-5 h-5" />
+            Boosting Gigs
           </Link>
           <Link href="/seller/settings" className="flex items-center gap-2 text-gray-300 hover:text-white px-4 py-2 rounded-lg hover:bg-hoverBg transition">
             <Users className="w-5 h-5" />

@@ -421,7 +421,130 @@ function MarketplaceContent() {
         </div>
       )}
 
+      <TopupShowcase />
+      <GigShowcase />
+
       <Footer />
+    </div>
+  );
+}
+
+/* ── Official Velxo Gaming Top-Ups showcase ── */
+function TopupShowcase() {
+  const [items, setItems] = useState<any[]>([]);
+  const [loading, setLoading] = useState(true);
+
+  useEffect(() => {
+    const apiBase = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:3001/api/v1';
+    fetch(`${apiBase}/topups`)
+      .then((r) => (r.ok ? r.json() : { data: [] }))
+      .then((d) => setItems(d.data || []))
+      .catch(() => setItems([]))
+      .finally(() => setLoading(false));
+  }, []);
+
+  if (!loading && items.length === 0) return null;
+
+  return (
+    <div className="space-y-4 pt-2">
+      <div className="flex items-center justify-between">
+        <h2 className="text-base font-bold text-white flex items-center gap-2">
+          <Zap className="w-4 h-4 text-brand" /> Official Velxo Top-Ups
+        </h2>
+        <Link href="/topups" className="text-xs font-medium text-brand hover:text-brand-light flex items-center gap-1">
+          View All <ArrowRight className="w-3 h-3" />
+        </Link>
+      </div>
+      <div className="flex gap-3 overflow-x-auto pb-2 scrollbar-none -mx-1 px-1">
+        {loading
+          ? Array.from({ length: 5 }).map((_, i) => (
+              <div key={i} className="flex-shrink-0 w-44 h-28 bg-cardBg border border-borderBg rounded-2xl animate-pulse" />
+            ))
+          : items.slice(0, 10).map((t) => (
+              <Link
+                key={t.id}
+                href="/topups"
+                className="flex-shrink-0 w-44 bg-cardBg border border-borderBg hover:border-brand/40 rounded-2xl overflow-hidden transition group"
+              >
+                <div className="h-20 bg-gradient-to-br from-brand/30 to-background flex items-center justify-center relative">
+                  {t.imageUrl ? (
+                    <img src={t.imageUrl} alt={t.title} className="w-full h-full object-cover" />
+                  ) : (
+                    <Zap className="w-6 h-6 text-brand/60" />
+                  )}
+                  <span className="absolute top-2 left-2 text-[9px] font-bold uppercase bg-brand text-white px-1.5 py-0.5 rounded">
+                    Official
+                  </span>
+                </div>
+                <div className="p-2.5">
+                  <p className="text-[11px] font-semibold text-white truncate">{t.title}</p>
+                  <p className="text-[10px] text-gray-500 truncate">{t.gameName}</p>
+                  <p className="text-xs font-black text-brand-light mt-1">${Number(t.price).toFixed(2)}</p>
+                </div>
+              </Link>
+            ))}
+      </div>
+    </div>
+  );
+}
+
+/* ── Rank Boosting gigs showcase ── */
+function GigShowcase() {
+  const [items, setItems] = useState<any[]>([]);
+  const [loading, setLoading] = useState(true);
+
+  useEffect(() => {
+    const apiBase = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:3001/api/v1';
+    fetch(`${apiBase}/gigs`)
+      .then((r) => (r.ok ? r.json() : { data: [] }))
+      .then((d) => setItems(d.data || []))
+      .catch(() => setItems([]))
+      .finally(() => setLoading(false));
+  }, []);
+
+  if (!loading && items.length === 0) return null;
+
+  return (
+    <div className="space-y-4 pt-2">
+      <div className="flex items-center justify-between">
+        <h2 className="text-base font-bold text-white flex items-center gap-2">
+          <Gamepad2 className="w-4 h-4 text-brand" /> Rank Boosting Services
+        </h2>
+        <Link href="/boosting" className="text-xs font-medium text-brand hover:text-brand-light flex items-center gap-1">
+          View All <ArrowRight className="w-3 h-3" />
+        </Link>
+      </div>
+      <div className="flex gap-3 overflow-x-auto pb-2 scrollbar-none -mx-1 px-1">
+        {loading
+          ? Array.from({ length: 5 }).map((_, i) => (
+              <div key={i} className="flex-shrink-0 w-52 h-32 bg-cardBg border border-borderBg rounded-2xl animate-pulse" />
+            ))
+          : items.slice(0, 10).map((g) => (
+              <Link
+                key={g.id}
+                href="/boosting"
+                className="flex-shrink-0 w-52 bg-cardBg border border-borderBg hover:border-brand/40 rounded-2xl overflow-hidden transition group"
+              >
+                <div className="h-24 bg-gradient-to-br from-purple-500/30 to-background flex items-center justify-center relative">
+                  {g.imageUrl ? (
+                    <img src={g.imageUrl} alt={g.title} className="w-full h-full object-cover" />
+                  ) : (
+                    <Gamepad2 className="w-6 h-6 text-purple-400/60" />
+                  )}
+                  <span className="absolute top-2 left-2 text-[9px] font-bold uppercase bg-purple-500 text-white px-1.5 py-0.5 rounded">
+                    {g.accountType || 'Boost'}
+                  </span>
+                </div>
+                <div className="p-2.5">
+                  <p className="text-[11px] font-semibold text-white truncate">{g.title}</p>
+                  <p className="text-[10px] text-gray-500 truncate">
+                    {g.gameName} · {g.rankFrom ? `${g.rankFrom}→${g.rankTo}` : 'Rank up'}
+                  </p>
+                  <p className="text-xs font-black text-brand-light mt-1">${Number(g.price).toFixed(2)}</p>
+                </div>
+              </Link>
+            ))}
+      </div>
     </div>
   );
 }

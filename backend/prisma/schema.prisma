@@ -228,6 +228,7 @@ model sellers {
   orders          orders[]        @relation("SellerOrders")
   reviews          reviews[]       @relation("ReviewSeller")
   commissions     commissions[]
+  gigs            gigs[]
   withdrawalRequests withdrawalRequests[]
 
   @@index([userId])
