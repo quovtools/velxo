@@ -91,6 +91,20 @@ export class NotificationsService {
     )
   }
 
+  async notifyOrderAccepted(order: any) {
+    const buyerUserId = order?.buyer?.id
+    if (!buyerUserId) return
+    const product =
+      order?.orderItems?.[0]?.listing?.title || order?.metadata?.title || 'your order'
+    return this.createNotification(
+      buyerUserId,
+      'ORDER_STATUS',
+      'Order Accepted',
+      `Your order (${order.orderNumber}) for ${product} has been accepted by the seller.`,
+      { orderId: order.id, orderNumber: order.orderNumber, status: 'ACCEPTED' },
+    )
+  }
+
   async notifyPaymentConfirmed(order: any) {
     if (!order) return
     await this.createNotification(

@@ -406,8 +406,8 @@ model orders {
   deliveryData    Json?
 
   paidAt          DateTime?
-  acceptedAt      DateTime?
   deliveredAt     DateTime?
+  acceptedAt      DateTime?
   buyerConfirmDeadline DateTime?
   completedAt     DateTime?
   cancelledAt     DateTime?
