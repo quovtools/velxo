@@ -221,7 +221,7 @@ export class PaymentsService implements OnModuleInit {
       return { url: null, provider: null, configured: true }
     }
 
-    const provider = provider ?? this.resolveProvider()
+    const activeProvider = provider ?? this.resolveProvider()
     const callbackUrl = `${process.env.FRONTEND_URL || 'https://market.velxo.shop'}/orders/${orderId}`
 
     let charge: { chargeId: string | null; paymentUrl: string | null; configured: boolean } = {
@@ -231,14 +231,14 @@ export class PaymentsService implements OnModuleInit {
     }
 
     try {
-      if (provider === PaymentProvider.PAYMENT_IO) {
+      if (activeProvider === PaymentProvider.PAYMENT_IO) {
         charge = await this.paymentIo.createCharge({
           reference: orderId,
           amount: Number(order.totalAmount),
           currency: order.currency,
           callbackUrl,
         })
-      } else if (provider === PaymentProvider.FLUTTERWAVE) {
+      } else if (activeProvider === PaymentProvider.FLUTTERWAVE) {
         charge = await this.flutterwave.createCharge({
           reference: orderId,
           amount: Number(order.totalAmount),
@@ -249,12 +249,12 @@ export class PaymentsService implements OnModuleInit {
       }
     } catch (err: any) {
       this.logger.error(`Payment link generation failed for order ${orderId}:`, err?.message || err)
-      return { url: null, provider, configured: false }
+      return { url: null, provider: activeProvider, configured: false }
     }
 
     if (!charge.configured || !charge.paymentUrl) {
-      this.logger.warn(`Payment provider (${provider}) not configured for order ${orderId}`)
-      return { url: null, provider, configured: false }
+      this.logger.warn(`Payment provider (${activeProvider}) not configured for order ${orderId}`)
+      return { url: null, provider: activeProvider, configured: false }
     }
 
     const paymentUrl = charge.paymentUrl
@@ -262,7 +262,7 @@ export class PaymentsService implements OnModuleInit {
     // Reuse an existing PENDING payment for this order+provider when present so
     // we don't accumulate duplicate payment rows across calls.
     const existing = await this.prisma.payments.findFirst({
-      where: { orderId, provider, status: PaymentStatus.PENDING },
+      where: { orderId, provider: activeProvider, status: PaymentStatus.PENDING },
       orderBy: { createdAt: 'desc' },
     })
 
@@ -278,7 +278,7 @@ export class PaymentsService implements OnModuleInit {
       await this.prisma.payments.create({
         data: {
           orderId,
-          provider,
+          provider: activeProvider,
           amount: order.totalAmount,
           currency: order.currency,
           status: PaymentStatus.PENDING,
@@ -297,7 +297,7 @@ export class PaymentsService implements OnModuleInit {
       })
     }
 
-    return { url: paymentUrl, provider, configured: true }
+    return { url: paymentUrl, provider: activeProvider, configured: true }
   }
 
   async updatePaymentStatus(paymentId: string, status: PaymentStatus, transactionId?: string) {
