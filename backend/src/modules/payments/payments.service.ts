@@ -135,7 +135,7 @@ export class PaymentsService implements OnModuleInit {
       if (charge.chargeId) {
         await this.prisma.payments.update({
           where: { id: payment.id },
-          data: { methodId: charge.chargeId },
+          data: { providerTransactionId: charge.chargeId },
         })
       }
 
@@ -252,7 +252,7 @@ export class PaymentsService implements OnModuleInit {
       return false
     }
 
-    const payment = await this.prisma.payments.findFirst({ where: { methodId: reference } })
+    const payment = await this.prisma.payments.findFirst({ where: { providerTransactionId: reference } })
     if (!payment) {
       this.logger.warn(`Payment.io webhook: no payment for reference ${reference}`)
       return false
