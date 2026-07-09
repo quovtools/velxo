@@ -11,6 +11,7 @@ interface MarqueeItem {
   linkText?: string;
   icon?: string;
   color?: string;
+  isActive?: boolean;
 }
 
 const ICON_MAP: Record<string, React.ElementType> = {
