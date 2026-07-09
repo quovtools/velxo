@@ -138,7 +138,7 @@ async function bootstrap() {
   logger.log(`🗃️  Database URL: ${process.env.DATABASE_URL ? 'SET' : 'MISSING ⚠️'}`)
   logger.log(`🔐 JWT Secret: ${process.env.JWT_SECRET ? 'SET' : 'MISSING — using fallback ⚠️'}`)
 
-  await app.listen(port)
+  await app.listen(port, '0.0.0.0')
 }
 
 // Catch bootstrap-level errors (e.g. DB connection failures) and print them clearly
