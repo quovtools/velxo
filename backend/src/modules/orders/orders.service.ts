@@ -47,6 +47,13 @@ export class OrdersService {
 
     // Create order in a transaction
     const order = await this.prisma.$transaction(async (tx) => {
+      // Re-check availability atomically (guards against two buyers ordering
+      // the same single-unit account at the same time).
+      const liveListing = await tx.listings.findUnique({ where: { id: dto.listingId } })
+      if (!liveListing || liveListing.status !== 'ACTIVE' || liveListing.isSold) {
+        throw new BadRequestException('This listing is no longer available for purchase')
+      }
+
       const newOrder = await tx.orders.create({
         data: {
           orderNumber: `ORD-${Date.now()}-${Math.random().toString(36).substr(2, 9).toUpperCase()}`,
@@ -99,6 +106,14 @@ export class OrdersService {
       await tx.listings.update({
         where: { id: dto.listingId },
         data: { salesCount: { increment: 1 } },
+      })
+
+      // Reserve the listing immediately so a second buyer cannot also purchase
+      // this single-unit account. It is reverted to ACTIVE if the payment fails
+      // (see PaymentsService.updatePaymentStatus) or if the order is cancelled.
+      await tx.listings.update({
+        where: { id: dto.listingId },
+        data: { isSold: true, status: ListingStatus.SOLD },
       })
 
       return newOrder

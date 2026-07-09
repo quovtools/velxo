@@ -2,7 +2,7 @@ import type { Metadata, Viewport } from "next";
 import "./globals.css";
 import { Providers } from "./providers";
 import NavigationWrapper from "@/components/NavigationWrapper";
-import Footer from "@/components/Footer";
+import AppLoader from "@/components/AppLoader";
 import InstallPrompt from "@/components/InstallPrompt";
 
 export const metadata: Metadata = {
@@ -86,11 +86,11 @@ export default function RootLayout({
       </head>
       <body className="antialiased min-h-screen flex flex-col">
         <Providers>
+          <AppLoader />
           <NavigationWrapper />
           <main className="flex-1 w-full max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-6 pb-24 sm:pb-6">
             {children}
           </main>
-          <Footer />
           <InstallPrompt />
         </Providers>
       </body>

@@ -4,6 +4,7 @@ import React, { useState, useEffect } from 'react';
 import { useRouter } from 'next/navigation';
 import { api } from '@/lib/api';
 import { useAuth } from '@/app/providers';
+import LoadingLogo from '@/components/LoadingLogo';
 import { ShieldCheck, Wallet, Sparkles } from 'lucide-react';
 
 const API_BASE = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:3001/api/v1';
@@ -62,27 +63,37 @@ export default function CheckoutContent({ listingId }: { listingId: string }) {
         buyerNote,
       });
 
-      if (response.success && response.data) {
-        const orderId = response.data.id;
+      if (!response.success || !response.data) {
+        throw new Error('Could not establish escrow holding order');
+      }
 
-        const payRes = await api.post(`/payments`, {
+      const orderId = response.data.id;
+
+      const payRes = await api.post<{ success: boolean; data: { paymentUrl: string | null; configured: boolean } }>(
+        `/payments`,
+        {
           orderId,
           provider: paymentProvider,
           amount: parseFloat(listing?.price || '0'),
           currency: 'USD',
-        });
+        },
+      );
 
-        const paymentUrl = (payRes as any)?.data?.paymentUrl;
-        if (paymentUrl) {
-          // Redirect to the Payment.io crypto checkout
-          window.location.href = paymentUrl;
-          return;
-        }
+      const paymentUrl = payRes?.data?.paymentUrl;
+      const configured = payRes?.data?.configured;
 
-        router.push(`/orders/${orderId}`);
-      } else {
-        throw new Error('Could not establish escrow holding order');
+      // Only redirect to the hosted checkout when a real payment URL exists and
+      // the provider is configured. Otherwise surface an inline error and keep
+      // the order PENDING — never silently pretend the order is paid.
+      if (paymentUrl && configured) {
+        window.location.href = paymentUrl;
+        return;
       }
+
+      throw new Error(
+        `The selected payment method (${paymentProvider}) is currently unavailable. ` +
+          `Please choose a different payment method or try again later.`,
+      );
     } catch (err: any) {
       setError(err.message || 'Payment execution failed');
     } finally {
@@ -91,7 +102,11 @@ export default function CheckoutContent({ listingId }: { listingId: string }) {
   };
 
   if (loadingListing) {
-    return <div className="text-center py-20 text-gray-400">Loading escrow checkout console...</div>;
+    return (
+      <div className="min-h-[60vh] flex items-center justify-center">
+        <LoadingLogo label="Loading escrow checkout console..." size="lg" />
+      </div>
+    );
   }
 
   if (error || !listing) {

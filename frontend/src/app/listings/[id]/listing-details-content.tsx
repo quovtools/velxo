@@ -23,6 +23,8 @@ interface Listing {
   loginMethod: string;
   deliveryTime: number;
   images: string[];
+  status: string;
+  isSold: boolean;
   seller: {
     id: string;
     userId: string;
@@ -252,12 +254,18 @@ export default function ListingDetailsContent({ id }: { id: string }) {
 
             {/* CTA buttons */}
             <div className="space-y-2.5">
-              <Link href={`/checkout/${listing.id}`}
-                className="flex items-center justify-center gap-2 w-full bg-brand hover:bg-brand-dark py-3.5 rounded-xl font-bold transition shadow-lg shadow-brand/20 text-white">
-                <ShoppingCart className="w-4 h-4" /> Buy Now
-              </Link>
+              {listing.isSold || listing.status === 'SOLD' ? (
+                <div className="flex items-center justify-center gap-2 w-full bg-background border border-borderBg py-3.5 rounded-xl font-bold text-gray-400 cursor-not-allowed">
+                  <ShoppingCart className="w-4 h-4" /> Sold
+                </div>
+              ) : (
+                <Link href={`/checkout/${listing.id}`}
+                  className="flex items-center justify-center gap-2 w-full bg-brand hover:bg-brand-dark py-3.5 rounded-xl font-bold transition shadow-lg shadow-brand/20 text-white">
+                  <ShoppingCart className="w-4 h-4" /> Buy Now
+                </Link>
+              )}
               {user && (user as any).id !== listing.seller?.userId && (
-                <Link href={`/messages?userId=${listing.seller?.userId}`}
+                <Link href={`/messages?buyerId=${user.id}&sellerId=${listing.seller?.userId}`}
                   className="flex items-center justify-center gap-2 w-full bg-background border border-borderBg hover:border-brand/40 py-3.5 rounded-xl font-bold transition text-gray-300 hover:text-white">
                   <MessageSquare className="w-4 h-4" /> Message Seller
                 </Link>

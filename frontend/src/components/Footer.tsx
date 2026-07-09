@@ -58,12 +58,12 @@ const popularGames = [
 
 export default function Footer() {
   return (
-    <footer className="border-t border-borderBg bg-cardBg mt-16">
+    <footer className="border-t border-borderBg bg-cardBg mt-12 sm:mt-16">
       {/* Main footer grid */}
-      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-14">
-        <div className="grid grid-cols-1 lg:grid-cols-6 gap-10">
+      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-12 lg:py-14">
+        <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-6 gap-8 lg:gap-10">
           {/* Brand column */}
-          <div className="lg:col-span-2 space-y-5">
+          <div className="col-span-2 md:col-span-3 lg:col-span-2 space-y-5">
             <div className="flex items-center gap-2">
               <img src="/logo.png" alt="Velxo" className="w-8 h-8 rounded-lg object-cover" />
               <span className="text-white font-black text-2xl tracking-tight">Velxo</span>

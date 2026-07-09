@@ -62,7 +62,10 @@ export class PaymentsService {
     buyerId: string,
   ): Promise<{ payment: any; paymentUrl: string | null; configured: boolean }> {
     // Validate ownership and amount before creating any payment record.
-    const order = await this.prisma.orders.findUnique({ where: { id: orderId } })
+    const order = await this.prisma.orders.findUnique({
+      where: { id: orderId },
+      include: { orderItems: true },
+    })
     if (!order) {
       throw new NotFoundException('Order')
     }
@@ -77,15 +80,29 @@ export class PaymentsService {
       throw new BadRequestException('Payment amount does not match the order total')
     }
 
-    const payment = await this.createPayment(orderId, amount, provider)
+    const listingId = order.orderItems?.[0]?.listingId
 
-    if (provider === 'PAYMENT_IO') {
-      const charge = await this.paymentIo.createCharge({
-        reference: payment.id,
-        amount: Number(amount),
-        currency: payment.currency,
-        callbackUrl,
-      })
+    // If a provider cannot actually take payment we must NOT mark the order as
+    // paid and we must release the reservation placed on the listing when the
+    // order was created, so the item returns to the marketplace.
+    const revertReservation = async () => {
+      if (listingId) {
+        await this.prisma.listings.update({
+          where: { id: listingId },
+          data: { isSold: false, status: ListingStatus.ACTIVE },
+        })
+      }
+    }
+
+    const handleCharge = async (charge: { chargeId: string | null; paymentUrl: string | null; configured: boolean }) => {
+      if (!charge.configured) {
+        await revertReservation()
+        throw new BadRequestException(
+          `The selected payment method (${provider}) is currently unavailable. Please choose a different payment method.`,
+        )
+      }
+
+      const payment = await this.createPayment(orderId, amount, provider)
 
       if (charge.chargeId) {
         await this.prisma.payments.update({
@@ -94,7 +111,17 @@ export class PaymentsService {
         })
       }
 
-      return { payment, paymentUrl: charge.paymentUrl, configured: charge.configured }
+      return { payment, paymentUrl: charge.paymentUrl, configured: true }
+    }
+
+    if (provider === 'PAYMENT_IO') {
+      const charge = await this.paymentIo.createCharge({
+        reference: orderId,
+        amount: Number(amount),
+        currency: order.currency,
+        callbackUrl,
+      })
+      return handleCharge(charge)
     }
 
     if (provider === 'FLUTTERWAVE') {
@@ -103,24 +130,17 @@ export class PaymentsService {
         include: { buyer: true },
       })
       const charge = await this.flutterwave.createCharge({
-        reference: payment.id,
+        reference: orderId,
         amount: Number(amount),
-        currency: payment.currency,
+        currency: order.currency,
         email: fullOrder?.buyer?.email || 'buyer@velxo.shop',
         callbackUrl,
       })
-
-      if (charge.chargeId) {
-        await this.prisma.payments.update({
-          where: { id: payment.id },
-          data: { methodId: charge.chargeId },
-        })
-      }
-
-      return { payment, paymentUrl: charge.paymentUrl, configured: charge.configured }
+      return handleCharge(charge)
     }
 
-    return { payment, paymentUrl: null, configured: true }
+    await revertReservation()
+    throw new BadRequestException('Unsupported payment provider')
   }
 
   async updatePaymentStatus(paymentId: string, status: PaymentStatus, transactionId?: string) {
@@ -148,6 +168,18 @@ export class PaymentsService {
         await this.prisma.listings.update({
           where: { id: listingId },
           data: { isSold: true, status: ListingStatus.SOLD },
+        })
+      }
+    }
+
+    // A failed payment must release the reservation placed on the listing at
+    // order creation so the item returns to the marketplace.
+    if (status === PaymentStatus.FAILED) {
+      const listingId = payment.order.orderItems?.[0]?.listingId
+      if (listingId) {
+        await this.prisma.listings.update({
+          where: { id: listingId },
+          data: { isSold: false, status: ListingStatus.ACTIVE },
         })
       }
     }

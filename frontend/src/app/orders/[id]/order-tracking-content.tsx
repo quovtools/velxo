@@ -4,6 +4,7 @@ import React, { useState, useEffect, useCallback } from 'react';
 import { useRouter } from 'next/navigation';
 import { api } from '@/lib/api';
 import { useAuth } from '@/app/providers';
+import LoadingLogo from '@/components/LoadingLogo';
 import { ShieldCheck, MessageSquare, AlertTriangle, CheckCircle } from 'lucide-react';
 import Link from 'next/link';
 
@@ -103,7 +104,11 @@ export default function OrderTrackingContent({ id }: { id: string }) {
   };
 
   if (loading) {
-    return <div className="text-center py-20 text-gray-400">Loading escrow tracking console...</div>;
+    return (
+      <div className="min-h-[60vh] flex items-center justify-center">
+        <LoadingLogo label="Loading escrow tracking console..." size="lg" />
+      </div>
+    );
   }
 
   if (error || !order) {

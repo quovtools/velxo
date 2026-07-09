@@ -11,6 +11,7 @@ import {
 } from 'lucide-react';
 import GameSlideshow from '@/components/GameSlideshow';
 import GameIcon from '@/components/GameIcon';
+import Footer from '@/components/Footer';
 import { storeReferralCode, trackReferralClick } from '@/lib/referral';
 
 interface Listing {
@@ -22,6 +23,8 @@ interface Listing {
   region: string;
   rank: string;
   isFeatured: boolean;
+  isSold: boolean;
+  status: string;
   seller: { storeName: string; averageRating: number; id?: string };
 }
 
@@ -378,9 +381,15 @@ function MarketplaceContent() {
                 </div>
                 <div className="flex items-center justify-between border-t border-borderBg pt-3">
                   <span className="text-lg font-black text-white tracking-tight">${Number(item.price).toFixed(2)}</span>
-                  <span className="bg-gradient-to-r from-brand to-purple-600 hover:from-brand-dark hover:to-purple-700 px-3 py-1.5 rounded-lg text-xs font-bold text-white transition shadow-lg shadow-brand/20">
-                    Buy Now
-                  </span>
+                  {item.isSold || item.status === 'SOLD' ? (
+                    <span className="bg-gray-700 px-3 py-1.5 rounded-lg text-xs font-bold text-gray-300">
+                      Sold
+                    </span>
+                  ) : (
+                    <span className="bg-gradient-to-r from-brand to-purple-600 hover:from-brand-dark hover:to-purple-700 px-3 py-1.5 rounded-lg text-xs font-bold text-white transition shadow-lg shadow-brand/20">
+                      Buy Now
+                    </span>
+                  )}
                 </div>
               </div>
             </Link>
@@ -412,6 +421,7 @@ function MarketplaceContent() {
         </div>
       )}
 
+      <Footer />
     </div>
   );
 }
