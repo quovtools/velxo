@@ -87,6 +87,14 @@ const ORDER_STATUS_COLORS: Record<string, string> = {
   CANCELLED: 'bg-gray-500/10 text-gray-400 border-gray-500/20',
   REFUNDED: 'bg-red-500/10 text-red-400 border-red-500/20',
   DISPUTED: 'bg-red-500/10 text-red-400 border-red-500/20',
+  // listing statuses
+  DRAFT: 'bg-gray-500/10 text-gray-400 border-gray-500/20',
+  PENDING_APPROVAL: 'bg-yellow-500/10 text-yellow-400 border-yellow-500/20',
+  ACTIVE: 'bg-emerald-500/10 text-emerald-400 border-emerald-500/20',
+  REJECTED: 'bg-red-500/10 text-red-400 border-red-500/20',
+  SUSPENDED: 'bg-gray-500/10 text-gray-400 border-gray-500/20',
+  SOLD: 'bg-purple-500/10 text-purple-400 border-purple-500/20',
+  EXPIRED: 'bg-gray-500/10 text-gray-400 border-gray-500/20',
 };
 
 /* ------------------------------------------------------------------ helpers */
@@ -116,6 +124,8 @@ export default function SellerDashboard() {
   const [reviews, setReviews] = useState<Review[]>([]);
   const [loading, setLoading] = useState(true);
   const [section, setSection] = useState<(typeof SECTIONS)[number]['id']>('overview');
+  const [orderTab, setOrderTab] = useState<'all' | 'pending' | 'completed'>('all');
+  const [listingTab, setListingTab] = useState<'all' | 'active' | 'pending' | 'history'>('all');
   const [busyId, setBusyId] = useState<string | null>(null);
   const [toast, setToast] = useState<{ ok: boolean; text: string } | null>(null);
 
@@ -141,7 +151,7 @@ export default function SellerDashboard() {
       const [sRes, oRes, lRes, wRes] = await Promise.all([
         api.get<{ success: boolean; data: Seller }>('/sellers/me'),
         api.get<{ success: boolean; data: SellerOrder[] }>('/orders/seller'),
-        api.get<{ success: boolean; data: { listings: SellerListing[] } }>('/listings?sellerId=' + user!.id),
+        api.get<{ success: boolean; data: { listings: SellerListing[] } }>('/listings', { params: { sellerId: user!.id, status: 'ALL', limit: 100 } }),
         api.get<{ success: boolean; data: Wallet }>('/wallet').catch(() => ({ success: false, data: null })),
       ]);
       if (sRes.success) setSeller(sRes.data);
@@ -223,8 +233,25 @@ export default function SellerDashboard() {
   }, [orders]);
 
   const totalRevenue = useMemo(() => orders.reduce((s, o) => s + Number(o.totalAmount), 0), [orders]);
-  const completedSales = orders.filter(o => o.status === 'COMPLETED').length;
   const maxBar = Math.max(...revenueByMonth.map(m => m.value), 1);
+
+  /* live, derived views from the seller's connected data */
+  const PENDING_ORDER_STATUSES = ['PENDING', 'PAID', 'IN_PROGRESS', 'DELIVERED'];
+  const pendingOrders = orders.filter(o => PENDING_ORDER_STATUSES.includes(o.status));
+  const completedOrders = orders.filter(o => o.status === 'COMPLETED');
+  const visibleOrders =
+    orderTab === 'pending' ? pendingOrders :
+    orderTab === 'completed' ? completedOrders :
+    orders;
+
+  const activeListings = listings.filter(l => l.status === 'ACTIVE');
+  const pendingListings = listings.filter(l => l.status === 'PENDING_APPROVAL' || l.status === 'DRAFT');
+  const historyListings = listings.filter(l => !['ACTIVE', 'PENDING_APPROVAL', 'DRAFT'].includes(l.status));
+  const visibleListings =
+    listingTab === 'active' ? activeListings :
+    listingTab === 'pending' ? pendingListings :
+    listingTab === 'history' ? historyListings :
+    listings;
 
   if (loading) {
     return (
@@ -244,17 +271,25 @@ export default function SellerDashboard() {
       {/* header */}
       <div className="flex items-center justify-between mb-4">
         <div className="flex items-center gap-2 overflow-x-auto no-scrollbar">
-          {SECTIONS.map(s => (
-            <button
-              key={s.id}
-              onClick={() => setSection(s.id)}
-              className={`flex items-center gap-1.5 px-3 py-2 rounded-xl text-sm font-semibold whitespace-nowrap transition ${
-                section === s.id ? 'bg-brand text-white' : 'bg-cardBg border border-borderBg text-gray-400 hover:text-white'
-              }`}
-            >
-              <s.icon className="w-4 h-4" /> {s.label}
-            </button>
-          ))}
+          {SECTIONS.map(s => {
+            const badge =
+              s.id === 'orders' && pendingOrders.length ? pendingOrders.length :
+              s.id === 'listings' && pendingListings.length ? pendingListings.length : 0;
+            return (
+              <button
+                key={s.id}
+                onClick={() => setSection(s.id)}
+                className={`relative flex items-center gap-1.5 px-3 py-2 rounded-xl text-sm font-semibold whitespace-nowrap transition ${
+                  section === s.id ? 'bg-brand text-white' : 'bg-cardBg border border-borderBg text-gray-400 hover:text-white'
+                }`}
+              >
+                <s.icon className="w-4 h-4" /> {s.label}
+                {badge > 0 && (
+                  <span className="ml-0.5 inline-flex items-center justify-center min-w-[18px] h-[18px] px-1 rounded-full bg-red-500 text-white text-[10px] font-black">{badge}</span>
+                )}
+              </button>
+            );
+          })}
         </div>
         <Link href="/sell" className="hidden sm:flex items-center gap-2 bg-gradient-to-r from-brand to-purple-600 hover:from-brand-dark hover:to-purple-700 px-4 py-2.5 rounded-xl font-bold text-white shadow-lg shadow-brand/20 text-sm">
           <PlusCircle className="w-4 h-4" /> New Listing
@@ -348,11 +383,13 @@ export default function SellerDashboard() {
           })()}
 
           {/* stat cards */}
-          <div className="grid grid-cols-2 lg:grid-cols-4 gap-3">
+          <div className="grid grid-cols-2 lg:grid-cols-3 gap-3">
             <StatCard title="Revenue" value={money(totalRevenue)} icon={<DollarSign className="w-5 h-5" />} hint={`${orders.length} orders`} />
-            <StatCard title="Sales" value={completedSales} icon={<Package className="w-5 h-5" />} hint={`${seller?.totalSales || 0} lifetime`} />
+            <StatCard title="Pending Orders" value={pendingOrders.length} icon={<Clock className="w-5 h-5" />} hint="Awaiting action" />
+            <StatCard title="Completed Orders" value={completedOrders.length} icon={<CheckCircle className="w-5 h-5" />} hint={`${seller?.totalSales || 0} lifetime`} />
+            <StatCard title="Active Listings" value={activeListings.length} icon={<Image className="w-5 h-5" />} hint={`${listings.length} total`} />
+            <StatCard title="Pending Listings" value={pendingListings.length} icon={<Clock className="w-5 h-5" />} hint="Awaiting approval" />
             <StatCard title="Rating" value={(seller?.averageRating || 0).toFixed(1)} icon={<Star className="w-5 h-5" />} hint={`${reviews.length} reviews`} />
-            <StatCard title="Active Listings" value={listings.filter(l => l.status === 'ACTIVE').length} icon={<Image className="w-5 h-5" />} hint={`${listings.length} total`} />
           </div>
 
           <div className="grid grid-cols-1 lg:grid-cols-3 gap-4">
@@ -420,8 +457,17 @@ export default function SellerDashboard() {
             <h2 className="text-xl font-black text-white">Order Management</h2>
             <button onClick={loadAll} className="flex items-center gap-1.5 text-sm text-gray-400 hover:text-white"><RefreshCw className="w-4 h-4" /> Refresh</button>
           </div>
+
+          <div className="flex items-center gap-2 flex-wrap">
+            <TabBtn active={orderTab === 'all'} onClick={() => setOrderTab('all')} label="All" count={orders.length} />
+            <TabBtn active={orderTab === 'pending'} onClick={() => setOrderTab('pending')} label="Pending" count={pendingOrders.length} />
+            <TabBtn active={orderTab === 'completed'} onClick={() => setOrderTab('completed')} label="Completed" count={completedOrders.length} />
+          </div>
+
           {orders.length === 0 ? (
             <Empty icon={Package} title="No orders yet" sub="Sales will appear here once buyers purchase your listings." />
+          ) : visibleOrders.length === 0 ? (
+            <Empty icon={Package} title={`No ${orderTab} orders`} sub="Try a different filter." />
           ) : (
             <div className="bg-cardBg border border-borderBg rounded-2xl overflow-hidden">
               <div className="overflow-x-auto">
@@ -436,7 +482,7 @@ export default function SellerDashboard() {
                     </tr>
                   </thead>
                   <tbody className="divide-y divide-borderBg/50">
-                    {orders.map(o => {
+                    {visibleOrders.map(o => {
                       const item = o.orderItems?.[0];
                       const buyer = [o.buyer?.firstName, o.buyer?.lastName].filter(Boolean).join(' ') || 'Buyer';
                       return (
@@ -480,11 +526,21 @@ export default function SellerDashboard() {
             <h2 className="text-xl font-black text-white">Your Listings</h2>
             <Link href="/sell" className="flex items-center gap-1.5 bg-brand hover:bg-brand-dark px-4 py-2.5 rounded-xl text-sm font-bold text-white"><PlusCircle className="w-4 h-4" /> New</Link>
           </div>
+
+          <div className="flex items-center gap-2 flex-wrap">
+            <TabBtn active={listingTab === 'all'} onClick={() => setListingTab('all')} label="All" count={listings.length} />
+            <TabBtn active={listingTab === 'active'} onClick={() => setListingTab('active')} label="Active" count={activeListings.length} />
+            <TabBtn active={listingTab === 'pending'} onClick={() => setListingTab('pending')} label="Pending" count={pendingListings.length} />
+            <TabBtn active={listingTab === 'history'} onClick={() => setListingTab('history')} label="History" count={historyListings.length} />
+          </div>
+
           {listings.length === 0 ? (
             <Empty icon={Image} title="No listings yet" sub="Create your first listing to start selling." />
+          ) : visibleListings.length === 0 ? (
+            <Empty icon={Image} title={`No ${listingTab} listings`} sub="Try a different filter." />
           ) : (
             <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
-              {listings.map(l => (
+              {visibleListings.map(l => (
                 <div key={l.id} className="bg-cardBg border border-borderBg rounded-2xl overflow-hidden hover:border-brand/40 transition">
                   <div className="h-32 bg-hoverBg/40 relative">
                     {l.images?.[0] ? <img src={l.images[0]} alt="" className="w-full h-full object-cover" /> : <div className="w-full h-full flex items-center justify-center"><Image className="w-8 h-8 text-gray-600" /></div>}
@@ -627,6 +683,20 @@ function Empty({ icon: Icon, title, sub }: { icon: any; title: string; sub?: str
       <p className="text-white font-bold">{title}</p>
       {sub && <p className="text-gray-400 text-sm mt-1">{sub}</p>}
     </div>
+  );
+}
+
+function TabBtn({ active, onClick, label, count }: { active: boolean; onClick: () => void; label: string; count: number }) {
+  return (
+    <button
+      onClick={onClick}
+      className={`flex items-center gap-1.5 px-3 py-2 rounded-xl text-sm font-semibold whitespace-nowrap transition ${
+        active ? 'bg-brand text-white' : 'bg-cardBg border border-borderBg text-gray-400 hover:text-white'
+      }`}
+    >
+      {label}
+      <span className={`inline-flex items-center justify-center min-w-[20px] h-5 px-1.5 rounded-full text-[10px] font-black ${active ? 'bg-white/20 text-white' : 'bg-white/5 text-gray-400'}`}>{count}</span>
+    </button>
   );
 }
 

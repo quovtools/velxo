@@ -16,7 +16,7 @@ export class BlogService {
   }
 
   async getPostBySlug(slug: string) {
-    return this.prisma.blogPosts.findUnique({ where: { slug, isPublished: true } })
+    return this.prisma.blogPosts.findFirst({ where: { slug, isPublished: true } })
   }
 
   async getAllPosts() {

@@ -802,6 +802,11 @@ BEGIN
 END;
 $$ LANGUAGE plpgsql;
 
+-- IMPORTANT: only attach this trigger to tables that actually have an
+-- "updatedAt" column. Attaching it to a table without that column makes every
+-- UPDATE (including FK "ON DELETE SET NULL" cascades) fail with
+-- 'record "new" has no field "updatedAt"', which Prisma surfaces as
+-- "The column `new` does not exist in the current database." (P2022).
 DO $$
 DECLARE
   t text;
@@ -818,11 +823,22 @@ BEGIN
       'reward_catalog','reward_redemptions'
     )
   LOOP
-    EXECUTE format(
-      'DROP TRIGGER IF EXISTS %I ON %I;
-       CREATE TRIGGER %I BEFORE UPDATE ON %I
-       FOR EACH ROW EXECUTE FUNCTION set_updated_at();',
-      t || '_updated_at', t, t || '_updated_at', t
-    );
+    IF EXISTS (
+      SELECT 1 FROM information_schema.columns
+      WHERE table_schema = 'public'
+        AND table_name = t
+        AND column_name = 'updatedAt'
+    ) THEN
+      -- Table has updatedAt: (re)create the maintenance trigger.
+      EXECUTE format(
+        'DROP TRIGGER IF EXISTS %I ON %I;
+         CREATE TRIGGER %I BEFORE UPDATE ON %I
+         FOR EACH ROW EXECUTE FUNCTION set_updated_at();',
+        t || '_updated_at', t, t || '_updated_at', t
+      );
+    ELSE
+      -- Table has no updatedAt: make sure no stale trigger remains.
+      EXECUTE format('DROP TRIGGER IF EXISTS %I ON %I;', t || '_updated_at', t);
+    END IF;
   END LOOP;
 END $$;

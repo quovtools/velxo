@@ -2,7 +2,7 @@ import React, { Suspense } from 'react';
 import Link from 'next/link';
 import type { Metadata } from 'next';
 import { ShieldCheck, Lock, CheckCircle, AlertTriangle, ArrowRight, Clock, Banknote, RefreshCcw, Loader2 } from 'lucide-react';
-import EscrowTracker from './escrow-tracker';
+import OrderTrackingContent from '@/app/orders/[id]/order-tracking-content';
 
 export const metadata: Metadata = {
   title: 'How Velxo Escrow Works | Safe Gaming Trades',
@@ -102,14 +102,9 @@ function TrackerFallback() {
   );
 }
 
-export default function EscrowPage() {
+function EscrowInfo() {
   return (
     <div className="space-y-16 my-8">
-      {/* Live escrow tracker — appears when arriving from checkout */}
-      <Suspense fallback={<TrackerFallback />}>
-        <EscrowTracker />
-      </Suspense>
-
       {/* Hero */}
       <div className="text-center space-y-5 max-w-2xl mx-auto">
         <div className="w-16 h-16 bg-brand/10 rounded-2xl flex items-center justify-center mx-auto border border-brand/20">
@@ -216,4 +211,24 @@ export default function EscrowPage() {
       </div>
     </div>
   );
+}
+
+export default async function EscrowPage({
+  searchParams,
+}: {
+  searchParams: Promise<{ orderId?: string }>;
+}) {
+  const { orderId } = await searchParams;
+
+  // When arriving with an order id (e.g. from checkout), show the live
+  // track-order view instead of the informational page.
+  if (orderId) {
+    return (
+      <Suspense fallback={<TrackerFallback />}>
+        <OrderTrackingContent id={orderId} />
+      </Suspense>
+    );
+  }
+
+  return <EscrowInfo />;
 }

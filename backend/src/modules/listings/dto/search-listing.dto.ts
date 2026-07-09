@@ -29,6 +29,10 @@ export class SearchListingDto extends PaginationDto {
 
   @IsOptional()
   @IsString()
+  status?: string
+
+  @IsOptional()
+  @IsString()
   platform?: string
 
   @IsOptional()

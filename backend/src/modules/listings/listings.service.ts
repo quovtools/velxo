@@ -80,9 +80,23 @@ export class ListingsService {
   }
 
   async searchListings(dto: SearchListingDto) {
-    const where: any = {
-      status: ListingStatus.ACTIVE,
+    // Determine the status filter.
+    // - Public search (no sellerId) defaults to ACTIVE listings only.
+    // - Seller-scoped search defaults to ALL of that seller's listings so the
+    //   dashboard can show history (sold/expired) and pending (awaiting approval)
+    //   listings, not just the live ones.
+    // - An explicit `status` param overrides the default (use "ALL" to bypass).
+    let statusFilter: any = { status: ListingStatus.ACTIVE }
+    if (dto.status) {
+      if (dto.status.toUpperCase() === 'ALL') {
+        statusFilter = {}
+      } else {
+        statusFilter = { status: dto.status }
+      }
+    } else if (dto.sellerId) {
+      statusFilter = {}
     }
+    const where: any = { ...statusFilter }
 
     if (dto.search) {
       where.OR = [

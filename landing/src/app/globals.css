@@ -52,7 +52,7 @@ body {
 
   /* Buttons */
   .btn-primary {
-    @apply group inline-flex items-center justify-center gap-2 rounded-2xl bg-gradient-to-r from-brand-500 to-brand-accent px-7 py-3.5 text-sm font-bold text-white shadow-lg shadow-brand/30 transition duration-300 hover:-translate-y-0.5 hover:shadow-glow hover:from-brand-600 hover:to-accent;
+    @apply inline-flex items-center justify-center gap-2 rounded-2xl bg-gradient-to-r from-brand-500 to-brand-accent px-7 py-3.5 text-sm font-bold text-white shadow-lg shadow-brand/30 transition duration-300 hover:-translate-y-0.5 hover:shadow-glow hover:from-brand-600 hover:to-accent;
   }
   .btn-secondary {
     @apply inline-flex items-center justify-center gap-2 rounded-2xl border border-white/10 bg-white/[0.04] px-7 py-3.5 text-sm font-semibold text-white transition duration-300 hover:-translate-y-0.5 hover:border-brand/40 hover:bg-white/[0.07];

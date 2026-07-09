@@ -1,0 +1,84 @@
+import { BlogService } from './blog.service';
+import { CreatePostDto } from './dto/create-post.dto';
+import { ApiResponseDto } from '@/common/dto/api-response.dto';
+export declare class BlogController {
+    private blogService;
+    constructor(blogService: BlogService);
+    getPosts(category?: string): Promise<ApiResponseDto<{
+        id: string;
+        title: string;
+        isFeatured: boolean;
+        category: string;
+        slug: string;
+        excerpt: string;
+        author: string;
+        coverImage: string;
+        readTime: string;
+        publishedAt: Date;
+    }[]>>;
+    getAllPosts(): Promise<ApiResponseDto<{
+        id: string;
+        createdAt: Date;
+        updatedAt: Date;
+        title: string;
+        isFeatured: boolean;
+        category: string;
+        slug: string;
+        content: string;
+        excerpt: string;
+        author: string;
+        coverImage: string | null;
+        isPublished: boolean;
+        readTime: string | null;
+        publishedAt: Date | null;
+    }[]>>;
+    getPost(slug: string): Promise<ApiResponseDto<{
+        id: string;
+        createdAt: Date;
+        updatedAt: Date;
+        title: string;
+        isFeatured: boolean;
+        category: string;
+        slug: string;
+        content: string;
+        excerpt: string;
+        author: string;
+        coverImage: string | null;
+        isPublished: boolean;
+        readTime: string | null;
+        publishedAt: Date | null;
+    }>>;
+    createPost(dto: CreatePostDto): Promise<ApiResponseDto<{
+        id: string;
+        createdAt: Date;
+        updatedAt: Date;
+        title: string;
+        isFeatured: boolean;
+        category: string;
+        slug: string;
+        content: string;
+        excerpt: string;
+        author: string;
+        coverImage: string | null;
+        isPublished: boolean;
+        readTime: string | null;
+        publishedAt: Date | null;
+    }>>;
+    updatePost(id: string, dto: Partial<CreatePostDto>): Promise<ApiResponseDto<{
+        id: string;
+        createdAt: Date;
+        updatedAt: Date;
+        title: string;
+        isFeatured: boolean;
+        category: string;
+        slug: string;
+        content: string;
+        excerpt: string;
+        author: string;
+        coverImage: string | null;
+        isPublished: boolean;
+        readTime: string | null;
+        publishedAt: Date | null;
+    }>>;
+    deletePost(id: string): Promise<ApiResponseDto<any>>;
+}
