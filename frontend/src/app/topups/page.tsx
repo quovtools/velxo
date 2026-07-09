@@ -4,7 +4,6 @@ import React, { useState, useEffect, useCallback } from 'react';
 import { useRouter } from 'next/navigation';
 import { useAuth } from '@/app/providers';
 import { api } from '@/lib/api';
-import Footer from '@/components/Footer';
 import { Zap, ShieldCheck, Loader2, ChevronRight, Check, X, Minus, Plus, AlertCircle, ArrowRight } from 'lucide-react';
 
 const GAMES = [
@@ -168,8 +167,6 @@ export default function TopupsPage() {
         <ShieldCheck className="w-5 h-5 text-brand flex-shrink-0" />
         All official top-ups are fulfilled by Velxo and protected by escrow — you only release payment after delivery.
       </div>
-
-      <Footer />
 
       {selected && (
         <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/70 backdrop-blur-sm" onClick={closeModal}>

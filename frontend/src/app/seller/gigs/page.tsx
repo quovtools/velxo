@@ -5,7 +5,6 @@ import { useRouter } from 'next/navigation';
 import { api } from '@/lib/api';
 import { useAuth } from '@/app/providers';
 import { fileToDataUrl } from '@/lib/file';
-import Footer from '@/components/Footer';
 import { Gamepad2, Plus, Trash2, Loader2, Check, AlertCircle } from 'lucide-react';
 
 const GAMES = [
@@ -268,7 +267,6 @@ export default function SellerGigsPage() {
         </div>
       )}
 
-      <Footer />
     </div>
   );
 }

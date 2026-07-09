@@ -4,7 +4,6 @@ import React, { useState, useEffect, useCallback } from 'react';
 import { useRouter } from 'next/navigation';
 import { useAuth } from '@/app/providers';
 import { api } from '@/lib/api';
-import Footer from '@/components/Footer';
 import { Gamepad2, Loader2, Check, Search, ShieldCheck, Clock, X, AlertCircle, Plus, ArrowRight } from 'lucide-react';
 
 const GAMES = [
@@ -302,8 +301,6 @@ export default function BoostingPage() {
         <ShieldCheck className="w-5 h-5 text-purple-400 flex-shrink-0" />
         Every boosting gig is escrow-protected — your payment is only released to the seller after you confirm the rank-up was completed.
       </div>
-
-      <Footer />
 
       {selected && (
         <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/70 backdrop-blur-sm" onClick={closeDetail}>

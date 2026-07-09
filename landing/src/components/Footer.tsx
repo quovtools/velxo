@@ -1,6 +1,7 @@
-import React from 'react';
+'use client';
+import React, { useState, useEffect } from 'react';
 import Link from 'next/link';
-import { Twitter, Instagram, Youtube, MessageCircle, ShieldCheck } from 'lucide-react';
+import { Twitter, Instagram, Youtube, MessageCircle, ShieldCheck, ChevronDown } from 'lucide-react';
 
 const isInternal = (href: string) => href.startsWith('/');
 
@@ -20,19 +21,19 @@ const LINKS = {
     { label: 'Affiliate Program', href: '/affiliate' },
   ],
   Support: [
-    { label: 'Help Center', href: 'https://market.velxo.shop/support' },
-    { label: 'How Escrow Works', href: 'https://market.velxo.shop/escrow' },
+    { label: 'Help Center', href: '/support' },
+    { label: 'How Escrow Works', href: '/escrow' },
     { label: 'Contact Us', href: '/contact' },
     { label: 'Community', href: '/community' },
     { label: 'Responsible Gaming', href: '/responsible-gaming' },
   ],
   Company: [
-    { label: 'About Velxo', href: 'https://market.velxo.shop/about' },
+    { label: 'About Velxo', href: '/about' },
     { label: 'Blog', href: '/blog' },
     { label: 'Press', href: '/press' },
-    { label: 'Careers', href: 'https://market.velxo.shop/careers' },
-    { label: 'Terms of Service', href: 'https://market.velxo.shop/terms' },
-    { label: 'Privacy Policy', href: 'https://market.velxo.shop/privacy' },
+    { label: 'Careers', href: '/careers' },
+    { label: 'Terms of Service', href: '/terms' },
+    { label: 'Privacy Policy', href: '/privacy' },
   ],
 };
 
@@ -44,11 +45,23 @@ const SOCIALS = [
 ];
 
 export default function Footer() {
+  const [isDesktop, setIsDesktop] = useState(true);
+  const [open, setOpen] = useState<Record<string, boolean>>({});
+
+  useEffect(() => {
+    const mq = window.matchMedia('(min-width: 768px)');
+    const update = () => setIsDesktop(mq.matches);
+    update();
+    mq.addEventListener('change', update);
+    return () => mq.removeEventListener('change', update);
+  }, []);
+
   return (
     <footer className="border-t border-white/10 bg-[#080b14]">
-      <div className="container-x py-16">
-        <div className="grid grid-cols-1 gap-12 lg:grid-cols-6">
-          <div className="space-y-5 lg:col-span-2">
+      <div className="container-x py-14 sm:py-16">
+        <div className="grid grid-cols-1 gap-10 md:grid-cols-6">
+          {/* Brand */}
+          <div className="space-y-5 md:col-span-2">
             <Link href="/" className="flex items-center gap-2" aria-label="Velxo home">
               <span className="flex h-9 w-9 items-center justify-center rounded-xl bg-gradient-to-br from-brand-500 to-accent shadow-glow">
                 <ShieldCheck className="h-5 w-5 text-white" />
@@ -75,36 +88,55 @@ export default function Footer() {
             </div>
           </div>
 
-          {Object.entries(LINKS).map(([section, links]) => (
-            <nav key={section} aria-label={section} className="space-y-4">
-              <h4 className="text-sm font-bold uppercase tracking-wider text-white">{section}</h4>
-              <ul className="space-y-2.5">
-                {links.map((link) => (
-                  <li key={link.label}>
-                    {isInternal(link.href) ? (
-                      <Link href={link.href} className="text-sm text-gray-400 transition hover:text-brand-light">
-                        {link.label}
-                      </Link>
-                    ) : (
-                      <a href={link.href} className="text-sm text-gray-400 transition hover:text-brand-light">
-                        {link.label}
-                      </a>
-                    )}
-                  </li>
-                ))}
-              </ul>
-            </nav>
-          ))}
+          {/* Link sections */}
+          {Object.entries(LINKS).map(([section, links]) => {
+            const expanded = isDesktop || !!open[section];
+            return (
+              <div key={section} className="space-y-4">
+                {isDesktop ? (
+                  <h4 className="text-sm font-bold uppercase tracking-wider text-white">{section}</h4>
+                ) : (
+                  <button
+                    type="button"
+                    onClick={() => setOpen((p) => ({ ...p, [section]: !p[section] }))}
+                    aria-expanded={expanded}
+                    className="flex w-full items-center justify-between text-sm font-bold uppercase tracking-wider text-white"
+                  >
+                    {section}
+                    <ChevronDown className={`h-4 w-4 text-gray-400 transition-transform ${expanded ? 'rotate-180' : ''}`} />
+                  </button>
+                )}
+                {expanded && (
+                  <ul className="space-y-2.5">
+                    {links.map((link) => (
+                      <li key={link.label}>
+                        {isInternal(link.href) ? (
+                          <Link href={link.href} className="text-sm text-gray-400 transition hover:text-brand-light">
+                            {link.label}
+                          </Link>
+                        ) : (
+                          <a href={link.href} className="text-sm text-gray-400 transition hover:text-brand-light">
+                            {link.label}
+                          </a>
+                        )}
+                      </li>
+                    ))}
+                  </ul>
+                )}
+              </div>
+            );
+          })}
         </div>
       </div>
 
+      {/* Bottom bar */}
       <div className="border-t border-white/10">
         <div className="container-x flex flex-col items-center justify-between gap-3 py-5 text-xs text-gray-500 md:flex-row">
           <p>&copy; {new Date().getFullYear()} Velxo.shop — All rights reserved. Built for Africa&apos;s gaming community.</p>
           <div className="flex gap-5">
-            <a href="https://market.velxo.shop/terms" className="transition hover:text-brand-light">Terms</a>
-            <a href="https://market.velxo.shop/privacy" className="transition hover:text-brand-light">Privacy</a>
-            <a href="https://market.velxo.shop/support" className="transition hover:text-brand-light">Support</a>
+            <Link href="/terms" className="transition hover:text-brand-light">Terms</Link>
+            <Link href="/privacy" className="transition hover:text-brand-light">Privacy</Link>
+            <Link href="/support" className="transition hover:text-brand-light">Support</Link>
           </div>
           <div className="flex items-center gap-2">
             <span>Founder:</span>

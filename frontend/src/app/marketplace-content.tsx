@@ -11,7 +11,6 @@ import {
 } from 'lucide-react';
 import GameSlideshow from '@/components/GameSlideshow';
 import GameIcon from '@/components/GameIcon';
-import Footer from '@/components/Footer';
 import ListingCard from '@/components/ListingCard';
 import { storeReferralCode, trackReferralClick } from '@/lib/referral';
 
@@ -373,8 +372,6 @@ function MarketplaceContent() {
 
       <TopupShowcase />
       <GigShowcase />
-
-      <Footer />
     </div>
   );
 }
