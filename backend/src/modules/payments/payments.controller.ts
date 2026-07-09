@@ -58,7 +58,7 @@ export class PaymentsController {
   async handlePaymentIoWebhook(
     @Req() req: any,
     @Body() event: any,
-    @Headers('x-paymentio-signature') signature: string,
+    @Headers('x-hmac-sha256-signature') signature: string,
   ) {
     try {
       // Raw body is required for HMAC verification; fall back to JSON stringify.

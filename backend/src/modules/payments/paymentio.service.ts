@@ -21,65 +21,77 @@ export class PaymentIoService {
   private readonly apiUrl = process.env.PAYMENT_IO_API_URL || ''
   private readonly apiKey = process.env.PAYMENT_IO_API_KEY || ''
   private readonly secretKey = process.env.PAYMENT_IO_SECRET_KEY || ''
-  private readonly ipnUrl = process.env.PAYMENT_IO_IPN_URL || ''
+  private readonly gatewayUrl = process.env.PAYMENT_IO_GATEWAY_URL || 'https://app.paymento.io/gateway'
 
   get isConfigured(): boolean {
     return Boolean(this.apiUrl && this.apiKey && this.secretKey)
   }
 
   /**
-   * Create a crypto charge on Payment.io.
-   *
-   * NOTE: Field names / paths below follow a common REST crypto-gateway shape.
-   * Adjust `endpoint`, headers and body to match Payment.io's real API once
-   * you have their docs. The base URL, key and IPN URL all come from env.
+   * Create a crypto payment request on Paymento.
+   * Docs: POST {apiUrl}/payment/request with the `Api-key` header.
+   * Returns a token used to redirect the buyer to the hosted gateway.
+   * See https://docs.paymento.io/api-documention/payment-request
    */
   async createCharge(params: PaymentIoChargeParams): Promise<PaymentIoChargeResult> {
     if (!this.isConfigured) {
-      this.logger.warn('Payment.io is not configured — returning stub charge (no live redirect).')
+      this.logger.warn('Paymento is not configured — returning stub charge (no live redirect).')
       return { chargeId: null, paymentUrl: null, configured: false }
     }
 
     const body = {
-      reference: params.reference,
-      amount: params.amount,
-      currency: params.currency,
-      callback_url: params.callbackUrl,
-      ipn_url: this.ipnUrl,
+      fiatAmount: String(params.amount),
+      fiatCurrency: params.currency,
+      ReturnUrl: params.callbackUrl,
+      orderId: params.reference,
+      Speed: 0,
     }
 
     try {
-      const res = await fetch(`${this.apiUrl}/charges`, {
+      const res = await fetch(`${this.apiUrl}/payment/request`, {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
-          Authorization: `Bearer ${this.apiKey}`,
+          Accept: 'text/plain',
+          'Api-key': this.apiKey,
         },
         body: JSON.stringify(body),
       })
 
+      const text = await res.text()
+
       if (!res.ok) {
-        const text = await res.text()
-        throw new Error(`Payment.io charge failed: ${res.status} ${text}`)
+        throw new Error(`Paymento charge failed: ${res.status} ${text}`)
       }
 
-      const data = await res.json()
+      // Paymento returns the payment token. It may be plain text or JSON.
+      let token = text.trim()
+      try {
+        const json = JSON.parse(text)
+        if (json?.token) token = String(json.token)
+      } catch {
+        // plain-text token — keep as-is
+      }
+
+      if (!token) {
+        throw new Error(`Paymento charge returned no token: ${text}`)
+      }
+
       return {
-        chargeId: data.id || data.chargeId || data.reference || null,
-        paymentUrl: data.url || data.checkout_url || data.payment_url || null,
+        chargeId: token,
+        paymentUrl: `${this.gatewayUrl}?token=${token}`,
         configured: true,
       }
     } catch (err: any) {
-      this.logger.error('Payment.io createCharge error:', err?.message || err)
+      this.logger.error('Paymento createCharge error:', err?.message || err)
       throw err
     }
   }
 
   /**
-   * Verify an incoming Payment.io IPN using HMAC-SHA256 of the raw body
-   * signed with the secret key. Payment.io should send the signature in a
-   * header (e.g. `x-paymentio-signature`). Adjust the header name if theirs
-   * differs.
+   * Verify an incoming Paymento IPN using HMAC-SHA256 of the raw body signed
+   * with the secret key. Paymento sends the signature in the
+   * `X-HMAC-SHA256-SIGNATURE` header.
    */
   verifyIpn(rawBody: string, signature: string | undefined): boolean {
     if (!this.secretKey || !signature) return false

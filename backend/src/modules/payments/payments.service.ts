@@ -244,7 +244,7 @@ export class PaymentsService implements OnModuleInit {
 
     // Payment.io sends the charge reference / status in the payload. Adjust
     // field names to match their real IPN format.
-    const reference = event?.reference || event?.chargeId || event?.data?.reference
+    const reference = event?.token || event?.reference || event?.chargeId || event?.data?.token || event?.data?.reference
     const status = event?.status || event?.data?.status
 
     if (!reference) {
