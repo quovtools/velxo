@@ -5,7 +5,8 @@ import { useRouter, usePathname } from 'next/navigation';
 import Link from 'next/link';
 import {
   ShieldCheck, LayoutDashboard, Eye, Scale,
-  BarChart3, Image, LogOut, Lock, Menu, X, Megaphone, UserCheck
+  BarChart3, Image, LogOut, Lock, Menu, X, Megaphone, UserCheck,
+  Users, Store, ShoppingBag, CreditCard, LifeBuoy, FolderTree, Gamepad2, FileText, History
 } from 'lucide-react';
 
 const ADMIN_PASSWORD = 'Fadekemi123@';
@@ -79,11 +80,21 @@ function PasswordGate({ onUnlock }: { onUnlock: () => void }) {
 const navItems = [
   { href: '/admin', label: 'Dashboard', icon: LayoutDashboard, exact: true },
   { href: '/admin/moderation', label: 'Moderation', icon: Eye },
+  { href: '/admin/users', label: 'Users', icon: Users },
+  { href: '/admin/sellers', label: 'Sellers', icon: Store },
+  { href: '/admin/listings', label: 'Listings', icon: ShoppingBag },
+  { href: '/admin/orders', label: 'Orders', icon: CreditCard },
+  { href: '/admin/withdrawals', label: 'Payouts', icon: LifeBuoy },
   { href: '/admin/disputes', label: 'Disputes', icon: Scale },
+  { href: '/admin/tickets', label: 'Support', icon: LifeBuoy },
+  { href: '/admin/categories', label: 'Categories', icon: FolderTree },
+  { href: '/admin/topup', label: 'Topups', icon: Gamepad2 },
+  { href: '/admin/blog', label: 'Blog', icon: FileText },
   { href: '/admin/analytics', label: 'Analytics', icon: BarChart3 },
   { href: '/admin/slides', label: 'Slides', icon: Image },
   { href: '/admin/marquee', label: 'News Marquee', icon: Megaphone },
   { href: '/admin/kyc', label: 'KYC Review', icon: UserCheck },
+  { href: '/admin/audit-logs', label: 'Audit Logs', icon: History },
 ];
 
 export default function AdminLayout({ children }: { children: React.ReactNode }) {
