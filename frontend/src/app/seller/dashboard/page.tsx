@@ -10,7 +10,7 @@ import {
   LayoutDashboard, Package, DollarSign, Store, Star, TrendingUp, Wallet, MessageSquare,
   CreditCard, PlusCircle, CheckCircle, X, Menu, Eye, Truck, Trash2, Edit3, Loader2,
   ShieldCheck, Award, ArrowUpRight, Calendar, Filter, Image, Clock, Send, Banknote,
-  ChevronRight, RefreshCw, AlertCircle, ListChecks, BarChart3,
+  ChevronRight, RefreshCw, AlertCircle, ListChecks, BarChart3, Copy, Share2, ExternalLink,
 } from 'lucide-react';
 
 /* ------------------------------------------------------------------ types */
@@ -29,6 +29,7 @@ interface Seller {
   responseTime: number;
   subscriptionTier: string;
   verifiedAt?: string;
+  storeSlug?: string | null;
 }
 interface SellerOrder {
   id: string;
@@ -121,6 +122,18 @@ export default function SellerDashboard() {
   const flash = (text: string, ok = true) => {
     setToast({ ok, text });
     setTimeout(() => setToast(null), 3200);
+  };
+
+  const [storeCopied, setStoreCopied] = useState(false);
+  const [origin, setOrigin] = useState('');
+  useEffect(() => { setOrigin(window.location.origin); }, []);
+  const copyStoreLink = async (path: string) => {
+    try {
+      const url = `${window.location.origin}${path}`;
+      await navigator.clipboard.writeText(url);
+      setStoreCopied(true);
+      setTimeout(() => setStoreCopied(false), 2000);
+    } catch {}
   };
 
   const loadAll = useCallback(async () => {
@@ -281,6 +294,58 @@ export default function SellerDashboard() {
               </div>
             </div>
           </div>
+
+          {/* Seller Pro status / CTA */}
+          {(() => {
+            const isPro = seller?.subscriptionTier === 'PRO' || seller?.subscriptionTier === 'PREMIUM';
+            const storePath = seller?.storeSlug ? `/store/${seller.storeSlug}` : null;
+            if (isPro) {
+              return (
+                <div className="flex flex-col sm:flex-row items-start sm:items-center gap-3 rounded-2xl border border-purple-500/30 bg-purple-500/10 p-4">
+                  <div className="w-10 h-10 rounded-xl bg-gradient-to-br from-brand to-purple-600 flex items-center justify-center text-white flex-shrink-0">
+                    <Award className="w-5 h-5" />
+                  </div>
+                  <div className="flex-1 min-w-0">
+                    <p className="text-white font-bold text-sm flex items-center gap-2">
+                      Your Seller Pro store is live
+                      <span className="text-[10px] font-bold px-2 py-0.5 rounded-full bg-brand/15 text-brand border border-brand/30">Seller Pro</span>
+                    </p>
+                    <p className="text-gray-400 text-xs mt-0.5 truncate">
+                      {storePath ? `Shareable link: ${origin}${storePath}` : 'Your public store link is active.'}
+                    </p>
+                  </div>
+                  <div className="flex gap-2 w-full sm:w-auto">
+                    {storePath && (
+                      <button onClick={() => copyStoreLink(storePath)} className="flex-1 sm:flex-none flex items-center justify-center gap-2 bg-brand hover:bg-brand-dark px-4 py-2 rounded-xl text-sm font-bold text-white transition">
+                        {storeCopied ? <CheckCircle className="w-4 h-4" /> : <Copy className="w-4 h-4" />} {storeCopied ? 'Copied' : 'Copy link'}
+                      </button>
+                    )}
+                    <Link href="/seller/pro" className="flex-1 sm:flex-none flex items-center justify-center gap-2 bg-white/10 hover:bg-white/20 px-4 py-2 rounded-xl text-sm font-semibold text-white transition">
+                      Manage
+                    </Link>
+                  </div>
+                </div>
+              );
+            }
+            return (
+              <div className="flex flex-col sm:flex-row items-start sm:items-center gap-3 rounded-2xl border border-borderBg bg-cardBg p-4">
+                <div className="w-10 h-10 rounded-xl bg-gradient-to-br from-brand to-purple-600 flex items-center justify-center text-white flex-shrink-0">
+                  <Award className="w-5 h-5" />
+                </div>
+                <div className="flex-1 min-w-0">
+                  <p className="text-white font-bold text-sm">Unlock your shareable Seller Pro store</p>
+                  <p className="text-gray-400 text-xs mt-0.5">
+                    {seller?.isVerified
+                      ? 'Subscribe to Seller Pro to get a public store link, lower 5% fees and featured listings.'
+                      : 'Verify your identity, then subscribe to Seller Pro to launch your public storefront.'}
+                  </p>
+                </div>
+                <Link href="/seller/pro" className="flex-1 sm:flex-none flex items-center justify-center gap-2 bg-gradient-to-r from-brand to-purple-600 hover:from-brand-dark hover:to-purple-700 px-4 py-2.5 rounded-xl text-sm font-bold text-white transition">
+                  {seller?.isVerified ? 'Go Seller Pro' : 'Verify & Upgrade'}
+                </Link>
+              </div>
+            );
+          })()}
 
           {/* stat cards */}
           <div className="grid grid-cols-2 lg:grid-cols-4 gap-3">
@@ -481,7 +546,7 @@ export default function SellerDashboard() {
 
       {/* ============================== STORE ============================== */}
       {section === 'store' && seller && (
-        <StoreSettings seller={seller} onSaved={(s) => setSeller(s)} onToast={flash} />
+        <StoreSettings seller={seller} onSaved={(s) => setSeller(s)} onToast={flash} origin={origin} />
       )}
 
       {/* ============================== REVIEWS ============================== */}
@@ -641,7 +706,7 @@ function RespondBox({ reviewId, onDone }: { reviewId: string; onDone: (msg: stri
   );
 }
 
-function StoreSettings({ seller, onSaved, onToast }: { seller: Seller; onSaved: (s: Seller) => void; onToast: (m: string, ok?: boolean) => void }) {
+function StoreSettings({ seller, onSaved, onToast, origin }: { seller: Seller; onSaved: (s: Seller) => void; onToast: (m: string, ok?: boolean) => void; origin: string }) {
   const [storeName, setStoreName] = useState(seller.storeName);
   const [storeDescription, setStoreDescription] = useState(seller.storeDescription || '');
   const [responseTime, setResponseTime] = useState(seller.responseTime || 24);
@@ -663,9 +728,60 @@ function StoreSettings({ seller, onSaved, onToast }: { seller: Seller; onSaved: 
     }
   };
 
+  const [linkCopied, setLinkCopied] = useState(false);
+  const storePath = seller.storeSlug ? `/store/${seller.storeSlug}` : `/store/${seller.id}`;
+  const isPro = seller.subscriptionTier === 'PRO' || seller.subscriptionTier === 'PREMIUM';
+  const copyLink = async () => {
+    try {
+      await navigator.clipboard.writeText(`${origin}${storePath}`);
+      setLinkCopied(true);
+      setTimeout(() => setLinkCopied(false), 2000);
+    } catch {}
+  };
+  const shareLink = async () => {
+    const url = `${origin}${storePath}`;
+    try {
+      if (navigator.share) await navigator.share({ title: storeName, url });
+      else await copyLink();
+    } catch {}
+  };
+
   return (
     <div className="space-y-4">
       <h2 className="text-xl font-black text-white">Store Management</h2>
+
+      {/* Shareable store link */}
+      <div className="bg-cardBg border border-borderBg rounded-2xl p-5 max-w-2xl space-y-3">
+        <div className="flex items-center justify-between">
+          <p className="text-sm font-bold text-white flex items-center gap-2"><Store className="w-4 h-4 text-brand" /> Your store link</p>
+          <span className={`text-[10px] font-bold px-2 py-0.5 rounded-full border ${isPro && seller.isVerified ? 'bg-emerald-500/10 text-emerald-400 border-emerald-500/20' : 'bg-yellow-500/10 text-yellow-400 border-yellow-500/20'}`}>
+            {isPro && seller.isVerified ? 'Live' : 'Locked'}
+          </span>
+        </div>
+        <div className="flex items-center gap-2 bg-background border border-borderBg rounded-xl px-3 py-2.5">
+          <span className="text-xs text-gray-400 truncate flex-1">{origin}{storePath}</span>
+        </div>
+        <div className="flex gap-2">
+          <button onClick={copyLink} className="flex-1 flex items-center justify-center gap-2 bg-brand hover:bg-brand-dark px-4 py-2.5 rounded-xl text-sm font-bold text-white transition">
+            {linkCopied ? <CheckCircle className="w-4 h-4" /> : <Copy className="w-4 h-4" />} {linkCopied ? 'Copied' : 'Copy link'}
+          </button>
+          <button onClick={shareLink} className="flex-1 flex items-center justify-center gap-2 bg-white/10 hover:bg-white/20 px-4 py-2.5 rounded-xl text-sm font-semibold text-white transition">
+            <Share2 className="w-4 h-4" /> Share
+          </button>
+          {isPro && seller.isVerified && (
+            <Link href={storePath} target="_blank" className="flex-1 flex items-center justify-center gap-2 bg-white/10 hover:bg-white/20 px-4 py-2.5 rounded-xl text-sm font-semibold text-white transition">
+              <ExternalLink className="w-4 h-4" /> Preview
+            </Link>
+          )}
+        </div>
+        {!(isPro && seller.isVerified) && (
+          <p className="text-xs text-gray-500">
+            Only verified sellers subscribed to <span className="text-brand font-semibold">Seller Pro</span> get a live, shareable store.{' '}
+            <Link href="/seller/pro" className="text-brand hover:underline">Upgrade now</Link>.
+          </p>
+        )}
+      </div>
+
       <form onSubmit={save} className="bg-cardBg border border-borderBg rounded-2xl p-5 space-y-4 max-w-2xl">
         <div className="flex items-center gap-4">
           <div className="w-16 h-16 rounded-2xl bg-gradient-to-br from-brand to-purple-600 flex items-center justify-center text-2xl font-black text-white">{initials(storeName)}</div>

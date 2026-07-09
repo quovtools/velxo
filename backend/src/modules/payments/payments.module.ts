@@ -9,7 +9,7 @@ import { NotificationsModule } from '@/modules/notifications/notifications.modul
 @Module({
   controllers: [PaymentsController],
   providers: [PaymentsService, PaymentIoService, FlutterwaveService, PrismaService],
-  exports: [PaymentsService],
+  exports: [PaymentsService, PaymentIoService],
   imports: [NotificationsModule],
 })
 export class PaymentsModule {}

@@ -41,6 +41,11 @@ export class ListingsService {
       if (!category) throw new NotFoundException('Category')
     }
 
+    const isPro = seller.subscriptionTier === 'PRO' || seller.subscriptionTier === 'PREMIUM'
+    const wantsFeatured = dto.isFeatured === true
+    // Only Seller Pro / Premium subscribers may feature listings.
+    const isFeatured = wantsFeatured && isPro ? true : false
+
     const listing = await this.prisma.listings.create({
       data: {
         title: dto.title,
@@ -61,6 +66,7 @@ export class ListingsService {
         deliveryTime: dto.deliveryTime,
         images: dto.images || [],
         videos: dto.videos || [],
+        isFeatured,
         metadata: dto.metadata,
         status: ListingStatus.PENDING_APPROVAL,
       },
@@ -195,6 +201,14 @@ export class ListingsService {
       throw new ForbiddenException('You can only edit your own listings')
     }
 
+    const isPro = listing.seller.subscriptionTier === 'PRO' || listing.seller.subscriptionTier === 'PREMIUM'
+    // Preserve existing featured state unless the seller explicitly toggles it;
+    // only Seller Pro / Premium subscribers are allowed to feature a listing.
+    let isFeatured = listing.isFeatured
+    if (dto.isFeatured !== undefined) {
+      isFeatured = dto.isFeatured === true && isPro ? true : false
+    }
+
     return this.prisma.listings.update({
       where: { id },
       data: {
@@ -202,9 +216,11 @@ export class ListingsService {
         description: dto.description || listing.description,
         price: dto.price || listing.price,
         platform: dto.platform || listing.platform,
+
         region: dto.region || listing.region,
         images: dto.images || listing.images,
         videos: dto.videos || listing.videos,
+        isFeatured,
       },
       include: { seller: true, category: true },
     })

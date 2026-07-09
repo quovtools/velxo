@@ -208,6 +208,7 @@ model sellers {
   storeName       String
   storeDescription String?
   accountType     SellerAccountType @default(STANDARD)
+  storeSlug       String?  @unique
   isVerified      Boolean  @default(false)
   verificationDocuments Json?
   kycStatus       String   @default("NOT_SUBMITTED") // NOT_SUBMITTED | SUBMITTED | APPROVED | REJECTED
@@ -241,6 +242,7 @@ model sellers {
   commissions     commissions[]
   gigs            gigs[]
   withdrawalRequests withdrawalRequests[]
+  subscriptions   sellerSubscriptions[]
 
   @@index([userId])
   @@index([isVerified])
@@ -248,6 +250,28 @@ model sellers {
   @@index([reputationScore])
   @@index([totalSales])
   @@map("sellers")
+}
+
+model sellerSubscriptions {
+  id          String   @id @default(cuid())
+  sellerId    String
+  plan        String // PRO | PREMIUM
+  status      String   @default("PENDING") // PENDING | ACTIVE | CANCELLED | EXPIRED
+  amount      Decimal  @db.Decimal(12, 2)
+  currency    String   @default("USD")
+  provider    String // PAYMENT_IO | FLUTTERWAVE
+  providerRef String? // payment token / reference returned by the gateway
+  startsAt    DateTime?
+  endsAt      DateTime?
+  metadata    Json?
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+
+  seller      sellers  @relation(fields: [sellerId], references: [id], onDelete: Cascade)
+
+  @@index([sellerId])
+  @@index([status])
+  @@map("seller_subscriptions")
 }
 
 model categories {
@@ -382,7 +406,9 @@ model orders {
   deliveryData    Json?
 
   paidAt          DateTime?
+  acceptedAt      DateTime?
   deliveredAt     DateTime?
+  buyerConfirmDeadline DateTime?
   completedAt     DateTime?
   cancelledAt     DateTime?
   refundedAt      DateTime?

@@ -90,4 +90,7 @@ export class CreateListingDto {
 
   @IsOptional()
   metadata?: Record<string, any>
+
+  @IsOptional()
+  isFeatured?: boolean
 }

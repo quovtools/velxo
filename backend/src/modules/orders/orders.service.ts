@@ -10,13 +10,30 @@ import {
 } from '@/common/exceptions/custom-exceptions'
 import { OrderStatus, EscrowStatus, ListingStatus } from '@prisma/client'
 import { Decimal } from '@prisma/client/runtime/library'
+
+// Escrow timing windows (milliseconds).
+// SELLER_WINDOW: after the seller accepts, they have this long to deliver.
+// BUYER_WINDOW: after delivery, the buyer has this long to confirm receipt.
+export const ESCROW_SELLER_WINDOW_MS = 60 * 60 * 1000
+export const ESCROW_BUYER_WINDOW_MS = 60 * 60 * 1000
 import { RewardsService } from '../rewards/rewards.service'
 import { NotificationsService } from '../notifications/notifications.service'
+
+/** Escrow commission rate by seller subscription tier (Seller Pro = lower). */
+function commissionRateForTier(tier?: string | null): number {
+  switch (tier) {
+    case 'PRO':
+      return 0.05
+    case 'PREMIUM':
+      return 0.03
+    default:
+      return 0.1
+  }
+}
 
 @Injectable()
 export class OrdersService {
   private readonly logger = new Logger(OrdersService.name)
-  private readonly COMMISSION_RATE = 0.1 // 10%
 
   constructor(
     private prisma: PrismaService,
@@ -59,9 +76,10 @@ export class OrdersService {
       throw new BadRequestException('This listing is not linked to a valid seller')
     }
 
-    // Calculate amounts
+    // Calculate amounts — Seller Pro / Premium sellers pay a reduced commission.
+    const commissionRate = commissionRateForTier(listing.seller?.subscriptionTier)
     const subtotal = new Decimal(listing.price).times(dto.quantity)
-    const commissionAmount = subtotal.times(this.COMMISSION_RATE)
+    const commissionAmount = subtotal.times(commissionRate)
     const sellerPayout = subtotal.minus(commissionAmount)
 
     // Create order in a transaction
@@ -80,7 +98,7 @@ export class OrdersService {
           sellerId,
           subtotal,
           totalAmount: subtotal,
-          commissionRate: new Decimal(this.COMMISSION_RATE),
+          commissionRate: new Decimal(commissionRate),
           commissionAmount,
           sellerPayout,
           currency: listing.currency,
@@ -115,7 +133,7 @@ export class OrdersService {
         data: {
           orderId: newOrder.id,
           sellerId,
-          rate: new Decimal(this.COMMISSION_RATE),
+          rate: new Decimal(commissionRate),
           amount: commissionAmount,
           currency: listing.currency,
         },
@@ -178,8 +196,9 @@ export class OrdersService {
       throw new ForbiddenException('Cannot purchase your own service')
     }
 
+    const commissionRate = commissionRateForTier(seller.subscriptionTier)
     const subtotal = new Decimal(dto.price).times(quantity)
-    const commissionAmount = subtotal.times(this.COMMISSION_RATE)
+    const commissionAmount = subtotal.times(commissionRate)
     const sellerPayout = subtotal.minus(commissionAmount)
 
     const order = await this.prisma.$transaction(async (tx) => {
@@ -190,7 +209,7 @@ export class OrdersService {
           sellerId: dto.sellerId,
           subtotal,
           totalAmount: subtotal,
-          commissionRate: new Decimal(this.COMMISSION_RATE),
+          commissionRate: new Decimal(commissionRate),
           commissionAmount,
           sellerPayout,
           currency,
@@ -229,7 +248,7 @@ export class OrdersService {
         data: {
           orderId: newOrder.id,
           sellerId: dto.sellerId,
-          rate: new Decimal(this.COMMISSION_RATE),
+          rate: new Decimal(commissionRate),
           amount: commissionAmount,
           currency,
         },
@@ -242,6 +261,41 @@ export class OrdersService {
     await this.notifications.notifyNewOrder(order).catch(() => {})
 
     return order
+  }
+
+  async acceptOrder(orderId: string, sellerId: string) {
+    this.logger.log(`Seller accepting order ${orderId}`)
+
+    const order = await this.prisma.orders.findUnique({
+      where: { id: orderId },
+      include: { seller: true, buyer: true },
+    })
+
+    if (!order) {
+      throw new NotFoundException('Order')
+    }
+
+    if (order.seller?.userId !== sellerId) {
+      throw new ForbiddenException('Only the seller can accept this order')
+    }
+
+    if (order.status !== OrderStatus.PAID) {
+      throw new BadRequestException('Order must be paid before it can be accepted')
+    }
+
+    if (order.acceptedAt) {
+      throw new BadRequestException('Order has already been accepted')
+    }
+
+    const updated = await this.prisma.orders.update({
+      where: { id: orderId },
+      data: { acceptedAt: new Date() },
+      include: { buyer: true, seller: true, orderItems: { include: { listing: true } } },
+    })
+
+    await this.notifications.notifyOrderAccepted?.(updated).catch(() => {})
+
+    return updated
   }
 
   async getOrderById(orderId: string, userId: string) {
@@ -467,6 +521,7 @@ export class OrdersService {
         status: OrderStatus.IN_PROGRESS,
         deliveryData: deliveryData ?? order.deliveryData,
         deliveredAt: new Date(),
+        buyerConfirmDeadline: new Date(Date.now() + ESCROW_BUYER_WINDOW_MS),
       },
       include: {
         buyer: true,

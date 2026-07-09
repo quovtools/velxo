@@ -40,6 +40,26 @@ export class NotificationsService {
     return notification
   }
 
+  async notifySubscriptionActivated(
+    userId: string,
+    planName: string,
+    endsAt: Date,
+  ) {
+    if (!userId) return
+    const expiry = endsAt.toLocaleDateString(undefined, {
+      year: 'numeric',
+      month: 'short',
+      day: 'numeric',
+    })
+    return this.createNotification(
+      userId,
+      'SYSTEM',
+      `${planName} activated 🎉`,
+      `Your ${planName} subscription is live until ${expiry}. Your public store link is now active and your commission rate has been reduced.`,
+      { planName, endsAt },
+    )
+  }
+
   async notifyNewMessage(
     recipientId: string,
     senderName: string,

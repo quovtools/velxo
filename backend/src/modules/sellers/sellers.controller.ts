@@ -149,6 +149,78 @@ export class SellersController {
     }
   }
 
+  @Get(':id/store')
+  async getPublicStore(@Param('id') id: string) {
+    try {
+      const store = await this.sellersService.getPublicStore(id)
+      return ApiResponseDto.ok(store, 'Store retrieved')
+    } catch (error) {
+      this.logger.error('Error fetching public store:', error)
+      throw error
+    }
+  }
+
+  @Get('subscription/plans')
+  async getPlans() {
+    try {
+      return ApiResponseDto.ok(this.sellersService.getPlans(), 'Subscription plans')
+    } catch (error) {
+      this.logger.error('Error fetching plans:', error)
+      throw error
+    }
+  }
+
+  @Get('subscription/me')
+  @UseGuards(SupabaseJwtGuard)
+  async getMySubscription(@CurrentUserId() userId: string) {
+    try {
+      const sub = await this.sellersService.getMySubscription(userId)
+      return ApiResponseDto.ok(sub, 'Subscription status retrieved')
+    } catch (error) {
+      this.logger.error('Error fetching subscription:', error)
+      throw error
+    }
+  }
+
+  @Post('subscription/checkout')
+  @UseGuards(SupabaseJwtGuard)
+  async checkout(
+    @CurrentUserId() userId: string,
+    @Body('plan') plan: string,
+    @Body('provider') provider?: string,
+    @Body('callbackUrl') callbackUrl?: string,
+  ) {
+    try {
+      const result = await this.sellersService.createSubscription(
+        userId,
+        plan,
+        provider || 'PAYMENT_IO',
+        callbackUrl,
+      )
+      return ApiResponseDto.ok(result, 'Subscription checkout created')
+    } catch (error) {
+      this.logger.error('Error creating subscription checkout:', error)
+      throw error
+    }
+  }
+
+  @Post('subscribe')
+  @UseGuards(SupabaseJwtGuard)
+  async subscribe(
+    @CurrentUserId() userId: string,
+    @Body('plan') plan: string,
+    @Body('durationMonths') durationMonths?: number,
+  ) {
+    try {
+      const seller = await this.sellersService.getSellerByUserId(userId)
+      const updated = await this.sellersService.subscribe(seller.id, plan, durationMonths || 1)
+      return ApiResponseDto.ok(updated, `Subscribed to ${plan}`)
+    } catch (error) {
+      this.logger.error('Error subscribing seller:', error)
+      throw error
+    }
+  }
+
   @Patch('response-time')
   @UseGuards(SupabaseJwtGuard)
   async updateResponseTime(@CurrentUserId() userId: string, @Body('responseTime') responseTime: number) {

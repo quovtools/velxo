@@ -33,6 +33,8 @@ const sellerFeatures = [
   { text: '10% service fee per sale only', included: true },
   { text: 'No monthly subscription', included: true },
   { text: 'No listing fees', included: true },
+  { text: 'Seller Pro: public store link + 5% fee', included: false },
+  { text: 'Seller Pro Premium: 3% fee + 10 featured', included: false },
 ];
 
 const feeExamples = [
@@ -66,7 +68,7 @@ export default function PricingPage() {
       </div>
 
       {/* Plan cards */}
-      <div className="grid grid-cols-1 md:grid-cols-2 gap-6 max-w-3xl mx-auto">
+      <div className="grid grid-cols-1 md:grid-cols-3 gap-6 max-w-5xl mx-auto">
         {/* Buyer */}
         <div className="bg-cardBg border border-borderBg rounded-3xl p-8 space-y-6">
           <div>
@@ -116,6 +118,40 @@ export default function PricingPage() {
           </div>
           <Link href="/sell" className="block text-center bg-brand hover:bg-brand-dark py-3.5 rounded-xl font-bold transition text-white text-sm">
             Start Selling
+          </Link>
+        </div>
+
+        {/* Seller Pro */}
+        <div className="bg-cardBg border border-brand/40 rounded-3xl p-8 space-y-6 relative overflow-hidden">
+          <div className="absolute top-4 right-4">
+            <span className="bg-purple-500/10 text-purple-300 text-xs font-bold px-3 py-1 rounded-full border border-purple-500/30">
+              Upgrade
+            </span>
+          </div>
+          <div>
+            <p className="text-xs font-bold text-gray-500 uppercase tracking-wider">For Sellers</p>
+            <div className="flex items-end gap-2 mt-1">
+              <h2 className="text-3xl font-extrabold text-white">Seller Pro</h2>
+            </div>
+            <p className="text-gray-400 text-sm mt-1">Your own public store + lower fees.</p>
+            <p className="text-brand font-bold text-sm mt-2">From $19.99/mo · 5% fee (3% on Premium)</p>
+          </div>
+          <div className="space-y-3">
+            {[
+              'Public, shareable live store link',
+              'Verified "Seller Pro" badge',
+              'Featured listings & priority search',
+              'Lower 5% escrow commission',
+              'Advanced store analytics',
+            ].map((f) => (
+              <div key={f} className="flex items-center gap-3 text-sm">
+                <CheckCircle className="w-4 h-4 text-emerald-400 flex-shrink-0" />
+                <span className="text-gray-200">{f}</span>
+              </div>
+            ))}
+          </div>
+          <Link href="/seller/pro" className="block text-center bg-gradient-to-r from-brand to-purple-600 hover:from-brand-dark hover:to-purple-700 py-3.5 rounded-xl font-bold transition text-white text-sm">
+            Go Seller Pro
           </Link>
         </div>
       </div>

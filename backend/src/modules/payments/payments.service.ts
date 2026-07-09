@@ -260,8 +260,10 @@ export class PaymentsService implements OnModuleInit {
 
     const payment = await this.prisma.payments.findFirst({ where: { providerTransactionId: reference } })
     if (!payment) {
-      this.logger.warn(`Payment.io webhook: no payment for reference ${reference}`)
-      return false
+      // Not an order payment — check whether this is a Seller Pro subscription
+      // charge (referenced by its subscription id / token).
+      const handled = await this.handleSubscriptionWebhook(reference)
+      return handled
     }
 
     // Never trust the IPN body alone — confirm with Paymento's Verify API so a
@@ -275,6 +277,74 @@ export class PaymentsService implements OnModuleInit {
     await this.updatePaymentStatus(payment.id, PaymentStatus.COMPLETED, reference)
 
     return true
+  }
+
+  /**
+   * Handles a Paymento IPN for a Seller Pro subscription charge. The `reference`
+   * is the subscription id (or the Paymento token stored as providerRef). We
+   * confirm the payment server-side with Paymento's Verify API, then activate
+   * the subscription and upgrade the seller's tier — which in turn switches on
+   * their public, shareable storefront.
+   */
+  private async handleSubscriptionWebhook(reference: string): Promise<boolean> {
+    const sub = await this.prisma.sellerSubscriptions.findFirst({
+      where: { OR: [{ id: reference }, { providerRef: reference }], status: 'PENDING' },
+      include: { seller: true },
+    })
+    if (!sub) {
+      this.logger.warn(`Payment.io webhook: no pending subscription for reference ${reference}`)
+      return false
+    }
+
+    const verified = await this.paymentIo.verifyPayment(reference).catch(() => false)
+    if (!verified) {
+      this.logger.warn(`Payment.io webhook: subscription ${sub.id} token not verified — leaving pending`)
+      return false
+    }
+
+    const durationMonths = sub.plan === 'PREMIUM' ? 1 : 1
+    const now = new Date()
+    const endsAt = new Date(now.getTime() + durationMonths * 30 * 24 * 60 * 60 * 1000)
+
+    await this.prisma.sellerSubscriptions.update({
+      where: { id: sub.id },
+      data: { status: 'ACTIVE', startsAt: now, endsAt },
+    })
+
+    await this.prisma.sellers.update({
+      where: { id: sub.sellerId },
+      data: {
+        subscriptionTier: sub.plan,
+        subscriptionEndsAt: endsAt,
+        storeSlug: sub.seller.storeSlug || this.makeStoreSlug(sub.seller.storeName, sub.seller.id),
+      },
+    })
+
+    await this.prisma.adminAuditLogs.create({
+      data: {
+        actorId: sub.seller.userId,
+        action: 'UPDATE',
+        entityType: 'seller_subscription',
+        entityId: sub.id,
+        newValue: { plan: sub.plan, status: 'ACTIVE', endsAt },
+      },
+    })
+
+    await this.notifications
+      .notifySubscriptionActivated(sub.seller.userId, sub.plan === 'PREMIUM' ? 'Seller Pro Premium' : 'Seller Pro', endsAt)
+      .catch(() => {})
+
+    this.logger.log(`Seller Pro subscription ${sub.id} activated for seller ${sub.sellerId}`)
+    return true
+  }
+
+  private makeStoreSlug(storeName: string, sellerId: string): string {
+    const base = (storeName || 'store')
+      .toLowerCase()
+      .replace(/[^a-z0-9]+/g, '-')
+      .replace(/^-+|-+$/g, '')
+      .slice(0, 40)
+    return `${base || 'store'}-${sellerId.slice(-4)}`
   }
 
   async processRefund(paymentId: string, reason: string) {
