@@ -20,6 +20,10 @@ export default function NavigationWrapper() {
   const [mobileOpen, setMobileOpen] = useState(false);
   const { unread: unreadNotifications } = useNotifications();
 
+  // Sellers get the seller dashboard (orders, store, payouts, create listing)
+  // from the Sell entry point; everyone else is taken to create a listing.
+  const sellHref = role === 'SELLER' ? '/seller/dashboard' : '/sell';
+
   return (
     <>
       {/* ── Desktop / Top Nav ── */}
@@ -124,8 +128,8 @@ export default function NavigationWrapper() {
             <Link href="/search" onClick={() => setMobileOpen(false)} className="flex items-center gap-3 px-3 py-3 rounded-xl text-gray-300 hover:bg-background hover:text-white transition text-sm font-medium">
               <Search className="w-4 h-4" /> Browse Marketplace
             </Link>
-            <Link href="/sell" onClick={() => setMobileOpen(false)} className="flex items-center gap-3 px-3 py-3 rounded-xl text-gray-300 hover:bg-background hover:text-white transition text-sm font-medium">
-              <PlusCircle className="w-4 h-4" /> Sell a Product
+            <Link href={sellHref} onClick={() => setMobileOpen(false)} className="flex items-center gap-3 px-3 py-3 rounded-xl text-gray-300 hover:bg-background hover:text-white transition text-sm font-medium">
+              <PlusCircle className="w-4 h-4" /> {role === 'SELLER' ? 'Seller Dashboard' : 'Sell a Product'}
             </Link>
              <Link href="/escrow" onClick={() => setMobileOpen(false)} className="flex items-center gap-3 px-3 py-3 rounded-xl text-gray-300 hover:bg-background hover:text-white transition text-sm font-medium">
                <ShieldCheck className="w-4 h-4" /> How Escrow Works
@@ -213,9 +217,9 @@ export default function NavigationWrapper() {
           <Award className="w-5 h-5" />
           <span className="text-[9px] font-semibold">Rewards</span>
         </Link>
-        <Link href="/sell" className="flex flex-col items-center gap-0.5 p-2 text-gray-400 hover:text-white transition" onClick={() => setMobileOpen(false)}>
+        <Link href={sellHref} className="flex flex-col items-center gap-0.5 p-2 text-gray-400 hover:text-white transition" onClick={() => setMobileOpen(false)}>
           <PlusCircle className="w-5 h-5" />
-          <span className="text-[9px] font-semibold">Sell</span>
+          <span className="text-[9px] font-semibold">{role === 'SELLER' ? 'Sell' : 'Sell'}</span>
         </Link>
         <Link href={user ? "/profile" : "/auth/login"} className="flex flex-col items-center gap-0.5 p-2 text-gray-400 hover:text-white transition" onClick={() => setMobileOpen(false)}>
           <User className="w-5 h-5" />

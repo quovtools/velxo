@@ -4,7 +4,7 @@ import React, { useState, useEffect } from 'react';
 import { useRouter } from 'next/navigation';
 import { api } from '@/lib/api';
 import { useAuth } from '@/app/providers';
-import { DollarSign, Star, TrendingUp, Package, Clock, Shield, Users, AlertCircle, Menu, X, CheckCircle, PlusCircle, ShieldCheck, MessageSquare, Gamepad2 } from 'lucide-react';
+import { DollarSign, Star, TrendingUp, Package, Clock, Shield, Users, AlertCircle, Menu, X, CheckCircle, PlusCircle, ShieldCheck, MessageSquare, Gamepad2, CreditCard } from 'lucide-react';
 import Link from 'next/link';
 import VerifiedBadge from '@/components/VerifiedBadge';
 
@@ -71,6 +71,18 @@ function StatCard({ title, value, icon, trend, trendUp }: StatCardProps) {
       <h3 className="text-xs text-gray-500 uppercase tracking-wider font-semibold">{title}</h3>
       <p className="text-2xl font-black text-white mt-1">{value}</p>
     </div>
+  );
+}
+
+function QuickAction({ href, icon, label }: { href: string; icon: React.ReactNode; label: string }) {
+  return (
+    <Link
+      href={href}
+      className="flex flex-col items-center justify-center gap-2 bg-cardBg border border-borderBg rounded-2xl p-4 hover:border-brand/40 hover:bg-brand/5 transition text-center"
+    >
+      <span className="p-2 bg-brand/10 rounded-lg text-brand">{icon}</span>
+      <span className="text-xs font-semibold text-gray-200">{label}</span>
+    </Link>
   );
 }
 
@@ -281,6 +293,16 @@ const currentTier = tierConfig[seller?.subscriptionTier as keyof TierConfig] || 
             </div>
           </div>
         </div>
+      </div>
+
+      {/* Quick Actions — seller hub shortcuts */}
+      <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-6 gap-3">
+        <QuickAction href="/sell" icon={<PlusCircle className="w-5 h-5" />} label="Create Listing" />
+        <QuickAction href="/seller/dashboard" icon={<Package className="w-5 h-5" />} label="Manage Orders" />
+        <QuickAction href="/seller/settings" icon={<Users className="w-5 h-5" />} label="Store Settings" />
+        <QuickAction href="/seller/settings" icon={<CreditCard className="w-5 h-5" />} label="Payout Methods" />
+        <QuickAction href="/seller/gigs" icon={<Gamepad2 className="w-5 h-5" />} label="Boosting Gigs" />
+        <QuickAction href="/wallet" icon={<DollarSign className="w-5 h-5" />} label="Wallet" />
       </div>
 
       {/* Stats Grid */}
