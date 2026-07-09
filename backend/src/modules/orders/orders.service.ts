@@ -298,7 +298,7 @@ export class OrdersService {
     }
 
     // Release escrow and complete order
-    return await this.prisma.$transaction(async (tx) => {
+    const updatedOrder = await this.prisma.$transaction(async (tx) => {
       // Update escrow
       await tx.escrowTransactions.update({
         where: { id: order.escrow.id },

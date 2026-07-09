@@ -1,7 +1,7 @@
 import { Injectable, Logger } from '@nestjs/common'
 import { PrismaService } from '@/common/services/prisma.service'
 import { NotFoundException, InvalidEscrowStateException } from '@/common/exceptions/custom-exceptions'
-import { EscrowStatus } from '@prisma/client'
+import { EscrowStatus, Decimal } from '@prisma/client'
 import { NotificationsService } from '../notifications/notifications.service'
 
 @Injectable()
@@ -57,9 +57,9 @@ export class EscrowService {
       )
     }
 
-    return await this.prisma.$transaction(async (tx) => {
+    const updated = await this.prisma.$transaction(async (tx) => {
       // Update escrow status
-      const updated = await tx.escrowTransactions.update({
+      const updatedEscrow = await tx.escrowTransactions.update({
         where: { id: escrow.id },
         data: {
           status: EscrowStatus.RELEASED,
@@ -105,7 +105,7 @@ export class EscrowService {
           }
         }
 
-      return updated
+      return updatedEscrow
     })
 
     // Notify both parties that the escrow was released.
@@ -135,8 +135,8 @@ export class EscrowService {
       throw new InvalidEscrowStateException('Escrow already refunded')
     }
 
-    return await this.prisma.$transaction(async (tx) => {
-      const updated = await tx.escrowTransactions.update({
+    const updated = await this.prisma.$transaction(async (tx) => {
+      const updatedEscrow = await tx.escrowTransactions.update({
         where: { id: escrow.id },
         data: {
           status: EscrowStatus.REFUNDED,
@@ -172,7 +172,7 @@ export class EscrowService {
         }
       }
 
-      return updated
+      return updatedEscrow
     })
 
     // Notify the buyer that the escrow was refunded.

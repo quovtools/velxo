@@ -4,7 +4,7 @@ import React, { useState, useEffect } from 'react';
 import { useRouter } from 'next/navigation';
 import { api } from '@/lib/api';
 import { useAuth } from '@/app/providers';
-import { DollarSign, Star, TrendingUp, Package, Clock, Shield, Users, AlertCircle, Menu, X, CheckCircle, PlusCircle, ShieldCheck, MessageSquare } from 'lucide-react';
+import { DollarSign, Star, TrendingUp, Package, Clock, Shield, Users, AlertCircle, Menu, X, CheckCircle, PlusCircle, ShieldCheck, MessageSquare, Gamepad2 } from 'lucide-react';
 import Link from 'next/link';
 
 interface SellerProfile {

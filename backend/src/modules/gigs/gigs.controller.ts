@@ -9,6 +9,7 @@ import {
   Query,
   UseGuards,
   Logger,
+  ForbiddenException,
 } from '@nestjs/common'
 import { GigsService } from './gigs.service'
 import { CreateGigDto, UpdateGigDto, AdminReviewGigDto } from './dto/create-gig.dto'
