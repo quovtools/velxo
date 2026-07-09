@@ -40,6 +40,20 @@ export class OrdersService {
       throw new ForbiddenException('Cannot purchase your own listing')
     }
 
+    // Resolve the seller id for the order. Prefer the resolved seller relation
+    // (guaranteed to be a valid sellers.id); fall back to a userId lookup to
+    // support legacy listings whose sellerId still stores a user id.
+    let sellerId = listing.seller?.id
+    if (!sellerId) {
+      const sellerByUser = await this.prisma.sellers.findUnique({
+        where: { userId: listing.sellerId },
+      })
+      sellerId = sellerByUser?.id
+    }
+    if (!sellerId) {
+      throw new BadRequestException('This listing is not linked to a valid seller')
+    }
+
     // Calculate amounts
     const subtotal = new Decimal(listing.price).times(dto.quantity)
     const commissionAmount = subtotal.times(this.COMMISSION_RATE)
@@ -58,7 +72,7 @@ export class OrdersService {
         data: {
           orderNumber: `ORD-${Date.now()}-${Math.random().toString(36).substr(2, 9).toUpperCase()}`,
           buyerId,
-          sellerId: listing.sellerId,
+          sellerId,
           subtotal,
           totalAmount: subtotal,
           commissionRate: new Decimal(this.COMMISSION_RATE),
@@ -95,7 +109,7 @@ export class OrdersService {
       await tx.commissions.create({
         data: {
           orderId: newOrder.id,
-          sellerId: listing.sellerId,
+          sellerId,
           rate: new Decimal(this.COMMISSION_RATE),
           amount: commissionAmount,
           currency: listing.currency,
@@ -114,6 +128,102 @@ export class OrdersService {
       await tx.listings.update({
         where: { id: dto.listingId },
         data: { isSold: true, status: ListingStatus.SOLD },
+      })
+
+      return newOrder
+    })
+
+    return order
+  }
+
+  /**
+   * Creates an escrow-backed order for non-listing purchases (official top-ups
+   * and seller-posted rank-boosting gigs). Unlike createOrder, this does not
+   * require a `listings` row — the order item references the source product/gig
+   * via `metadata` and a human-readable title instead of listingId.
+   */
+  async createServiceOrder(
+    buyerId: string,
+    dto: {
+      sellerId: string
+      title: string
+      price: number
+      currency?: string
+      quantity?: number
+      buyerNote?: string
+      sourceType: 'TOPUP' | 'GIG'
+      sourceId: string
+    },
+  ) {
+    this.logger.log(`Creating ${dto.sourceType} service order for buyer ${buyerId}`)
+
+    const quantity = dto.quantity && dto.quantity > 0 ? dto.quantity : 1
+    const currency = dto.currency || 'USD'
+
+    const seller = await this.prisma.sellers.findUnique({
+      where: { id: dto.sellerId },
+    })
+    if (!seller) {
+      throw new NotFoundException('Seller')
+    }
+    if (seller.userId === buyerId) {
+      throw new ForbiddenException('Cannot purchase your own service')
+    }
+
+    const subtotal = new Decimal(dto.price).times(quantity)
+    const commissionAmount = subtotal.times(this.COMMISSION_RATE)
+    const sellerPayout = subtotal.minus(commissionAmount)
+
+    const order = await this.prisma.$transaction(async (tx) => {
+      const newOrder = await tx.orders.create({
+        data: {
+          orderNumber: `ORD-${Date.now()}-${Math.random().toString(36).substr(2, 9).toUpperCase()}`,
+          buyerId,
+          sellerId: dto.sellerId,
+          subtotal,
+          totalAmount: subtotal,
+          commissionRate: new Decimal(this.COMMISSION_RATE),
+          commissionAmount,
+          sellerPayout,
+          currency,
+          buyerNote: dto.buyerNote,
+          status: OrderStatus.PENDING,
+          metadata: {
+            sourceType: dto.sourceType,
+            sourceId: dto.sourceId,
+            title: dto.title,
+          },
+          orderItems: {
+            create: {
+              quantity,
+              unitPrice: new Decimal(dto.price),
+              totalPrice: subtotal,
+            },
+          },
+          escrow: {
+            create: {
+              amount: subtotal,
+              currency,
+              status: EscrowStatus.HELD,
+            },
+          },
+        },
+        include: {
+          orderItems: true,
+          escrow: true,
+          buyer: true,
+          seller: true,
+        },
+      })
+
+      await tx.commissions.create({
+        data: {
+          orderId: newOrder.id,
+          sellerId: dto.sellerId,
+          rate: new Decimal(this.COMMISSION_RATE),
+          amount: commissionAmount,
+          currency,
+        },
       })
 
       return newOrder

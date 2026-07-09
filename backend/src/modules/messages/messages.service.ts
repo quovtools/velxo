@@ -91,7 +91,7 @@ export class MessagesService {
         },
       },
       orderBy: { lastMessageAt: 'desc' },
-      take: limit,
+      take: Math.max(1, Math.floor(Number(limit))) || 50,
     })
 
     return Promise.all(
@@ -143,7 +143,7 @@ export class MessagesService {
       where: { conversationId, isDeleted: false },
       include: { sender: true },
       orderBy: { createdAt: 'asc' },
-      take: limit,
+      take: Math.max(1, Math.floor(Number(limit))) || 50,
     })
   }
 
