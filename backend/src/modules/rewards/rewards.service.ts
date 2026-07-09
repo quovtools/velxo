@@ -9,22 +9,19 @@ export class RewardsService {
   constructor(private prisma: PrismaService) {}
 
   async getCoinBalance(userId: string) {
-    let coins = await this.prisma.velxoCoins.findUnique({ where: { userId } })
-    if (!coins) {
-      coins = await this.prisma.velxoCoins.create({
-        data: { userId, balance: 0, currency: 'VXC' },
-      })
-    }
-    return coins
+    return this.prisma.velxoCoins.upsert({
+      where: { userId },
+      create: { userId, balance: 0, currency: 'VXC' },
+      update: {},
+    })
   }
 
   async getTransactions(userId: string, limit = 50) {
-    let coins = await this.prisma.velxoCoins.findUnique({ where: { userId } })
-    if (!coins) {
-      coins = await this.prisma.velxoCoins.create({
-        data: { userId, balance: 0, currency: 'VXC' },
-      })
-    }
+    const coins = await this.prisma.velxoCoins.upsert({
+      where: { userId },
+      create: { userId, balance: 0, currency: 'VXC' },
+      update: {},
+    })
 
     return this.prisma.rewardCoinTransactions.findMany({
       where: { coinId: coins.id },
@@ -44,12 +41,11 @@ export class RewardsService {
     this.logger.log(`Crediting ${amount} coins to user ${userId}`)
 
     return await this.prisma.$transaction(async (tx) => {
-      let coins = await tx.velxoCoins.findUnique({ where: { userId } })
-      if (!coins) {
-        coins = await tx.velxoCoins.create({
-          data: { userId, balance: 0, currency: 'VXC' },
-        })
-      }
+      const coins = await tx.velxoCoins.upsert({
+        where: { userId },
+        create: { userId, balance: 0, currency: 'VXC' },
+        update: {},
+      })
 
       const newBalance = coins.balance + amount
 
