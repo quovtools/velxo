@@ -102,9 +102,13 @@ export default function ListingCard({ item }: { item: ListingCardData }) {
             <span className="text-[10px] text-gray-500 font-medium leading-none">Price</span>
             <span className="text-lg font-black text-white tracking-tight leading-tight">${price}</span>
           </div>
-          <span className="bg-gradient-to-r from-brand to-brand-dark px-3.5 py-1.5 rounded-lg text-xs font-bold text-white transition group-hover:shadow-md group-hover:shadow-brand/40 group-hover:scale-[1.03]">
+          <Link
+            href={`/checkout/${item.id}`}
+            onClick={(e) => e.stopPropagation()}
+            className="relative z-10 bg-gradient-to-r from-brand to-brand-dark px-3.5 py-1.5 rounded-lg text-xs font-bold text-white transition group-hover:shadow-md group-hover:shadow-brand/40 group-hover:scale-[1.03]"
+          >
             Buy Now
-          </span>
+          </Link>
         </div>
       </div>
     </div>
