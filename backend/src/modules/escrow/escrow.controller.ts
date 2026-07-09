@@ -108,16 +108,4 @@ export class EscrowController {
       throw error
     }
   }
-
-  @Get('history')
-  @UseGuards(SupabaseJwtGuard)
-  async getEscrowHistory() {
-    try {
-      const history = await this.escrowService.getEscrowHistory()
-      return ApiResponseDto.ok(history, 'Escrow history retrieved')
-    } catch (error) {
-      this.logger.error('Error fetching escrow history:', error)
-      throw error
-    }
-  }
 }

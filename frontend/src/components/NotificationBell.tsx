@@ -1,12 +1,12 @@
 'use client';
 
-import { useState } from 'react';
+import { useState, type ReactNode } from 'react';
 import Link from 'next/link';
 import { useRouter } from 'next/navigation';
 import { Bell, CheckCheck, Loader2, Package, MessageSquare, ShoppingBag, ShieldAlert, Wallet, Info } from 'lucide-react';
 import { useNotifications, AppNotification } from './NotificationProvider';
 
-const TYPE_ICON: Record<string, React.ReactNode> = {
+const TYPE_ICON: Record<string, ReactNode> = {
   ORDER_STATUS: <ShoppingBag className="w-4 h-4 text-blue-400" />,
   MESSAGE: <MessageSquare className="w-4 h-4 text-brand-light" />,
   DISPUTE: <ShieldAlert className="w-4 h-4 text-red-400" />,
