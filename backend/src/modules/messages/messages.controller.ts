@@ -9,6 +9,7 @@ import {
   Query,
   UseGuards,
   Logger,
+  ForbiddenException,
 } from '@nestjs/common'
 import { MessagesService } from './messages.service'
 import { SupabaseJwtGuard } from '@/common/guards/supabase-jwt.guard'
@@ -76,7 +77,7 @@ export class MessagesController {
     @Query('limit') limit?: number,
   ) {
     try {
-      const messages = await this.messagesService.getConversationMessages(conversationId, limit)
+      const messages = await this.messagesService.getConversationMessages(conversationId, userId, limit)
       return ApiResponseDto.ok(messages, 'Messages retrieved')
     } catch (error) {
       this.logger.error('Error fetching messages:', error)

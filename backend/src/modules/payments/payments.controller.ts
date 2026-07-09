@@ -4,6 +4,7 @@ import { PaymentProvider } from '@prisma/client'
 import { ApiResponseDto } from '@/common/dto/api-response.dto'
 import { SupabaseJwtGuard } from '@/common/guards/supabase-jwt.guard'
 import { CurrentUserId } from '@/common/decorators/current-user.decorator'
+import { Decimal } from '@prisma/client/runtime/library'
 
 @Controller('payments')
 export class PaymentsController {
@@ -24,7 +25,7 @@ export class PaymentsController {
       const callbackUrl = `${process.env.FRONTEND_URL || 'https://market.velxo.shop'}/orders/${orderId}`
       const result = await this.paymentsService.initiatePayment(
         orderId,
-        amount,
+        new Decimal(amount),
         provider,
         callbackUrl,
         userId,
