@@ -55,7 +55,7 @@ export default function SellerGigsPage() {
   useEffect(() => {
     if (authLoading) return;
     if (!user) { router.push('/auth/login?redirect=/seller/gigs'); return; }
-    api.get<{ data: any }>('/sellers/me')
+    api.get<{ success?: boolean; data: any }>('/sellers/me')
       .then(res => { setIsSeller(!!(res.success && res.data)); })
       .catch(() => setIsSeller(false))
       .finally(() => setChecking(false));
