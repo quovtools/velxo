@@ -1328,14 +1328,16 @@ export class AdminController {
     @Body('imageUrls') imageUrls: string[],
     @Body('filter') filter: any,
     @Body('strategy') strategy: string = 'rotate',
+    @Body('listingIds') listingIds?: string[],
     @CurrentUserId() adminId: string = 'admin-console',
   ) {
     try {
       const result = await this.imageBulkOpsService.bulkUpdateListingImages(
         imageUrls,
-        filter,
+        filter || {},
         adminId,
         strategy as any,
+        listingIds,
       )
       return ApiResponseDto.ok(
         result,

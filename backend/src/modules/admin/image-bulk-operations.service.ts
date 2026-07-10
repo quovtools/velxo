@@ -21,25 +21,33 @@ export class ImageBulkOperationsService {
   constructor(private prisma: PrismaService) {}
 
   /**
-   * Bulk update listing images with filtering
+   * Bulk update listing images.
+   * Accepts either an explicit `listingIds` array (from the UI picker) or a
+   * `filter` object (legacy / programmatic use). `listingIds` takes priority.
    */
   async bulkUpdateListingImages(
     imageUrls: string[],
     filter: BulkImageFilter,
     adminId: string,
     assignmentStrategy: ImageAssignmentStrategy = 'rotate',
+    listingIds?: string[],
   ) {
     this.logger.log(`Starting bulk image update with strategy: ${assignmentStrategy}`)
 
-    // Build where clause from filter
-    const whereClause: any = {}
-    if (filter.categoryId) whereClause.categoryId = filter.categoryId
-    if (filter.subcategoryId) whereClause.subcategoryId = filter.subcategoryId
-    if (filter.sellerId) whereClause.sellerId = filter.sellerId
-    if (filter.gameName) whereClause.gameName = filter.gameName
-    if (filter.status) whereClause.status = filter.status
-    if (filter.region) whereClause.region = filter.region
-    if (filter.platform) whereClause.platform = filter.platform
+    // Build where clause — explicit IDs take priority over filter fields
+    const whereClause: any = listingIds && listingIds.length > 0
+      ? { id: { in: listingIds } }
+      : (() => {
+          const w: any = {}
+          if (filter.categoryId) w.categoryId = filter.categoryId
+          if (filter.subcategoryId) w.subcategoryId = filter.subcategoryId
+          if (filter.sellerId) w.sellerId = filter.sellerId
+          if (filter.gameName) w.gameName = filter.gameName
+          if (filter.status) w.status = filter.status
+          if (filter.region) w.region = filter.region
+          if (filter.platform) w.platform = filter.platform
+          return w
+        })()
 
     // Find matching listings
     const matchedListings = await this.prisma.listings.findMany({
