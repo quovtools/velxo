@@ -70,10 +70,12 @@ export default function CheckoutContent({ listingId }: { listingId: string }) {
   } | null>(null);
   const [buyerNote, setBuyerNote] = useState('');
 
-  const isProviderConfigured = (id: 'FLUTTERWAVE' | 'PAYMENT_IO') =>
-    id === 'FLUTTERWAVE'
-      ? Boolean(providerConfig?.flutterwave?.configured)
-      : Boolean(providerConfig?.paymentio?.configured);
+  const isProviderConfigured = (id: 'FLUTTERWAVE' | 'PAYMENT_IO') => {
+    const cfg = providerConfig as any;
+    return id === 'FLUTTERWAVE'
+      ? Boolean(cfg?.flutterwave?.configured)
+      : Boolean(cfg?.paymentIo?.configured ?? cfg?.paymentio?.configured);
+  };
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
 
@@ -104,7 +106,7 @@ export default function CheckoutContent({ listingId }: { listingId: string }) {
         const cfg = (cfgRes as any).data;
         setProviderConfig(cfg);
         const fw = Boolean(cfg?.flutterwave?.configured);
-        const pio = Boolean(cfg?.paymentio?.configured);
+        const pio = Boolean(cfg?.paymentIo?.configured ?? (cfg as any)?.paymentio?.configured);
         if (pio) setPaymentProvider('PAYMENT_IO');
         else if (fw) setPaymentProvider('FLUTTERWAVE');
       } catch {
