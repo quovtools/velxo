@@ -47,7 +47,7 @@ export class BulkOperationsService {
     await this.prisma.adminAuditLogs.create({
       data: {
         actorId: adminId,
-        action: 'BULK_APPROVE_LISTINGS',
+        action: 'STATUS_CHANGE',
         entityType: 'LISTING',
         entityId: 'BULK',
         metadata: {
@@ -99,7 +99,7 @@ export class BulkOperationsService {
     await this.prisma.adminAuditLogs.create({
       data: {
         actorId: adminId,
-        action: 'BULK_REJECT_LISTINGS',
+        action: 'STATUS_CHANGE',
         entityType: 'LISTING',
         entityId: 'BULK',
         metadata: {
@@ -133,7 +133,7 @@ export class BulkOperationsService {
     await this.prisma.adminAuditLogs.create({
       data: {
         actorId: adminId,
-        action: 'BULK_SUSPEND_LISTINGS',
+        action: 'STATUS_CHANGE',
         entityType: 'LISTING',
         entityId: 'BULK',
         metadata: { count: listingIds.length, reason },
@@ -163,7 +163,7 @@ export class BulkOperationsService {
     await this.prisma.adminAuditLogs.create({
       data: {
         actorId: adminId,
-        action: 'BULK_UNSUSPEND_LISTINGS',
+        action: 'STATUS_CHANGE',
         entityType: 'LISTING',
         entityId: 'BULK',
         metadata: { count: listingIds.length },
@@ -187,7 +187,7 @@ export class BulkOperationsService {
     await this.prisma.adminAuditLogs.create({
       data: {
         actorId: adminId,
-        action: isFeatured ? 'BULK_FEATURE_LISTINGS' : 'BULK_UNFEATURE_LISTINGS',
+        action: 'UPDATE',
         entityType: 'LISTING',
         entityId: 'BULK',
         metadata: { count: listingIds.length, isFeatured },
@@ -211,7 +211,7 @@ export class BulkOperationsService {
     await this.prisma.adminAuditLogs.create({
       data: {
         actorId: adminId,
-        action: isSponsored ? 'BULK_SPONSOR_LISTINGS' : 'BULK_UNSPONSOR_LISTINGS',
+        action: 'UPDATE',
         entityType: 'LISTING',
         entityId: 'BULK',
         metadata: { count: listingIds.length, isSponsored },
@@ -234,7 +234,7 @@ export class BulkOperationsService {
     await this.prisma.adminAuditLogs.create({
       data: {
         actorId: adminId,
-        action: 'BULK_DELETE_LISTINGS',
+        action: 'DELETE',
         entityType: 'LISTING',
         entityId: 'BULK',
         metadata: { count: listingIds.length },
@@ -264,7 +264,7 @@ export class BulkOperationsService {
     await this.prisma.adminAuditLogs.create({
       data: {
         actorId: adminId,
-        action: 'BULK_BAN_USERS',
+        action: 'STATUS_CHANGE',
         entityType: 'USER',
         entityId: 'BULK',
         metadata: { count: userIds.length, reason },
@@ -292,7 +292,7 @@ export class BulkOperationsService {
     await this.prisma.adminAuditLogs.create({
       data: {
         actorId: adminId,
-        action: 'BULK_UNBAN_USERS',
+        action: 'STATUS_CHANGE',
         entityType: 'USER',
         entityId: 'BULK',
         metadata: { count: userIds.length },
@@ -321,7 +321,7 @@ export class BulkOperationsService {
     await this.prisma.adminAuditLogs.create({
       data: {
         actorId: adminId,
-        action: 'BULK_VERIFY_SELLERS',
+        action: 'VERIFICATION_CHANGE',
         entityType: 'SELLER',
         entityId: 'BULK',
         metadata: { count: sellerIds.length },
@@ -341,7 +341,6 @@ export class BulkOperationsService {
       where: { id: { in: sellerIds } },
       data: {
         isSuspended: true,
-        suspendedAt: new Date(),
         suspensionReason: reason,
       },
     })
@@ -349,7 +348,7 @@ export class BulkOperationsService {
     await this.prisma.adminAuditLogs.create({
       data: {
         actorId: adminId,
-        action: 'BULK_SUSPEND_SELLERS',
+        action: 'STATUS_CHANGE',
         entityType: 'SELLER',
         entityId: 'BULK',
         metadata: { count: sellerIds.length, reason },
@@ -369,7 +368,6 @@ export class BulkOperationsService {
       where: { id: { in: sellerIds } },
       data: {
         isSuspended: false,
-        suspendedAt: null,
         suspensionReason: null,
       },
     })
@@ -377,7 +375,7 @@ export class BulkOperationsService {
     await this.prisma.adminAuditLogs.create({
       data: {
         actorId: adminId,
-        action: 'BULK_UNSUSPEND_SELLERS',
+        action: 'STATUS_CHANGE',
         entityType: 'SELLER',
         entityId: 'BULK',
         metadata: { count: sellerIds.length },
@@ -393,18 +391,21 @@ export class BulkOperationsService {
   async bulkFeatureSellers(sellerIds: string[], adminId: string, isFeatured: boolean) {
     this.logger.log(`Bulk ${isFeatured ? 'featuring' : 'unfeaturing'} ${sellerIds.length} sellers`)
 
+    // featuredUntil: set 30 days from now when featuring, null when unfeaturing
+    const featuredUntil = isFeatured ? new Date(Date.now() + 30 * 24 * 60 * 60 * 1000) : null
+
     const result = await this.prisma.sellers.updateMany({
       where: { id: { in: sellerIds } },
-      data: { isFeatured },
+      data: { featuredUntil },
     })
 
     await this.prisma.adminAuditLogs.create({
       data: {
         actorId: adminId,
-        action: isFeatured ? 'BULK_FEATURE_SELLERS' : 'BULK_UNFEATURE_SELLERS',
+        action: 'UPDATE',
         entityType: 'SELLER',
         entityId: 'BULK',
-        metadata: { count: sellerIds.length, isFeatured },
+        metadata: { count: sellerIds.length, isFeatured, featuredUntil },
       },
     })
 
