@@ -11,6 +11,7 @@ import {
   CreditCard, PlusCircle, CheckCircle, X, Menu, Eye, Truck, Trash2, Edit3, Loader2,
   ShieldCheck, Award, ArrowUpRight, Calendar, Filter, Image, Clock, Send, Banknote,
   ChevronRight, RefreshCw, AlertCircle, ListChecks, BarChart3, Copy, Share2, ExternalLink,
+  AlertTriangle, Bell,
 } from 'lucide-react';
 
 /* ------------------------------------------------------------------ types */
@@ -128,6 +129,12 @@ export default function SellerDashboard() {
   const [listingTab, setListingTab] = useState<'all' | 'active' | 'pending' | 'history'>('all');
   const [busyId, setBusyId] = useState<string | null>(null);
   const [toast, setToast] = useState<{ ok: boolean; text: string } | null>(null);
+  const [now, setNow] = useState(Date.now());
+
+  useEffect(() => {
+    const t = setInterval(() => setNow(Date.now()), 1000);
+    return () => clearInterval(t);
+  }, []);
 
   const flash = (text: string, ok = true) => {
     setToast({ ok, text });
@@ -190,6 +197,21 @@ export default function SellerDashboard() {
       }
     } catch (e: any) {
       flash(e?.message || 'Failed to mark delivered', false);
+    } finally {
+      setBusyId(null);
+    }
+  };
+
+  const acceptOrder = async (id: string) => {
+    setBusyId(id);
+    try {
+      const res = await api.patch<{ success: boolean }>(`/orders/${id}/accept`);
+      if (res.success) {
+        flash('Order accepted — 1-hour delivery timer started');
+        loadAll();
+      }
+    } catch (e: any) {
+      flash(e?.message || 'Failed to accept order', false);
     } finally {
       setBusyId(null);
     }
@@ -301,6 +323,31 @@ export default function SellerDashboard() {
           {toast.text}
         </div>
       )}
+
+      {/* ── Urgent action banner (shown across all sections) ── */}
+      {(() => {
+        const needAccept = orders.filter(o => o.status === 'PAID' && !(o as any).acceptedAt);
+        const needDeliver = orders.filter(o => o.status === 'PAID' && (o as any).acceptedAt);
+        if (!needAccept.length && !needDeliver.length) return null;
+        return (
+          <div className="mb-4 bg-yellow-950/30 border border-yellow-500/30 rounded-2xl p-4 flex flex-col sm:flex-row items-start sm:items-center gap-3">
+            <div className="w-9 h-9 rounded-xl bg-yellow-500/20 flex items-center justify-center flex-shrink-0">
+              <Bell className="w-5 h-5 text-yellow-400" />
+            </div>
+            <div className="flex-1 min-w-0">
+              <p className="font-bold text-yellow-200 text-sm">
+                {needAccept.length > 0 && `${needAccept.length} order${needAccept.length > 1 ? 's' : ''} need${needAccept.length === 1 ? 's' : ''} accepting`}
+                {needAccept.length > 0 && needDeliver.length > 0 && ' · '}
+                {needDeliver.length > 0 && `${needDeliver.length} order${needDeliver.length > 1 ? 's' : ''} pending delivery`}
+              </p>
+              <p className="text-xs text-gray-400 mt-0.5">Buyers are waiting. Accept and deliver to keep your response rate high.</p>
+            </div>
+            <button onClick={() => setSection('orders')} className="flex-shrink-0 bg-yellow-500 hover:bg-yellow-400 text-black font-bold px-4 py-2 rounded-xl text-sm transition">
+              View Orders →
+            </button>
+          </div>
+        );
+      })()}
 
       {/* ============================== OVERVIEW ============================== */}
       {section === 'overview' && (
@@ -485,8 +532,22 @@ export default function SellerDashboard() {
                     {visibleOrders.map(o => {
                       const item = o.orderItems?.[0];
                       const buyer = [o.buyer?.firstName, o.buyer?.lastName].filter(Boolean).join(' ') || 'Buyer';
+                      const oAny = o as any;
+                      const needsAccept = o.status === 'PAID' && !oAny.acceptedAt;
+                      const needsDeliver = o.status === 'PAID' && oAny.acceptedAt;
+                      const deadline = oAny.sellerDeliverDeadline ? new Date(oAny.sellerDeliverDeadline).getTime() : null;
+                      const remaining = deadline ? deadline - now : null;
+                      const isUrgent = remaining != null && remaining < 600_000;
+                      const formatMs = (ms: number) => {
+                        if (ms <= 0) return 'Overdue';
+                        const h = Math.floor(ms / 3600000);
+                        const m = Math.floor((ms % 3600000) / 60000);
+                        const s = Math.floor((ms % 60000) / 1000);
+                        const p = (n: number) => String(n).padStart(2, '0');
+                        return h > 0 ? `${p(h)}:${p(m)}:${p(s)}` : `${p(m)}:${p(s)}`;
+                      };
                       return (
-                        <tr key={o.id} className="hover:bg-hoverBg/20">
+                        <tr key={o.id} className={`hover:bg-hoverBg/20 ${(needsAccept || isUrgent) ? 'bg-yellow-950/10' : ''}`}>
                           <td className="px-4 py-3">
                             <div className="font-semibold text-white">#{o.orderNumber.slice(-8).toUpperCase()}</div>
                             <div className="text-xs text-gray-500">{money(o.totalAmount, o.currency)} · {new Date(o.createdAt).toLocaleDateString()}</div>
@@ -496,12 +557,26 @@ export default function SellerDashboard() {
                             <div className="font-semibold text-white truncate" title={item?.listing?.title}>{item?.listing?.title || 'Gaming Assets'}</div>
                             <div className="text-xs text-brand">{item?.listing?.gameName}</div>
                           </td>
-                          <td className="px-4 py-3 text-center">{statusPill(o.status)}</td>
+                          <td className="px-4 py-3 text-center">
+                            {statusPill(o.status)}
+                            {needsDeliver && remaining != null && (
+                              <div className={`text-[10px] font-mono font-bold mt-1 ${isUrgent ? 'text-red-400' : 'text-yellow-400'}`}>
+                                ⏱ {formatMs(remaining)}
+                              </div>
+                            )}
+                          </td>
                           <td className="px-4 py-3 text-right">
                             <div className="flex items-center justify-end gap-2 flex-wrap">
                               <Link href={`/messages?buyerId=${o.buyer?.id}&sellerId=${user?.id}`} className="text-brand hover:underline text-xs flex items-center gap-1"><MessageSquare className="w-3.5 h-3.5" /> Chat</Link>
-                              {o.status === 'PAID' && (
-                                <button onClick={() => markDelivered(o.id)} disabled={busyId === o.id} className="text-emerald-400 hover:underline text-xs flex items-center gap-1 disabled:opacity-50">
+                              {needsAccept && (
+                                <button onClick={() => acceptOrder(o.id)} disabled={busyId === o.id}
+                                  className="bg-brand hover:bg-brand-dark text-white text-xs font-bold px-3 py-1.5 rounded-lg flex items-center gap-1 disabled:opacity-50 transition">
+                                  <CheckCircle className="w-3.5 h-3.5" /> {busyId === o.id ? '...' : 'Accept'}
+                                </button>
+                              )}
+                              {needsDeliver && (
+                                <button onClick={() => markDelivered(o.id)} disabled={busyId === o.id}
+                                  className="bg-emerald-600 hover:bg-emerald-500 text-white text-xs font-bold px-3 py-1.5 rounded-lg flex items-center gap-1 disabled:opacity-50 transition">
                                   <Truck className="w-3.5 h-3.5" /> {busyId === o.id ? '...' : 'Deliver'}
                                 </button>
                               )}

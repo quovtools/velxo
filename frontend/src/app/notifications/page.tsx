@@ -6,7 +6,7 @@ import { useAuth } from '@/app/providers';
 import { api } from '@/lib/api';
 import {
   Bell, CheckCheck, Trash2, ShoppingBag, MessageSquare,
-  ShieldAlert, Wallet, Info, Loader2, Package,
+  ShieldAlert, Wallet, Info, Loader2, Package, ChevronRight,
 } from 'lucide-react';
 
 interface Notification {
@@ -90,6 +90,16 @@ export default function NotificationsPage() {
   const unread   = notifications.filter(n => !n.isRead).length;
   const filtered = filter === 'unread' ? notifications.filter(n => !n.isRead) : notifications;
 
+  function hrefFor(n: Notification): string {
+    const d = n.data || {};
+    if (d.conversationId) return `/messages?conversationId=${d.conversationId}`;
+    if (d.orderId) return `/orders/${d.orderId}`;
+    if (n.type === 'LISTING_APPROVED' || n.type === 'LISTING_REJECTED') return '/seller/dashboard';
+    if (n.type === 'KYC_APPROVED' || n.type === 'KYC_REJECTED') return '/seller/kyc';
+    if (n.type === 'WITHDRAWAL') return '/wallet';
+    return '/notifications';
+  }
+
   if (loading) return (
     <div className="max-w-2xl mx-auto space-y-4 py-6 fade-in">
       <div className="h-8 skeleton rounded-xl w-40" />
@@ -145,18 +155,20 @@ export default function NotificationsPage() {
       ) : (
         <div className="space-y-2">
           {filtered.map(n => (
-            <div key={n.id}
-              onClick={() => !n.isRead && markRead(n.id)}
+            <div
+              key={n.id}
+              onClick={() => {
+                if (!n.isRead) markRead(n.id);
+                router.push(hrefFor(n));
+              }}
               className={`group flex items-start gap-4 p-4 rounded-2xl border transition cursor-pointer ${
                 n.isRead
-                  ? 'bg-cardBg border-borderBg opacity-70 hover:opacity-100'
+                  ? 'bg-cardBg border-borderBg opacity-70 hover:opacity-100 hover:border-brand/20'
                   : 'bg-cardBg border-brand/20 hover:border-brand/40'
-              }`}>
-
+              }`}
+            >
               {/* Icon */}
-              <div className={`w-9 h-9 rounded-xl flex items-center justify-center border flex-shrink-0 ${
-                TYPE_BG[n.type] || TYPE_BG.SYSTEM
-              }`}>
+              <div className={`w-9 h-9 rounded-xl flex items-center justify-center border flex-shrink-0 ${TYPE_BG[n.type] || TYPE_BG.SYSTEM}`}>
                 {TYPE_ICON[n.type] || <Info className="w-4 h-4 text-gray-400" />}
               </div>
 
@@ -169,13 +181,23 @@ export default function NotificationsPage() {
                   <span className="text-[10px] text-gray-500 flex-shrink-0 mt-0.5">{timeAgo(n.createdAt)}</span>
                 </div>
                 <p className="text-xs text-gray-500 mt-0.5 line-clamp-2">{n.body}</p>
+                {/* Show destination hint */}
+                {hrefFor(n) !== '/notifications' && (
+                  <p className="text-[10px] text-brand/70 mt-1 flex items-center gap-0.5">
+                    <ChevronRight className="w-3 h-3" />
+                    {n.data?.orderId ? 'View order' : n.data?.conversationId ? 'Open message' : 'Go to dashboard'}
+                  </p>
+                )}
               </div>
 
-              {/* Unread dot + actions */}
+              {/* Unread dot + delete */}
               <div className="flex flex-col items-center gap-2 flex-shrink-0">
                 {!n.isRead && <div className="w-2 h-2 rounded-full bg-brand mt-1" />}
-                <button onClick={(e) => { e.stopPropagation(); remove(n.id); }}
-                  className="opacity-0 group-hover:opacity-100 p-1.5 text-gray-600 hover:text-red-400 transition rounded-lg hover:bg-red-900/20">
+                <button
+                  onClick={(e) => { e.stopPropagation(); remove(n.id); }}
+                  className="opacity-0 group-hover:opacity-100 p-1.5 text-gray-600 hover:text-red-400 transition rounded-lg hover:bg-red-900/20"
+                  aria-label="Delete notification"
+                >
                   <Trash2 className="w-3.5 h-3.5" />
                 </button>
               </div>

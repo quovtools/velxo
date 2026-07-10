@@ -69,6 +69,7 @@ export default function ProfilePage() {
   });
   const [savingNotif, setSavingNotif] = useState(false);
   const [confirmDelete, setConfirmDelete] = useState(false);
+  const [activeOrderCount, setActiveOrderCount] = useState<number | null>(null);
 
   const [currentPw, setCurrentPw] = useState('');
   const [newPw, setNewPw] = useState('');

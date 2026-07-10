@@ -2,7 +2,7 @@
 
 import { useState } from 'react'
 import Link from 'next/link'
-import { Gamepad2, Star, Flame } from 'lucide-react'
+import { Gamepad2, Star, Flame, Clock } from 'lucide-react'
 
 export interface ListingCardData {
   id: string
@@ -15,7 +15,13 @@ export interface ListingCardData {
   isSold?: boolean
   isFeatured?: boolean
   salesCount?: number
-  seller?: { id?: string; storeName?: string; averageRating?: number | string; verified?: boolean }
+  seller?: {
+    id?: string
+    storeName?: string
+    averageRating?: number | string
+    verified?: boolean
+    responseTime?: number | null
+  }
 }
 
 export default function ListingCard({ item }: { item: ListingCardData }) {
@@ -96,6 +102,17 @@ export default function ListingCard({ item }: { item: ListingCardData }) {
               {rating}
             </span>
           </div>
+          {/* Slow-responder badge — only shown when avg response > 2 hours */}
+          {item.seller?.responseTime != null && item.seller.responseTime > 120 && (
+            <div className="flex items-center gap-1 mt-1.5 text-[10px] text-yellow-500/80">
+              <Clock className="w-2.5 h-2.5" />
+              <span>
+                ~{item.seller.responseTime > 1440
+                  ? `${Math.round(item.seller.responseTime / 1440)}d`
+                  : `${Math.round(item.seller.responseTime / 60)}h`} response
+              </span>
+            </div>
+          )}
         </div>
         <div className="flex items-center justify-between border-t border-borderBg pt-3">
           <div className="flex flex-col">
