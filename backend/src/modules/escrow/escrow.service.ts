@@ -87,6 +87,12 @@ export class EscrowService {
       | 'PAYMENT_IO'
       | undefined
 
+    this.logger.log(
+      `getEscrowForOrder ${orderId} | orderStatus=${order.status} escrowStatus=${escrow.status} ` +
+        `chosenProvider=${chosenProvider ?? 'none'} paymentLink=${paymentLink ? 'present' : 'absent'} ` +
+        `buyer=${order.buyerId} seller=${order.sellerId}`,
+    )
+
     return {
       id: escrow.id,
       status: escrow.status,
@@ -151,6 +157,10 @@ export class EscrowService {
       | 'FLUTTERWAVE'
       | 'PAYMENT_IO'
       | undefined
+
+    this.logger.log(
+      `generatePaymentLink ${orderId} | orderStatus=${order.status} chosenProvider=${chosenProvider ?? 'none'}`,
+    )
 
     // Reuse an existing PENDING payment that already holds a link.
     const existing = await this.prisma.payments.findFirst({

@@ -5,6 +5,7 @@ import { ApiResponseDto } from '@/common/dto/api-response.dto'
 import { SupabaseJwtGuard } from '@/common/guards/supabase-jwt.guard'
 import { CurrentUserId } from '@/common/decorators/current-user.decorator'
 import { Decimal } from '@prisma/client/runtime/library'
+import { logError } from '@/shared/error.util'
 
 @Controller('payments')
 export class PaymentsController {
@@ -38,7 +39,7 @@ export class PaymentsController {
       )
       return ApiResponseDto.ok(result, 'Payment initiated')
     } catch (error) {
-      this.logger.error('Error initiating payment:', error)
+      logError(this.logger, 'createPayment', error, { orderId, provider, amount })
       throw error
     }
   }
@@ -49,7 +50,7 @@ export class PaymentsController {
       await this.paymentsService.handleFlutterwaveWebhook(event)
       return ApiResponseDto.ok(null, 'Webhook processed')
     } catch (error) {
-      this.logger.error('Error processing Flutterwave webhook:', error)
+      logError(this.logger, 'Flutterwave webhook', error)
       throw error
     }
   }
@@ -80,7 +81,7 @@ export class PaymentsController {
       await this.paymentsService.handlePaymentIoWebhook(event)
       return ApiResponseDto.ok(null, 'Webhook processed')
     } catch (error) {
-      this.logger.error('Error processing Payment.io webhook:', error)
+      logError(this.logger, 'Payment.io webhook', error)
       throw error
     }
   }

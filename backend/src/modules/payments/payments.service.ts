@@ -274,6 +274,14 @@ export class PaymentsService implements OnModuleInit {
 
     const callbackUrl = `${process.env.FRONTEND_URL || 'https://market.velxo.shop'}/orders/${orderId}`
 
+    this.logger.log(
+      `createPaymentLink ${orderId} | orderStatus=${order.status} ` +
+        `Flutterwave.isConfigured=${this.flutterwave.isConfigured} ` +
+        `Payment.io.isConfigured=${this.paymentIo.isConfigured} ` +
+        `PAYMENT_PROVIDER=${process.env.PAYMENT_PROVIDER || 'unset'} ` +
+        `chosenProvider=${(order.metadata as Record<string, any>)?.paymentMethod ?? 'none'}`,
+    )
+
     // Resolve the providers to try. An explicit `provider` argument pins the
     // first attempt (e.g. the buyer's choice), but we still fall back to any
     // other configured provider so a link is always produced when at least one

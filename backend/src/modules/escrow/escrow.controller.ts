@@ -16,6 +16,7 @@ import { CurrentUserId } from '@/common/decorators/current-user.decorator'
 import { ApiResponseDto } from '@/common/dto/api-response.dto'
 import { PrismaService } from '@/common/services/prisma.service'
 import { ForbiddenException, NotFoundException } from '@/common/exceptions/custom-exceptions'
+import { logError } from '@/shared/error.util'
 
 @Controller('escrow')
 export class EscrowController {
@@ -36,7 +37,7 @@ export class EscrowController {
       const result = await this.escrowService.getEscrowForOrder(orderId, userId)
       return ApiResponseDto.ok(result, 'Escrow and payment details retrieved')
     } catch (error) {
-      this.logger.error('Error fetching escrow for order:', error)
+      logError(this.logger, 'getEscrowForOrder', error, { orderId, userId })
       throw error
     }
   }
@@ -51,7 +52,7 @@ export class EscrowController {
       const result = await this.escrowService.generatePaymentLink(orderId, userId)
       return ApiResponseDto.ok(result, 'Payment link generated')
     } catch (error) {
-      this.logger.error('Error generating payment link:', error)
+      logError(this.logger, 'generatePaymentLink', error, { orderId, userId })
       throw error
     }
   }
@@ -63,7 +64,7 @@ export class EscrowController {
       const history = await this.escrowService.getEscrowHistory()
       return ApiResponseDto.ok(history, 'Escrow history retrieved')
     } catch (error) {
-      this.logger.error('Error fetching escrow history:', error)
+      logError(this.logger, 'getEscrowHistory', error)
       throw error
     }
   }
@@ -75,7 +76,7 @@ export class EscrowController {
       const escrow = await this.escrowService.getEscrowStatus(orderId)
       return ApiResponseDto.ok(escrow, 'Escrow status retrieved')
     } catch (error) {
-      this.logger.error('Error fetching escrow status:', error)
+      logError(this.logger, 'getEscrowStatus', error, { orderId })
       throw error
     }
   }
@@ -96,7 +97,7 @@ export class EscrowController {
       const escrow = await this.escrowService.releaseFunds(orderId)
       return ApiResponseDto.ok(escrow, 'Funds released successfully')
     } catch (error) {
-      this.logger.error('Error releasing funds:', error)
+      logError(this.logger, 'releaseFunds', error, { orderId, userId })
       throw error
     }
   }
@@ -120,7 +121,7 @@ export class EscrowController {
       const escrow = await this.escrowService.refundFunds(orderId, reason)
       return ApiResponseDto.ok(escrow, 'Funds refunded successfully')
     } catch (error) {
-      this.logger.error('Error refunding funds:', error)
+      logError(this.logger, 'refundFunds', error, { orderId, userId })
       throw error
     }
   }
