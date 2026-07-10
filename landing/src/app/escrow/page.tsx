@@ -19,17 +19,17 @@ export const metadata: Metadata = {
 };
 
 const steps = [
-  { step: '01', icon: <Banknote className="w-6 h-6 text-[#A78BFA]" />, title: 'Buyer Places Order', desc: 'The buyer pays for the item. Funds are immediately locked in Velxo Escrow — not sent to the seller yet.' },
-  { step: '02', icon: <Lock className="w-6 h-6 text-[#A78BFA]" />, title: 'Seller Accepts', desc: 'The seller accepts the paid order, which starts a 60-minute delivery timer. Funds stay locked in escrow the whole time.' },
-  { step: '03', icon: <ArrowRight className="w-6 h-6 text-[#A78BFA]" />, title: 'Seller Delivers (within 60 min)', desc: 'The seller has 60 minutes to hand over the account, coins, gift card, or complete the service. Miss the window and both parties can open a dispute or complaint.' },
-  { step: '04', icon: <CheckCircle className="w-6 h-6 text-[#A78BFA]" />, title: 'Buyer Confirms (within 60 min)', desc: 'Delivery resets the clock: the buyer has a fresh 60 minutes to log in and click "Confirm Receipt", which releases the escrow funds.' },
-  { step: '05', icon: <Banknote className="w-6 h-6 text-[#A78BFA]" />, title: 'Seller Gets Paid', desc: "The funds (minus the 10% service fee) are credited to the seller's Velxo wallet, ready for withdrawal." },
+  { step: '01', icon: <Banknote className="w-6 h-6 text-brand-light" />, title: 'Buyer Places Order', desc: 'The buyer pays for the item. Funds are immediately locked in Velxo Escrow — not sent to the seller yet.' },
+  { step: '02', icon: <Lock className="w-6 h-6 text-brand-light" />, title: 'Seller Accepts', desc: 'The seller accepts the paid order, which starts a 60-minute delivery timer. Funds stay locked in escrow the whole time.' },
+  { step: '03', icon: <ArrowRight className="w-6 h-6 text-brand-light" />, title: 'Seller Delivers (within 60 min)', desc: 'The seller has 60 minutes to hand over the account, coins, gift card, or complete the service. Miss the window and both parties can open a dispute or complaint.' },
+  { step: '04', icon: <CheckCircle className="w-6 h-6 text-brand-light" />, title: 'Buyer Confirms (within 60 min)', desc: 'Delivery resets the clock: the buyer has a fresh 60 minutes to log in and click "Confirm Receipt", which releases the escrow funds.' },
+  { step: '05', icon: <Banknote className="w-6 h-6 text-brand-light" />, title: 'Seller Gets Paid', desc: "The funds (minus the 10% service fee) are credited to the seller's Velxo wallet, ready for withdrawal." },
 ];
 
 const disputeSteps = [
   { icon: <AlertTriangle className="w-5 h-5 text-red-400" />, title: 'Open a Dispute or Complaint', desc: 'When a 60-minute window is missed, go to your Order page and click "File a Dispute" or "File a Complaint". Choose a reason and describe the issue clearly.' },
   { icon: <Clock className="w-5 h-5 text-yellow-400" />, title: 'Moderation Review', desc: 'Our team reviews evidence from both parties — chat logs, delivery screenshots, and order details — within 24–72 hours.' },
-  { icon: <ArrowRight className="w-5 h-5 text-[#A78BFA]" />, title: 'Resolution Issued', desc: 'We issue a fair decision: full refund to buyer, partial refund, or full release to seller. Both parties are notified immediately.' },
+  { icon: <ArrowRight className="w-5 h-5 text-brand-light" />, title: 'Resolution Issued', desc: 'We issue a fair decision: full refund to buyer, partial refund, or full release to seller. Both parties are notified immediately.' },
 ];
 
 const faqs = [
@@ -45,13 +45,13 @@ export default function EscrowPage() {
   return (
     <>
       <Navbar />
-      <main className="min-h-screen bg-[#0b0f19] pt-24">
+      <main className="min-h-screen bg-background pt-24">
         <div className="max-w-5xl mx-auto px-4 sm:px-6 lg:px-8 py-12 sm:py-16 space-y-14">
 
           {/* Hero */}
           <div className="text-center space-y-5 max-w-2xl mx-auto">
-            <div className="w-16 h-16 bg-[#8B5CF6]/10 rounded-2xl flex items-center justify-center mx-auto border border-[#8B5CF6]/20">
-              <ShieldCheck className="w-8 h-8 text-[#A78BFA]" />
+            <div className="w-16 h-16 bg-brand/10 rounded-2xl flex items-center justify-center mx-auto border border-brand/20">
+              <ShieldCheck className="w-8 h-8 text-brand-light" />
             </div>
             <h1 className="heading-lg sm:heading-xl">
               How Velxo <span className="text-gradient">Escrow Works</span>
@@ -66,10 +66,10 @@ export default function EscrowPage() {
             <h2 className="text-2xl font-extrabold text-white text-center">The escrow process</h2>
             <div className="relative space-y-4 max-w-2xl mx-auto">
               {steps.map((step) => (
-                <div key={step.step} className="flex items-start gap-5 bg-[#111827] border border-[#1F2937] rounded-2xl p-6 hover:border-[#8B5CF6]/40 transition card-glow">
-                  <div className="flex-shrink-0 w-12 h-12 bg-[#8B5CF6]/10 rounded-xl flex items-center justify-center">{step.icon}</div>
+                <div key={step.step} className="flex items-start gap-5 bg-surface border border-border rounded-2xl p-6 hover:border-brand/40 transition card-glow">
+                  <div className="flex-shrink-0 w-12 h-12 bg-brand/10 rounded-xl flex items-center justify-center">{step.icon}</div>
                   <div className="flex-1">
-                    <span className="text-xs font-black text-[#A78BFA]">STEP {step.step}</span>
+                    <span className="text-xs font-black text-brand-light">STEP {step.step}</span>
                     <h3 className="font-bold text-white mt-1">{step.title}</h3>
                     <p className="text-sm text-gray-400 mt-1">{step.desc}</p>
                   </div>
@@ -81,11 +81,11 @@ export default function EscrowPage() {
           {/* Trust badges */}
           <div className="grid grid-cols-1 md:grid-cols-3 gap-4 sm:gap-5">
             {[
-              { icon: <Lock className="w-8 h-8 text-[#A78BFA] mx-auto" />, title: 'Funds Always Protected', desc: 'Money is locked the moment payment is made. Sellers cannot withdraw until you confirm.' },
-              { icon: <ShieldCheck className="w-8 h-8 text-[#A78BFA] mx-auto" />, title: 'Neutral Moderation', desc: 'Our team reviews disputes fairly with evidence from both parties before making any decision.' },
-              { icon: <CheckCircle className="w-8 h-8 text-[#A78BFA] mx-auto" />, title: 'You Control Release', desc: 'Funds are only released when you click confirm. Never automatically. Never without your approval.' },
+              { icon: <Lock className="w-8 h-8 text-brand-light mx-auto" />, title: 'Funds Always Protected', desc: 'Money is locked the moment payment is made. Sellers cannot withdraw until you confirm.' },
+              { icon: <ShieldCheck className="w-8 h-8 text-brand-light mx-auto" />, title: 'Neutral Moderation', desc: 'Our team reviews disputes fairly with evidence from both parties before making any decision.' },
+              { icon: <CheckCircle className="w-8 h-8 text-brand-light mx-auto" />, title: 'You Control Release', desc: 'Funds are only released when you click confirm. Never automatically. Never without your approval.' },
             ].map((b) => (
-              <div key={b.title} className="bg-[#111827] border border-[#1F2937] rounded-2xl p-6 text-center space-y-3">
+              <div key={b.title} className="bg-surface border border-border rounded-2xl p-6 text-center space-y-3">
                 {b.icon}
                 <h3 className="font-bold text-white">{b.title}</h3>
                 <p className="text-sm text-gray-400">{b.desc}</p>
@@ -101,8 +101,8 @@ export default function EscrowPage() {
             </div>
             <div className="grid grid-cols-1 md:grid-cols-3 gap-4 sm:gap-5 max-w-3xl mx-auto">
               {disputeSteps.map((step) => (
-                <div key={step.title} className="bg-[#111827] border border-[#1F2937] rounded-2xl p-6 space-y-3 text-center">
-                  <div className="w-11 h-11 bg-[#0b0f19] rounded-xl flex items-center justify-center mx-auto border border-[#1F2937]">{step.icon}</div>
+                <div key={step.title} className="bg-surface border border-border rounded-2xl p-6 space-y-3 text-center">
+                  <div className="w-11 h-11 bg-background rounded-xl flex items-center justify-center mx-auto border border-border">{step.icon}</div>
                   <h3 className="font-bold text-white text-sm">{step.title}</h3>
                   <p className="text-xs text-gray-400">{step.desc}</p>
                 </div>
@@ -118,18 +118,18 @@ export default function EscrowPage() {
           <div className="space-y-5 max-w-2xl mx-auto">
             <h2 className="text-2xl font-extrabold text-white text-center">Common Questions</h2>
             {faqs.map((faq, i) => (
-              <details key={i} className="bg-[#111827] border border-[#1F2937] rounded-2xl group open:border-[#8B5CF6]/40 transition">
+              <details key={i} className="bg-surface border border-border rounded-2xl group open:border-brand/40 transition">
                 <summary className="flex justify-between items-center px-5 sm:px-6 py-4 cursor-pointer list-none">
                   <span className="font-semibold text-white text-sm pr-4">{faq.q}</span>
                   <ChevronDown className="w-4 h-4 text-gray-400 group-open:rotate-180 transition-transform flex-shrink-0" />
                 </summary>
-                <div className="px-5 sm:px-6 pb-5 text-sm text-gray-400 leading-relaxed border-t border-[#1F2937] pt-4">{faq.a}</div>
+                <div className="px-5 sm:px-6 pb-5 text-sm text-gray-400 leading-relaxed border-t border-border pt-4">{faq.a}</div>
               </details>
             ))}
           </div>
 
           {/* CTA */}
-          <div className="bg-[#111827] border border-[#1F2937] rounded-3xl p-8 sm:p-10 text-center space-y-4">
+          <div className="bg-surface border border-border rounded-3xl p-8 sm:p-10 text-center space-y-4">
             <h3 className="text-2xl font-extrabold text-white">Ready to trade safely?</h3>
             <p className="text-gray-400 text-sm">Every trade on Velxo is protected. Start buying or selling with confidence.</p>
             <div className="flex flex-col sm:flex-row gap-3 justify-center">

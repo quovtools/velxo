@@ -68,7 +68,7 @@ export default function Hero() {
         {/* Stats */}
         <dl className="mx-auto mt-16 grid max-w-3xl grid-cols-2 gap-px overflow-hidden rounded-3xl border border-white/10 bg-white/5 sm:grid-cols-4">
           {STATS.map((s) => (
-            <div key={s.label} className="bg-[#0b0f19]/60 px-4 py-6 backdrop-blur">
+            <div key={s.label} className="bg-background/60 px-4 py-6 backdrop-blur">
               <dt className="text-2xl font-black text-white sm:text-3xl">{s.value}</dt>
               <dd className="mt-1 text-xs font-medium text-gray-500">{s.label}</dd>
             </div>

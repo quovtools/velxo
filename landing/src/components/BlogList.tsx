@@ -57,7 +57,7 @@ export default function BlogList() {
   const categories = ['', 'Platform', 'Sellers', 'Safety', 'Guides'];
 
   return (
-    <main className="min-h-screen bg-[#0b0f19] pt-24">
+    <main className="min-h-screen bg-background pt-24">
       <div className="container-x space-y-12 py-16">
 
         <div className="mx-auto max-w-2xl space-y-4 text-center">

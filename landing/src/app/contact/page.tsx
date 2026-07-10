@@ -27,7 +27,7 @@ export const metadata: Metadata = {
 
 const CONTACT_OPTIONS = [
   {
-    icon: <Mail className="w-6 h-6 text-[#8B5CF6]" />,
+    icon: <Mail className="w-6 h-6 text-brand" />,
     title: 'General Enquiries',
     desc: 'For general questions about Velxo, partnerships, or anything else.',
     value: 'hello@velxo.shop',
@@ -67,7 +67,7 @@ const CONTACT_OPTIONS = [
     cta: 'Partner with Us',
   },
   {
-    icon: <Mail className="w-6 h-6 text-[#A78BFA]" />,
+    icon: <Mail className="w-6 h-6 text-brand-light" />,
     title: 'Affiliate Program',
     desc: 'Join our affiliate program or get help with your referral account.',
     value: 'affiliates@velxo.shop',
@@ -80,12 +80,12 @@ export default function ContactPage() {
   return (
     <>
       <Navbar />
-      <main className="min-h-screen bg-[#0b0f19] pt-24">
+      <main className="min-h-screen bg-background pt-24">
         <div className="max-w-5xl mx-auto px-4 sm:px-6 lg:px-8 py-16 space-y-16">
 
           {/* Header */}
           <div className="text-center space-y-4">
-            <span className="inline-block text-xs font-bold text-[#A78BFA] uppercase tracking-widest bg-[#8B5CF6]/10 px-4 py-2 rounded-full border border-[#8B5CF6]/20">
+            <span className="inline-block text-xs font-bold text-brand-light uppercase tracking-widest bg-brand/10 px-4 py-2 rounded-full border border-brand/20">
               Contact Us
             </span>
             <h1 className="text-4xl sm:text-5xl font-black text-white">
@@ -106,16 +106,16 @@ export default function ContactPage() {
           {/* Contact grid */}
           <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-5">
             {CONTACT_OPTIONS.map((opt) => (
-              <div key={opt.title} className="bg-[#111827] border border-[#1F2937] hover:border-[#8B5CF6]/30 rounded-2xl p-6 space-y-4 transition card-glow">
-                <div className="w-12 h-12 rounded-xl bg-[#0b0f19] border border-[#1F2937] flex items-center justify-center">
+              <div key={opt.title} className="bg-surface border border-border hover:border-brand/30 rounded-2xl p-6 space-y-4 transition card-glow">
+                <div className="w-12 h-12 rounded-xl bg-background border border-border flex items-center justify-center">
                   {opt.icon}
                 </div>
                 <div>
                   <h3 className="font-bold text-white mb-1">{opt.title}</h3>
                   <p className="text-sm text-gray-400 leading-relaxed mb-2">{opt.desc}</p>
-                  <p className="text-xs text-[#A78BFA] font-mono">{opt.value}</p>
+                  <p className="text-xs text-brand-light font-mono">{opt.value}</p>
                 </div>
-                <a href={opt.href} className="inline-block text-xs font-bold bg-[#0b0f19] border border-[#1F2937] hover:border-[#8B5CF6]/40 hover:text-white text-gray-300 px-4 py-2 rounded-lg transition">
+                <a href={opt.href} className="inline-block text-xs font-bold bg-background border border-border hover:border-brand/40 hover:text-white text-gray-300 px-4 py-2 rounded-lg transition">
                   {opt.cta}
                 </a>
               </div>
@@ -123,7 +123,7 @@ export default function ContactPage() {
           </div>
 
           {/* Social quick links */}
-          <div className="bg-[#111827] border border-[#1F2937] rounded-2xl p-8 space-y-5">
+          <div className="bg-surface border border-border rounded-2xl p-8 space-y-5">
             <h3 className="font-black text-white text-lg text-center">Find us on social media</h3>
             <div className="flex flex-wrap justify-center gap-4">
               {[
@@ -131,7 +131,7 @@ export default function ContactPage() {
                 { icon: <MessageCircle className="w-4 h-4" />, label: 'Discord', href: 'https://discord.gg/velxo' },
               ].map((s) => (
                 <a key={s.label} href={s.href} target="_blank" rel="noopener noreferrer"
-                  className="flex items-center gap-2 bg-[#0b0f19] border border-[#1F2937] hover:border-[#8B5CF6]/40 text-gray-400 hover:text-white px-5 py-2.5 rounded-xl text-sm font-semibold transition">
+                  className="flex items-center gap-2 bg-background border border-border hover:border-brand/40 text-gray-400 hover:text-white px-5 py-2.5 rounded-xl text-sm font-semibold transition">
                   {s.icon} {s.label}
                 </a>
               ))}

@@ -32,7 +32,7 @@ const PRINCIPLES = [
     desc: 'Velxo requires all users to be at least 16 years old. We actively review accounts and remove underage users from the platform.',
   },
   {
-    icon: <CheckCircle className="w-6 h-6 text-[#8B5CF6]" />,
+    icon: <CheckCircle className="w-6 h-6 text-brand" />,
     title: 'Transparent Pricing',
     desc: 'All fees, commissions, and charges are clearly disclosed before any transaction. No hidden costs, ever.',
   },
@@ -47,12 +47,12 @@ const PRINCIPLES = [
     desc: 'We encourage healthy gaming habits. Velxo is a marketplace, not a gambling platform — no loot boxes, no random chance mechanics.',
   },
   {
-    icon: <BookOpen className="w-6 h-6 text-[#06B6D4]" />,
+    icon: <BookOpen className="w-6 h-6 text-accent" />,
     title: 'Education First',
     desc: 'We publish guides, safety tips, and scam alerts to help our community stay informed and trade safely.',
   },
   {
-    icon: <Phone className="w-6 h-6 text-[#A78BFA]" />,
+    icon: <Phone className="w-6 h-6 text-brand-light" />,
     title: 'Support Access',
     desc: 'Our support team is available 7 days a week. Any user can report a concern, dispute an order, or request account help at any time.',
   },
@@ -71,7 +71,7 @@ export default function ResponsibleGamingPage() {
   return (
     <>
       <Navbar />
-      <main className="min-h-screen bg-[#0b0f19] pt-24">
+      <main className="min-h-screen bg-background pt-24">
         <div className="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8 py-16 space-y-16">
 
           {/* Header */}
@@ -104,8 +104,8 @@ export default function ResponsibleGamingPage() {
             <h2 className="text-2xl font-black text-white">Our safety principles</h2>
             <div className="grid grid-cols-1 md:grid-cols-2 gap-5">
               {PRINCIPLES.map((p) => (
-                <div key={p.title} className="bg-[#111827] border border-[#1F2937] rounded-2xl p-6 space-y-3 card-glow">
-                  <div className="w-11 h-11 rounded-xl bg-[#0b0f19] border border-[#1F2937] flex items-center justify-center">
+                <div key={p.title} className="bg-surface border border-border rounded-2xl p-6 space-y-3 card-glow">
+                  <div className="w-11 h-11 rounded-xl bg-background border border-border flex items-center justify-center">
                     {p.icon}
                   </div>
                   <h3 className="font-bold text-white">{p.title}</h3>
@@ -116,7 +116,7 @@ export default function ResponsibleGamingPage() {
           </div>
 
           {/* Commitments */}
-          <div className="bg-[#111827] border border-[#1F2937] rounded-2xl p-8 space-y-5">
+          <div className="bg-surface border border-border rounded-2xl p-8 space-y-5">
             <h2 className="text-xl font-black text-white">Our commitments to you</h2>
             <ul className="space-y-3">
               {COMMITMENTS.map((c) => (
@@ -138,11 +138,11 @@ export default function ResponsibleGamingPage() {
                 Report Now
               </a>
             </div>
-            <div className="bg-[#111827] border border-[#1F2937] rounded-2xl p-6 space-y-4">
-              <Phone className="w-8 h-8 text-[#8B5CF6]" />
+            <div className="bg-surface border border-border rounded-2xl p-6 space-y-4">
+              <Phone className="w-8 h-8 text-brand" />
               <h3 className="font-bold text-white">Need help?</h3>
               <p className="text-sm text-gray-400">Our support team is here 7 days a week. Contact us for any platform concern or question.</p>
-              <a href="mailto:safety@velxo.shop" className="inline-block bg-[#8B5CF6] hover:bg-[#6D28D9] text-white font-bold px-5 py-2.5 rounded-xl text-sm transition">
+              <a href="mailto:safety@velxo.shop" className="inline-block bg-brand hover:bg-brand-dark text-white font-bold px-5 py-2.5 rounded-xl text-sm transition">
                 safety@velxo.shop
               </a>
             </div>

@@ -26,12 +26,12 @@ const stats = [
 ];
 
 const values = [
-  { icon: <ShieldCheck className="w-6 h-6 text-[#A78BFA]" />, title: 'Trust First', desc: 'Every transaction is protected by our escrow system. Funds only move when both parties are satisfied.' },
-  { icon: <Zap className="w-6 h-6 text-[#A78BFA]" />, title: 'Built for Speed', desc: 'Instant listings, fast payouts, and real-time messaging built for the pace of the gaming world.' },
-  { icon: <Users className="w-6 h-6 text-[#A78BFA]" />, title: 'Community Driven', desc: "Velxo is built by gamers for gamers. Our platform evolves with the needs of Africa's gaming community." },
-  { icon: <Globe className="w-6 h-6 text-[#A78BFA]" />, title: 'Africa-Focused', desc: 'We support local payment methods, regional games, and African currencies — no workarounds needed.' },
-  { icon: <Award className="w-6 h-6 text-[#A78BFA]" />, title: 'Seller Reputation', desc: 'Our verified seller badges and reputation system ensure you always know who you’re trading with.' },
-  { icon: <TrendingUp className="w-6 h-6 text-[#A78BFA]" />, title: 'Growing Ecosystem', desc: 'From Free Fire coins to boosting services, we’re constantly expanding to cover more games and asset types.' },
+  { icon: <ShieldCheck className="w-6 h-6 text-brand-light" />, title: 'Trust First', desc: 'Every transaction is protected by our escrow system. Funds only move when both parties are satisfied.' },
+  { icon: <Zap className="w-6 h-6 text-brand-light" />, title: 'Built for Speed', desc: 'Instant listings, fast payouts, and real-time messaging built for the pace of the gaming world.' },
+  { icon: <Users className="w-6 h-6 text-brand-light" />, title: 'Community Driven', desc: "Velxo is built by gamers for gamers. Our platform evolves with the needs of Africa's gaming community." },
+  { icon: <Globe className="w-6 h-6 text-brand-light" />, title: 'Africa-Focused', desc: 'We support local payment methods, regional games, and African currencies — no workarounds needed.' },
+  { icon: <Award className="w-6 h-6 text-brand-light" />, title: 'Seller Reputation', desc: 'Our verified seller badges and reputation system ensure you always know who you’re trading with.' },
+  { icon: <TrendingUp className="w-6 h-6 text-brand-light" />, title: 'Growing Ecosystem', desc: 'From Free Fire coins to boosting services, we’re constantly expanding to cover more games and asset types.' },
 ];
 
 const team = [
@@ -45,7 +45,7 @@ export default function AboutPage() {
   return (
     <>
       <Navbar />
-      <main className="min-h-screen bg-[#0b0f19] pt-24">
+      <main className="min-h-screen bg-background pt-24">
         <div className="max-w-5xl mx-auto px-4 sm:px-6 lg:px-8 py-12 sm:py-16 space-y-16">
 
           {/* Hero */}
@@ -67,7 +67,7 @@ export default function AboutPage() {
           {/* Stats */}
           <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
             {stats.map((stat) => (
-              <div key={stat.label} className="bg-[#111827] border border-[#1F2937] rounded-2xl p-6 text-center space-y-1">
+              <div key={stat.label} className="bg-surface border border-border rounded-2xl p-6 text-center space-y-1">
                 <p className="text-3xl font-extrabold text-gradient">{stat.value}</p>
                 <p className="text-sm text-gray-400">{stat.label}</p>
               </div>
@@ -88,7 +88,7 @@ export default function AboutPage() {
                 Our mission is simple: make gaming commerce safe, fast, and accessible for every gamer on the continent.
               </p>
             </div>
-            <div className="bg-[#111827] border border-[#1F2937] rounded-3xl p-8 space-y-4">
+            <div className="bg-surface border border-border rounded-3xl p-8 space-y-4">
               <div className="flex items-center gap-3">
                 <span className="w-3 h-3 rounded-full bg-emerald-400 animate-pulse"></span>
                 <span className="text-emerald-400 text-sm font-bold">Escrow Active</span>
@@ -96,7 +96,7 @@ export default function AboutPage() {
               <div className="space-y-3">
                 {['Zero scams with escrow protection', 'Local payment methods supported', 'Instant digital delivery', 'Verified seller profiles', '24/7 dispute resolution'].map((item) => (
                   <div key={item} className="flex items-center gap-3 text-sm text-gray-300">
-                    <ShieldCheck className="w-4 h-4 text-[#A78BFA] flex-shrink-0" />
+                    <ShieldCheck className="w-4 h-4 text-brand-light flex-shrink-0" />
                     {item}
                   </div>
                 ))}
@@ -109,8 +109,8 @@ export default function AboutPage() {
             <h2 className="text-2xl sm:text-3xl font-extrabold text-white text-center">What drives us</h2>
             <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4 sm:gap-5">
               {values.map((v) => (
-                <div key={v.title} className="bg-[#111827] border border-[#1F2937] rounded-2xl p-6 space-y-3 hover:border-[#8B5CF6]/40 transition card-glow">
-                  <div className="w-11 h-11 bg-[#8B5CF6]/10 rounded-xl flex items-center justify-center">{v.icon}</div>
+                <div key={v.title} className="bg-surface border border-border rounded-2xl p-6 space-y-3 hover:border-brand/40 transition card-glow">
+                  <div className="w-11 h-11 bg-brand/10 rounded-xl flex items-center justify-center">{v.icon}</div>
                   <h3 className="font-bold text-white">{v.title}</h3>
                   <p className="text-sm text-gray-400">{v.desc}</p>
                 </div>
@@ -126,8 +126,8 @@ export default function AboutPage() {
             </div>
             <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
               {team.map((member) => (
-                <div key={member.name} className="bg-[#111827] border border-[#1F2937] rounded-2xl p-6 text-center space-y-3">
-                  <div className="w-14 h-14 rounded-full bg-[#8B5CF6]/20 border-2 border-[#8B5CF6]/30 flex items-center justify-center text-[#A78BFA] font-black text-xl mx-auto">{member.initials}</div>
+                <div key={member.name} className="bg-surface border border-border rounded-2xl p-6 text-center space-y-3">
+                  <div className="w-14 h-14 rounded-full bg-brand/20 border-2 border-brand/30 flex items-center justify-center text-brand-light font-black text-xl mx-auto">{member.initials}</div>
                   <div>
                     <p className="font-bold text-white text-sm">{member.name}</p>
                     <p className="text-xs text-gray-500">{member.role}</p>
@@ -138,7 +138,7 @@ export default function AboutPage() {
           </div>
 
           {/* CTA */}
-          <div className="bg-[#111827] border border-[#1F2937] rounded-3xl p-10 text-center space-y-5">
+          <div className="bg-surface border border-border rounded-3xl p-10 text-center space-y-5">
             <h3 className="text-2xl sm:text-3xl font-extrabold text-white">Join Africa&apos;s gaming economy</h3>
             <p className="text-gray-400 max-w-lg mx-auto text-sm sm:text-base">
               Whether you&apos;re a buyer looking for deals or a seller building a store, Velxo is your platform.

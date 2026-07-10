@@ -1,6 +1,7 @@
 import type { Config } from "tailwindcss";
 
 const config: Config = {
+  darkMode: "class",
   content: [
     "./src/pages/**/*.{js,ts,jsx,tsx,mdx}",
     "./src/components/**/*.{js,ts,jsx,tsx,mdx}",
@@ -9,45 +10,45 @@ const config: Config = {
   theme: {
     extend: {
       colors: {
-        background: "#0b0f19",
-        foreground: "#f8fafc",
-        surface: "#111827",
-        border: "#1F2937",
+        background: "var(--background)",
+        foreground: "var(--foreground)",
+        surface: "var(--surface)",
+        border: "var(--border)",
         brand: {
-          DEFAULT: "#7C3AED",
-          50: "#f5f3ff",
-          100: "#ede9fe",
-          200: "#ddd6fe",
-          300: "#c4b5fd",
-          400: "#A78BFA",
-          500: "#8B5CF6",
-          600: "#7C3AED",
-          700: "#6D28D9",
-          800: "#5b21b6",
-          light: "#A78BFA",
-          dark: "#6D28D9",
-          accent: "#06B6D4",
+          DEFAULT: "rgb(var(--brand-rgb) / <alpha-value>)",
+          50: "rgb(var(--brand-50-rgb) / <alpha-value>)",
+          100: "rgb(var(--brand-100-rgb) / <alpha-value>)",
+          200: "rgb(var(--brand-200-rgb) / <alpha-value>)",
+          300: "rgb(var(--brand-300-rgb) / <alpha-value>)",
+          400: "rgb(var(--brand-400-rgb) / <alpha-value>)",
+          500: "rgb(var(--brand-500-rgb) / <alpha-value>)",
+          600: "rgb(var(--brand-600-rgb) / <alpha-value>)",
+          700: "rgb(var(--brand-700-rgb) / <alpha-value>)",
+          800: "rgb(var(--brand-800-rgb) / <alpha-value>)",
+          light: "rgb(var(--brand-light-rgb) / <alpha-value>)",
+          dark: "rgb(var(--brand-dark-rgb) / <alpha-value>)",
+          accent: "rgb(var(--accent-rgb) / <alpha-value>)",
         },
         accent: {
-          DEFAULT: "#06B6D4",
+          DEFAULT: "rgb(var(--accent-rgb) / <alpha-value>)",
           emerald: "#10b981",
         },
-        card: "#111827",
+        card: "var(--surface)",
       },
       fontFamily: {
         sans: ['Inter', 'system-ui', 'sans-serif'],
       },
       boxShadow: {
-        glow: "0 0 40px rgba(124,58,237,0.35)",
+        glow: "0 0 40px rgba(0,0,0,0.35)",
         "glow-emerald": "0 0 40px rgba(16,185,129,0.25)",
         card: "0 20px 50px -20px rgba(0,0,0,0.6)",
       },
       backgroundImage: {
-        "brand-gradient": "linear-gradient(135deg, #7C3AED 0%, #06B6D4 100%)",
+        "brand-gradient": "linear-gradient(135deg, rgb(var(--brand-rgb)) 0%, rgb(var(--accent-rgb)) 100%)",
         "brand-radial":
-          "radial-gradient(900px 500px at 50% -10%, rgba(124,58,237,0.18), transparent 60%)",
+          "radial-gradient(900px 500px at 50% -10%, rgba(120,120,120,0.18), transparent 60%)",
         "grid-faint":
-          "linear-gradient(to right, rgba(255,255,255,0.04) 1px, transparent 1px), linear-gradient(to bottom, rgba(255,255,255,0.04) 1px, transparent 1px)",
+          "linear-gradient(to right, rgba(128,128,128,0.08) 1px, transparent 1px), linear-gradient(to bottom, rgba(128,128,128,0.08) 1px, transparent 1px)",
       },
       keyframes: {
         float: {
@@ -55,8 +56,8 @@ const config: Config = {
           "50%": { transform: "translateY(-20px)" },
         },
         glow: {
-          from: { boxShadow: "0 0 20px rgba(124,58,237,0.25)" },
-          to: { boxShadow: "0 0 40px rgba(124,58,237,0.55)" },
+          from: { boxShadow: "0 0 20px rgba(0,0,0,0.25)" },
+          to: { boxShadow: "0 0 40px rgba(0,0,0,0.45)" },
         },
         slideUp: {
           from: { opacity: "0", transform: "translateY(30px)" },

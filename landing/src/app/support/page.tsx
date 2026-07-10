@@ -32,19 +32,19 @@ const faqs = [
 ];
 
 const categories = [
-  { icon: <ShieldCheck className="w-6 h-6 text-[#A78BFA]" />, title: 'Escrow & Payments', desc: 'How escrow works, payment methods, refunds, and fee structure.' },
-  { icon: <Zap className="w-6 h-6 text-[#A78BFA]" />, title: 'Buying & Orders', desc: 'Placing orders, tracking delivery, and confirming receipt.' },
-  { icon: <BookOpen className="w-6 h-6 text-[#A78BFA]" />, title: 'Selling & Listings', desc: 'Creating listings, seller guidelines, pricing and fees.' },
-  { icon: <AlertTriangle className="w-6 h-6 text-[#A78BFA]" />, title: 'Disputes & Safety', desc: 'Opening disputes, reporting users, and platform safety rules.' },
-  { icon: <MessageSquare className="w-6 h-6 text-[#A78BFA]" />, title: 'Account & Profile', desc: 'Managing your account, wallet, KYC, and profile settings.' },
-  { icon: <HelpCircle className="w-6 h-6 text-[#A78BFA]" />, title: 'General FAQ', desc: 'Common questions about the platform, policies, and rules.' },
+  { icon: <ShieldCheck className="w-6 h-6 text-brand-light" />, title: 'Escrow & Payments', desc: 'How escrow works, payment methods, refunds, and fee structure.' },
+  { icon: <Zap className="w-6 h-6 text-brand-light" />, title: 'Buying & Orders', desc: 'Placing orders, tracking delivery, and confirming receipt.' },
+  { icon: <BookOpen className="w-6 h-6 text-brand-light" />, title: 'Selling & Listings', desc: 'Creating listings, seller guidelines, pricing and fees.' },
+  { icon: <AlertTriangle className="w-6 h-6 text-brand-light" />, title: 'Disputes & Safety', desc: 'Opening disputes, reporting users, and platform safety rules.' },
+  { icon: <MessageSquare className="w-6 h-6 text-brand-light" />, title: 'Account & Profile', desc: 'Managing your account, wallet, KYC, and profile settings.' },
+  { icon: <HelpCircle className="w-6 h-6 text-brand-light" />, title: 'General FAQ', desc: 'Common questions about the platform, policies, and rules.' },
 ];
 
 export default function SupportPage() {
   return (
     <>
       <Navbar />
-      <main className="min-h-screen bg-[#0b0f19] pt-24">
+      <main className="min-h-screen bg-background pt-24">
         <div className="max-w-5xl mx-auto px-4 sm:px-6 lg:px-8 py-12 sm:py-16 space-y-14">
 
           {/* Hero */}
@@ -56,7 +56,7 @@ export default function SupportPage() {
             <p className="text-gray-400 text-base sm:text-lg">
               Find answers to common questions about buying, selling, escrow, and everything in between.
             </p>
-            <div className="flex items-center gap-3 bg-[#111827] border border-[#1F2937] rounded-2xl px-4 sm:px-5 py-3.5 max-w-lg mx-auto">
+            <div className="flex items-center gap-3 bg-surface border border-border rounded-2xl px-4 sm:px-5 py-3.5 max-w-lg mx-auto">
               <HelpCircle className="w-5 h-5 text-gray-500 flex-shrink-0" />
               <span className="text-gray-500 text-sm text-left">Search topics below or browse the FAQ...</span>
             </div>
@@ -65,8 +65,8 @@ export default function SupportPage() {
           {/* Category cards */}
           <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4 sm:gap-5">
             {categories.map((cat) => (
-              <div key={cat.title} className="bg-[#111827] border border-[#1F2937] rounded-2xl p-5 sm:p-6 space-y-3 hover:border-[#8B5CF6]/40 transition card-glow">
-                <div className="w-11 h-11 bg-[#8B5CF6]/10 rounded-xl flex items-center justify-center">{cat.icon}</div>
+              <div key={cat.title} className="bg-surface border border-border rounded-2xl p-5 sm:p-6 space-y-3 hover:border-brand/40 transition card-glow">
+                <div className="w-11 h-11 bg-brand/10 rounded-xl flex items-center justify-center">{cat.icon}</div>
                 <h3 className="font-bold text-white">{cat.title}</h3>
                 <p className="text-sm text-gray-400">{cat.desc}</p>
               </div>
@@ -78,20 +78,20 @@ export default function SupportPage() {
             <h2 className="text-2xl sm:text-3xl font-extrabold text-white text-center">Frequently Asked Questions</h2>
             <div className="space-y-3">
               {faqs.map((faq, i) => (
-                <details key={i} className="bg-[#111827] border border-[#1F2937] rounded-2xl group open:border-[#8B5CF6]/40 transition">
+                <details key={i} className="bg-surface border border-border rounded-2xl group open:border-brand/40 transition">
                   <summary className="flex justify-between items-center px-5 sm:px-6 py-4 cursor-pointer list-none">
                     <span className="font-semibold text-white text-sm pr-4">{faq.q}</span>
                     <ChevronDown className="w-4 h-4 text-gray-400 group-open:rotate-180 transition-transform flex-shrink-0" />
                   </summary>
-                  <div className="px-5 sm:px-6 pb-5 text-sm text-gray-400 leading-relaxed border-t border-[#1F2937] pt-4">{faq.a}</div>
+                  <div className="px-5 sm:px-6 pb-5 text-sm text-gray-400 leading-relaxed border-t border-border pt-4">{faq.a}</div>
                 </details>
               ))}
             </div>
           </div>
 
           {/* Contact CTA */}
-          <div className="bg-[#111827] border border-[#1F2937] rounded-3xl p-8 sm:p-10 text-center space-y-5 max-w-2xl mx-auto">
-            <MessageSquare className="w-12 h-12 text-[#A78BFA] mx-auto" />
+          <div className="bg-surface border border-border rounded-3xl p-8 sm:p-10 text-center space-y-5 max-w-2xl mx-auto">
+            <MessageSquare className="w-12 h-12 text-brand-light mx-auto" />
             <h3 className="text-2xl font-extrabold text-white">Still need help?</h3>
             <p className="text-gray-400 text-sm">
               Our support team is available 7 days a week. Reach us via live chat or email and we&apos;ll get back to you within a few hours.

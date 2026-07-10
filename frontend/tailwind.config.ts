@@ -13,14 +13,24 @@ const config: Config = {
         background: "var(--background)",
         foreground: "var(--foreground)",
         brand: {
-          DEFAULT: "#2563eb",
-          dark: "#1d4ed8",
-          light: "#60a5fa",
-          accent: "#10b981",
+          DEFAULT: "rgb(var(--brand-rgb) / <alpha-value>)",
+          dark: "rgb(var(--brand-dark-rgb) / <alpha-value>)",
+          light: "rgb(var(--brand-light-rgb) / <alpha-value>)",
+          accent: "rgb(var(--brand-accent-rgb) / <alpha-value>)",
         },
         cardBg: "var(--card-bg)",
         borderBg: "var(--border-bg)",
         hoverBg: "var(--hover-bg)",
+        // Override the default purple scale so the old "purple" brand
+        // gradients render as monochrome grays instead of blue/purple.
+        purple: {
+          300: "#d4d4d4",
+          400: "#a3a3a3",
+          500: "#737373",
+          600: "#525252",
+          700: "#404040",
+          900: "#171717",
+        },
       },
     },
   },

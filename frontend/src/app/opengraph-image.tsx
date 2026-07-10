@@ -17,7 +17,7 @@ export default async function OgImage() {
           padding: '64px 72px',
           backgroundColor: '#0f172a',
           backgroundImage:
-            'linear-gradient(135deg, #0f172a 0%, #1e293b 45%, #1d4ed8 100%)',
+            'linear-gradient(135deg, #0f172a 0%, #1e293b 45%, #334155 100%)',
           color: '#ffffff',
           fontFamily: 'sans-serif',
         }}

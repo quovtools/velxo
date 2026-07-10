@@ -2,9 +2,50 @@
 @tailwind components;
 @tailwind utilities;
 
+/* ── Light mode (default) ── */
 :root {
+  --background: #ffffff;
+  --foreground: #0a0a0a;
+  --surface: #f5f5f5;
+  --border: #e5e5e5;
+  --nav-bg: rgba(255, 255, 255, 0.8);
+
+  --brand-rgb: 10 10 10;
+  --brand-50-rgb: 250 250 250;
+  --brand-100-rgb: 245 245 245;
+  --brand-200-rgb: 229 229 229;
+  --brand-300-rgb: 212 212 212;
+  --brand-400-rgb: 82 82 82;
+  --brand-500-rgb: 10 10 10;
+  --brand-600-rgb: 0 0 0;
+  --brand-700-rgb: 0 0 0;
+  --brand-800-rgb: 10 10 10;
+  --brand-light-rgb: 64 64 64;
+  --brand-dark-rgb: 0 0 0;
+  --accent-rgb: 82 82 82;
+}
+
+/* ── Dark mode — toggled by adding .dark to <html> ── */
+:root.dark {
   --background: #0b0f19;
   --foreground: #f8fafc;
+  --surface: #111827;
+  --border: #1f2937;
+  --nav-bg: rgba(11, 15, 25, 0.8);
+
+  --brand-rgb: 250 250 250;
+  --brand-50-rgb: 10 10 10;
+  --brand-100-rgb: 23 23 23;
+  --brand-200-rgb: 38 38 38;
+  --brand-300-rgb: 64 64 64;
+  --brand-400-rgb: 255 255 255;
+  --brand-500-rgb: 250 250 250;
+  --brand-600-rgb: 229 229 229;
+  --brand-700-rgb: 212 212 212;
+  --brand-800-rgb: 255 255 255;
+  --brand-light-rgb: 255 255 255;
+  --brand-dark-rgb: 229 229 229;
+  --accent-rgb: 212 212 212;
 }
 
 * {
@@ -16,25 +57,47 @@ html {
 }
 
 body {
-  background-color: #0b0f19;
-  color: #f8fafc;
+  background-color: var(--background);
+  color: var(--foreground);
   font-family: 'Inter', system-ui, sans-serif;
   overflow-x: hidden;
   -webkit-font-smoothing: antialiased;
   text-rendering: optimizeLegibility;
+  transition: background-color 0.2s, color 0.2s;
 }
 
 ::selection {
-  background: rgba(124, 58, 237, 0.35);
-  color: #fff;
+  background: rgba(0, 0, 0, 0.18);
+  color: var(--foreground);
+}
+:root.dark ::selection {
+  background: rgba(255, 255, 255, 0.22);
 }
 
 ::-webkit-scrollbar { width: 8px; }
-::-webkit-scrollbar-track { background: #0b0f19; }
+::-webkit-scrollbar-track { background: var(--background); }
 ::-webkit-scrollbar-thumb {
-  background: linear-gradient(180deg, #7C3AED, #06B6D4);
+  background: linear-gradient(180deg, #525252, #a3a3a3);
   border-radius: 999px;
 }
+:root.dark ::-webkit-scrollbar-thumb {
+  background: linear-gradient(180deg, #ffffff, #737373);
+}
+
+/* ── Text colour overrides so the (dark-first) markup reads in both modes ── */
+:root.dark .text-white { color: #f8fafc; }
+:root:not(.dark) .text-white { color: #0a0a0a; }
+:root:not(.dark) .text-gray-300 { color: #525252; }
+:root:not(.dark) .text-gray-400 { color: #737373; }
+:root:not(.dark) .text-gray-500 { color: #8a8a8a; }
+
+/* Subtle "white" surfaces / borders become visible in light mode */
+:root:not(.dark) .border-white\/10 { border-color: var(--border); }
+:root:not(.dark) .border-white\/5 { border-color: var(--border); }
+:root:not(.dark) .border-white\/\[0\.08\] { border-color: var(--border); }
+:root:not(.dark) .bg-white\/\[0\.04\] { background-color: var(--surface); }
+:root:not(.dark) .bg-white\/5 { background-color: var(--surface); }
+:root:not(.dark) .bg-white\/\[0\.03\] { background-color: var(--surface); }
 
 @layer components {
   /* Layout */
@@ -52,10 +115,12 @@ body {
 
   /* Buttons */
   .btn-primary {
-    @apply inline-flex items-center justify-center gap-2 rounded-2xl bg-gradient-to-r from-brand-500 to-brand-accent px-7 py-3.5 text-sm font-bold text-white shadow-lg shadow-brand/30 transition duration-300 hover:-translate-y-0.5 hover:shadow-glow hover:from-brand-600 hover:to-accent;
+    @apply inline-flex items-center justify-center gap-2 rounded-2xl bg-gradient-to-r from-brand-500 to-accent px-7 py-3.5 text-sm font-bold shadow-lg shadow-brand/30 transition duration-300 hover:-translate-y-0.5 hover:shadow-glow;
+    color: #ffffff;
   }
+  :root.dark .btn-primary { color: #0a0a0a; }
   .btn-secondary {
-    @apply inline-flex items-center justify-center gap-2 rounded-2xl border border-white/10 bg-white/[0.04] px-7 py-3.5 text-sm font-semibold text-white transition duration-300 hover:-translate-y-0.5 hover:border-brand/40 hover:bg-white/[0.07];
+    @apply inline-flex items-center justify-center gap-2 rounded-2xl border border-white/10 bg-white/[0.04] px-7 py-3.5 text-sm font-semibold transition duration-300 hover:-translate-y-0.5 hover:border-brand/40 hover:bg-white/[0.07];
   }
   .btn-ghost {
     @apply inline-flex items-center justify-center gap-2 rounded-xl px-4 py-2 text-sm font-semibold text-gray-300 transition hover:text-white;
@@ -71,10 +136,12 @@ body {
 
   /* Section heading helpers */
   .heading-xl {
-    @apply text-4xl font-black tracking-tight text-white sm:text-5xl lg:text-6xl;
+    @apply text-4xl font-black tracking-tight sm:text-5xl lg:text-6xl;
+    color: var(--foreground);
   }
   .heading-lg {
-    @apply text-3xl font-black tracking-tight text-white sm:text-4xl;
+    @apply text-3xl font-black tracking-tight sm:text-4xl;
+    color: var(--foreground);
   }
 }
 
@@ -86,15 +153,18 @@ body {
     @apply bg-gradient-to-r from-yellow-200 via-yellow-400 to-amber-500 bg-clip-text text-transparent;
   }
   .bg-dotgrid {
-    background-image: radial-gradient(rgba(255, 255, 255, 0.06) 1px, transparent 1px);
+    background-image: radial-gradient(rgba(128,128,128,0.10) 1px, transparent 1px);
     background-size: 24px 24px;
   }
 }
 
 .card-glow:hover {
-  box-shadow: 0 0 30px rgba(124, 58, 237, 0.15);
+  box-shadow: 0 0 30px rgba(0, 0, 0, 0.18);
   transform: translateY(-3px);
   transition: all 0.3s ease;
+}
+:root.dark .card-glow:hover {
+  box-shadow: 0 0 30px rgba(255, 255, 255, 0.12);
 }
 
 .noise-bg {
@@ -102,3 +172,11 @@ body {
 }
 
 .animate-marquee { animation: marquee 28s linear infinite; }
+
+/* ── Monochrome brand: keep text readable on solid/gradient brand fills ── */
+:root.dark .bg-brand,
+:root.dark .from-brand,
+:root.dark .to-brand { color: #0a0a0a !important; }
+:root:not(.dark) .bg-brand,
+:root:not(.dark) .from-brand,
+:root:not(.dark) .to-brand { color: #ffffff !important; }

@@ -9,7 +9,7 @@ const TESTIMONIALS = [
     text: 'Sold my Free Fire account in under 2 hours and got paid instantly into my wallet. I\'ll never go back to Telegram groups.',
     rating: 5,
     initials: 'EO',
-    color: '#FF4500',
+    color: '#525252',
   },
   {
     name: 'Amina K.',
@@ -18,7 +18,7 @@ const TESTIMONIALS = [
     text: 'The escrow is a genuine game changer. Bought a Valorant account and the seller couldn\'t scam me even if they tried.',
     rating: 5,
     initials: 'AK',
-    color: '#8B5CF6',
+    color: '#737373',
   },
   {
     name: 'Kwame A.',
@@ -27,7 +27,7 @@ const TESTIMONIALS = [
     text: 'Spent 2 years getting scammed on Discord. Velxo is the first platform where I actually feel safe trading.',
     rating: 5,
     initials: 'KA',
-    color: '#06B6D4',
+    color: '#404040',
   },
   {
     name: 'Fatima B.',
@@ -36,7 +36,7 @@ const TESTIMONIALS = [
     text: 'I listed 3 PUBG accounts and all 3 sold within a week. The seller dashboard is clean and payouts are fast.',
     rating: 5,
     initials: 'FB',
-    color: '#F5A623',
+    color: '#a3a3a3',
   },
   {
     name: 'Chidi N.',
@@ -45,7 +45,7 @@ const TESTIMONIALS = [
     text: 'Bought Robux top-up from a verified seller. Delivered in 10 minutes. Everything was exactly as described.',
     rating: 5,
     initials: 'CN',
-    color: '#CC0000',
+    color: '#262626',
   },
   {
     name: 'Zara M.',
@@ -54,7 +54,7 @@ const TESTIMONIALS = [
     text: 'Finally a marketplace built for Africa. Flutterwave payments work perfectly and I got my payout the same day.',
     rating: 5,
     initials: 'ZM',
-    color: '#9B59B6',
+    color: '#d4d4d4',
   },
 ];
 

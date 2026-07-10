@@ -1,7 +1,7 @@
 'use client';
 import React, { useState, useEffect } from 'react';
 import Link from 'next/link';
-import { Menu, X, ShieldCheck } from 'lucide-react';
+import { Menu, X, ShieldCheck, Sun, Moon } from 'lucide-react';
 
 const NAV_LINKS = [
   { label: 'Home', href: '/' },
@@ -17,6 +17,7 @@ const isHash = (href: string) => href.startsWith('#');
 export default function Navbar() {
   const [scrolled, setScrolled] = useState(false);
   const [open, setOpen] = useState(false);
+  const [theme, setTheme] = useState<'dark' | 'light'>('dark');
 
   useEffect(() => {
     const onScroll = () => setScrolled(window.scrollY > 16);
@@ -24,6 +25,20 @@ export default function Navbar() {
     window.addEventListener('scroll', onScroll, { passive: true });
     return () => window.removeEventListener('scroll', onScroll);
   }, []);
+
+  useEffect(() => {
+    const current = document.documentElement.classList.contains('dark') ? 'dark' : 'light';
+    setTheme(current);
+  }, []);
+
+  const toggleTheme = () => {
+    const next = theme === 'dark' ? 'light' : 'dark';
+    setTheme(next);
+    const root = document.documentElement;
+    root.classList.add(next);
+    root.classList.remove(next === 'dark' ? 'light' : 'dark');
+    try { localStorage.setItem('velxo_theme', next); } catch (e) {}
+  };
 
   const linkClass = scrolled
     ? 'text-gray-300 hover:text-brand-light'
@@ -35,7 +50,7 @@ export default function Navbar() {
         aria-label="Primary"
         className={`transition-all duration-300 ${
           scrolled
-            ? 'border-b border-white/10 bg-[#0b0f19]/80 backdrop-blur-xl'
+            ? 'border-b border-white/10 bg-[var(--nav-bg)] backdrop-blur-xl'
             : 'border-b border-transparent bg-transparent'
         }`}
       >
@@ -64,6 +79,14 @@ export default function Navbar() {
           </div>
 
           <div className="hidden items-center gap-2 md:flex">
+            <button
+              type="button"
+              onClick={toggleTheme}
+              aria-label={theme === 'dark' ? 'Switch to light mode' : 'Switch to dark mode'}
+              className="rounded-xl border border-white/10 bg-white/5 p-2 text-white transition hover:border-brand/40"
+            >
+              {theme === 'dark' ? <Sun className="h-5 w-5" /> : <Moon className="h-5 w-5" />}
+            </button>
             <a href="https://market.velxo.shop/auth/login" className="btn-ghost">
               Sign In
             </a>
@@ -84,7 +107,7 @@ export default function Navbar() {
           </button>
         </div>
 
-        <div id="mobile-menu" className={`border-t border-white/10 bg-[#0b0f19]/95 px-4 py-4 backdrop-blur-xl md:hidden ${open ? '' : 'hidden'}`}>
+        <div id="mobile-menu" className={`border-t border-white/10 bg-[var(--nav-bg)] px-4 py-4 backdrop-blur-xl md:hidden ${open ? '' : 'hidden'}`}>
             <div className="flex flex-col gap-1">
               {NAV_LINKS.map((link) =>
                 isHash(link.href) ? (
@@ -100,6 +123,14 @@ export default function Navbar() {
                 )
               )}
             </div>
+            <button
+              type="button"
+              onClick={toggleTheme}
+              className="mt-3 flex items-center justify-center gap-2 rounded-xl border border-white/10 bg-white/5 px-4 py-3 text-sm font-semibold text-gray-200 transition hover:border-brand/40"
+            >
+              {theme === 'dark' ? <Sun className="h-4 w-4" /> : <Moon className="h-4 w-4" />}
+              {theme === 'dark' ? 'Light mode' : 'Dark mode'}
+            </button>
             <div className="mt-3 grid grid-cols-2 gap-2">
               <a href="https://market.velxo.shop/auth/login"
                 className="rounded-xl border border-white/10 px-4 py-3 text-center text-sm font-semibold text-gray-200 transition hover:border-brand/40">

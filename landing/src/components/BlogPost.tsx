@@ -62,7 +62,7 @@ export default function BlogPost() {
   };
 
   return (
-    <main className="min-h-screen bg-[#0b0f19] pt-24">
+    <main className="min-h-screen bg-background pt-24">
       <article className="container-x max-w-4xl space-y-8 py-12">
         <div className="flex items-center justify-between">
           <Link href="/blog" className="inline-flex items-center gap-2 text-sm text-gray-500 transition hover:text-white">

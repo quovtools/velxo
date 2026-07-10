@@ -39,13 +39,13 @@ export default function PrivacyPage() {
   return (
     <>
       <Navbar />
-      <main className="min-h-screen bg-[#0b0f19] pt-24">
+      <main className="min-h-screen bg-background pt-24">
         <div className="max-w-3xl mx-auto px-4 sm:px-6 lg:px-8 py-12 sm:py-16 space-y-10">
 
           {/* Header */}
-          <div className="space-y-3 border-b border-[#1F2937] pb-8">
+          <div className="space-y-3 border-b border-border pb-8">
             <div className="flex items-center gap-3">
-              <ShieldCheck className="w-8 h-8 text-[#A78BFA]" />
+              <ShieldCheck className="w-8 h-8 text-brand-light" />
               <h1 className="text-3xl sm:text-4xl font-extrabold text-white">Privacy Policy</h1>
             </div>
             <p className="text-gray-400 text-sm">Last updated: January 2025</p>
@@ -55,14 +55,14 @@ export default function PrivacyPage() {
           </div>
 
           {/* Quick nav */}
-          <details className="bg-[#111827] border border-[#1F2937] rounded-2xl p-5 group open:border-[#8B5CF6]/40 sm:open:border-[#8B5CF6]/40">
+          <details className="bg-surface border border-border rounded-2xl p-5 group open:border-brand/40 sm:open:border-brand/40">
             <summary className="flex justify-between items-center cursor-pointer list-none text-sm font-bold text-white uppercase tracking-wider">
               Quick Navigation
               <span className="text-gray-500 sm:hidden">Tap to expand</span>
             </summary>
             <div className="grid grid-cols-1 sm:grid-cols-2 gap-1.5 mt-4">
               {sections.map((s, i) => (
-                <a key={i} href={`#section-${i}`} className="text-sm text-gray-400 hover:text-[#A78BFA] transition truncate">{s.title}</a>
+                <a key={i} href={`#section-${i}`} className="text-sm text-gray-400 hover:text-brand-light transition truncate">{s.title}</a>
               ))}
             </div>
           </details>
@@ -78,8 +78,8 @@ export default function PrivacyPage() {
           </div>
 
           {/* Footer links */}
-          <div className="border-t border-[#1F2937] pt-8 flex flex-col sm:flex-row justify-between items-center gap-4 text-sm text-gray-500">
-            <p>Questions? <a href="mailto:privacy@velxo.shop" className="text-[#A78BFA] hover:underline">privacy@velxo.shop</a></p>
+          <div className="border-t border-border pt-8 flex flex-col sm:flex-row justify-between items-center gap-4 text-sm text-gray-500">
+            <p>Questions? <a href="mailto:privacy@velxo.shop" className="text-brand-light hover:underline">privacy@velxo.shop</a></p>
             <div className="flex gap-5">
               <Link href="/terms" className="hover:text-white transition">Terms of Service</Link>
               <Link href="/support" className="hover:text-white transition">Help Center</Link>

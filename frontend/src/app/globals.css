@@ -9,9 +9,10 @@
   --card-bg: #ffffff;
   --border-bg: #e2e8f0;
   --hover-bg: #f1f5f9;
-  --brand: #2563eb;
-  --brand-dark: #1d4ed8;
-  --brand-light: #60a5fa;
+  --brand-rgb: 10 10 10;
+  --brand-dark-rgb: 0 0 0;
+  --brand-light-rgb: 64 64 64;
+  --brand-accent-rgb: 82 82 82;
 }
 
 /* ── Dark mode — toggled by adding .dark to <html> ── */
@@ -21,9 +22,10 @@
   --card-bg: #1e293b;
   --border-bg: #334155;
   --hover-bg: #475569;
-  --brand: #2563eb;
-  --brand-dark: #1d4ed8;
-  --brand-light: #60a5fa;
+  --brand-rgb: 250 250 250;
+  --brand-dark-rgb: 229 229 229;
+  --brand-light-rgb: 255 255 255;
+  --brand-accent-rgb: 212 212 212;
 }
 
 body {
@@ -45,7 +47,7 @@ body {
 ::-webkit-scrollbar { width: 5px; height: 5px; }
 ::-webkit-scrollbar-track { background: var(--background); }
 ::-webkit-scrollbar-thumb { background: var(--border-bg); border-radius: 4px; }
-::-webkit-scrollbar-thumb:hover { background: #2563eb; }
+::-webkit-scrollbar-thumb:hover { background: #737373; }
 
 /* Animations */
 @keyframes fadeIn {
@@ -82,3 +84,11 @@ body {
 .safe-area-pb { padding-bottom: env(safe-area-inset-bottom, 0px); }
 .scrollbar-none::-webkit-scrollbar { display: none; }
 .scrollbar-none { -ms-overflow-style: none; scrollbar-width: none; }
+
+/* ── Monochrome brand: keep text readable on solid/gradient brand fills ── */
+:root.dark .bg-brand,
+:root.dark .from-brand,
+:root.dark .to-brand { color: #0a0a0a !important; }
+:root:not(.dark) .bg-brand,
+:root:not(.dark) .from-brand,
+:root:not(.dark) .to-brand { color: #ffffff !important; }

@@ -71,12 +71,12 @@ const PROGRAMS = [
     desc: 'Velxo hosts WhatsApp and online gaming tournaments with real cash prizes for African gamers. Join the next event.',
   },
   {
-    icon: <Users className="w-6 h-6 text-[#8B5CF6]" />,
+    icon: <Users className="w-6 h-6 text-brand" />,
     title: 'Referral Program',
     desc: 'Refer a friend who completes their first trade — you both earn. No cap on referrals, no expiry on your rewards.',
   },
   {
-    icon: <Gamepad2 className="w-6 h-6 text-[#06B6D4]" />,
+    icon: <Gamepad2 className="w-6 h-6 text-accent" />,
     title: 'Verified Seller Community',
     desc: 'Top-performing sellers get verified badges, priority placement, and exclusive access to seller-only resources.',
   },
@@ -86,12 +86,12 @@ export default function CommunityPage() {
   return (
     <>
       <Navbar />
-      <main className="min-h-screen bg-[#0b0f19] pt-24">
+      <main className="min-h-screen bg-background pt-24">
         <div className="max-w-6xl mx-auto px-4 sm:px-6 lg:px-8 py-16 space-y-20">
 
           {/* Header */}
           <div className="text-center space-y-5">
-            <span className="inline-block text-xs font-bold text-[#A78BFA] uppercase tracking-widest bg-[#8B5CF6]/10 px-4 py-2 rounded-full border border-[#8B5CF6]/20">
+            <span className="inline-block text-xs font-bold text-brand-light uppercase tracking-widest bg-brand/10 px-4 py-2 rounded-full border border-brand/20">
               Community
             </span>
             <h1 className="text-4xl sm:text-6xl font-black text-white leading-tight">
@@ -109,12 +109,12 @@ export default function CommunityPage() {
             <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-5">
               {CHANNELS.map((ch) => (
                 <a key={ch.name} href={ch.href} target="_blank" rel="noopener noreferrer"
-                  className={`bg-[#111827] border ${ch.color} rounded-2xl p-6 space-y-4 transition-all duration-300 card-glow group`}>
+                  className={`bg-surface border ${ch.color} rounded-2xl p-6 space-y-4 transition-all duration-300 card-glow group`}>
                   <div className="flex items-start justify-between">
-                    <div className="w-12 h-12 rounded-xl bg-[#0b0f19] border border-[#1F2937] flex items-center justify-center">
+                    <div className="w-12 h-12 rounded-xl bg-background border border-border flex items-center justify-center">
                       {ch.icon}
                     </div>
-                     <span className="text-[10px] font-bold text-gray-500 bg-[#0b0f19] px-2 py-1 rounded-full border border-[#1F2937]">
+                     <span className="text-[10px] font-bold text-gray-500 bg-background px-2 py-1 rounded-full border border-border">
                       {ch.badge}
                     </span>
                   </div>
@@ -122,7 +122,7 @@ export default function CommunityPage() {
                     <h3 className="font-bold text-white mb-1">{ch.name}</h3>
                     <p className="text-xs text-gray-400 leading-relaxed">{ch.desc}</p>
                   </div>
-                  <span className="flex items-center gap-1.5 text-xs font-bold text-[#A78BFA] group-hover:gap-2 transition-all">
+                  <span className="flex items-center gap-1.5 text-xs font-bold text-brand-light group-hover:gap-2 transition-all">
                     {ch.cta} <ArrowRight className="w-3 h-3" />
                   </span>
                 </a>
@@ -135,8 +135,8 @@ export default function CommunityPage() {
             <h2 className="text-2xl font-black text-white text-center">Community programs</h2>
             <div className="grid grid-cols-1 md:grid-cols-3 gap-5">
               {PROGRAMS.map((p) => (
-                <div key={p.title} className="bg-[#111827] border border-[#1F2937] hover:border-[#8B5CF6]/30 rounded-2xl p-7 space-y-4 transition card-glow">
-                  <div className="w-12 h-12 rounded-xl bg-[#0b0f19] border border-[#1F2937] flex items-center justify-center">
+                <div key={p.title} className="bg-surface border border-border hover:border-brand/30 rounded-2xl p-7 space-y-4 transition card-glow">
+                  <div className="w-12 h-12 rounded-xl bg-background border border-border flex items-center justify-center">
                     {p.icon}
                   </div>
                   <h3 className="font-bold text-white">{p.title}</h3>
@@ -147,16 +147,16 @@ export default function CommunityPage() {
           </div>
 
           {/* Join CTA */}
-          <div className="relative bg-gradient-to-br from-[#8B5CF6]/15 to-[#06B6D4]/10 border border-[#8B5CF6]/25 rounded-3xl p-12 text-center space-y-6">
+          <div className="relative bg-gradient-to-br from-brand/15 to-accent/10 border border-brand/25 rounded-3xl p-12 text-center space-y-6">
             <h3 className="text-3xl font-black text-white">Ready to be part of it?</h3>
             <p className="text-gray-400 max-w-md mx-auto">Create your free account and join Africa&apos;s fastest-growing gaming trade community.</p>
             <div className="flex flex-col sm:flex-row gap-3 justify-center">
               <a href="https://market.velxo.shop/auth/register"
-                className="bg-[#8B5CF6] hover:bg-[#6D28D9] text-white font-bold px-8 py-3.5 rounded-xl text-sm transition shadow-lg shadow-[#8B5CF6]/25">
+                className="bg-brand hover:bg-brand-dark text-white font-bold px-8 py-3.5 rounded-xl text-sm transition shadow-lg shadow-brand/25">
                 Create Free Account
               </a>
               <a href="https://discord.gg/velxo" target="_blank" rel="noopener noreferrer"
-                className="border border-[#1F2937] hover:border-[#8B5CF6]/40 text-gray-300 hover:text-white font-semibold px-8 py-3.5 rounded-xl text-sm transition">
+                className="border border-border hover:border-brand/40 text-gray-300 hover:text-white font-semibold px-8 py-3.5 rounded-xl text-sm transition">
                 Join Discord
               </a>
             </div>

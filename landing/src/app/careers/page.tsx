@@ -28,19 +28,19 @@ const openRoles = [
 ];
 
 const perks = [
-  { icon: <Globe className="w-5 h-5 text-[#A78BFA]" />, label: '100% Remote', desc: 'Work from anywhere in Africa' },
-  { icon: <Zap className="w-5 h-5 text-[#A78BFA]" />, label: 'Fast-paced environment', desc: 'Ship features, not slides' },
-  { icon: <Users className="w-5 h-5 text-[#A78BFA]" />, label: 'Small team, big impact', desc: 'Your work matters from day one' },
-  { icon: <Heart className="w-5 h-5 text-[#A78BFA]" />, label: 'Gaming culture', desc: 'We actually play the games we serve' },
-  { icon: <Coffee className="w-5 h-5 text-[#A78BFA]" />, label: 'Flexible hours', desc: 'Async-first work culture' },
-  { icon: <Award className="w-5 h-5 text-[#A78BFA]" />, label: 'Equity opportunities', desc: 'Grow with the company' },
+  { icon: <Globe className="w-5 h-5 text-brand-light" />, label: '100% Remote', desc: 'Work from anywhere in Africa' },
+  { icon: <Zap className="w-5 h-5 text-brand-light" />, label: 'Fast-paced environment', desc: 'Ship features, not slides' },
+  { icon: <Users className="w-5 h-5 text-brand-light" />, label: 'Small team, big impact', desc: 'Your work matters from day one' },
+  { icon: <Heart className="w-5 h-5 text-brand-light" />, label: 'Gaming culture', desc: 'We actually play the games we serve' },
+  { icon: <Coffee className="w-5 h-5 text-brand-light" />, label: 'Flexible hours', desc: 'Async-first work culture' },
+  { icon: <Award className="w-5 h-5 text-brand-light" />, label: 'Equity opportunities', desc: 'Grow with the company' },
 ];
 
 export default function CareersPage() {
   return (
     <>
       <Navbar />
-      <main className="min-h-screen bg-[#0b0f19] pt-24">
+      <main className="min-h-screen bg-background pt-24">
         <div className="max-w-5xl mx-auto px-4 sm:px-6 lg:px-8 py-12 sm:py-16 space-y-14">
 
           {/* Hero */}
@@ -57,8 +57,8 @@ export default function CareersPage() {
           {/* Perks */}
           <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4 sm:gap-5">
             {perks.map((perk) => (
-              <div key={perk.label} className="bg-[#111827] border border-[#1F2937] rounded-2xl p-5 flex items-start gap-4">
-                <div className="w-10 h-10 bg-[#8B5CF6]/10 rounded-xl flex items-center justify-center flex-shrink-0">{perk.icon}</div>
+              <div key={perk.label} className="bg-surface border border-border rounded-2xl p-5 flex items-start gap-4">
+                <div className="w-10 h-10 bg-brand/10 rounded-xl flex items-center justify-center flex-shrink-0">{perk.icon}</div>
                 <div>
                   <p className="font-bold text-white text-sm">{perk.label}</p>
                   <p className="text-xs text-gray-400 mt-0.5">{perk.desc}</p>
@@ -72,12 +72,12 @@ export default function CareersPage() {
             <h2 className="text-2xl sm:text-3xl font-extrabold text-white">Open Positions</h2>
             <div className="space-y-4">
               {openRoles.map((role) => (
-                <div key={role.title} className="bg-[#111827] border border-[#1F2937] rounded-2xl p-6 space-y-3 hover:border-[#8B5CF6]/40 transition card-glow">
+                <div key={role.title} className="bg-surface border border-border rounded-2xl p-6 space-y-3 hover:border-brand/40 transition card-glow">
                   <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3">
                     <div>
                       <h3 className="font-bold text-white text-lg">{role.title}</h3>
                       <div className="flex flex-wrap items-center gap-2 mt-1">
-                        <span className="text-xs bg-[#8B5CF6]/10 text-[#A78BFA] border border-[#8B5CF6]/20 px-2.5 py-0.5 rounded-full font-semibold">{role.team}</span>
+                        <span className="text-xs bg-brand/10 text-brand-light border border-brand/20 px-2.5 py-0.5 rounded-full font-semibold">{role.team}</span>
                         <span className="text-xs text-gray-500">{role.type}</span>
                         <span className="text-xs text-gray-500 flex items-center gap-1"><MapPin className="w-3 h-3" /> {role.location}</span>
                       </div>
@@ -91,7 +91,7 @@ export default function CareersPage() {
           </div>
 
           {/* General Application */}
-          <div className="bg-[#111827] border border-[#1F2937] rounded-3xl p-8 sm:p-10 text-center space-y-5">
+          <div className="bg-surface border border-border rounded-3xl p-8 sm:p-10 text-center space-y-5">
             <h3 className="text-2xl font-extrabold text-white">Don&apos;t see your role?</h3>
             <p className="text-gray-400 max-w-md mx-auto text-sm">
               We&apos;re always looking for talented people who are passionate about gaming and building great products. Send us your profile and tell us how you&apos;d contribute.

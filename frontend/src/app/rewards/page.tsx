@@ -175,12 +175,12 @@ export default function RewardsPage() {
             {affiliateStats && (
               <div className="grid grid-cols-2 lg:grid-cols-4 gap-4">
                 <div className="bg-cardBg border border-borderBg rounded-2xl p-5 space-y-2">
-                  <MousePointerClick className="w-5 h-5 text-[#06B6D4] mb-1" />
+                  <MousePointerClick className="w-5 h-5 text-brand-accent mb-1" />
                   <p className="text-3xl font-black text-white">{affiliateStats.totalClicks}</p>
                   <p className="text-xs text-gray-500 font-medium">Total Clicks</p>
                 </div>
                 <div className="bg-cardBg border border-borderBg rounded-2xl p-5 space-y-2">
-                  <Users className="w-5 h-5 text-[#8B5CF6] mb-1" />
+                  <Users className="w-5 h-5 text-brand mb-1" />
                   <p className="text-3xl font-black text-white">{affiliateStats.totalSignups}</p>
                   <p className="text-xs text-gray-500 font-medium">Signups</p>
                 </div>
