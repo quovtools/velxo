@@ -2,7 +2,6 @@ import { Injectable, Logger, Inject, Optional } from '@nestjs/common'
 import { REQUEST } from '@nestjs/core'
 import { Request } from 'express'
 import { PrismaService } from '@/common/services/prisma.service'
-import { CurrencyService } from '@/common/services/currency.service'
 import { CreateOrderDto } from './dto/create-order.dto'
 import {
   NotFoundException,
@@ -42,7 +41,6 @@ export class OrdersService {
     private prisma: PrismaService,
     private rewardsService: RewardsService,
     private notifications: NotificationsService,
-    private currencyService: CurrencyService,
     @Optional() @Inject(REQUEST) private request?: Request,
   ) {}
 
