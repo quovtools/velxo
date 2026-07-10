@@ -183,22 +183,37 @@ export class PaymentsService implements OnModuleInit {
    */
   private buildProviderCandidates(order?: { metadata?: any }): PaymentProvider[] {
     const candidates: PaymentProvider[] = []
-    const push = (p?: PaymentProvider) => {
+    const configured: PaymentProvider[] = []
+    if (this.flutterwave.isConfigured) configured.push(PaymentProvider.FLUTTERWAVE)
+    if (this.paymentIo.isConfigured) configured.push(PaymentProvider.PAYMENT_IO)
+
+    const pushUnique = (p?: PaymentProvider) => {
       if (p && !candidates.includes(p)) candidates.push(p)
     }
 
-    const override = process.env.PAYMENT_PROVIDER?.toUpperCase()
-    if (override === 'FLUTTERWAVE' || override === 'PAYMENT_IO' || override === 'CRYPTO') {
-      push(override === 'CRYPTO' ? PaymentProvider.PAYMENT_IO : (override as PaymentProvider))
-    }
-
+    // 1) The buyer's explicit choice first — but only if it is actually
+    //    configured (don't waste a call on an unconfigured provider).
     const chosen = (order?.metadata as Record<string, any> | undefined)?.paymentMethod as
       | PaymentProvider
       | undefined
-    push(chosen)
+    if (chosen && configured.includes(chosen)) pushUnique(chosen)
 
-    if (this.flutterwave.isConfigured) push(PaymentProvider.FLUTTERWAVE)
-    if (this.paymentIo.isConfigured) push(PaymentProvider.PAYMENT_IO)
+    // 2) Every other configured provider (so a link is always produced when at
+    //    least one provider works, regardless of what the buyer picked).
+    for (const c of configured) pushUnique(c)
+
+    // 3) Explicit PAYMENT_PROVIDER env override (if set and configured).
+    const override = process.env.PAYMENT_PROVIDER?.toUpperCase()
+    if (
+      (override === 'FLUTTERWAVE' || override === 'PAYMENT_IO' || override === 'CRYPTO') &&
+      configured.includes(override === 'CRYPTO' ? PaymentProvider.PAYMENT_IO : (override as PaymentProvider))
+    ) {
+      pushUnique(override === 'CRYPTO' ? PaymentProvider.PAYMENT_IO : (override as PaymentProvider))
+    }
+
+    // 4) Last resort: the buyer's choice even if unconfigured, so the failure
+    //    surfaces a clear "provider not configured" error instead of a silent one.
+    pushUnique(chosen)
 
     return candidates
   }
@@ -495,6 +510,7 @@ export class PaymentsService implements OnModuleInit {
       return false
     }
 
+    this.logger.log(`Payment.io webhook: token ${reference} VERIFIED — marking payment ${payment.id} COMPLETED`)
     await this.updatePaymentStatus(payment.id, PaymentStatus.COMPLETED, reference)
 
     return true

@@ -63,8 +63,17 @@ export default function CheckoutContent({ listingId }: { listingId: string }) {
 
   const [listing, setListing] = useState<Listing | null>(null);
   const [loadingListing, setLoadingListing] = useState(true);
-  const [paymentProvider, setPaymentProvider] = useState<'FLUTTERWAVE' | 'PAYMENT_IO'>('FLUTTERWAVE');
+  const [paymentProvider, setPaymentProvider] = useState<'FLUTTERWAVE' | 'PAYMENT_IO'>('PAYMENT_IO');
+  const [providerConfig, setProviderConfig] = useState<{
+    flutterwave?: { configured: boolean };
+    paymentio?: { configured: boolean };
+  } | null>(null);
   const [buyerNote, setBuyerNote] = useState('');
+
+  const isProviderConfigured = (id: 'FLUTTERWAVE' | 'PAYMENT_IO') =>
+    id === 'FLUTTERWAVE'
+      ? Boolean(providerConfig?.flutterwave?.configured)
+      : Boolean(providerConfig?.paymentio?.configured);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
 
@@ -85,6 +94,21 @@ export default function CheckoutContent({ listingId }: { listingId: string }) {
         setError(err.message || 'Failed to resolve offer info');
       } finally {
         setLoadingListing(false);
+      }
+
+      // Determine which payment providers are actually configured on the
+      // server and default the selection to a working one so the buyer never
+      // checks out with an unconfigured provider (which can't generate a link).
+      try {
+        const cfgRes = await api.get<{ data: any }>('/payments/config');
+        const cfg = (cfgRes as any).data;
+        setProviderConfig(cfg);
+        const fw = Boolean(cfg?.flutterwave?.configured);
+        const pio = Boolean(cfg?.paymentio?.configured);
+        if (pio) setPaymentProvider('PAYMENT_IO');
+        else if (fw) setPaymentProvider('FLUTTERWAVE');
+      } catch {
+        // leave default; provider buttons will still render (and disable if unconfigured)
       }
     }
     loadListing();
@@ -161,16 +185,20 @@ export default function CheckoutContent({ listingId }: { listingId: string }) {
                   {PROVIDERS.map((p) => {
                     const selected = paymentProvider === p.id;
                     const Icon = p.icon;
+                    const configured = isProviderConfigured(p.id);
                     return (
                       <button
                         key={p.id}
                         type="button"
+                        disabled={!configured}
                         aria-pressed={selected}
                         onClick={() => setPaymentProvider(p.id)}
                         className={`relative flex items-start gap-3 p-4 rounded-2xl border text-left transition ${
-                          selected
-                            ? 'border-brand bg-brand/5 ring-1 ring-brand/40'
-                            : 'border-borderBg bg-background hover:border-brand/40'
+                          !configured
+                            ? 'opacity-50 cursor-not-allowed border-borderBg bg-background'
+                            : selected
+                              ? 'border-brand bg-brand/5 ring-1 ring-brand/40'
+                              : 'border-borderBg bg-background hover:border-brand/40'
                         }`}
                       >
                         <span
@@ -183,6 +211,11 @@ export default function CheckoutContent({ listingId }: { listingId: string }) {
                             <span className={`font-bold text-sm ${selected ? 'text-white' : 'text-gray-300'}`}>
                               {p.name}
                             </span>
+                            {!configured && (
+                              <span className="text-[10px] uppercase font-bold text-red-400 bg-red-500/10 border border-red-500/30 px-1.5 py-0.5 rounded">
+                                Not configured
+                              </span>
+                            )}
                           </span>
                           <span className="block text-xs text-gray-500 mt-0.5">{p.description}</span>
                         </span>

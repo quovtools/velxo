@@ -114,13 +114,44 @@ export class PaymentIoService {
       if (!res.ok) return false
       const data = await res.json().catch(() => null)
       if (!data) return false
-      return (
-        data.success === true ||
-        data.status === 'completed' ||
-        data.status === 'confirmed' ||
-        data.status === 'paid' ||
-        data.paid === true
-      )
+
+      const status = String((data as any).status ?? '').toLowerCase()
+      const isPaid =
+        status === 'completed' ||
+        status === 'confirmed' ||
+        status === 'paid' ||
+        status === 'successful'
+      const isPending =
+        status === 'pending' ||
+        status === 'created' ||
+        status === 'new' ||
+        status === 'awaiting' ||
+        status === 'unpaid' ||
+        status === 'expired' ||
+        status === ''
+
+      // Never treat a created/pending charge (or a bare `success: true` from a
+      // verify call that merely succeeded) as a captured payment. Paymento's
+      // verify endpoint returns `success: true` for a charge that was only
+      // *created* (including test/sandbox), so confirming on `success` alone
+      // would mark the order PAID without any real crypto settlement.
+      if (isPaid) {
+        this.logger.log(`Paymento verify OK — token ${token} status=${status}`)
+        return true
+      }
+      if (isPending) {
+        this.logger.warn(`Paymento verify: token ${token} not paid (status=${status}) — ignoring`)
+        return false
+      }
+      // Unknown status: only confirm on an explicit paid flag, never on a bare
+      // success flag for an unspecified state.
+      const paid = (data as any).paid === true
+      if (paid) {
+        this.logger.log(`Paymento verify OK — token ${token} paid flag set`)
+        return true
+      }
+      this.logger.warn(`Paymento verify: token ${token} unconfirmed (status=${status}, success=${(data as any).success}) — ignoring`)
+      return false
     } catch (err: any) {
       this.logger.error('Paymento verifyPayment error:', err?.message || err)
       return false

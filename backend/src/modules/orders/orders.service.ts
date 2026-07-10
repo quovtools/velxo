@@ -368,6 +368,10 @@ export class OrdersService {
     const completedPayment = await this.prisma.payments.findFirst({
       where: { orderId, status: PaymentStatus.COMPLETED },
     })
+    this.logger.log(
+      `confirmDelivery ${orderId} | orderStatus=${order.status} escrowStatus=${order.escrow.status} ` +
+        `completedPayment=${completedPayment ? completedPayment.id : 'NONE'}`,
+    )
     if (!completedPayment) {
       throw new InvalidEscrowStateException('Cannot release funds — no completed payment exists for this order')
     }
