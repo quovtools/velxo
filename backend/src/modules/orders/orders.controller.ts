@@ -46,9 +46,10 @@ export class OrdersController {
 
   @Get('seller')
   @UseGuards(SupabaseJwtGuard)
-  async getSellerOrders(@CurrentUserId() sellerId: string) {
+  async getSellerOrders(@CurrentUserId() userId: string) {
     try {
-      const orders = await this.ordersService.getSellerOrders(sellerId)
+      // orders.sellerId stores sellers.id, not users.id — resolve the seller record first.
+      const orders = await this.ordersService.getSellerOrdersByUserId(userId)
       return ApiResponseDto.ok(orders, 'Orders retrieved successfully')
     } catch (error) {
       this.logger.error('Error fetching orders:', error)

@@ -162,6 +162,8 @@ export class OrdersService {
 
     // Notify the seller that a new order was placed.
     await this.notifications.notifyNewOrder(order).catch(() => {})
+    // Email confirmation to buyer immediately after order creation.
+    await this.notifications.sendOrderPlacedEmail(order).catch(() => {})
 
     return order
   }
@@ -518,6 +520,16 @@ export class OrdersService {
       },
       orderBy: { createdAt: 'desc' },
     })
+  }
+
+  /**
+   * Resolves the seller record for a userId then returns that seller's orders.
+   * The orders table stores sellers.id (not users.id) in the sellerId column.
+   */
+  async getSellerOrdersByUserId(userId: string) {
+    const seller = await this.prisma.sellers.findUnique({ where: { userId } })
+    if (!seller) return []
+    return this.getSellerOrders(seller.id)
   }
 
   async markDelivered(orderId: string, sellerId: string, deliveryData?: any) {

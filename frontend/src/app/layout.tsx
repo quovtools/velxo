@@ -4,6 +4,7 @@ import { Providers } from "./providers";
 import NavigationWrapper from "@/components/NavigationWrapper";
 import AppLoader from "@/components/AppLoader";
 import InstallPrompt from "@/components/InstallPrompt";
+import ActiveOrderBanner from "@/components/ActiveOrderBanner";
 
 const SITE_URL = "https://market.velxo.shop";
 
@@ -136,6 +137,7 @@ export default function RootLayout({
         <Providers>
           <AppLoader />
           <NavigationWrapper />
+          <ActiveOrderBanner />
           <main className="flex-1 w-full max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-6 pb-24 sm:pb-6">
             {children}
           </main>
