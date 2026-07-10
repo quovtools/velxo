@@ -210,16 +210,52 @@ export class AdminService {
   }
 
   async createAuditLog(actorId: string, action: AuditAction, entityType: string, entityId: string, oldValue?: any, newValue?: any) {
-    return this.prisma.adminAuditLogs.create({
-      data: {
-        actorId,
-        action,
-        entityType,
-        entityId,
-        oldValue,
-        newValue,
-      },
-    })
+    // Audit logging must never break the primary admin operation. We also
+    // guard the actorId foreign key: admin-console actions (password-gated) or
+    // deleted users would otherwise violate admin_audit_logs_actorId_fkey.
+    try {
+      let resolvedActorId = actorId
+      let syntheticActor: string | undefined
+
+      const actorExists = actorId
+        ? await this.prisma.users.findUnique({ where: { id: actorId }, select: { id: true } })
+        : null
+
+      if (!actorExists) {
+        syntheticActor = actorId || 'unknown'
+        // Fall back to the system admin-console user (seeded on startup).
+        const system = await this.prisma.users.upsert({
+          where: { id: 'admin-console' },
+          update: {},
+          create: {
+            id: 'admin-console',
+            email: 'admin-console@system.velxo',
+            firstName: 'Admin',
+            lastName: 'Console',
+            role: 'ADMIN',
+            emailVerified: true,
+            isActive: true,
+          },
+          select: { id: true },
+        })
+        resolvedActorId = system.id
+      }
+
+      return await this.prisma.adminAuditLogs.create({
+        data: {
+          actorId: resolvedActorId,
+          action,
+          entityType,
+          entityId,
+          oldValue,
+          newValue,
+          metadata: syntheticActor ? { syntheticActor } : undefined,
+        },
+      })
+    } catch (err) {
+      this.logger.error(`Failed to write audit log (${action} ${entityType} ${entityId}) — continuing`, err as any)
+      return null
+    }
   }
 
   async getPendingKyc(limit?: number | string) {
