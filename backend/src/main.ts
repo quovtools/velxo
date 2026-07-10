@@ -58,9 +58,11 @@ async function bootstrap() {
   }))
   expressApp.use(express.urlencoded({ limit: '25mb', extended: true }))
 
-  // Serve static files (images)
+  // Serve static files (images) - use correct path for both dev and production
   const path = require('path')
-  expressApp.use('/images', express.static(path.join(__dirname, '..', 'public', 'images')))
+  const publicPath = path.join(process.cwd(), 'public', 'images')
+  logger.log(`📁 Serving static images from: ${publicPath}`)
+  expressApp.use('/images', express.static(publicPath))
 
   app.use(helmet())
   app.use(
