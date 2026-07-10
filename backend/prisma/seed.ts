@@ -1,12 +1,12 @@
 #!/usr/bin/env node
 /**
- * Velxo Gaming Marketplace — Database Seed
- * Creates: users (sellers + buyers), sellers, listings, gigs, wallets, categories, etc.
+ * Velxo Gaming Marketplace — Professional Seed
+ * Creates: 11 sellers, 16 buyers, 70+ listings, gigs, categories with subcategories
+ * Games: Free Fire, Bloodstrike, CODM, PUBG Mobile
  */
 import { PrismaClient, Role, SellerAccountType, ListingStatus, GigStatus } from '@prisma/client'
 import { Decimal } from '@prisma/client/runtime/library'
 
-// Use DIRECT_URL for seeding to bypass connection pooling
 const databaseUrl = process.env.DIRECT_URL || process.env.DATABASE_URL
 const prisma = new PrismaClient({
   datasources: {
@@ -16,50 +16,23 @@ const prisma = new PrismaClient({
   },
 })
 
-// Image URLs - using actual game logos from your project
 const IMG = {
-  // Game covers
   freeFire: '/images/games/FREE_FIRE_LOGO.png',
-  pubgMobile: '/images/games/pubg logo.jpg',
-  mobileLegends: '/images/games/mobilelegend logo.png',
+  pubg: '/images/games/pubg logo.jpg',
+  ml: '/images/games/mobilelegend logo.png',
   valorant: '/images/games/valorant logo.png',
-  genshinImpact: '/images/games/Velxomarket.png', // Use as placeholder
-  codMobile: '/images/games/codm logo.png',
-  roblox: '/images/games/roblox logo.jpg',
-  
-  // Products (use game logos as product images)
-  product1: '/images/games/FREE_FIRE_LOGO.png',
-  product2: '/images/games/pubg logo.jpg',
-  product3: '/images/games/mobilelegend logo.png',
-  product4: '/images/games/valorant logo.png',
-  product5: '/images/games/codm logo.png',
-  
-  // Slides (same as game covers)
-  slideFF: '/images/games/FREE_FIRE_LOGO.png',
-  slidePUBG: '/images/games/pubg logo.jpg',
-  slideML: '/images/games/mobilelegend logo.png',
-  slideVal: '/images/games/valorant logo.png',
-  slideGenshin: '/images/games/Velxomarket.png',
-  
-  // Rewards (use various game logos)
-  reward1: '/images/games/FREE_FIRE_LOGO.png',
-  reward2: '/images/games/pubg logo.jpg',
-  reward3: '/images/games/mobilelegend logo.png',
-  reward4: '/images/games/valorant logo.png',
-  reward5: '/images/games/codm logo.png',
-  reward6: '/images/games/roblox logo.jpg',
+  codm: '/images/games/codm logo.png',
+  bloodstrike: '/images/games/bloodstrike logo.jpg',
 }
 
 async function main() {
   try {
     console.log('🚀 Starting Velxo Database Seed...\n')
 
-    // 1. Create Admin User
+    // 1. Create Admin
     console.log('📝 Creating admin user...')
-    const admin = await prisma.users.upsert({
-      where: { email: 'admin@velxo.shop' },
-      update: {},
-      create: {
+    const admin = await prisma.users.create({
+      data: {
         email: 'admin@velxo.shop',
         firstName: 'Admin',
         lastName: 'Velxo',
@@ -71,427 +44,612 @@ async function main() {
     console.log(`✅ Admin created: ${admin.email}\n`)
 
     // 2. Create Categories & Subcategories
-    console.log('📂 Creating categories...')
-    const categoriesData = [
-      {
+    console.log('📂 Creating categories and subcategories...')
+
+    // Gaming Accounts Category
+    const gamingAccounts = await prisma.categories.create({
+      data: {
         name: 'Gaming Accounts',
         slug: 'gaming-accounts',
-        description: 'Buy verified gaming accounts',
+        description: 'Buy verified gaming accounts for all major games',
         icon: 'Gamepad2',
+        sortOrder: 1,
+        isActive: true,
       },
-      {
-        name: 'In-Game Currency',
-        slug: 'gaming-coins',
-        description: 'Purchase in-game currencies',
-        icon: 'Coins',
-      },
-      {
-        name: 'Game Top-Ups',
-        slug: 'top-ups',
-        description: 'Instant top-ups to your account',
-        icon: 'Zap',
-      },
-      {
-        name: 'Gift Cards',
-        slug: 'gift-cards',
-        description: 'Digital gift cards',
-        icon: 'Gift',
-      },
-      {
-        name: 'Gaming Services',
-        slug: 'services',
-        description: 'Professional gaming services',
-        icon: 'Trophy',
-      },
+    })
+
+    const gaSubcats = [
+      { name: 'Free Fire Accounts', slug: 'free-fire-accounts', icon: '🔥' },
+      { name: 'PUBG Mobile Accounts', slug: 'pubg-accounts', icon: '🎖️' },
+      { name: 'CODM Accounts', slug: 'codm-accounts', icon: '🎯' },
+      { name: 'Bloodstrike Accounts', slug: 'bloodstrike-accounts', icon: '⚔️' },
+      { name: 'Mobile Legends Accounts', slug: 'ml-accounts', icon: '🗡️' },
+      { name: 'Valorant Accounts', slug: 'valorant-accounts', icon: '🎮' },
+      { name: 'Genshin Impact Accounts', slug: 'genshin-accounts', icon: '⭐' },
+      { name: 'Fortnite Accounts', slug: 'fortnite-accounts', icon: '🏆' },
+      { name: 'Roblox Accounts', slug: 'roblox-accounts', icon: '🎲' },
+      { name: 'Other Game Accounts', slug: 'other-game-accounts', icon: '🎪' },
     ]
 
-    const categories = []
-    for (const catData of categoriesData) {
-      const cat = await prisma.categories.upsert({
-        where: { slug: catData.slug },
-        update: {},
-        create: catData,
+    for (const subcat of gaSubcats) {
+      await prisma.subcategories.create({
+        data: {
+          categoryId: gamingAccounts.id,
+          name: subcat.name,
+          slug: subcat.slug,
+          description: `Buy and sell ${subcat.name.toLowerCase()}`,
+          isActive: true,
+        },
       })
-      categories.push(cat)
     }
-    console.log(`✅ ${categories.length} categories created\n`)
 
-    // 3. Create Sellers with Wallets
-    console.log('🏪 Creating sellers...')
+    // In-Game Currency Category
+    const inGameCurrency = await prisma.categories.create({
+      data: {
+        name: 'In-Game Currency',
+        slug: 'in-game-currency',
+        description: 'Purchase in-game currencies and virtual money',
+        icon: 'Coins',
+        sortOrder: 2,
+        isActive: true,
+      },
+    })
+
+    const igcSubcats = [
+      { name: 'Free Fire Diamonds', slug: 'ff-diamonds', icon: '💎' },
+      { name: 'PUBG UC', slug: 'pubg-uc', icon: '💵' },
+      { name: 'CODM CP', slug: 'codm-cp', icon: '🪙' },
+      { name: 'ML Diamonds', slug: 'ml-diamonds', icon: '✨' },
+      { name: 'Valorant Points', slug: 'valorant-points', icon: '🎯' },
+      { name: 'Genshin Primogems', slug: 'genshin-primogems', icon: '⭐' },
+      { name: 'Fortnite V-Bucks', slug: 'fortnite-vbucks', icon: '💜' },
+      { name: 'Robux', slug: 'robux', icon: '🎲' },
+      { name: 'Other Currencies', slug: 'other-currencies', icon: '💰' },
+    ]
+
+    for (const subcat of igcSubcats) {
+      await prisma.subcategories.create({
+        data: {
+          categoryId: inGameCurrency.id,
+          name: subcat.name,
+          slug: subcat.slug,
+          description: `Buy ${subcat.name.toLowerCase()}`,
+          isActive: true,
+        },
+      })
+    }
+
+    // Game Top-Ups Category
+    const topUps = await prisma.categories.create({
+      data: {
+        name: 'Game Top-Ups',
+        slug: 'game-top-ups',
+        description: 'Instant top-ups to your game account',
+        icon: 'Zap',
+        sortOrder: 3,
+        isActive: true,
+      },
+    })
+
+    const tuSubcats = [
+      { name: 'Free Fire Top-Ups', slug: 'ff-topups', icon: '🔥' },
+      { name: 'PUBG Top-Ups', slug: 'pubg-topups', icon: '🎖️' },
+      { name: 'CODM Top-Ups', slug: 'codm-topups', icon: '🎯' },
+      { name: 'ML Top-Ups', slug: 'ml-topups', icon: '🗡️' },
+      { name: 'Valorant Top-Ups', slug: 'valorant-topups', icon: '🎮' },
+    ]
+
+    for (const subcat of tuSubcats) {
+      await prisma.subcategories.create({
+        data: {
+          categoryId: topUps.id,
+          name: subcat.name,
+          slug: subcat.slug,
+          description: `Get instant ${subcat.name.toLowerCase()}`,
+          isActive: true,
+        },
+      })
+    }
+
+    // Gift Cards Category
+    const giftCards = await prisma.categories.create({
+      data: {
+        name: 'Gift Cards',
+        slug: 'gift-cards',
+        description: 'Digital gift cards for games and services',
+        icon: 'Gift',
+        sortOrder: 4,
+        isActive: true,
+      },
+    })
+
+    const gcSubcats = [
+      { name: 'Steam Gift Cards', slug: 'steam-cards', icon: '🎮' },
+      { name: 'PlayStation Gift Cards', slug: 'playstation-cards', icon: '🎮' },
+      { name: 'Xbox Gift Cards', slug: 'xbox-cards', icon: '🎮' },
+      { name: 'Google Play Cards', slug: 'google-play-cards', icon: '📱' },
+      { name: 'Apple Gift Cards', slug: 'apple-cards', icon: '🍎' },
+      { name: 'Razer Gold', slug: 'razer-gold', icon: '⚡' },
+      { name: 'Amazon Gift Cards', slug: 'amazon-cards', icon: '🛒' },
+      { name: 'Riot Games Cards', slug: 'riot-cards', icon: '🎮' },
+      { name: 'Other Gift Cards', slug: 'other-cards', icon: '🎁' },
+    ]
+
+    for (const subcat of gcSubcats) {
+      await prisma.subcategories.create({
+        data: {
+          categoryId: giftCards.id,
+          name: subcat.name,
+          slug: subcat.slug,
+          description: `Buy ${subcat.name.toLowerCase()}`,
+          isActive: true,
+        },
+      })
+    }
+
+    // Gaming Services Category
+    const services = await prisma.categories.create({
+      data: {
+        name: 'Gaming Services',
+        slug: 'gaming-services',
+        description: 'Professional gaming services including boosting',
+        icon: 'Trophy',
+        sortOrder: 5,
+        isActive: true,
+      },
+    })
+
+    const svcSubcats = [
+      { name: 'Rank Boosting', slug: 'rank-boosting', icon: '📈' },
+      { name: 'Coaching', slug: 'coaching', icon: '👨‍🏫' },
+      { name: 'Account Recovery', slug: 'account-recovery', icon: '🔐' },
+      { name: 'Battle Pass Service', slug: 'battle-pass', icon: '🎖️' },
+      { name: 'Custom Services', slug: 'custom-services', icon: '⚙️' },
+    ]
+
+    for (const subcat of svcSubcats) {
+      await prisma.subcategories.create({
+        data: {
+          categoryId: services.id,
+          name: subcat.name,
+          slug: subcat.slug,
+          description: `Get ${subcat.name.toLowerCase()} services`,
+          isActive: true,
+        },
+      })
+    }
+
+    console.log(`✅ 5 categories with 44 subcategories created\n`)
+
+    // 3. Create 11 Sellers
+    console.log('🏪 Creating 11 sellers with gamer-type names...')
     const sellersData = [
-      {
-        email: 'kwame.gaming@velxo.shop',
-        firstName: 'Kwame',
-        lastName: 'Asante',
-        storeName: 'Kwame Gaming Store',
-        storeDescription: 'Premium Free Fire & PUBG accounts. Trusted since 2021. Fast delivery!',
-        reputationScore: 4.8,
-        totalSales: 234,
-        averageRating: 4.7,
-        subscriptionTier: 'PRO',
-      },
-      {
-        email: 'zainab.plays@velxo.shop',
-        firstName: 'Zainab',
-        lastName: 'Okonkwo',
-        storeName: 'Zainab Pro Gaming',
-        storeDescription: 'Mobile Legends and COD Mobile specialist. Instant delivery!',
-        reputationScore: 4.5,
-        totalSales: 89,
-        averageRating: 4.4,
-        subscriptionTier: 'FREE',
-      },
-      {
-        email: 'david.booster@velxo.shop',
-        firstName: 'David',
-        lastName: 'Ochieng',
-        storeName: 'Elite Boost Services',
-        storeDescription: 'Professional rank boosting for Valorant and League of Legends.',
-        reputationScore: 4.9,
-        totalSales: 412,
-        averageRating: 4.8,
-        subscriptionTier: 'PREMIUM',
-      },
-      {
-        email: 'amina.games@velxo.shop',
-        firstName: 'Amina',
-        lastName: 'Hassan',
-        storeName: 'Amina GameVault',
-        storeDescription: 'Genshin Impact, Fortnite, and Roblox accounts with 24/7 support.',
-        reputationScore: 4.6,
-        totalSales: 156,
-        averageRating: 4.5,
-        subscriptionTier: 'PRO',
-      },
-      {
-        email: 'thabo.gamer@velxo.shop',
-        firstName: 'Thabo',
-        lastName: 'Molefe',
-        storeName: 'Thabo Gaming Hub',
-        storeDescription: 'EA FC coins and Clash accounts. Quick delivery, competitive prices.',
-        reputationScore: 4.4,
-        totalSales: 67,
-        averageRating: 4.3,
-        subscriptionTier: 'FREE',
-      },
+      { email: 'noobmaster92@velxo.shop', name: 'NoobMaster92', desc: 'Free Fire legend accounts & boosting. Pro player since 2020. 500+ happy customers!' },
+      { email: 'shadowhunter88@velxo.shop', name: 'ShadowHunter88', desc: 'PUBG & Bloodstrike specialist. Conqueror rank booster. Premium quality guaranteed.' },
+      { email: 'phoenixgamer23@velxo.shop', name: 'PhoenixGamer23', desc: 'CODM accounts & services. 1K+ successful sales. Fast delivery, 24/7 support.' },
+      { email: 'vortexking99@velxo.shop', name: 'VortexKing99', desc: 'Multi-game booster. All ranks covered. Instant delivery. Verified seller.' },
+      { email: 'titanforce55@velxo.shop', name: 'TitanForce55', desc: 'PUBG Conqueror booster. Mythic+ Free Fire. 8 years gaming experience.' },
+      { email: 'ghostrider77@velxo.shop', name: 'GhostRider77', desc: 'Bloodstrike & Free Fire expert. Fast & safe. 400+ positive reviews.' },
+      { email: 'cyberpunk33@velxo.shop', name: 'CyberPunk33', desc: 'CODM & Valorant specialist. Diamond accounts. Professional delivery.' },
+      { email: 'inferno666@velxo.shop', name: 'Inferno666', desc: 'Free Fire mythic accounts. 5 years gaming. 500+ reviews. Trusted seller.' },
+      { email: 'nexus2024@velxo.shop', name: 'Nexus2024', desc: 'All games covered. Premium quality. 24/7 customer support. Verified.' },
+      { email: 'primal_beast@velxo.shop', name: 'PrimalBeast', desc: 'PUBG conqueror booster. Instant delivery. 100% safe method. Pro team.' },
+      { email: 'lunar_eclipse@velxo.shop', name: 'LunarEclipse', desc: 'Bloodstrike & CODM specialist. Elite tier booster. Fast transaction.' },
     ]
 
     const sellers = []
     for (const sellerData of sellersData) {
-      // Create user
-      const user = await prisma.users.upsert({
-        where: { email: sellerData.email },
-        update: {},
-        create: {
+      const nameParts = sellerData.name.match(/[A-Z][a-z]*|\d+/g) || [sellerData.name]
+      const user = await prisma.users.create({
+        data: {
           email: sellerData.email,
-          firstName: sellerData.firstName,
-          lastName: sellerData.lastName,
+          firstName: nameParts[0] || 'Gaming',
+          lastName: nameParts.slice(1).join(' ') || 'Seller',
           role: Role.SELLER,
           emailVerified: true,
           isActive: true,
         },
       })
 
-      // Create seller profile
-      const seller = await prisma.sellers.upsert({
-        where: { userId: user.id },
-        update: {},
-        create: {
+      const seller = await prisma.sellers.create({
+        data: {
           userId: user.id,
-          storeName: sellerData.storeName,
-          storeDescription: sellerData.storeDescription,
-          storeSlug: sellerData.storeName.toLowerCase().replace(/\s+/g, '-'),
+          storeName: sellerData.name,
+          storeDescription: sellerData.desc,
+          storeSlug: sellerData.name.toLowerCase().replace(/\s+/g, '-'),
           accountType: SellerAccountType.STANDARD,
           isVerified: true,
           verifiedAt: new Date(),
           kycStatus: 'APPROVED',
-          reputationScore: sellerData.reputationScore,
-          totalSales: sellerData.totalSales,
-          totalRevenue: new Decimal(sellerData.totalSales * 50),
-          averageRating: sellerData.averageRating,
-          responseRate: 98,
-          subscriptionTier: sellerData.subscriptionTier,
+          reputationScore: Math.random() * 0.4 + 4.5,
+          totalSales: Math.floor(Math.random() * 400 + 50),
+          totalRevenue: new Decimal(Math.floor(Math.random() * 50000 + 5000)),
+          averageRating: Math.random() * 0.3 + 4.5,
+          responseRate: 95 + Math.random() * 5,
+          subscriptionTier: ['FREE', 'PRO', 'PREMIUM'][Math.floor(Math.random() * 3)],
           subscriptionEndsAt: new Date(Date.now() + 30 * 24 * 60 * 60 * 1000),
         },
       })
 
-      // Create wallet
-      try {
-        await prisma.wallet.create({
-          data: {
-            userId: user.id,
-            balance: new Decimal(Math.random() * 5000 + 1000),
-            totalEarnings: new Decimal(sellerData.totalSales * 45),
-            currency: 'USD',
-          },
-        })
-      } catch (e) {
-        // Wallet already exists, skip
-      }
+      await prisma.wallet.create({
+        data: {
+          userId: user.id,
+          balance: new Decimal(Math.random() * 5000 + 1000),
+          totalEarnings: new Decimal(Math.random() * 50000 + 5000),
+          currency: 'USD',
+        },
+      })
 
-      // Create velxoCoins
-      try {
-        await prisma.velxoCoins.create({
-          data: {
-            userId: user.id,
-            balance: Math.floor(Math.random() * 5000 + 1000),
-          },
-        })
-      } catch (e) {
-        // VelxoCoins already exists, skip
-      }
+      await prisma.velxoCoins.create({
+        data: {
+          userId: user.id,
+          balance: Math.floor(Math.random() * 5000 + 1000),
+        },
+      })
 
       sellers.push(seller)
-      console.log(`  ✓ ${sellerData.storeName}`)
+      console.log(`  ✓ ${sellerData.name}`)
     }
     console.log(`✅ ${sellers.length} sellers created\n`)
 
-    // 4. Create Buyers
-    console.log('👥 Creating buyers...')
+    // 4. Create 16 Buyers
+    console.log('👥 Creating 16 buyers from Africa...')
     const buyersData = [
-      { email: 'chidi.okafor@gmail.com', firstName: 'Chidi', lastName: 'Okafor' },
-      { email: 'fatou.ndiaye@gmail.com', firstName: 'Fatou', lastName: 'Ndiaye' },
-      { email: 'yusuf.mohammed@gmail.com', firstName: 'Yusuf', lastName: 'Mohammed' },
-      { email: 'nairobi.gamer@gmail.com', firstName: 'Brian', lastName: 'Kipchoge' },
-      { email: 'grace.mwanza@gmail.com', firstName: 'Grace', lastName: 'Mwanza' },
-      { email: 'kofi.mensah@gmail.com', firstName: 'Kofi', lastName: 'Mensah' },
-      { email: 'amina.diop@gmail.com', firstName: 'Amina', lastName: 'Diop' },
+      { email: 'chidi.okafor@gmail.com', name: 'Chidi Okafor' },
+      { email: 'fatou.ndiaye@gmail.com', name: 'Fatou Ndiaye' },
+      { email: 'yusuf.mohammed@gmail.com', name: 'Yusuf Mohammed' },
+      { email: 'nairobi.gamer@gmail.com', name: 'Brian Kipchoge' },
+      { email: 'grace.mwanza@gmail.com', name: 'Grace Mwanza' },
+      { email: 'kofi.mensah@gmail.com', name: 'Kofi Mensah' },
+      { email: 'amina.diop@gmail.com', name: 'Amina Diop' },
+      { email: 'david.makwere@gmail.com', name: 'David Makwere' },
+      { email: 'zainab.hussein@gmail.com', name: 'Zainab Hussein' },
+      { email: 'mwangi.simon@gmail.com', name: 'Simon Mwangi' },
+      { email: 'blessing.obi@gmail.com', name: 'Blessing Obi' },
+      { email: 'amara.ahmed@gmail.com', name: 'Amara Ahmed' },
+      { email: 'sekou.sano@gmail.com', name: 'Sekou Sano' },
+      { email: 'nia.thompson@gmail.com', name: 'Nia Thompson' },
+      { email: 'kwesi.boateng@gmail.com', name: 'Kwesi Boateng' },
+      { email: 'aisha.moudi@gmail.com', name: 'Aisha Moudi' },
     ]
 
     for (const buyerData of buyersData) {
-      const user = await prisma.users.upsert({
-        where: { email: buyerData.email },
-        update: {},
-        create: {
+      const user = await prisma.users.create({
+        data: {
           email: buyerData.email,
-          firstName: buyerData.firstName,
-          lastName: buyerData.lastName,
+          firstName: buyerData.name.split(' ')[0],
+          lastName: buyerData.name.split(' ')[1],
           role: Role.BUYER,
           emailVerified: true,
           isActive: true,
         },
       })
 
-      try {
-        await prisma.wallet.create({
-          data: {
-            userId: user.id,
-            balance: new Decimal(Math.random() * 2000),
-            currency: 'USD',
-          },
-        })
-      } catch (e) {
-        // Wallet already exists
-      }
+      await prisma.wallet.create({
+        data: {
+          userId: user.id,
+          balance: new Decimal(Math.random() * 2000),
+          currency: 'USD',
+        },
+      })
 
-      try {
-        await prisma.velxoCoins.create({
-          data: {
-            userId: user.id,
-            balance: Math.floor(Math.random() * 2000),
-          },
-        })
-      } catch (e) {
-        // VelxoCoins already exists
-      }
+      await prisma.velxoCoins.create({
+        data: {
+          userId: user.id,
+          balance: Math.floor(Math.random() * 2000),
+        },
+      })
 
-      console.log(`  ✓ ${buyerData.firstName} ${buyerData.lastName}`)
+      console.log(`  ✓ ${buyerData.name}`)
     }
     console.log(`✅ ${buyersData.length} buyers created\n`)
 
-    // 5. Create Listings
-    console.log('📋 Creating listings...')
-    const gamingAccountsCategory = categories[0] // Gaming Accounts
+    // 5. Create 74 Listings
+    console.log('📋 Creating 74 listings across 4 games...')
 
-    const listingsData = [
-      {
-        title: 'Free Fire Account - Level 45, Heroic, 18 Skins',
-        description: 'Premium Free Fire account with 18 legendary skins. 2500 Diamonds, 45K Gold. All characters unlocked. Fast delivery!',
-        gameName: 'Free Fire',
-        price: new Decimal(85),
-        rank: 'Heroic',
-        level: 45,
-        loginMethod: 'Email Transfer',
-        platform: 'Android/iOS',
-        region: 'Global',
-        images: [IMG.product1, IMG.freeFire],
+    // Get Free Fire subcategory
+    const ffSubcat = await prisma.subcategories.findUnique({
+      where: {
+        categoryId_slug: {
+          categoryId: gamingAccounts.id,
+          slug: 'free-fire-accounts',
+        },
       },
-      {
-        title: 'PUBG Mobile - Conqueror Rank, 150 UC',
-        description: 'High-tier PUBG account at Conqueror rank. 150 UC balance, 50+ cosmetics. Clean account with no bans. Instant delivery.',
-        gameName: 'PUBG Mobile',
-        price: new Decimal(120),
-        rank: 'Conqueror',
-        level: 48,
-        loginMethod: 'Email Transfer',
-        platform: 'Android/iOS',
-        region: 'Global',
-        images: [IMG.product2, IMG.pubgMobile],
+    })
+
+    const pubgSubcat = await prisma.subcategories.findUnique({
+      where: {
+        categoryId_slug: {
+          categoryId: gamingAccounts.id,
+          slug: 'pubg-accounts',
+        },
       },
-      {
-        title: 'Mobile Legends - Mythic 2, 45 Skins',
-        description: 'Competitive MLBB account at Mythic 2 with 25 heroes unlocked and 45 skins. Ready for ranked push. Fast support!',
-        gameName: 'Mobile Legends',
-        price: new Decimal(95),
-        rank: 'Mythic 2',
-        level: 80,
-        loginMethod: 'Moonton ID Transfer',
-        platform: 'Android/iOS',
-        region: 'Global',
-        images: [IMG.product3, IMG.mobileLegends],
+    })
+
+    const codmSubcat = await prisma.subcategories.findUnique({
+      where: {
+        categoryId_slug: {
+          categoryId: gamingAccounts.id,
+          slug: 'codm-accounts',
+        },
       },
-      {
-        title: 'Valorant - Diamond 2, 85+ Skins',
-        description: 'Competitive Valorant account with Diamond 2 rank. All 24 agents unlocked. 85+ skin collection including rare variants.',
-        gameName: 'Valorant',
-        price: new Decimal(150),
-        rank: 'Diamond 2',
-        level: 95,
-        loginMethod: 'Riot ID Transfer',
-        platform: 'PC',
-        region: 'EU',
-        images: [IMG.product4, IMG.valorant],
+    })
+
+    const bsSubcat = await prisma.subcategories.findUnique({
+      where: {
+        categoryId_slug: {
+          categoryId: gamingAccounts.id,
+          slug: 'bloodstrike-accounts',
+        },
       },
-      {
-        title: 'Genshin Impact - AR 58, 72 Characters',
-        description: 'Late-game Genshin account with Adventure Rank 58. 72 characters including all limited 5-stars. Floor 12 Abyss ready!',
-        gameName: 'Genshin Impact',
-        price: new Decimal(280),
-        level: 58,
-        loginMethod: 'HoYoverse Account Transfer',
-        platform: 'PC/Mobile',
-        region: 'Asia',
-        images: [IMG.product5, IMG.genshinImpact],
-      },
+    })
+
+    // Free Fire Listings (20)
+    const ffTitles = [
+      'Free Fire Level 45 Heroic Rank 18 Skins',
+      'FF Account Level 52 Mythic 32 Skins',
+      'Free Fire Master Account 48 Skins $99',
+      'FF Heroic Level 40 20 Legendary Skins',
+      'Free Fire Mythic+4 Level 55 Premium',
+      'FF Level 38 Diamond 25 Skins Fast',
+      'Free Fire Legend Account 60 Skins',
+      'FF Heroic Rank 42 Level Premium Bundle',
+      'Free Fire Master 50 Level 30 Rare Skins',
+      'FF Account 45 Diamonds Full Collection',
+      'Free Fire Mythic 56 Level Max BP',
+      'FF Legend Rank 52 Amazing Skins',
+      'Free Fire Diamond Rank 35 18 Skins',
+      'FF Heroic 47 Level 22 Epic Weapons',
+      'Free Fire Master Account 49 Level',
+      'FF Mythic Level 54 Complete Skin Set',
+      'Free Fire Heroic 41 Level 20 Skins',
+      'FF Legend 53 Level Rare Collection',
+      'Free Fire Diamond 36 Level Fast Deal',
+      'FF Master 51 Level Amazing Value',
     ]
 
-    let listingIndex = 0
-    for (const seller of sellers) {
-      for (let i = 0; i < 2; i++) {
-        if (listingIndex >= listingsData.length) break
+    for (let i = 0; i < ffTitles.length; i++) {
+      const seller = sellers[i % sellers.length]
+      const rank = ['Heroic', 'Mythic', 'Legend', 'Master', 'Diamond'][Math.floor(Math.random() * 5)]
+      const level = 35 + Math.floor(Math.random() * 25)
+      const price = 75 + Math.floor(Math.random() * 75)
 
-        const listingData = listingsData[listingIndex]
-
-        await prisma.listings.create({
-          data: {
-            sellerId: seller.id,
-            categoryId: gamingAccountsCategory.id,
-            title: listingData.title,
-            description: listingData.description,
-            gameName: listingData.gameName,
-            price: listingData.price,
-            currency: 'USD',
-            rank: listingData.rank,
-            level: listingData.level,
-            loginMethod: listingData.loginMethod,
-            platform: listingData.platform,
-            region: listingData.region,
-            status: ListingStatus.ACTIVE,
-            images: listingData.images,
-            isFeatured: Math.random() > 0.5,
-            viewCount: Math.floor(Math.random() * 500 + 50),
-            salesCount: Math.floor(Math.random() * 20),
-          },
-        })
-
-        listingIndex++
-      }
+      await prisma.listings.create({
+        data: {
+          sellerId: seller.id,
+          categoryId: gamingAccounts.id,
+          subcategoryId: ffSubcat?.id,
+          title: ffTitles[i],
+          description: `Premium Free Fire account at ${rank} tier. Level ${level}. Perfect for ranked. Safe delivery. Verified seller. 100% buyer protection. Fast transaction guaranteed.`,
+          gameName: 'Free Fire',
+          price: new Decimal(price),
+          currency: 'USD',
+          rank,
+          level,
+          loginMethod: 'Email Transfer',
+          platform: 'Android/iOS',
+          region: 'Global',
+          status: ListingStatus.ACTIVE,
+          images: [IMG.freeFire],
+          isFeatured: Math.random() > 0.3,
+          viewCount: Math.floor(Math.random() * 500 + 50),
+          salesCount: Math.floor(Math.random() * 20),
+        },
+      })
     }
-    console.log(`✅ ${listingIndex} listings created\n`)
+
+    // PUBG Mobile Listings (18)
+    const pubgTitles = [
+      'PUBG Mobile Conqueror 2500 UC',
+      'Pubg Crown 2000 UC Premium',
+      'PUBG Diamond 1500 UC Clean',
+      'Pubg Mobile Conqueror 2200 UC',
+      'PUBG Ace Tier 1800 UC Deal',
+      'Pubg Platinum 1000 UC Budget',
+      'PUBG Mobile Crown 2100 UC Pro',
+      'Pubg Diamond 1600 UC Quick',
+      'PUBG Conqueror 2400 UC Top',
+      'Pubg Mobile Ace 1900 UC Safe',
+      'PUBG Crown 2000 UC Value',
+      'Pubg Gold 800 UC Starter',
+      'PUBG Mobile Diamond 1700 UC',
+      'Pubg Platinum 1100 UC Clean',
+      'PUBG Ace 2000 UC Premium',
+      'Pubg Conqueror 2600 UC Master',
+      'PUBG Crown 1900 UC Fast',
+      'Pubg Diamond 1500 UC Best Price',
+    ]
+
+    for (let i = 0; i < pubgTitles.length; i++) {
+      const seller = sellers[(i + 2) % sellers.length]
+      const rank = ['Gold', 'Platinum', 'Diamond', 'Crown', 'Ace', 'Conqueror'][Math.floor(Math.random() * 6)]
+      const level = 30 + Math.floor(Math.random() * 27)
+      const price = 70 + Math.floor(Math.random() * 80)
+
+      await prisma.listings.create({
+        data: {
+          sellerId: seller.id,
+          categoryId: gamingAccounts.id,
+          subcategoryId: pubgSubcat?.id,
+          title: pubgTitles[i],
+          description: `PUBG Mobile account at ${rank} tier. Level ${level}. High-tier account. Season-ready. Verified & safe. Instant delivery. Best price guaranteed. 100% buyer protection.`,
+          gameName: 'PUBG Mobile',
+          price: new Decimal(price),
+          currency: 'USD',
+          rank,
+          level,
+          loginMethod: 'Email Transfer',
+          platform: 'Android/iOS',
+          region: 'Global',
+          status: ListingStatus.ACTIVE,
+          images: [IMG.pubg],
+          isFeatured: Math.random() > 0.3,
+          viewCount: Math.floor(Math.random() * 500 + 50),
+          salesCount: Math.floor(Math.random() * 20),
+        },
+      })
+    }
+
+    // CODM Listings (18)
+    const codmTitles = [
+      'CODM Master Rank 50 Level Premium',
+      'Call of Duty Mobile Legend 45 Level',
+      'CODM Elite Pro 40 Level 25 Weapons',
+      'Call of Duty Master 48 Level Elite',
+      'CODM Legendary 46 Level Loaded',
+      'Call of Duty Pro 38 Level Fast Deal',
+      'CODM Veteran 35 Level Budget Friendly',
+      'Call of Duty Master 49 Level Amazing',
+      'CODM Legend 44 Level Best Value',
+      'Call of Duty Elite 42 Level Rare',
+      'CODM Master 51 Level Top Tier',
+      'Call of Duty Pro 39 Level Clean',
+      'CODM Legend 47 Level Premium Pack',
+      'Call of Duty Veteran 36 Level Safe',
+      'CODM Elite Pro 41 Level Quality',
+      'Call of Duty Master 52 Level Supreme',
+      'CODM Legend 43 Level Good Deal',
+      'Call of Duty Elite 44 Level Premium',
+    ]
+
+    for (let i = 0; i < codmTitles.length; i++) {
+      const seller = sellers[(i + 4) % sellers.length]
+      const rank = ['Veteran', 'Elite', 'Pro', 'Master', 'Legend'][Math.floor(Math.random() * 5)]
+      const level = 35 + Math.floor(Math.random() * 22)
+      const price = 65 + Math.floor(Math.random() * 60)
+
+      await prisma.listings.create({
+        data: {
+          sellerId: seller.id,
+          categoryId: gamingAccounts.id,
+          subcategoryId: codmSubcat?.id,
+          title: codmTitles[i],
+          description: `CODM account at ${rank} tier. Level ${level}. Ranked-ready. Weapons unlocked. Safe & secure. Fast delivery. Professional seller. 100% authentic. Money-back guarantee.`,
+          gameName: 'CODM',
+          price: new Decimal(price),
+          currency: 'USD',
+          rank,
+          level,
+          loginMethod: 'Email Transfer',
+          platform: 'Android/iOS',
+          region: 'Global',
+          status: ListingStatus.ACTIVE,
+          images: [IMG.codm],
+          isFeatured: Math.random() > 0.3,
+          viewCount: Math.floor(Math.random() * 500 + 50),
+          salesCount: Math.floor(Math.random() * 20),
+        },
+      })
+    }
+
+    // Bloodstrike Listings (18)
+    const bsTitles = [
+      'Bloodstrike Diamond Tier 42 Skins',
+      'BS Platinum Rank 38 Level 15 Weapons',
+      'Bloodstrike Elite Tier 45 Level Premium',
+      'BS Diamond 40 Level Epic Collection',
+      'Bloodstrike Platinum 35 Level 12 Skins',
+      'BS Elite 44 Level Legendary Weapons',
+      'Bloodstrike Gold Tier 30 Level Fast',
+      'BS Diamond 41 Level Amazing Skins',
+      'Bloodstrike Master Elite 46 Level',
+      'BS Platinum 36 Level Clean Account',
+      'Bloodstrike Diamond 39 18 Skins Quick',
+      'BS Elite 43 Level Rare Weapon Set',
+      'Bloodstrike Gold 31 Level Budget Deal',
+      'BS Platinum 37 Level 14 Cool Skins',
+      'Bloodstrike Diamond 43 Level Premium',
+      'BS Elite Master 47 Level Max Value',
+      'Bloodstrike Platinum 38 Level Quick Sale',
+      'BS Diamond 44 Level Best Deals',
+    ]
+
+    for (let i = 0; i < bsTitles.length; i++) {
+      const seller = sellers[(i + 6) % sellers.length]
+      const rank = ['Gold', 'Platinum', 'Diamond', 'Elite'][Math.floor(Math.random() * 4)]
+      const level = 30 + Math.floor(Math.random() * 20)
+      const price = 60 + Math.floor(Math.random() * 65)
+
+      await prisma.listings.create({
+        data: {
+          sellerId: seller.id,
+          categoryId: gamingAccounts.id,
+          subcategoryId: bsSubcat?.id,
+          title: bsTitles[i],
+          description: `Bloodstrike account at ${rank} tier. Level ${level}. Action-packed gameplay. Safe delivery. Verified seller. 100% secure transaction. Fast & reliable. Best marketplace price.`,
+          gameName: 'Bloodstrike',
+          price: new Decimal(price),
+          currency: 'USD',
+          rank,
+          level,
+          loginMethod: 'Email Transfer',
+          platform: 'Android/iOS',
+          region: 'Global',
+          status: ListingStatus.ACTIVE,
+          images: [IMG.bloodstrike],
+          isFeatured: Math.random() > 0.3,
+          viewCount: Math.floor(Math.random() * 500 + 50),
+          salesCount: Math.floor(Math.random() * 20),
+        },
+      })
+    }
+
+    console.log(`✅ 74 listings created (20 FF + 18 PUBG + 18 CODM + 18 BS)\n`)
 
     // 6. Create Gigs
     console.log('🎮 Creating gigs...')
-    const gigsData = [
-      {
-        title: 'Mobile Legends Rank Boost - Warrior to Epic',
-        description: 'Professional MLBB rank boosting. I will boost your account safely with 100% account security guaranteed.',
-        gameName: 'Mobile Legends',
-        rankFrom: 'Warrior',
-        rankTo: 'Epic',
-        platform: 'Android/iOS',
-        region: 'SEA',
-        price: new Decimal(45),
-      },
-      {
-        title: 'Free Fire Rank Push - Bronze to Heroic',
-        description: 'Fast Free Fire ranking service. Safe methods only, no hacks. Your account stays confidential.',
-        gameName: 'Free Fire',
-        rankFrom: 'Bronze',
-        rankTo: 'Heroic',
-        platform: 'Android/iOS',
-        region: 'Global',
-        price: new Decimal(50),
-      },
-      {
-        title: 'Valorant Elo Boost - Iron to Diamond',
-        description: 'Professional Valorant boosting by Immortal player. Duo or solo queue options available.',
-        gameName: 'Valorant',
-        rankFrom: 'Iron',
-        rankTo: 'Diamond',
-        platform: 'PC',
-        region: 'EU',
-        price: new Decimal(120),
-      },
-      {
-        title: 'PUBG Mobile Tier Boost - Bronze to Conqueror',
-        description: 'Professional PUBG boosting service. Our team has 3+ years experience. FPP and TPP available.',
-        gameName: 'PUBG Mobile',
-        rankFrom: 'Bronze',
-        rankTo: 'Conqueror',
-        platform: 'Android/iOS',
-        region: 'Global',
-        price: new Decimal(90),
-      },
+    const gigs = [
+      { title: 'Free Fire Rank Boost Bronze to Heroic', game: 'Free Fire', rankFrom: 'Bronze', rankTo: 'Heroic', price: 50 },
+      { title: 'PUBG Mobile Boost Bronze to Conqueror', game: 'PUBG Mobile', rankFrom: 'Bronze', rankTo: 'Conqueror', price: 90 },
+      { title: 'Bloodstrike Rank Push Gold to Elite', game: 'Bloodstrike', rankFrom: 'Gold', rankTo: 'Elite', price: 75 },
+      { title: 'CODM Ranked Boost Rookie to Master', game: 'CODM', rankFrom: 'Rookie', rankTo: 'Master', price: 85 },
+      { title: 'Free Fire Fast Rank Push Diamond to Mythic', game: 'Free Fire', rankFrom: 'Diamond', rankTo: 'Mythic', price: 60 },
+      { title: 'PUBG Crown Tier Boost Service', game: 'PUBG Mobile', rankFrom: 'Diamond', rankTo: 'Crown', price: 100 },
+      { title: 'Bloodstrike Elite Pro Boost Fast', game: 'Bloodstrike', rankFrom: 'Diamond', rankTo: 'Elite', price: 80 },
+      { title: 'CODM Master Rank Guarantee Service', game: 'CODM', rankFrom: 'Elite', rankTo: 'Master', price: 95 },
     ]
 
-    let gigIndex = 0
-    for (const seller of sellers) {
-      const gigsPerSeller = Math.min(3, gigsData.length - gigIndex)
-      for (let i = 0; i < gigsPerSeller; i++) {
-        if (gigIndex >= gigsData.length) break
-
-        const gigData = gigsData[gigIndex]
-        await prisma.gigs.create({
-          data: {
-            sellerId: seller.id,
-            title: gigData.title,
-            description: gigData.description,
-            gameName: gigData.gameName,
-            rankFrom: gigData.rankFrom,
-            rankTo: gigData.rankTo,
-            platform: gigData.platform,
-            region: gigData.region,
-            price: gigData.price,
-            currency: 'USD',
-            deliveryTime: 7 * 24 * 60,
-            status: GigStatus.ACTIVE,
-            isActive: true,
-          },
-        })
-
-        gigIndex++
-      }
+    for (let i = 0; i < gigs.length; i++) {
+      const seller = sellers[i % sellers.length]
+      await prisma.gigs.create({
+        data: {
+          sellerId: seller.id,
+          title: gigs[i].title,
+          description: `Professional ${gigs[i].game} rank boosting. Safe and fast delivery from ${gigs[i].rankFrom} to ${gigs[i].rankTo}. 100% account security guaranteed. Verified booster with 1000+ successful boosts.`,
+          gameName: gigs[i].game,
+          rankFrom: gigs[i].rankFrom,
+          rankTo: gigs[i].rankTo,
+          platform: 'Android/iOS',
+          region: 'Global',
+          price: new Decimal(gigs[i].price),
+          currency: 'USD',
+          deliveryTime: 7 * 24 * 60,
+          status: GigStatus.ACTIVE,
+          isActive: true,
+        },
+      })
     }
-    console.log(`✅ ${gigIndex} gigs created\n`)
+    console.log(`✅ ${gigs.length} gigs created\n`)
 
     // 7. Create Game Slides
     console.log('🖼️  Creating game slides...')
     const slides = [
-      { title: 'Free Fire', subtitle: 'Get Diamonds & Accounts Instantly', imageUrl: IMG.slideFF },
-      { title: 'PUBG Mobile', subtitle: 'Buy UC & Rank Boost Services', imageUrl: IMG.slidePUBG },
-      { title: 'Mobile Legends', subtitle: 'Diamonds, Accounts & Boosting', imageUrl: IMG.slideML },
-      { title: 'Valorant', subtitle: 'Rank Boost by Pro Players', imageUrl: IMG.slideVal },
-      { title: 'Genshin Impact', subtitle: 'Premium Accounts & Top-Ups', imageUrl: IMG.slideGenshin },
+      { title: 'Free Fire', subtitle: 'Level Up Your Game Now', img: IMG.freeFire, order: 1 },
+      { title: 'Bloodstrike', subtitle: 'Action Packed Gaming', img: IMG.bloodstrike, order: 2 },
+      { title: 'CODM', subtitle: 'Rank Boost Services', img: IMG.codm, order: 3 },
+      { title: 'PUBG Mobile', subtitle: 'Become A Conqueror', img: IMG.pubg, order: 4 },
+      { title: 'Mobile Legends', subtitle: 'Mythic Rank Accounts', img: IMG.ml, order: 5 },
+      { title: 'Valorant', subtitle: 'Diamond+ Accounts', img: IMG.valorant, order: 6 },
     ]
 
-    for (let i = 0; i < slides.length; i++) {
+    for (const slide of slides) {
       await prisma.gameSlides.create({
         data: {
-          title: slides[i].title,
-          subtitle: slides[i].subtitle,
-          imageUrl: slides[i].imageUrl,
+          title: slide.title,
+          subtitle: slide.subtitle,
+          imageUrl: slide.img,
           isActive: true,
-          sortOrder: i,
+          sortOrder: slide.order,
         },
       })
     }
@@ -500,11 +658,13 @@ async function main() {
     // 8. Create Marquee Items
     console.log('📢 Creating marquee items...')
     const marquees = [
-      '🎮 Welcome to Velxo — Africa\'s #1 Gaming Marketplace',
-      '✨ Secure Escrow Protection on All Transactions',
+      '🎮 Welcome to Velxo — Africa\'s Premier Gaming Marketplace',
+      '✨ 100% Secure Escrow Protection on All Sales',
       '⚡ Instant Delivery on Digital Products',
-      '🏆 Verified Sellers with 100% Buyer Protection',
-      '💎 Gaming Accounts, Coins, Top-Ups & More',
+      '🏆 Verified Sellers with Maximum Buyer Protection',
+      '💎 70+ Premium Gaming Accounts Available Now',
+      '🔥 Rank Boosting Services with Guaranteed Success',
+      '🌍 Serving 50,000+ Gamers Across Africa',
     ]
 
     for (let i = 0; i < marquees.length; i++) {
@@ -525,46 +685,41 @@ async function main() {
       {
         title: 'How to Stay Safe When Buying Gaming Accounts Online',
         slug: 'stay-safe-buying-accounts',
-        excerpt: 'Learn best practices to protect yourself from scams and fraud.',
-        content: 'Use escrow protection, verify seller reputation, and check account verification before purchasing.',
+        excerpt: 'Learn best practices to protect yourself from scams.',
+        content: 'Use escrow protection. Verify seller reputation. Check account status. Never share passwords. Use secure platforms only.',
         category: 'Safety',
-        isPublished: true,
         isFeatured: true,
       },
       {
-        title: 'Top 5 Gaming Trends to Watch in 2025',
-        slug: 'gaming-trends-2025',
-        excerpt: 'Explore the hottest gaming trends taking over Africa.',
-        content: 'Mobile gaming dominance, cloud gaming expansion, cross-platform play, esports growth, and play-to-earn evolution.',
+        title: 'Top Gaming Trends Taking Over Africa in 2024-2025',
+        slug: 'gaming-trends-africa',
+        excerpt: 'Mobile gaming dominance, cloud gaming, esports growth.',
+        content: 'Mobile gaming leads the market. Cloud gaming expands. Esports tournaments grow. Play-to-earn models emerge. Cross-platform gaming increases.',
         category: 'Trends',
-        isPublished: true,
         isFeatured: false,
       },
       {
-        title: 'Velxo Seller Success Story: Kwame Gaming Store',
-        slug: 'seller-success-kwame-gaming',
-        excerpt: 'Read how Kwame turned his gaming passion into a thriving business.',
-        content: 'From 5 accounts to 234 successful sales. Key to success: consistency, communication, quality, and reputation.',
+        title: 'Success Story: How NoobMaster92 Built a Gaming Empire',
+        slug: 'noobmaster92-success-story',
+        excerpt: 'From casual gamer to 500+ successful sales.',
+        content: 'Started as casual player. Now runs top store. Secret: consistency, communication, quality. 1000+ happy customers.',
         category: 'Success Stories',
-        isPublished: true,
         isFeatured: true,
       },
     ]
 
     for (const blog of blogs) {
-      await prisma.blogPosts.upsert({
-        where: { slug: blog.slug },
-        update: {},
-        create: {
+      await prisma.blogPosts.create({
+        data: {
           title: blog.title,
           slug: blog.slug,
           excerpt: blog.excerpt,
           content: blog.content,
           category: blog.category,
           author: 'Velxo Team',
-          isPublished: blog.isPublished,
+          isPublished: true,
           isFeatured: blog.isFeatured,
-          publishedAt: blog.isPublished ? new Date() : null,
+          publishedAt: new Date(),
         },
       })
     }
@@ -573,22 +728,22 @@ async function main() {
     // 10. Create Reward Catalog
     console.log('🎁 Creating reward catalog...')
     const rewards = [
-      { name: '$5 Free Fire Gift Card', type: 'GIFT_CARD', coinCost: 250, description: 'Get 200 Free Fire Diamonds', imageUrl: IMG.reward1 },
-      { name: '$10 PUBG UC Bundle', type: 'GIFT_CARD', coinCost: 500, description: 'Get 600 UC for PUBG Mobile', imageUrl: IMG.reward2 },
-      { name: 'Mobile Legends 206 Diamonds', type: 'TOP_UP', coinCost: 300, description: 'Instant MLBB diamonds', imageUrl: IMG.reward3 },
-      { name: '$25 Steam Wallet', type: 'GIFT_CARD', coinCost: 1200, description: 'Use on any Steam game', imageUrl: IMG.reward4 },
-      { name: 'PlayStation $20 Card', type: 'GIFT_CARD', coinCost: 1000, description: 'PSN credit for games', imageUrl: IMG.reward5 },
-      { name: 'Genshin 300 Primogems', type: 'TOP_UP', coinCost: 400, description: 'Premium currency top-up', imageUrl: IMG.reward6 },
+      { name: '$5 Free Fire Gift', type: 'GIFT_CARD', cost: 250, desc: '200 Free Fire Diamonds', img: IMG.freeFire },
+      { name: '$10 PUBG UC Bundle', type: 'GIFT_CARD', cost: 500, desc: '600 UC Instant', img: IMG.pubg },
+      { name: 'Mobile Legends 206 Diamonds', type: 'TOP_UP', cost: 300, desc: 'Instant delivery', img: IMG.ml },
+      { name: '$25 Steam Wallet', type: 'GIFT_CARD', cost: 1200, desc: 'Any Steam game', img: IMG.valorant },
+      { name: 'PlayStation $20 Card', type: 'GIFT_CARD', cost: 1000, desc: 'PSN credit', img: IMG.codm },
+      { name: 'CODM 8000 CP Bundle', type: 'TOP_UP', cost: 400, desc: 'Premium bundle', img: IMG.codm },
     ]
 
     for (let i = 0; i < rewards.length; i++) {
       await prisma.rewardCatalog.create({
         data: {
           name: rewards[i].name,
-          description: rewards[i].description,
+          description: rewards[i].desc,
           type: rewards[i].type,
-          coinCost: rewards[i].coinCost,
-          imageUrl: rewards[i].imageUrl,
+          coinCost: rewards[i].cost,
+          imageUrl: rewards[i].img,
           isActive: true,
           sortOrder: i,
         },
@@ -597,25 +752,37 @@ async function main() {
     console.log(`✅ ${rewards.length} reward items created\n`)
 
     // Final Summary
-    console.log('\n' + '='.repeat(70))
-    console.log('✨ VELXO DATABASE SEEDING COMPLETE! ✨')
-    console.log('='.repeat(70))
-    console.log('\n📊 Summary:')
-    console.log(`  • Admin Users: 1`)
-    console.log(`  • Sellers: ${sellers.length}`)
-    console.log(`  • Buyers: ${buyersData.length}`)
-    console.log(`  • Listings: ${listingIndex}`)
-    console.log(`  • Gigs: ${gigIndex}`)
-    console.log(`  • Game Slides: ${slides.length}`)
-    console.log(`  • Marquee Items: ${marquees.length}`)
-    console.log(`  • Blog Posts: ${blogs.length}`)
-    console.log(`  • Reward Items: ${rewards.length}`)
-    console.log(`  • Categories: ${categories.length}`)
-    console.log('\n🔗 Test Accounts:')
-    console.log(`  Admin: admin@velxo.shop`)
-    console.log(`  Sellers: kwame.gaming@, zainab.plays@, david.booster@, amina.games@, thabo.gamer@velxo.shop`)
-    console.log(`  Buyers: chidi.okafor@, fatou.ndiaye@, yusuf.mohammed@, nairobi.gamer@, grace.mwanza@, kofi.mensah@, amina.diop@gmail.com`)
-    console.log('\n✅ Your marketplace is ready!\n')
+    console.log('\n' + '='.repeat(80))
+    console.log('✨ VELXO GAMING MARKETPLACE SEEDING COMPLETE! ✨')
+    console.log('='.repeat(80))
+    console.log('\n📊 DATABASE SUMMARY:')
+    console.log('  • Admin Users: 1')
+    console.log('  • Sellers: 11 (with gamer-type names)')
+    console.log('  • Buyers: 16 (from African countries)')
+    console.log('  • Listings: 74 (20 FF + 18 BS + 18 CODM + 18 PUBG)')
+    console.log('  • Gigs: 8 (rank boosting services)')
+    console.log('  • Game Slides: 6')
+    console.log('  • Marquee Items: 7')
+    console.log('  • Blog Posts: 3')
+    console.log('  • Reward Items: 6')
+    console.log('  • Categories: 5')
+    console.log('  • Subcategories: 44')
+    console.log('  • Total Records: 200+')
+    console.log('\n🎮 GAMES COVERED:')
+    console.log('  • Free Fire (20 listings)')
+    console.log('  • Bloodstrike (18 listings)')
+    console.log('  • CODM (18 listings)')
+    console.log('  • PUBG Mobile (18 listings)')
+    console.log('\n👥 SELLER ACCOUNTS (Gamer Type Names):')
+    for (let i = 0; i < Math.min(5, sellers.length); i++) {
+      console.log(`  ${i + 1}. ${sellersData[i].name} (${sellersData[i].email})`)
+    }
+    console.log(`  ... and ${sellers.length - 5} more sellers`)
+    console.log('\n🎯 TEST ACCOUNTS:')
+    console.log('  Admin: admin@velxo.shop')
+    console.log('  Sellers: noobmaster92@, shadowhunter88@, phoenixgamer23@velxo.shop')
+    console.log('  Buyers: chidi.okafor@, fatou.ndiaye@, yusuf.mohammed@gmail.com')
+    console.log('\n✅ Marketplace ready for testing and production!\n')
   } catch (error) {
     console.error('❌ Seed Error:', error)
     throw error

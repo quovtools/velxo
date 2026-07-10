@@ -175,10 +175,9 @@ function ListingsScrollSection({ listings, loading, title, total, icon }: Listin
             {loading ? '…' : total}
           </span>
         </div>
-        <div className="flex items-center gap-1.5 text-xs text-gray-500">
-          <ShieldCheck className="w-3.5 h-3.5 text-brand-accent" />
-          <span className="hidden sm:inline">Escrow-protected</span>
-        </div>
+        <Link href="/listings" className="text-xs font-medium text-brand hover:text-brand-light flex items-center gap-1 transition">
+          View All <ArrowRight className="w-3 h-3" />
+        </Link>
       </div>
       <HorizontalScroll>
         {loading
