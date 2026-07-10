@@ -103,7 +103,7 @@ export class ImageBulkOperationsService {
     await this.prisma.adminAuditLogs.create({
       data: {
         actorId: adminId,
-        action: 'BULK_UPDATE_IMAGES',
+        action: 'UPDATE',
         entityType: 'LISTING',
         entityId: 'BULK',
         metadata: {
@@ -111,7 +111,7 @@ export class ImageBulkOperationsService {
           updated,
           failed,
           strategy: assignmentStrategy,
-          filter,
+          filter: filter as any,
           imageCount: imageUrls.length,
         },
       },
@@ -166,14 +166,14 @@ export class ImageBulkOperationsService {
     await this.prisma.adminAuditLogs.create({
       data: {
         actorId: adminId,
-        action: 'BULK_REPLACE_IMAGES',
+        action: 'UPDATE',
         entityType: 'LISTING',
         entityId: 'BULK',
         metadata: {
           oldImageUrl,
           newImageUrl,
           updated,
-          filter,
+          filter: filter as any,
         },
       },
     })
@@ -218,13 +218,13 @@ export class ImageBulkOperationsService {
     await this.prisma.adminAuditLogs.create({
       data: {
         actorId: adminId,
-        action: 'BULK_APPEND_IMAGES',
+        action: 'UPDATE',
         entityType: 'LISTING',
         entityId: 'BULK',
         metadata: {
           imageCount: imageUrls.length,
           updated,
-          filter,
+          filter: filter as any,
         },
       },
     })
@@ -264,10 +264,10 @@ export class ImageBulkOperationsService {
     await this.prisma.adminAuditLogs.create({
       data: {
         actorId: adminId,
-        action: 'BULK_REMOVE_IMAGE',
+        action: 'UPDATE',
         entityType: 'LISTING',
         entityId: 'BULK',
-        metadata: { imageUrl, updated, filter },
+        metadata: { imageUrl, updated, filter: filter as any },
       },
     })
 
