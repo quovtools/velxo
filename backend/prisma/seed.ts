@@ -5,8 +5,20 @@
  */
 import { PrismaClient, Role, SellerAccountType, ListingStatus, GigStatus } from '@prisma/client'
 import { Decimal } from '@prisma/client/runtime/library'
+import generateImageUrls from './generate-images'
 
-const prisma = new PrismaClient()
+// Use DIRECT_URL for seeding to bypass connection pooling
+const databaseUrl = process.env.DIRECT_URL || process.env.DATABASE_URL
+const prisma = new PrismaClient({
+  datasources: {
+    db: {
+      url: databaseUrl,
+    },
+  },
+})
+
+// Get all image URLs
+const IMAGES = generateImageUrls()
 
 async function main() {
   try {
@@ -174,26 +186,30 @@ async function main() {
       })
 
       // Create wallet
-      await prisma.wallet.upsert({
-        where: { userId: user.id },
-        update: {},
-        create: {
-          userId: user.id,
-          balance: new Decimal(Math.random() * 5000 + 1000),
-          totalEarnings: new Decimal(sellerData.totalSales * 45),
-          currency: 'USD',
-        },
-      })
+      try {
+        await prisma.wallet.create({
+          data: {
+            userId: user.id,
+            balance: new Decimal(Math.random() * 5000 + 1000),
+            totalEarnings: new Decimal(sellerData.totalSales * 45),
+            currency: 'USD',
+          },
+        })
+      } catch (e) {
+        // Wallet already exists, skip
+      }
 
       // Create velxoCoins
-      await prisma.velxoCoins.upsert({
-        where: { userId: user.id },
-        update: {},
-        create: {
-          userId: user.id,
-          balance: Math.floor(Math.random() * 5000 + 1000),
-        },
-      })
+      try {
+        await prisma.velxoCoins.create({
+          data: {
+            userId: user.id,
+            balance: Math.floor(Math.random() * 5000 + 1000),
+          },
+        })
+      } catch (e) {
+        // VelxoCoins already exists, skip
+      }
 
       sellers.push(seller)
       console.log(`  ✓ ${sellerData.storeName}`)
@@ -226,24 +242,28 @@ async function main() {
         },
       })
 
-      await prisma.wallet.upsert({
-        where: { userId: user.id },
-        update: {},
-        create: {
-          userId: user.id,
-          balance: new Decimal(Math.random() * 2000),
-          currency: 'USD',
-        },
-      })
+      try {
+        await prisma.wallet.create({
+          data: {
+            userId: user.id,
+            balance: new Decimal(Math.random() * 2000),
+            currency: 'USD',
+          },
+        })
+      } catch (e) {
+        // Wallet already exists
+      }
 
-      await prisma.velxoCoins.upsert({
-        where: { userId: user.id },
-        update: {},
-        create: {
-          userId: user.id,
-          balance: Math.floor(Math.random() * 2000),
-        },
-      })
+      try {
+        await prisma.velxoCoins.create({
+          data: {
+            userId: user.id,
+            balance: Math.floor(Math.random() * 2000),
+          },
+        })
+      } catch (e) {
+        // VelxoCoins already exists
+      }
 
       console.log(`  ✓ ${buyerData.firstName} ${buyerData.lastName}`)
     }
@@ -264,6 +284,7 @@ async function main() {
         loginMethod: 'Email Transfer',
         platform: 'Android/iOS',
         region: 'Global',
+        images: [IMAGES.productImages[0], IMAGES.gameCovers.freeFire],
       },
       {
         title: 'PUBG Mobile - Conqueror Rank, 150 UC',
@@ -275,6 +296,7 @@ async function main() {
         loginMethod: 'Email Transfer',
         platform: 'Android/iOS',
         region: 'Global',
+        images: [IMAGES.productImages[1], IMAGES.gameCovers.pubgMobile],
       },
       {
         title: 'Mobile Legends - Mythic 2, 45 Skins',
@@ -286,6 +308,7 @@ async function main() {
         loginMethod: 'Moonton ID Transfer',
         platform: 'Android/iOS',
         region: 'Global',
+        images: [IMAGES.productImages[2], IMAGES.gameCovers.mobileLegends],
       },
       {
         title: 'Valorant - Diamond 2, 85+ Skins',
@@ -297,6 +320,7 @@ async function main() {
         loginMethod: 'Riot ID Transfer',
         platform: 'PC',
         region: 'EU',
+        images: [IMAGES.productImages[3], IMAGES.gameCovers.valorant],
       },
       {
         title: 'Genshin Impact - AR 58, 72 Characters',
@@ -307,6 +331,7 @@ async function main() {
         loginMethod: 'HoYoverse Account Transfer',
         platform: 'PC/Mobile',
         region: 'Asia',
+        images: [IMAGES.productImages[4], IMAGES.gameCovers.genshinImpact],
       },
     ]
 
@@ -332,7 +357,7 @@ async function main() {
             platform: listingData.platform,
             region: listingData.region,
             status: ListingStatus.ACTIVE,
-            images: ['https://velxo.shop/images/games/placeholder.jpg'],
+            images: listingData.images,
             isFeatured: Math.random() > 0.5,
             viewCount: Math.floor(Math.random() * 500 + 50),
             salesCount: Math.floor(Math.random() * 20),
@@ -422,11 +447,11 @@ async function main() {
     // 7. Create Game Slides
     console.log('🖼️  Creating game slides...')
     const slides = [
-      { title: 'Free Fire', subtitle: 'Get Diamonds & Accounts Instantly', imageUrl: 'https://velxo.shop/images/games/free-fire.jpg' },
-      { title: 'PUBG Mobile', subtitle: 'Buy UC & Rank Boost Services', imageUrl: 'https://velxo.shop/images/games/pubg-mobile.jpg' },
-      { title: 'Mobile Legends', subtitle: 'Diamonds, Accounts & Boosting', imageUrl: 'https://velxo.shop/images/games/mobile-legends.jpg' },
-      { title: 'Valorant', subtitle: 'Rank Boost by Pro Players', imageUrl: 'https://velxo.shop/images/games/valorant.jpg' },
-      { title: 'Genshin Impact', subtitle: 'Premium Accounts & Top-Ups', imageUrl: 'https://velxo.shop/images/games/genshin-impact.jpg' },
+      { title: 'Free Fire', subtitle: 'Get Diamonds & Accounts Instantly', imageUrl: IMAGES.homeSlides.freeFire },
+      { title: 'PUBG Mobile', subtitle: 'Buy UC & Rank Boost Services', imageUrl: IMAGES.homeSlides.pubgMobile },
+      { title: 'Mobile Legends', subtitle: 'Diamonds, Accounts & Boosting', imageUrl: IMAGES.homeSlides.mobileLegends },
+      { title: 'Valorant', subtitle: 'Rank Boost by Pro Players', imageUrl: IMAGES.homeSlides.valorant },
+      { title: 'Genshin Impact', subtitle: 'Premium Accounts & Top-Ups', imageUrl: IMAGES.homeSlides.genshin },
     ]
 
     for (let i = 0; i < slides.length; i++) {
@@ -518,12 +543,12 @@ async function main() {
     // 10. Create Reward Catalog
     console.log('🎁 Creating reward catalog...')
     const rewards = [
-      { name: '$5 Free Fire Gift Card', type: 'GIFT_CARD', coinCost: 250, description: 'Get 200 Free Fire Diamonds' },
-      { name: '$10 PUBG UC Bundle', type: 'GIFT_CARD', coinCost: 500, description: 'Get 600 UC for PUBG Mobile' },
-      { name: 'Mobile Legends 206 Diamonds', type: 'TOP_UP', coinCost: 300, description: 'Instant MLBB diamonds' },
-      { name: '$25 Steam Wallet', type: 'GIFT_CARD', coinCost: 1200, description: 'Use on any Steam game' },
-      { name: 'PlayStation $20 Card', type: 'GIFT_CARD', coinCost: 1000, description: 'PSN credit for games' },
-      { name: 'Genshin 300 Primogems', type: 'TOP_UP', coinCost: 400, description: 'Premium currency top-up' },
+      { name: '$5 Free Fire Gift Card', type: 'GIFT_CARD', coinCost: 250, description: 'Get 200 Free Fire Diamonds', imageUrl: IMAGES.rewardImages[0] },
+      { name: '$10 PUBG UC Bundle', type: 'GIFT_CARD', coinCost: 500, description: 'Get 600 UC for PUBG Mobile', imageUrl: IMAGES.rewardImages[1] },
+      { name: 'Mobile Legends 206 Diamonds', type: 'TOP_UP', coinCost: 300, description: 'Instant MLBB diamonds', imageUrl: IMAGES.rewardImages[2] },
+      { name: '$25 Steam Wallet', type: 'GIFT_CARD', coinCost: 1200, description: 'Use on any Steam game', imageUrl: IMAGES.rewardImages[3] },
+      { name: 'PlayStation $20 Card', type: 'GIFT_CARD', coinCost: 1000, description: 'PSN credit for games', imageUrl: IMAGES.rewardImages[4] },
+      { name: 'Genshin 300 Primogems', type: 'TOP_UP', coinCost: 400, description: 'Premium currency top-up', imageUrl: IMAGES.rewardImages[5] },
     ]
 
     for (let i = 0; i < rewards.length; i++) {
@@ -533,6 +558,7 @@ async function main() {
           description: rewards[i].description,
           type: rewards[i].type,
           coinCost: rewards[i].coinCost,
+          imageUrl: rewards[i].imageUrl,
           isActive: true,
           sortOrder: i,
         },

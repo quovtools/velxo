@@ -46,7 +46,9 @@ export function CurrencyProvider({ children }: { children: React.ReactNode }) {
   const [detecting, setDetecting] = useState(true);
 
   useEffect(() => {
+    console.log('[CurrencyProvider] Mounting, starting detection...');
     detectCurrency().then((detected) => {
+      console.log('[CurrencyProvider] Detection complete:', detected.code, detected.name);
       setCurrencyState(detected);
       setDetecting(false);
     });

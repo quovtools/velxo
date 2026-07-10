@@ -86,24 +86,44 @@ export async function detectCurrency(): Promise<CurrencyConfig> {
     const cached = sessionStorage.getItem(SESSION_KEY);
     if (cached) {
       const parsed: CurrencyConfig = JSON.parse(cached);
-      if (parsed?.code) return parsed;
+      if (parsed?.code) {
+        console.log('[Currency] Using cached currency:', parsed.code);
+        return parsed;
+      }
     }
-  } catch { /* ignore */ }
+  } catch (e) {
+    console.log('[Currency] Cache read error:', e);
+  }
 
   try {
+    console.log('[Currency] Detecting location from IP...');
     // ip-api.com free tier — no key required, 45 req/min
-    const res = await fetch('https://ip-api.com/json/?fields=countryCode', { signal: AbortSignal.timeout(4000) });
-    if (!res.ok) return DEFAULT_CURRENCY;
+    const res = await fetch('https://ip-api.com/json/?fields=countryCode', { 
+      signal: AbortSignal.timeout(4000),
+      cache: 'no-store',
+    });
+    
+    if (!res.ok) {
+      console.log('[Currency] Geo API response not ok:', res.status);
+      return DEFAULT_CURRENCY;
+    }
+    
     const data: { countryCode?: string } = await res.json();
     const countryCode = data.countryCode?.toUpperCase() ?? '';
+    console.log('[Currency] Detected country:', countryCode);
+    
     const config = COUNTRY_CURRENCY_MAP[countryCode] ?? DEFAULT_CURRENCY;
+    console.log('[Currency] Mapped to currency:', config.code, config.name);
 
     try {
       sessionStorage.setItem(SESSION_KEY, JSON.stringify(config));
-    } catch { /* storage full / private mode */ }
+    } catch (e) {
+      console.log('[Currency] Storage write error:', e);
+    }
 
     return config;
-  } catch {
+  } catch (err) {
+    console.log('[Currency] Detection error:', err instanceof Error ? err.message : err);
     return DEFAULT_CURRENCY;
   }
 }
