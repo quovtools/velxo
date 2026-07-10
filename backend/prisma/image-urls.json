@@ -1,0 +1,31 @@
+{
+  "games": {
+    "freeFire": "/images/free-fire.png",
+    "pubgMobile": "/images/pubg-mobile.png",
+    "mobileLegends": "/images/mobile-legends.png",
+    "valorant": "/images/valorant.png",
+    "genshinImpact": "/images/genshin-impact.png"
+  },
+  "products": [
+    "/images/product-1.png",
+    "/images/product-2.png",
+    "/images/product-3.png",
+    "/images/product-4.png",
+    "/images/product-5.png"
+  ],
+  "slides": {
+    "freeFire": "/images/slide-ff.png",
+    "pubgMobile": "/images/slide-pubg.png",
+    "mobileLegends": "/images/slide-ml.png",
+    "valorant": "/images/slide-valorant.png",
+    "genshin": "/images/slide-genshin.png"
+  },
+  "rewards": [
+    "/images/reward-1.png",
+    "/images/reward-2.png",
+    "/images/reward-3.png",
+    "/images/reward-4.png",
+    "/images/reward-5.png",
+    "/images/reward-6.png"
+  ]
+}

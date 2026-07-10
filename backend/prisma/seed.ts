@@ -5,7 +5,6 @@
  */
 import { PrismaClient, Role, SellerAccountType, ListingStatus, GigStatus } from '@prisma/client'
 import { Decimal } from '@prisma/client/runtime/library'
-import generateImageUrls from './generate-images'
 
 // Use DIRECT_URL for seeding to bypass connection pooling
 const databaseUrl = process.env.DIRECT_URL || process.env.DATABASE_URL
@@ -17,8 +16,39 @@ const prisma = new PrismaClient({
   },
 })
 
-// Get all image URLs
-const IMAGES = generateImageUrls()
+// Image URLs - using actual game logos from your project
+const IMG = {
+  // Game covers
+  freeFire: '/images/games/FREE_FIRE_LOGO.png',
+  pubgMobile: '/images/games/pubg logo.jpg',
+  mobileLegends: '/images/games/mobilelegend logo.png',
+  valorant: '/images/games/valorant logo.png',
+  genshinImpact: '/images/games/Velxomarket.png', // Use as placeholder
+  codMobile: '/images/games/codm logo.png',
+  roblox: '/images/games/roblox logo.jpg',
+  
+  // Products (use game logos as product images)
+  product1: '/images/games/FREE_FIRE_LOGO.png',
+  product2: '/images/games/pubg logo.jpg',
+  product3: '/images/games/mobilelegend logo.png',
+  product4: '/images/games/valorant logo.png',
+  product5: '/images/games/codm logo.png',
+  
+  // Slides (same as game covers)
+  slideFF: '/images/games/FREE_FIRE_LOGO.png',
+  slidePUBG: '/images/games/pubg logo.jpg',
+  slideML: '/images/games/mobilelegend logo.png',
+  slideVal: '/images/games/valorant logo.png',
+  slideGenshin: '/images/games/Velxomarket.png',
+  
+  // Rewards (use various game logos)
+  reward1: '/images/games/FREE_FIRE_LOGO.png',
+  reward2: '/images/games/pubg logo.jpg',
+  reward3: '/images/games/mobilelegend logo.png',
+  reward4: '/images/games/valorant logo.png',
+  reward5: '/images/games/codm logo.png',
+  reward6: '/images/games/roblox logo.jpg',
+}
 
 async function main() {
   try {
@@ -284,7 +314,7 @@ async function main() {
         loginMethod: 'Email Transfer',
         platform: 'Android/iOS',
         region: 'Global',
-        images: [IMAGES.productImages[0], IMAGES.gameCovers.freeFire],
+        images: [IMG.product1, IMG.freeFire],
       },
       {
         title: 'PUBG Mobile - Conqueror Rank, 150 UC',
@@ -296,7 +326,7 @@ async function main() {
         loginMethod: 'Email Transfer',
         platform: 'Android/iOS',
         region: 'Global',
-        images: [IMAGES.productImages[1], IMAGES.gameCovers.pubgMobile],
+        images: [IMG.product2, IMG.pubgMobile],
       },
       {
         title: 'Mobile Legends - Mythic 2, 45 Skins',
@@ -308,7 +338,7 @@ async function main() {
         loginMethod: 'Moonton ID Transfer',
         platform: 'Android/iOS',
         region: 'Global',
-        images: [IMAGES.productImages[2], IMAGES.gameCovers.mobileLegends],
+        images: [IMG.product3, IMG.mobileLegends],
       },
       {
         title: 'Valorant - Diamond 2, 85+ Skins',
@@ -320,7 +350,7 @@ async function main() {
         loginMethod: 'Riot ID Transfer',
         platform: 'PC',
         region: 'EU',
-        images: [IMAGES.productImages[3], IMAGES.gameCovers.valorant],
+        images: [IMG.product4, IMG.valorant],
       },
       {
         title: 'Genshin Impact - AR 58, 72 Characters',
@@ -331,7 +361,7 @@ async function main() {
         loginMethod: 'HoYoverse Account Transfer',
         platform: 'PC/Mobile',
         region: 'Asia',
-        images: [IMAGES.productImages[4], IMAGES.gameCovers.genshinImpact],
+        images: [IMG.product5, IMG.genshinImpact],
       },
     ]
 
@@ -447,11 +477,11 @@ async function main() {
     // 7. Create Game Slides
     console.log('🖼️  Creating game slides...')
     const slides = [
-      { title: 'Free Fire', subtitle: 'Get Diamonds & Accounts Instantly', imageUrl: IMAGES.homeSlides.freeFire },
-      { title: 'PUBG Mobile', subtitle: 'Buy UC & Rank Boost Services', imageUrl: IMAGES.homeSlides.pubgMobile },
-      { title: 'Mobile Legends', subtitle: 'Diamonds, Accounts & Boosting', imageUrl: IMAGES.homeSlides.mobileLegends },
-      { title: 'Valorant', subtitle: 'Rank Boost by Pro Players', imageUrl: IMAGES.homeSlides.valorant },
-      { title: 'Genshin Impact', subtitle: 'Premium Accounts & Top-Ups', imageUrl: IMAGES.homeSlides.genshin },
+      { title: 'Free Fire', subtitle: 'Get Diamonds & Accounts Instantly', imageUrl: IMG.slideFF },
+      { title: 'PUBG Mobile', subtitle: 'Buy UC & Rank Boost Services', imageUrl: IMG.slidePUBG },
+      { title: 'Mobile Legends', subtitle: 'Diamonds, Accounts & Boosting', imageUrl: IMG.slideML },
+      { title: 'Valorant', subtitle: 'Rank Boost by Pro Players', imageUrl: IMG.slideVal },
+      { title: 'Genshin Impact', subtitle: 'Premium Accounts & Top-Ups', imageUrl: IMG.slideGenshin },
     ]
 
     for (let i = 0; i < slides.length; i++) {
@@ -543,12 +573,12 @@ async function main() {
     // 10. Create Reward Catalog
     console.log('🎁 Creating reward catalog...')
     const rewards = [
-      { name: '$5 Free Fire Gift Card', type: 'GIFT_CARD', coinCost: 250, description: 'Get 200 Free Fire Diamonds', imageUrl: IMAGES.rewardImages[0] },
-      { name: '$10 PUBG UC Bundle', type: 'GIFT_CARD', coinCost: 500, description: 'Get 600 UC for PUBG Mobile', imageUrl: IMAGES.rewardImages[1] },
-      { name: 'Mobile Legends 206 Diamonds', type: 'TOP_UP', coinCost: 300, description: 'Instant MLBB diamonds', imageUrl: IMAGES.rewardImages[2] },
-      { name: '$25 Steam Wallet', type: 'GIFT_CARD', coinCost: 1200, description: 'Use on any Steam game', imageUrl: IMAGES.rewardImages[3] },
-      { name: 'PlayStation $20 Card', type: 'GIFT_CARD', coinCost: 1000, description: 'PSN credit for games', imageUrl: IMAGES.rewardImages[4] },
-      { name: 'Genshin 300 Primogems', type: 'TOP_UP', coinCost: 400, description: 'Premium currency top-up', imageUrl: IMAGES.rewardImages[5] },
+      { name: '$5 Free Fire Gift Card', type: 'GIFT_CARD', coinCost: 250, description: 'Get 200 Free Fire Diamonds', imageUrl: IMG.reward1 },
+      { name: '$10 PUBG UC Bundle', type: 'GIFT_CARD', coinCost: 500, description: 'Get 600 UC for PUBG Mobile', imageUrl: IMG.reward2 },
+      { name: 'Mobile Legends 206 Diamonds', type: 'TOP_UP', coinCost: 300, description: 'Instant MLBB diamonds', imageUrl: IMG.reward3 },
+      { name: '$25 Steam Wallet', type: 'GIFT_CARD', coinCost: 1200, description: 'Use on any Steam game', imageUrl: IMG.reward4 },
+      { name: 'PlayStation $20 Card', type: 'GIFT_CARD', coinCost: 1000, description: 'PSN credit for games', imageUrl: IMG.reward5 },
+      { name: 'Genshin 300 Primogems', type: 'TOP_UP', coinCost: 400, description: 'Premium currency top-up', imageUrl: IMG.reward6 },
     ]
 
     for (let i = 0; i < rewards.length; i++) {

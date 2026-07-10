@@ -58,6 +58,10 @@ async function bootstrap() {
   }))
   expressApp.use(express.urlencoded({ limit: '25mb', extended: true }))
 
+  // Serve static files (images)
+  const path = require('path')
+  expressApp.use('/images', express.static(path.join(__dirname, '..', 'public', 'images')))
+
   app.use(helmet())
   app.use(
     rateLimit({
