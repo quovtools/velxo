@@ -89,7 +89,7 @@ function formatResponseTime(mins: number | null) {
   return m ? `${h}h ${m}m` : `${h}h`;
 }
 
-function ListingCard({ item }: { item: SellerListing }) {
+function ListingCard({ item, fmt }: { item: SellerListing; fmt: (price: string | number) => string }) {
   const img = item.images?.[0];
   return (
     <Link
@@ -387,7 +387,7 @@ export default function SellerProfileContent({ id }: { id: string }) {
         ) : (
           <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-4">
             {listings.map((item) => (
-              <ListingCard key={item.id} item={item} />
+              <ListingCard key={item.id} item={item} fmt={fmt} />
             ))}
           </div>
         )}

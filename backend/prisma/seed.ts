@@ -666,25 +666,18 @@ async function main() {
         },
       })
       // Create subcategories
-      for (let i = 0; i < cat.subcategories.length; i++) {
-        const subName = cat.subcategories[i]
-        await prisma.subcategories.upsert({
-          where: {
-            categoryId_slug: {
-              categoryId: category.id,
-              slug: subName.toLowerCase().replace(/\s+/g, '-'),
-            },
-          },
-          update: {},
-          create: {
-            categoryId: category.id,
-            name: subName,
-            slug: subName.toLowerCase().replace(/\s+/g, '-'),
-            sortOrder: i,
-            isActive: true,
-          },
-        })
-      }
+      const subcatsData = cat.subcategories.map((subName, i) => ({
+        categoryId: category.id,
+        name: subName,
+        slug: subName.toLowerCase().replace(/\s+/g, '-'),
+        sortOrder: i,
+        isActive: true,
+      }))
+      
+      await prisma.subcategories.createMany({
+        data: subcatsData,
+        skipDuplicates: true,
+      })
     }
     console.log(`✅ Categories and ${CATEGORIES.reduce((sum, c) => sum + c.subcategories.length, 0)} subcategories created\n`)
 
