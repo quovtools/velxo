@@ -53,7 +53,7 @@ export default function ListingsManagerPage() {
       if (filters.categoryId) params.append('categoryId', filters.categoryId);
       if (searchTerm) params.append('search', searchTerm);
       
-      const res = await api.get(`/admin/listings?${params.toString()}`);
+      const res = await api.get<{ data: Listing[]; message?: string }>(`/admin/listings?${params.toString()}`);
       setListings(res.data || []);
     } catch (err) {
       console.error('Failed to load listings:', err);
@@ -103,36 +103,36 @@ export default function ListingsManagerPage() {
     setActionInProgress(true);
     try {
       const listingIds = Array.from(selected);
-      let res;
+      let res: { message?: string } | undefined;
 
       switch (action) {
         case 'approve':
-          res = await api.post('/admin/bulk/listings/approve', { listingIds, reason });
+          res = await api.post<{ message?: string }>('/admin/bulk/listings/approve', { listingIds, reason });
           break;
         case 'reject':
-          res = await api.post('/admin/bulk/listings/reject', { listingIds, reason });
+          res = await api.post<{ message?: string }>('/admin/bulk/listings/reject', { listingIds, reason });
           break;
         case 'suspend':
-          res = await api.patch('/admin/bulk/listings/suspend', { listingIds, reason });
+          res = await api.patch<{ message?: string }>('/admin/bulk/listings/suspend', { listingIds, reason });
           break;
         case 'unsuspend':
-          res = await api.patch('/admin/bulk/listings/unsuspend', { listingIds });
+          res = await api.patch<{ message?: string }>('/admin/bulk/listings/unsuspend', { listingIds });
           break;
         case 'feature':
-          res = await api.patch('/admin/bulk/listings/feature', { listingIds, isFeatured: true });
+          res = await api.patch<{ message?: string }>('/admin/bulk/listings/feature', { listingIds, isFeatured: true });
           break;
         case 'unfeature':
-          res = await api.patch('/admin/bulk/listings/feature', { listingIds, isFeatured: false });
+          res = await api.patch<{ message?: string }>('/admin/bulk/listings/feature', { listingIds, isFeatured: false });
           break;
         case 'sponsor':
-          res = await api.patch('/admin/bulk/listings/sponsor', { listingIds, isSponsored: true });
+          res = await api.patch<{ message?: string }>('/admin/bulk/listings/sponsor', { listingIds, isSponsored: true });
           break;
         case 'delete':
           if (!confirm(`Are you sure you want to delete ${listingIds.length} listings? This cannot be undone.`)) {
             setActionInProgress(false);
             return;
           }
-          res = await api.delete('/admin/bulk/listings/delete', { data: { listingIds } });
+          res = await api.delete<{ message?: string }>('/admin/bulk/listings/delete', { data: { listingIds } } as any);
           break;
         default:
           alert('Unknown action');
@@ -140,7 +140,7 @@ export default function ListingsManagerPage() {
           return;
       }
 
-      alert(res.message || 'Action completed successfully');
+      alert(res?.message || 'Action completed successfully');
       setSelected(new Set());
       setReason('');
       setShowReasonInput(false);
