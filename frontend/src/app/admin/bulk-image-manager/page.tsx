@@ -139,7 +139,7 @@ export default function BulkImageManagerPage() {
 
     setAssigning(true);
     try {
-      const res = await api.post('/admin/bulk/images/update-listings', {
+      const res = await api.post<{ data: any; message?: string }>('/admin/bulk/images/update-listings', {
         imageUrls: uploadedUrls,
         filter: filterObj,
         strategy,
