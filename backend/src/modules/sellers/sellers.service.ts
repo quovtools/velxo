@@ -489,6 +489,38 @@ export class SellersService {
     })
   }
 
+  async listSellers(params: { page?: number; limit?: number; search?: string; verified?: boolean }) {
+    const { page = 1, limit = 20, search, verified } = params
+    const skip = (page - 1) * limit
+
+    const where: any = {}
+    if (verified !== undefined) where.isVerified = verified
+    if (search) {
+      where.OR = [
+        { storeName: { contains: search, mode: 'insensitive' } },
+        { user: { email: { contains: search, mode: 'insensitive' } } },
+      ]
+    }
+
+    const [items, total] = await Promise.all([
+      this.prisma.sellers.findMany({
+        where,
+        skip,
+        take: limit,
+        orderBy: { createdAt: 'desc' },
+        include: {
+          user: { select: { id: true, email: true, firstName: true, lastName: true, avatarUrl: true } },
+        },
+      }),
+      this.prisma.sellers.count({ where }),
+    ])
+
+    return {
+      items,
+      pagination: { page, limit, total, totalPages: Math.ceil(total / limit) },
+    }
+  }
+
   async suspendSeller(sellerId: string, reason: string, moderatorId: string) {
     this.logger.log(`Suspending seller ${sellerId}`)
 

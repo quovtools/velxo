@@ -32,15 +32,12 @@ export class SellersController {
     @CurrentUserId() userId: string,
     @Body('storeName') storeName: string,
     @Body('storeDescription') storeDescription?: string,
-    @Body('accountType') accountType?: string,
   ) {
     try {
-      const seller = await this.sellersService.createSeller(
-        userId,
+      const seller = await this.sellersService.createSeller(userId, {
         storeName,
         storeDescription,
-        accountType as any,
-      )
+      })
       return ApiResponseDto.ok(seller, 'Seller account created successfully')
     } catch (error) {
       this.logger.error('Error creating seller:', error)
@@ -54,7 +51,7 @@ export class SellersController {
   @Get(':id')
   async getSeller(@Param('id') sellerId: string) {
     try {
-      const seller = await this.sellersService.getSeller(sellerId)
+      const seller = await this.sellersService.getSellerProfile(sellerId)
       return ApiResponseDto.ok(seller, 'Seller retrieved')
     } catch (error) {
       this.logger.error('Error fetching seller:', error)
@@ -84,11 +81,11 @@ export class SellersController {
   @UseGuards(JwtAuthGuard)
   async updateSeller(
     @Param('id') sellerId: string,
-    @CurrentUserId() userId: string,
+    @CurrentUserId() _userId: string,
     @Body() updates: any,
   ) {
     try {
-      const seller = await this.sellersService.updateSeller(sellerId, userId, updates)
+      const seller = await this.sellersService.updateSeller(sellerId, updates)
       return ApiResponseDto.ok(seller, 'Seller profile updated')
     } catch (error) {
       this.logger.error('Error updating seller:', error)
@@ -102,8 +99,8 @@ export class SellersController {
   @Get(':id/stats')
   async getSellerStats(@Param('id') sellerId: string) {
     try {
-      const stats = await this.sellersService.getSellerStats(sellerId)
-      return ApiResponseDto.ok(stats, 'Seller statistics retrieved')
+      const profile = await this.sellersService.getSellerProfile(sellerId)
+      return ApiResponseDto.ok(profile.stats, 'Seller statistics retrieved')
     } catch (error) {
       this.logger.error('Error fetching seller stats:', error)
       throw error
@@ -122,10 +119,10 @@ export class SellersController {
   ) {
     try {
       const sellers = await this.sellersService.listSellers({
-        page: page || 1,
-        limit: limit || 20,
+        page: page ? Number(page) : 1,
+        limit: limit ? Number(limit) : 20,
         search,
-        verified,
+        verified: verified !== undefined ? verified === (true as any) || verified === ('true' as any) : undefined,
       })
       return ApiResponseDto.ok(sellers, 'Sellers retrieved')
     } catch (error) {
@@ -141,11 +138,11 @@ export class SellersController {
   @UseGuards(JwtAuthGuard)
   async submitKyc(
     @Param('id') sellerId: string,
-    @CurrentUserId() userId: string,
+    @CurrentUserId() _userId: string,
     @Body() kycData: any,
   ) {
     try {
-      const seller = await this.sellersService.submitKyc(sellerId, userId, kycData)
+      const seller = await this.sellersService.submitKyc(sellerId, kycData)
       return ApiResponseDto.ok(seller, 'KYC documents submitted successfully')
     } catch (error) {
       this.logger.error('Error submitting KYC:', error)

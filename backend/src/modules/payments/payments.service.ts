@@ -142,7 +142,7 @@ export class PaymentsService implements OnModuleInit {
       return { payment, paymentUrl: charge.paymentUrl, configured: true }
     }
 
-    if (provider === 'PAYMENT_IO') {
+    if (provider === PaymentProvider.PAYMENT_IO) {
       const charge = await this.paymentIo.createCharge({
         reference: orderId,
         amount: Number(amount),

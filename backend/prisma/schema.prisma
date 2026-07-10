@@ -57,6 +57,7 @@ enum PaymentProvider {
   MOMO_MTN         // Mobile Money - MTN (20+ African countries)
   MOMO_AIRTEL      // Mobile Money - Airtel (16+ African countries)
   MOMO_VODAFONE    // Mobile Money - Vodafone (Ghana, etc.)
+  PAYMENT_IO       // Paymento / Payment.io (crypto & card)
 }
 
 enum WithdrawalStatus {
