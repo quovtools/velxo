@@ -3,6 +3,7 @@
 import React, { useEffect, useState } from 'react';
 import { Image, Plus, Trash2, RefreshCw, GripVertical } from 'lucide-react';
 import { api } from '@/lib/api';
+import { fileToDataUrl } from '@/lib/file';
 import { LoadingArea } from '@/components/LoadingLogo';
 
 interface Slide {
