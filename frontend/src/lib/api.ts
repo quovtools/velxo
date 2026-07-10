@@ -95,7 +95,9 @@ export interface EscrowData {
 }
 
 export async function getEscrowByOrder(orderId: string): Promise<EscrowData> {
-  return api.get<EscrowData>(`/escrow/order/${orderId}`);
+  const res = await api.get<{ success: boolean; data: EscrowData }>(`/escrow/order/${orderId}`);
+  // The backend wraps responses in { success, data, message }; unwrap it.
+  return (res as any)?.data ?? (res as unknown as EscrowData);
 }
 
 export interface EscrowPaymentLink {
@@ -105,7 +107,8 @@ export interface EscrowPaymentLink {
 }
 
 export async function generateEscrowPaymentLink(orderId: string): Promise<EscrowPaymentLink> {
-  return api.post<EscrowPaymentLink>(`/escrow/order/${orderId}/pay`);
+  const res = await api.post<{ success: boolean; data: EscrowPaymentLink }>(`/escrow/order/${orderId}/pay`);
+  return (res as any)?.data ?? (res as unknown as EscrowPaymentLink);
 }
 
 export const api = {

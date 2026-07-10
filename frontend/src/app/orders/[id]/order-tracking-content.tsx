@@ -173,8 +173,10 @@ export default function OrderTrackingContent({ id }: { id: string }) {
     (async () => {
       setPaymentLoading(true);
       try {
-        const escrow = await getEscrowByOrder(id);
-        if (active) setPaymentLink(escrow.paymentLink || null);
+        const res = await getEscrowByOrder(id);
+        // The API wrapper returns { success, data, message } — unwrap it.
+        const escrow = (res as any)?.data ?? res;
+        if (active) setPaymentLink(escrow?.paymentLink || null);
       } catch {
         if (active) setPaymentLink(null);
       } finally {
@@ -584,6 +586,40 @@ export default function OrderTrackingContent({ id }: { id: string }) {
               }
 
               // ── BUYER VIEW ──
+              if (order.status === 'PENDING') {
+                return (
+                  <div className="bg-yellow-950/20 border border-yellow-500/20 rounded-2xl p-4 flex flex-col gap-3 text-yellow-200 text-sm">
+                    <div className="flex items-center gap-2">
+                      <Lock className="w-5 h-5 flex-shrink-0" />
+                      <p className="font-bold">Complete your payment to lock funds in escrow</p>
+                    </div>
+                    <p className="text-xs text-gray-400">Your order is reserved. Pay now to proceed — the seller will be notified once payment is confirmed.</p>
+                    {paymentLoading ? (
+                      <span className="inline-flex items-center gap-2 bg-white/5 border border-borderBg px-4 py-3 rounded-xl text-gray-400 text-sm">
+                        <Loader2 className="w-4 h-4 animate-spin" /> Loading payment link...
+                      </span>
+                    ) : paymentLink ? (
+                      <a
+                        href={paymentLink}
+                        target="_blank"
+                        rel="noopener noreferrer"
+                        onClick={() => setTimeout(() => loadOrder(), 4000)}
+                        className="inline-flex items-center justify-center gap-2 bg-brand hover:bg-brand-dark px-5 py-3 rounded-xl font-bold text-white text-sm shadow-lg shadow-brand/20 transition"
+                      >
+                        <ExternalLink className="w-4 h-4" /> Pay Now — Complete Your Payment
+                      </a>
+                    ) : (
+                      <button
+                        type="button"
+                        onClick={handleGeneratePayment}
+                        className="inline-flex items-center justify-center gap-2 bg-brand hover:bg-brand-dark px-5 py-3 rounded-xl font-bold text-white text-sm shadow-lg shadow-brand/20 transition"
+                      >
+                        <ExternalLink className="w-4 h-4" /> Generate Payment Link
+                      </button>
+                    )}
+                  </div>
+                )
+              }
               if (order.status === 'PAID' && !order.acceptedAt) {
                 return (
                   <div className="bg-background border border-borderBg rounded-2xl p-4 text-sm text-gray-400 flex gap-3">
