@@ -109,6 +109,18 @@ export default function ProfilePage() {
       })
       .catch(() => {})
       .finally(() => setLoading(false));
+
+    // Load active order count for the quick-link badge
+    api.get<{ success: boolean; data: any[] }>('/orders/me')
+      .then(res => {
+        if (res.success) {
+          const active = (res.data || []).filter((o: any) =>
+            !['COMPLETED', 'CANCELLED', 'REFUNDED'].includes(o.status)
+          );
+          setActiveOrderCount(active.length);
+        }
+      })
+      .catch(() => {});
   }, [user, authLoading, router]);
 
   const saveProfile = async (e: React.FormEvent) => {
@@ -233,9 +245,14 @@ export default function ProfilePage() {
 
         {/* Quick links */}
         <div className="grid grid-cols-3 gap-3 mt-5 pt-4 border-t border-borderBg">
-          <Link href="/orders" className="flex flex-col items-center gap-1 p-3 bg-hoverBg/40 rounded-xl hover:bg-hoverBg transition">
+          <Link href="/orders" className="relative flex flex-col items-center gap-1 p-3 bg-hoverBg/40 rounded-xl hover:bg-hoverBg transition">
             <Package className="w-5 h-5 text-brand" />
             <span className="text-xs text-gray-400">Orders</span>
+            {activeOrderCount != null && activeOrderCount > 0 && (
+              <span className="absolute -top-1 -right-1 min-w-[18px] h-[18px] px-1 rounded-full bg-red-500 text-white text-[10px] font-bold flex items-center justify-center">
+                {activeOrderCount > 9 ? '9+' : activeOrderCount}
+              </span>
+            )}
           </Link>
           <Link href="/wallet" className="flex flex-col items-center gap-1 p-3 bg-hoverBg/40 rounded-xl hover:bg-hoverBg transition">
             <Wallet className="w-5 h-5 text-brand" />
