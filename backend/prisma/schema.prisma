@@ -52,9 +52,11 @@ enum PaymentStatus {
 }
 
 enum PaymentProvider {
-  FLUTTERWAVE
-  PAYMENT_IO
-  CRYPTO
+  FLUTTERWAVE      // African payments (Nigeria, Ghana, Kenya, etc.)
+  PAYSTACK         // African payments (Nigeria-focused)
+  MOMO_MTN         // Mobile Money - MTN (20+ African countries)
+  MOMO_AIRTEL      // Mobile Money - Airtel (16+ African countries)
+  MOMO_VODAFONE    // Mobile Money - Vodafone (Ghana, etc.)
 }
 
 enum WithdrawalStatus {
@@ -258,7 +260,7 @@ model sellerSubscriptions {
   plan        String // PRO | PREMIUM
   status      String   @default("PENDING") // PENDING | ACTIVE | CANCELLED | EXPIRED
   amount      Decimal  @db.Decimal(12, 2)
-  currency    String   @default("USD")
+  currency    String   @default("NGN")
   provider    String // PAYMENT_IO | FLUTTERWAVE
   providerRef String? // payment token / reference returned by the gateway
   startsAt    DateTime?
@@ -322,7 +324,7 @@ model listings {
   title          String
   description    String
   price          Decimal       @db.Decimal(12, 2)
-  currency       String        @default("USD")
+  currency       String        @default("NGN")
   gameId         String?
   gameName       String
   sku            String?

@@ -1270,6 +1270,228 @@ export class AdminService {
   // ---------------------------------------------------------------------------
   // AUDIT LOGS
   // ---------------------------------------------------------------------------
+  // ============ BULK OPERATIONS ============
+
+  /**
+   * Bulk approve multiple listings
+   */
+  async bulkApproveListing(listingIds: string[], moderatorId: string) {
+    this.logger.log(`Bulk approving ${listingIds.length} listings`)
+
+    const results = await Promise.allSettled(
+      listingIds.map(id => this.approveListing(id, moderatorId)),
+    )
+
+    const successful = results.filter(r => r.status === 'fulfilled').length
+    const failed = results.filter(r => r.status === 'rejected').length
+
+    return { successful, failed, total: listingIds.length }
+  }
+
+  /**
+   * Bulk reject multiple listings
+   */
+  async bulkRejectListing(listingIds: string[], moderatorId: string, reason: string) {
+    this.logger.log(`Bulk rejecting ${listingIds.length} listings`)
+
+    const results = await Promise.allSettled(
+      listingIds.map(id => this.rejectListing(id, moderatorId, reason)),
+    )
+
+    const successful = results.filter(r => r.status === 'fulfilled').length
+    const failed = results.filter(r => r.status === 'rejected').length
+
+    return { successful, failed, total: listingIds.length }
+  }
+
+  /**
+   * Bulk delete multiple listings
+   */
+  async bulkDeleteListing(listingIds: string[], moderatorId: string) {
+    this.logger.log(`Bulk deleting ${listingIds.length} listings`)
+
+    const results = await this.prisma.listings.deleteMany({
+      where: { id: { in: listingIds } },
+    })
+
+    await Promise.all(
+      listingIds.map(id =>
+        this.createAuditLog(moderatorId, 'DELETE', 'Listing', id, { action: 'bulk_delete' }),
+      ),
+    )
+
+    return { deleted: results.count, total: listingIds.length }
+  }
+
+  /**
+   * Bulk update listing images
+   */
+  async bulkUpdateListingImages(listingIds: string[], imageUrls: string[], moderatorId: string) {
+    this.logger.log(`Bulk updating images for ${listingIds.length} listings`)
+
+    const results = await this.prisma.listings.updateMany({
+      where: { id: { in: listingIds } },
+      data: { images: imageUrls },
+    })
+
+    await Promise.all(
+      listingIds.map(id =>
+        this.createAuditLog(moderatorId, 'UPDATE', 'Listing', id, { images: 'bulk_updated' }),
+      ),
+    )
+
+    return { updated: results.count, total: listingIds.length }
+  }
+
+  /**
+   * Bulk update listing status
+   */
+  async bulkUpdateListingStatus(
+    listingIds: string[],
+    status: ListingStatus,
+    moderatorId: string,
+  ) {
+    this.logger.log(`Bulk updating status to ${status} for ${listingIds.length} listings`)
+
+    const results = await this.prisma.listings.updateMany({
+      where: { id: { in: listingIds } },
+      data: { status },
+    })
+
+    await Promise.all(
+      listingIds.map(id =>
+        this.createAuditLog(moderatorId, 'UPDATE', 'Listing', id, { status }),
+      ),
+    )
+
+    return { updated: results.count, total: listingIds.length, newStatus: status }
+  }
+
+  /**
+   * Bulk feature/unfeature listings
+   */
+  async bulkSetListingFeatured(listingIds: string[], featured: boolean, moderatorId: string) {
+    this.logger.log(`Bulk ${featured ? 'featuring' : 'unfeaturing'} ${listingIds.length} listings`)
+
+    const results = await this.prisma.listings.updateMany({
+      where: { id: { in: listingIds } },
+      data: { isFeatured: featured },
+    })
+
+    await Promise.all(
+      listingIds.map(id =>
+        this.createAuditLog(moderatorId, 'UPDATE', 'Listing', id, { isFeatured: featured }),
+      ),
+    )
+
+    return { updated: results.count, total: listingIds.length, featured }
+  }
+
+  /**
+   * Bulk ban/unban users
+   */
+  async bulkSetUserBan(userIds: string[], banned: boolean, reason: string, moderatorId: string) {
+    this.logger.log(`Bulk ${banned ? 'banning' : 'unbanning'} ${userIds.length} users`)
+
+    const results = await this.prisma.users.updateMany({
+      where: { id: { in: userIds } },
+      data: { isBanned: banned, banReason: reason, bannedAt: banned ? new Date() : null },
+    })
+
+    await Promise.all(
+      userIds.map(id =>
+        this.createAuditLog(moderatorId, banned ? 'BAN' : 'UNBAN', 'User', id, { reason }),
+      ),
+    )
+
+    return { updated: results.count, total: userIds.length, banned }
+  }
+
+  /**
+   * Bulk verify user emails
+   */
+  async bulkVerifyUserEmails(userIds: string[], moderatorId: string) {
+    this.logger.log(`Bulk verifying emails for ${userIds.length} users`)
+
+    const results = await this.prisma.users.updateMany({
+      where: { id: { in: userIds } },
+      data: { emailVerified: true, emailVerifiedAt: new Date() },
+    })
+
+    await Promise.all(
+      userIds.map(id =>
+        this.createAuditLog(moderatorId, 'UPDATE', 'User', id, { emailVerified: true }),
+      ),
+    )
+
+    return { updated: results.count, total: userIds.length }
+  }
+
+  /**
+   * Bulk suspend sellers
+   */
+  async bulkSuspendSellers(sellerIds: string[], suspend: boolean, reason: string, moderatorId: string) {
+    this.logger.log(`Bulk ${suspend ? 'suspending' : 'unsuspending'} ${sellerIds.length} sellers`)
+
+    const results = await this.prisma.sellers.updateMany({
+      where: { id: { in: sellerIds } },
+      data: {
+        isSuspended: suspend,
+        suspensionReason: reason,
+        suspendedAt: suspend ? new Date() : null,
+      },
+    })
+
+    await Promise.all(
+      sellerIds.map(id =>
+        this.createAuditLog(moderatorId, suspend ? 'SUSPEND' : 'UNSUSPEND', 'Seller', id, {
+          reason,
+        }),
+      ),
+    )
+
+    return { updated: results.count, total: sellerIds.length, suspended: suspend }
+  }
+
+  /**
+   * Get listings for bulk operations (with filters)
+   */
+  async getBulkListingsForEdit(filters: {
+    gameId?: string
+    gameName?: string
+    categoryId?: string
+    status?: string
+    sellerId?: string
+    isFeatured?: boolean
+    limit?: number
+  }) {
+    const where: any = {}
+
+    if (filters.gameId) where.gameId = filters.gameId
+    if (filters.gameName) where.gameName = { contains: filters.gameName, mode: 'insensitive' }
+    if (filters.categoryId) where.categoryId = filters.categoryId
+    if (filters.status) where.status = filters.status
+    if (filters.isFeatured !== undefined) where.isFeatured = filters.isFeatured
+
+    const listings = await this.prisma.listings.findMany({
+      where,
+      take: filters.limit || 100,
+      select: {
+        id: true,
+        title: true,
+        gameName: true,
+        status: true,
+        isFeatured: true,
+        images: true,
+        createdAt: true,
+        seller: { select: { id: true, user: { select: { email: true } } } },
+      },
+      orderBy: { createdAt: 'desc' },
+    })
+
+    return listings
+  }
+
   async listAuditLogs(filters: {
     action?: string
     entityType?: string

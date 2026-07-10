@@ -11,6 +11,7 @@ import {
   Logger,
 } from '@nestjs/common'
 import { AdminService } from './admin.service'
+import { BulkOperationsService } from './bulk-operations.service'
 import { AdminPasswordGuard } from '@/common/guards/admin-password.guard'
 import { CurrentUserId } from '@/common/decorators/current-user.decorator'
 import { ApiResponseDto } from '@/common/dto/api-response.dto'
@@ -19,7 +20,10 @@ import { ApiResponseDto } from '@/common/dto/api-response.dto'
 export class AdminController {
   private readonly logger = new Logger(AdminController.name)
 
-  constructor(private adminService: AdminService) {}
+  constructor(
+    private adminService: AdminService,
+    private bulkOpsService: BulkOperationsService,
+  ) {}
 
   @Get('dashboard')
   @UseGuards(AdminPasswordGuard)
@@ -441,6 +445,229 @@ export class AdminController {
       return ApiResponseDto.ok(result, 'Listing deleted')
     } catch (error) {
       this.logger.error('Error deleting listing:', error)
+      throw error
+    }
+  }
+
+  // ============ BULK OPERATIONS FOR LISTINGS ============
+
+  @Get('listings/bulk/search')
+  @UseGuards(AdminPasswordGuard)
+  async getBulkListings(
+    @Query('gameId') gameId?: string,
+    @Query('gameName') gameName?: string,
+    @Query('categoryId') categoryId?: string,
+    @Query('status') status?: string,
+    @Query('sellerId') sellerId?: string,
+    @Query('isFeatured') isFeatured?: boolean,
+    @Query('limit') limit?: number,
+  ) {
+    try {
+      const listings = await this.adminService.getBulkListingsForEdit({
+        gameId,
+        gameName,
+        categoryId,
+        status,
+        sellerId,
+        isFeatured,
+        limit,
+      })
+      return ApiResponseDto.ok(listings, 'Listings retrieved for bulk editing')
+    } catch (error) {
+      this.logger.error('Error fetching listings for bulk edit:', error)
+      throw error
+    }
+  }
+
+  @Post('listings/bulk/approve')
+  @UseGuards(AdminPasswordGuard)
+  async bulkApproveListing(
+    @Body('listingIds') listingIds: string[],
+    @CurrentUserId() moderatorId: string,
+  ) {
+    try {
+      const result = await this.adminService.bulkApproveListing(listingIds, moderatorId)
+      return ApiResponseDto.ok(result, 'Listings bulk approved')
+    } catch (error) {
+      this.logger.error('Error bulk approving listings:', error)
+      throw error
+    }
+  }
+
+  @Post('listings/bulk/reject')
+  @UseGuards(AdminPasswordGuard)
+  async bulkRejectListing(
+    @Body('listingIds') listingIds: string[],
+    @Body('reason') reason: string,
+    @CurrentUserId() moderatorId: string,
+  ) {
+    try {
+      const result = await this.adminService.bulkRejectListing(listingIds, moderatorId, reason)
+      return ApiResponseDto.ok(result, 'Listings bulk rejected')
+    } catch (error) {
+      this.logger.error('Error bulk rejecting listings:', error)
+      throw error
+    }
+  }
+
+  @Post('listings/bulk/delete')
+  @UseGuards(AdminPasswordGuard)
+  async bulkDeleteListing(
+    @Body('listingIds') listingIds: string[],
+    @CurrentUserId() moderatorId: string,
+  ) {
+    try {
+      const result = await this.adminService.bulkDeleteListing(listingIds, moderatorId)
+      return ApiResponseDto.ok(result, 'Listings bulk deleted')
+    } catch (error) {
+      this.logger.error('Error bulk deleting listings:', error)
+      throw error
+    }
+  }
+
+  @Patch('listings/bulk/images')
+  @UseGuards(AdminPasswordGuard)
+  async bulkUpdateListingImages(
+    @Body('listingIds') listingIds: string[],
+    @Body('imageUrls') imageUrls: string[],
+    @CurrentUserId() moderatorId: string,
+  ) {
+    try {
+      const result = await this.adminService.bulkUpdateListingImages(
+        listingIds,
+        imageUrls,
+        moderatorId,
+      )
+      return ApiResponseDto.ok(result, 'Listing images bulk updated')
+    } catch (error) {
+      this.logger.error('Error bulk updating listing images:', error)
+      throw error
+    }
+  }
+
+  @Patch('listings/bulk/status')
+  @UseGuards(AdminPasswordGuard)
+  async bulkUpdateListingStatus(
+    @Body('listingIds') listingIds: string[],
+    @Body('status') status: string,
+    @CurrentUserId() moderatorId: string,
+  ) {
+    try {
+      const result = await this.adminService.bulkUpdateListingStatus(
+        listingIds,
+        status as any,
+        moderatorId,
+      )
+      return ApiResponseDto.ok(result, 'Listing status bulk updated')
+    } catch (error) {
+      this.logger.error('Error bulk updating listing status:', error)
+      throw error
+    }
+  }
+
+  @Patch('listings/bulk/feature')
+  @UseGuards(AdminPasswordGuard)
+  async bulkSetListingFeatured(
+    @Body('listingIds') listingIds: string[],
+    @Body('featured') featured: boolean,
+    @CurrentUserId() moderatorId: string,
+  ) {
+    try {
+      const result = await this.adminService.bulkSetListingFeatured(listingIds, featured, moderatorId)
+      return ApiResponseDto.ok(result, 'Listing featured state bulk updated')
+    } catch (error) {
+      this.logger.error('Error bulk updating listing featured state:', error)
+      throw error
+    }
+  }
+
+  // ============ BULK OPERATIONS FOR USERS ============
+
+  @Post('users/bulk/ban')
+  @UseGuards(AdminPasswordGuard)
+  async bulkBanUsers(
+    @Body('userIds') userIds: string[],
+    @Body('reason') reason: string,
+    @CurrentUserId() moderatorId: string,
+  ) {
+    try {
+      const result = await this.adminService.bulkSetUserBan(userIds, true, reason, moderatorId)
+      return ApiResponseDto.ok(result, 'Users bulk banned')
+    } catch (error) {
+      this.logger.error('Error bulk banning users:', error)
+      throw error
+    }
+  }
+
+  @Post('users/bulk/unban')
+  @UseGuards(AdminPasswordGuard)
+  async bulkUnbanUsers(
+    @Body('userIds') userIds: string[],
+    @CurrentUserId() moderatorId: string,
+  ) {
+    try {
+      const result = await this.adminService.bulkSetUserBan(userIds, false, '', moderatorId)
+      return ApiResponseDto.ok(result, 'Users bulk unbanned')
+    } catch (error) {
+      this.logger.error('Error bulk unbanning users:', error)
+      throw error
+    }
+  }
+
+  @Post('users/bulk/verify-emails')
+  @UseGuards(AdminPasswordGuard)
+  async bulkVerifyUserEmails(
+    @Body('userIds') userIds: string[],
+    @CurrentUserId() moderatorId: string,
+  ) {
+    try {
+      const result = await this.adminService.bulkVerifyUserEmails(userIds, moderatorId)
+      return ApiResponseDto.ok(result, 'User emails bulk verified')
+    } catch (error) {
+      this.logger.error('Error bulk verifying emails:', error)
+      throw error
+    }
+  }
+
+  // ============ BULK OPERATIONS FOR SELLERS ============
+
+  @Post('sellers/bulk/suspend')
+  @UseGuards(AdminPasswordGuard)
+  async bulkSuspendSellers(
+    @Body('sellerIds') sellerIds: string[],
+    @Body('reason') reason: string,
+    @CurrentUserId() moderatorId: string,
+  ) {
+    try {
+      const result = await this.adminService.bulkSuspendSellers(
+        sellerIds,
+        true,
+        reason,
+        moderatorId,
+      )
+      return ApiResponseDto.ok(result, 'Sellers bulk suspended')
+    } catch (error) {
+      this.logger.error('Error bulk suspending sellers:', error)
+      throw error
+    }
+  }
+
+  @Post('sellers/bulk/reinstate')
+  @UseGuards(AdminPasswordGuard)
+  async bulkReinstateSellers(
+    @Body('sellerIds') sellerIds: string[],
+    @CurrentUserId() moderatorId: string,
+  ) {
+    try {
+      const result = await this.adminService.bulkSuspendSellers(
+        sellerIds,
+        false,
+        '',
+        moderatorId,
+      )
+      return ApiResponseDto.ok(result, 'Sellers bulk reinstated')
+    } catch (error) {
+      this.logger.error('Error bulk reinstating sellers:', error)
       throw error
     }
   }
