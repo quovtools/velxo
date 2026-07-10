@@ -2,6 +2,22 @@ import React from 'react';
 import Link from 'next/link';
 import type { Metadata } from 'next';
 import { CheckCircle, XCircle, ShieldCheck, Zap, Award } from 'lucide-react';
+import { useCurrency } from '@/lib/useCurrency';
+
+interface FeeExample {
+  salePrice: number;
+  fee: number;
+  payout: number;
+}
+
+const feeExamples: FeeExample[] = [
+  { salePrice: 10, fee: 1.00, payout: 9.00 },
+  { salePrice: 25, fee: 2.50, payout: 22.50 },
+  { salePrice: 50, fee: 5.00, payout: 45.00 },
+  { salePrice: 100, fee: 10.00, payout: 90.00 },
+  { salePrice: 250, fee: 25.00, payout: 225.00 },
+  { salePrice: 500, fee: 50.00, payout: 450.00 },
+];
 
 export const metadata: Metadata = {
   title: 'Pricing & Fees | Velxo Market',
@@ -37,15 +53,6 @@ const sellerFeatures = [
   { text: 'Seller Pro Premium: 3% fee + 10 featured', included: false },
 ];
 
-const feeExamples = [
-  { salePrice: 10, fee: 1.00, payout: 9.00 },
-  { salePrice: 25, fee: 2.50, payout: 22.50 },
-  { salePrice: 50, fee: 5.00, payout: 45.00 },
-  { salePrice: 100, fee: 10.00, payout: 90.00 },
-  { salePrice: 250, fee: 25.00, payout: 225.00 },
-  { salePrice: 500, fee: 50.00, payout: 450.00 },
-];
-
 const paymentMethods = [
   { name: 'Paystack', desc: 'Debit/credit cards, bank transfers', regions: 'Nigeria, Ghana, Kenya' },
   { name: 'Flutterwave', desc: 'Mobile money, cards, bank', regions: 'Pan-Africa' },
@@ -55,6 +62,7 @@ const paymentMethods = [
 ];
 
 export default function PricingPage() {
+  const { fmt } = useCurrency();
   return (
     <div className="space-y-16 my-8">
       {/* Hero */}
@@ -171,9 +179,9 @@ export default function PricingPage() {
             <tbody className="divide-y divide-borderBg">
               {feeExamples.map((row) => (
                 <tr key={row.salePrice} className="hover:bg-background/30 transition">
-                  <td className="px-6 py-4 font-bold text-white">${row.salePrice.toFixed(2)}</td>
-                  <td className="px-6 py-4 text-gray-400">${row.fee.toFixed(2)}</td>
-                  <td className="px-6 py-4 font-bold text-emerald-400">${row.payout.toFixed(2)}</td>
+                  <td className="px-6 py-4 font-bold text-white">{fmt(row.salePrice)}</td>
+                  <td className="px-6 py-4 text-gray-400">{fmt(row.fee)}</td>
+                  <td className="px-6 py-4 font-bold text-emerald-400">{fmt(row.payout)}</td>
                 </tr>
               ))}
             </tbody>

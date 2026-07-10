@@ -1,0 +1,317 @@
+================================================================================
+                    VELXO MARKETPLACE — TEST ACCOUNTS
+================================================================================
+
+To use these accounts, run the seed first:
+    npm run prisma:seed
+
+Then login with any of these email addresses in the frontend.
+
+================================================================================
+                                 ADMIN ACCOUNT
+================================================================================
+
+Email:              admin@velxo.shop
+Role:               SUPER_ADMIN
+Access:             Full admin dashboard
+
+================================================================================
+                              SELLER ACCOUNTS (5)
+================================================================================
+
+SELLER 1 — Kwame Gaming Store
+├─ Email:           kwame.gaming@velxo.shop
+├─ Name:            Kwame Asante
+├─ Country:         Ghana
+├─ Subscription:    PRO (Verified)
+├─ Rating:          4.8/5 ⭐
+├─ Total Sales:     234
+├─ Specialization:  Free Fire & PUBG
+└─ Wallet Balance:  $1,000-$5,000
+
+SELLER 2 — Zainab Pro Gaming
+├─ Email:           zainab.plays@velxo.shop
+├─ Name:            Zainab Okonkwo
+├─ Country:         Nigeria
+├─ Subscription:    FREE
+├─ Rating:          4.5/5 ⭐
+├─ Total Sales:     89
+├─ Specialization:  Mobile Legends & COD
+└─ Wallet Balance:  $1,000-$5,000
+
+SELLER 3 — Elite Boost Services
+├─ Email:           david.booster@velxo.shop
+├─ Name:            David Ochieng
+├─ Country:         Kenya
+├─ Subscription:    PREMIUM (Verified)
+├─ Rating:          4.9/5 ⭐⭐ (Highest)
+├─ Total Sales:     412 (Most experienced)
+├─ Specialization:  Professional rank boosting
+└─ Wallet Balance:  $1,000-$5,000
+
+SELLER 4 — Amina GameVault
+├─ Email:           amina.games@velxo.shop
+├─ Name:            Amina Hassan
+├─ Country:         Egypt
+├─ Subscription:    PRO (Verified)
+├─ Rating:          4.6/5 ⭐
+├─ Total Sales:     156
+├─ Specialization:  Genshin, Fortnite, Roblox
+└─ Wallet Balance:  $1,000-$5,000
+
+SELLER 5 — Thabo Gaming Hub
+├─ Email:           thabo.gamer@velxo.shop
+├─ Name:            Thabo Molefe
+├─ Country:         South Africa
+├─ Subscription:    FREE
+├─ Rating:          4.4/5 ⭐
+├─ Total Sales:     67
+├─ Specialization:  EA FC coins & Clash
+└─ Wallet Balance:  $1,000-$5,000
+
+================================================================================
+                              BUYER ACCOUNTS (7)
+================================================================================
+
+BUYER 1
+├─ Email:           chidi.okafor@gmail.com
+├─ Name:            Chidi Okafor
+├─ Country:         Nigeria
+├─ Wallet:          $0-$2,000
+└─ VelxoCoins:      0-2,000 coins
+
+BUYER 2
+├─ Email:           fatou.ndiaye@gmail.com
+├─ Name:            Fatou Ndiaye
+├─ Country:         Senegal
+├─ Wallet:          $0-$2,000
+└─ VelxoCoins:      0-2,000 coins
+
+BUYER 3
+├─ Email:           yusuf.mohammed@gmail.com
+├─ Name:            Yusuf Mohammed
+├─ Country:         Ethiopia
+├─ Wallet:          $0-$2,000
+└─ VelxoCoins:      0-2,000 coins
+
+BUYER 4
+├─ Email:           nairobi.gamer@gmail.com
+├─ Name:            Brian Kipchoge
+├─ Country:         Kenya
+├─ Wallet:          $0-$2,000
+└─ VelxoCoins:      0-2,000 coins
+
+BUYER 5
+├─ Email:           grace.mwanza@gmail.com
+├─ Name:            Grace Mwanza
+├─ Country:         Zambia
+├─ Wallet:          $0-$2,000
+└─ VelxoCoins:      0-2,000 coins
+
+BUYER 6
+├─ Email:           kofi.mensah@gmail.com
+├─ Name:            Kofi Mensah
+├─ Country:         Ghana
+├─ Wallet:          $0-$2,000
+└─ VelxoCoins:      0-2,000 coins
+
+BUYER 7
+├─ Email:           amina.diop@gmail.com
+├─ Name:            Amina Diop
+├─ Country:         Morocco
+├─ Wallet:          $0-$2,000
+└─ VelxoCoins:      0-2,000 coins
+
+================================================================================
+                          MARKETPLACE CONTENT
+================================================================================
+
+GAMING ACCOUNTS (20 listings)
+├─ Free Fire: Level 45, Heroic, 18 skins — $85
+├─ PUBG Mobile: Conqueror, 150 UC — $120
+├─ Mobile Legends: Mythic 2, 45 skins — $95
+├─ Valorant: Diamond 2, 85+ skins — $150
+└─ Genshin Impact: AR 58, 72 characters — $280
+
+BOOSTING SERVICES (15-18 gigs)
+├─ Mobile Legends: Warrior → Grandmaster ($25-$120)
+├─ Free Fire: Bronze → Heroic ($15-$80)
+├─ Valorant: Iron → Diamond ($30-$200)
+├─ PUBG Mobile: Bronze → Conqueror ($20-$150)
+├─ League of Legends: Iron → Platinum ($25-$180)
+└─ COD Mobile: Rookie → Legendary ($18-$100)
+
+TOP-UP PRODUCTS (31 items)
+├─ Free Fire: 100-2180 Diamonds ($1.99-$29.99)
+├─ PUBG Mobile: 60-3850 UC ($0.99-$49.99)
+├─ Mobile Legends: 86-2195 Diamonds ($1.99-$44.99)
+├─ Genshin Impact: 60-8080 Genesis Crystals ($0.99-$99.99)
+└─ Valorant: 125-8150 VP ($1.49-$79.99)
+
+BLOG POSTS (3 published)
+├─ How to Stay Safe When Buying Gaming Accounts
+├─ Top 5 Gaming Trends to Watch in 2025
+└─ Velxo Seller Success Story: Kwame Gaming Store
+
+REWARD CATALOG (6 items)
+├─ $5 Free Fire Gift Card (250 VXC)
+├─ $10 PUBG UC Bundle (500 VXC)
+├─ Mobile Legends 206 Diamonds (300 VXC)
+├─ $25 Steam Wallet (1200 VXC)
+├─ PlayStation $20 Card (1000 VXC)
+└─ Genshin Impact 300 Primogems (400 VXC)
+
+GAME SLIDES (6 homepage banners)
+├─ Free Fire (Hot)
+├─ PUBG Mobile (New)
+├─ Mobile Legends
+├─ Valorant (Elite)
+├─ Genshin Impact
+└─ Fortnite (Popular)
+
+================================================================================
+                          QUICK START GUIDE
+================================================================================
+
+1. RUN THE SEED
+   $ cd backend
+   $ npm run prisma:seed
+
+2. START THE BACKEND
+   $ npm run start:dev
+
+3. START THE FRONTEND (in another terminal)
+   $ cd frontend
+   $ npm run dev
+
+4. OPEN IN BROWSER
+   http://localhost:3000
+
+5. LOGIN WITH A TEST ACCOUNT
+   Use any email from above
+
+6. EXPLORE THE MARKETPLACE
+   ✓ Browse listings
+   ✓ View seller profiles
+   ✓ Check gigs
+   ✓ Browse top-ups
+   ✓ Read blog posts
+
+================================================================================
+                           TESTING SCENARIOS
+================================================================================
+
+SCENARIO 1: Browse as Buyer
+└─ Login: chidi.okafor@gmail.com
+   ✓ View all listings
+   ✓ Search by game
+   ✓ Filter by rank/region
+   ✓ Read seller reviews
+   ✓ Add to cart
+
+SCENARIO 2: Seller Dashboard
+└─ Login: kwame.gaming@velxo.shop (best-rated seller)
+   ✓ View analytics
+   ✓ See earnings
+   ✓ Check orders
+   ✓ Manage listings
+
+SCENARIO 3: Admin Panel
+└─ Login: admin@velxo.shop
+   ✓ View all users
+   ✓ Moderate listings
+   ✓ Check analytics
+   ✓ Manage platform
+
+SCENARIO 4: Purchase Flow
+├─ Login as buyer
+├─ Browse listings
+├─ Select a gaming account
+├─ Review details
+├─ Add to cart
+├─ Proceed to checkout
+├─ See escrow protection
+└─ Complete purchase
+
+SCENARIO 5: Boosting Service
+├─ Login as buyer
+├─ Browse gigs
+├─ Select rank boost service
+├─ View seller details
+├─ See delivery timeline
+└─ Place order
+
+================================================================================
+                        MARKETPLACE STATISTICS
+================================================================================
+
+Total Records:              ~190
+├─ Users:                   13
+├─ Sellers:                 5
+├─ Buyers:                  7
+├─ Admin:                   1
+├─ Listings:                20
+├─ Gigs:                    15-18
+├─ Top-Ups:                 31
+├─ Categories:              5
+├─ Subcategories:           44
+├─ Blog Posts:              3
+├─ Reward Items:            6
+├─ Game Slides:             6
+└─ Marquee Items:           7
+
+Games Covered:              10+
+├─ Free Fire
+├─ PUBG Mobile
+├─ Mobile Legends
+├─ Valorant
+├─ Genshin Impact
+├─ League of Legends
+├─ Call of Duty Mobile
+├─ Fortnite
+├─ Roblox
+└─ EA FC
+
+Seller Regions:
+├─ Ghana
+├─ Nigeria
+├─ Kenya
+├─ Egypt
+└─ South Africa
+
+Buyer Regions:
+├─ Nigeria
+├─ Senegal
+├─ Ethiopia
+├─ Kenya
+├─ Zambia
+├─ Ghana
+└─ Morocco
+
+================================================================================
+                          IMPORTANT NOTES
+================================================================================
+
+✓ All data is realistic and original
+✓ Pricing is market-competitive
+✓ Seller ratings are authentic-looking
+✓ All sellers are KYC verified
+✓ All emails are verified
+✓ Wallets have realistic balances
+✓ Data is ready for demos and testing
+✓ Seed is safe to re-run multiple times
+
+================================================================================
+                        FOR MORE INFORMATION
+================================================================================
+
+Quick Start:          SEED_QUICK_START.md
+Full Documentation:   SEED_DATA_DOCUMENTATION.md
+Technical Details:    SEED_IMPLEMENTATION_SUMMARY.md
+Completion Status:    SEED_COMPLETION_CHECKLIST.md
+
+Questions? Check the documentation files above.
+
+================================================================================
+                   READY TO TEST! ENJOY EXPLORING VELXO 🚀
+================================================================================

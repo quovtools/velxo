@@ -3,6 +3,7 @@ import React, { useState, useEffect } from 'react';
 import { useAuth } from '@/app/providers';
 import { api } from '@/lib/api';
 import { Share2, Copy, ExternalLink, Users, MousePointerClick, TrendingUp, DollarSign, Loader2, Activity, Target, Trophy, Star, Gift, ShieldCheck } from 'lucide-react';
+import { useCurrency } from '@/lib/useCurrency';
 
 interface AffiliateStats {
   totalClicks: number;
@@ -14,6 +15,7 @@ interface AffiliateStats {
 
 export default function AffiliateDashboardPage() {
   const { user } = useAuth();
+  const { fmt } = useCurrency();
   const [stats, setStats] = useState<AffiliateStats | null>(null);
   const [referral, setReferral] = useState<{ id: string; referralCode: string } | null>(null);
   const [loading, setLoading] = useState(true);
@@ -154,7 +156,7 @@ export default function AffiliateDashboardPage() {
             </div>
             <div>
               <p className="text-xs text-gray-500 font-medium uppercase">Total Earned</p>
-              <p className="text-2xl font-black text-white">${Number(stats?.totalEarned).toFixed(2)}</p>
+              <p className="text-2xl font-black text-white">{fmt(stats?.totalEarned || 0)}</p>
             </div>
           </div>
         </div>
@@ -190,7 +192,7 @@ export default function AffiliateDashboardPage() {
               </div>
               <div className="flex justify-between text-sm">
                 <span className="text-gray-400">Earnings needed</span>
-                <span className="text-white font-medium">${Number(stats?.totalEarned || 0).toFixed(2)} / ${tierTarget.minEarned}</span>
+                <span className="text-white font-medium">{fmt(stats?.totalEarned || 0)} / {fmt(tierTarget.minEarned)}</span>
               </div>
               <div className="w-full bg-gray-700 rounded-full h-2">
                 <div 
@@ -219,7 +221,7 @@ export default function AffiliateDashboardPage() {
                 </div>
                 <div className="flex justify-between text-sm">
                   <span className="text-gray-400">Earnings needed</span>
-                  <span className="text-white font-medium">${(nextTier.minEarned - Number(stats?.totalEarned || 0)).toFixed(2)} more</span>
+                  <span className="text-white font-medium">{fmt(nextTier.minEarned - (Number(stats?.totalEarned) || 0))} more</span>
                 </div>
               </div>
             </div>
@@ -316,7 +318,7 @@ export default function AffiliateDashboardPage() {
                       {r.createdAt ? new Date(r.createdAt).toLocaleDateString() : '-'}
                     </td>
                     <td className="py-3 text-right text-white font-bold">
-                      ${Number(r.totalEarned).toFixed(2)}
+                      {fmt(r.totalEarned)}
                     </td>
                   </tr>
                 ))}

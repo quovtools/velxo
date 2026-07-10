@@ -6,6 +6,7 @@ import { useAuth } from '@/app/providers';
 import { api } from '@/lib/api';
 import { GAME_NAMES } from '@/lib/games';
 import { Zap, ShieldCheck, Loader2, ChevronRight, Check, X, Minus, Plus, AlertCircle, ArrowRight } from 'lucide-react';
+import { useCurrency } from '@/lib/useCurrency';
 
 const GAMES = GAME_NAMES;
 
@@ -26,6 +27,7 @@ interface TopupProduct {
 export default function TopupsPage() {
   const router = useRouter();
   const { user } = useAuth();
+  const { fmt } = useCurrency();
   const [products, setProducts] = useState<TopupProduct[]>([]);
   const [loading, setLoading] = useState(true);
   const [activeGame, setActiveGame] = useState('');
@@ -148,7 +150,7 @@ export default function TopupsPage() {
                   {p.description && <p className="text-[11px] text-gray-400 mt-1 line-clamp-2">{p.description}</p>}
                 </div>
                 <div className="flex items-center justify-between border-t border-borderBg pt-2">
-                  <span className="text-lg font-black text-white">${Number(p.price).toFixed(2)}</span>
+                  <span className="text-lg font-black text-white">{fmt(p.price)}</span>
                   <button onClick={() => openBuy(p)}
                     className="flex items-center gap-1 bg-gradient-to-r from-brand to-purple-600 hover:from-brand-dark hover:to-purple-700 px-3 py-1.5 rounded-lg text-xs font-bold text-white transition">
                     <Check className="w-3.5 h-3.5" /> Buy
@@ -224,7 +226,7 @@ export default function TopupsPage() {
 
                 <div className="flex items-center justify-between">
                   <span className="text-sm text-gray-400">Total</span>
-                  <span className="text-xl font-black text-white">${(Number(selected.price) * quantity).toFixed(2)}</span>
+                  <span className="text-xl font-black text-white">{fmt(Number(selected.price) * quantity)}</span>
                 </div>
 
                 {purchaseError && (

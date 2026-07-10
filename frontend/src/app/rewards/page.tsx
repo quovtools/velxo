@@ -4,6 +4,7 @@ import React, { useState, useEffect } from 'react';
 import { useAuth } from '@/app/providers';
 import { api } from '@/lib/api';
 import { Award, Users, TrendingUp, Coins, Gift, Trophy, Loader2, Copy, DollarSign, MousePointerClick } from 'lucide-react';
+import { useCurrency } from '@/lib/useCurrency';
 
 interface AffiliateStats {
   totalClicks: number;
@@ -24,6 +25,7 @@ interface RewardTransaction {
 
 export default function RewardsPage() {
   const { user } = useAuth();
+  const { fmt } = useCurrency();
   const [activeTab, setActiveTab] = useState<'overview' | 'affiliate' | 'velxo-coins' | 'redeem'>('overview');
   const [affiliateStats, setAffiliateStats] = useState<AffiliateStats | null>(null);
   const [referral, setReferral] = useState<{ id: string; referralCode: string } | null>(null);
@@ -142,7 +144,7 @@ export default function RewardsPage() {
             </div>
             <div className="bg-cardBg border border-borderBg rounded-2xl p-5 space-y-2">
               <DollarSign className="w-5 h-5 text-emerald-400 mb-1" />
-              <p className="text-3xl font-black text-white">${Number(affiliateStats?.totalEarned || 0).toFixed(2)}</p>
+              <p className="text-3xl font-black text-white">{fmt(affiliateStats?.totalEarned || 0)}</p>
               <p className="text-xs text-gray-500 font-medium">Affiliate Earnings</p>
             </div>
             <div className="bg-cardBg border border-borderBg rounded-2xl p-5 space-y-2">
@@ -191,7 +193,7 @@ export default function RewardsPage() {
                 </div>
                 <div className="bg-cardBg border border-borderBg rounded-2xl p-5 space-y-2">
                   <DollarSign className="w-5 h-5 text-yellow-400 mb-1" />
-                  <p className="text-3xl font-black text-white">${Number(affiliateStats.totalEarned).toFixed(2)}</p>
+                  <p className="text-3xl font-black text-white">{fmt(affiliateStats.totalEarned)}</p>
                   <p className="text-xs text-gray-500 font-medium">Total Earned</p>
                 </div>
               </div>
@@ -208,7 +210,7 @@ export default function RewardsPage() {
                         <p className="text-xs text-gray-600">Joined {r.createdAt ? new Date(r.createdAt).toLocaleDateString() : ''}</p>
                       </div>
                       <div className="text-right">
-                        <p className="text-sm font-bold text-emerald-400">${Number(r.totalEarned).toFixed(2)}</p>
+                        <p className="text-sm font-bold text-emerald-400">{fmt(r.totalEarned)}</p>
                         <p className="text-xs text-gray-600">{r.tradeCount} trades</p>
                       </div>
                     </div>

@@ -12,6 +12,7 @@ import GameIcon from '@/components/GameIcon';
 import HorizontalScroll from '@/components/HorizontalScroll';
 import { storeReferralCode, trackReferralClick } from '@/lib/referral';
 import { GAME_LIST } from '@/lib/games';
+import { useCurrency } from '@/lib/useCurrency';
 
 interface Listing {
   id: string;
@@ -59,9 +60,9 @@ function SkeletonCard({ wide = false }: { wide?: boolean }) {
 /* ─────────────────────── Compact horizontal listing card ─────────────── */
 function ListingCardH({ item }: { item: Listing }) {
   const [imgErr, setImgErr] = useState(false);
+  const { fmt } = useCurrency();
   const img = item.images?.[0];
   const sold = item.isSold || item.status === 'SOLD';
-  const price = Number(item.price || 0).toFixed(2);
 
   return (
     <Link
@@ -108,7 +109,7 @@ function ListingCardH({ item }: { item: Listing }) {
           </h3>
         </div>
         <div className="flex items-center justify-between border-t border-borderBg pt-2">
-          <span className="text-base font-black text-white">${price}</span>
+          <span className="text-base font-black text-white">{fmt(item.price)}</span>
           <span className="bg-gradient-to-r from-brand to-brand-dark px-2.5 py-1 rounded-lg text-[10px] font-bold text-white">
             Buy
           </span>
@@ -200,6 +201,7 @@ function ListingsScrollSection({ listings, loading, title, total, icon }: Listin
 function GigServicesSection() {
   const [items, setItems] = useState<any[]>([]);
   const [loading, setLoading] = useState(true);
+  const { fmt } = useCurrency();
   const apiBase = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:3001/api/v1';
 
   useEffect(() => {
@@ -270,7 +272,7 @@ function GigServicesSection() {
                     </p>
                   </div>
                   <div className="flex items-center justify-between border-t border-borderBg pt-2">
-                    <span className="text-base font-black text-white">${Number(g.price).toFixed(2)}</span>
+                    <span className="text-base font-black text-white">{fmt(g.price)}</span>
                     <span className="bg-gradient-to-r from-purple-600 to-brand px-2.5 py-1 rounded-lg text-[10px] font-bold text-white">
                       Hire
                     </span>
@@ -288,6 +290,7 @@ function GigServicesSection() {
 function TopUpDealsSection() {
   const [items, setItems] = useState<any[]>([]);
   const [loading, setLoading] = useState(true);
+  const { fmt } = useCurrency();
   const apiBase = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:3001/api/v1';
 
   useEffect(() => {
@@ -349,7 +352,7 @@ function TopUpDealsSection() {
                     )}
                   </div>
                   <div className="flex items-center justify-between border-t border-borderBg pt-2">
-                    <span className="text-base font-black text-brand-light">${Number(t.price).toFixed(2)}</span>
+                    <span className="text-base font-black text-brand-light">{fmt(t.price)}</span>
                     <span className="bg-gradient-to-r from-brand to-purple-600 px-2.5 py-1 rounded-lg text-[10px] font-bold text-white">
                       Buy
                     </span>

@@ -6,6 +6,7 @@ import { useAuth } from '@/app/providers';
 import { api } from '@/lib/api';
 import { GAME_NAMES, getGameConfig, REGIONS, SERVICE_TYPE_LABELS } from '@/lib/games';
 import { Gamepad2, Loader2, Check, Search, ShieldCheck, Clock, X, AlertCircle, Plus, ArrowRight } from 'lucide-react';
+import { useCurrency } from '@/lib/useCurrency';
 
 const GAMES = GAME_NAMES;
 
@@ -42,6 +43,7 @@ interface Gig {
 export default function BoostingPage() {
   const router = useRouter();
   const { user } = useAuth();
+  const { fmt } = useCurrency();
   const isSeller = user?.role === 'SELLER';
   const [gigs, setGigs] = useState<Gig[]>([]);
   const [loading, setLoading] = useState(true);
@@ -296,7 +298,7 @@ export default function BoostingPage() {
                   </div>
                 </div>
                 <div className="flex items-center justify-between border-t border-borderBg pt-2">
-                  <span className="text-lg font-black text-white">${Number(g.price).toFixed(2)}</span>
+                  <span className="text-lg font-black text-white">{fmt(g.price)}</span>
                   <button onClick={(e) => { e.stopPropagation(); openGig(g); }}
                     className="flex items-center gap-1 bg-gradient-to-r from-purple-600 to-brand hover:from-purple-700 hover:to-brand-dark px-3 py-1.5 rounded-lg text-xs font-bold text-white transition">
                     <Check className="w-3.5 h-3.5" /> Hire
@@ -372,7 +374,7 @@ export default function BoostingPage() {
 
                 <div className="flex items-center justify-between">
                   <span className="text-sm text-gray-400">Price</span>
-                  <span className="text-xl font-black text-white">${Number(selected.price).toFixed(2)}</span>
+                  <span className="text-xl font-black text-white">{fmt(selected.price)}</span>
                 </div>
 
                 {purchaseError && (

@@ -7,6 +7,7 @@ import { useAuth } from '@/app/providers';
 import { fileToDataUrl } from '@/lib/file';
 import { GAME_NAMES, getGameConfig } from '@/lib/games';
 import { Gamepad2, Plus, Trash2, Loader2, Check, AlertCircle } from 'lucide-react';
+import { useCurrency } from '@/lib/useCurrency';
 
 const GAMES = [...GAME_NAMES, 'Other'];
 const ALL_PLATFORMS = ['Android', 'iOS', 'PC', 'PlayStation', 'Xbox', 'Cross-Platform'];
@@ -30,6 +31,7 @@ const SERVICE_TYPES = [
 export default function SellerGigsPage() {
   const router = useRouter();
   const { user, loading: authLoading } = useAuth();
+  const { fmt } = useCurrency();
 
   const [isSeller, setIsSeller] = useState(false);
   const [checking, setChecking] = useState(true);
@@ -279,7 +281,7 @@ export default function SellerGigsPage() {
                 <span className="mt-1 inline-block text-[10px] font-bold uppercase px-2 py-0.5 rounded-full bg-yellow-500/10 text-yellow-400 border border-yellow-500/20">{g.status}</span>
               </div>
               <div className="flex items-center gap-3 flex-shrink-0">
-                <span className="text-lg font-black text-white">${Number(g.price).toFixed(2)}</span>
+                <span className="text-lg font-black text-white">{fmt(g.price)}</span>
                 <button onClick={() => handleDelete(g.id)} className="text-red-400 hover:text-red-300 transition"><Trash2 className="w-4 h-4" /></button>
               </div>
             </div>

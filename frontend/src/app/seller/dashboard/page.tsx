@@ -6,6 +6,7 @@ import { api } from '@/lib/api';
 import { useAuth } from '@/app/providers';
 import Link from 'next/link';
 import VerifiedBadge from '@/components/VerifiedBadge';
+import { useCurrency } from '@/lib/useCurrency';
 import {
   LayoutDashboard, Package, DollarSign, Store, Star, TrendingUp, Wallet, MessageSquare,
   CreditCard, PlusCircle, CheckCircle, X, Menu, Eye, Truck, Trash2, Edit3, Loader2,
@@ -118,6 +119,7 @@ function initials(name?: string) {
 export default function SellerDashboard() {
   const router = useRouter();
   const { user, loading: authLoading } = useAuth();
+  const { fmt } = useCurrency();
   const [seller, setSeller] = useState<Seller | null>(null);
   const [orders, setOrders] = useState<SellerOrder[]>([]);
   const [listings, setListings] = useState<SellerListing[]>([]);

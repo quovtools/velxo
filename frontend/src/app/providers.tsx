@@ -4,6 +4,7 @@ import React, { createContext, useContext, useEffect, useState } from 'react';
 import { QueryClient, QueryClientProvider } from '@tanstack/react-query';
 import { getToken, getUser, clearSession, setSession, AuthUser } from '@/lib/auth';
 import NotificationProvider from '@/components/NotificationProvider';
+import { CurrencyProvider } from '@/lib/useCurrency';
 
 const QueryClientInstance = new QueryClient({
   defaultOptions: { queries: { refetchOnWindowFocus: false, retry: 1 } },
@@ -96,9 +97,11 @@ export function Providers({ children }: { children: React.ReactNode }) {
   return (
     <QueryClientProvider client={QueryClientInstance}>
       <AuthContext.Provider value={{ user, loading, theme, toggleTheme, logout, refreshSession, updateUser }}>
-        <NotificationProvider>
-          {children}
-        </NotificationProvider>
+        <CurrencyProvider>
+          <NotificationProvider>
+            {children}
+          </NotificationProvider>
+        </CurrencyProvider>
       </AuthContext.Provider>
     </QueryClientProvider>
   );

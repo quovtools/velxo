@@ -7,6 +7,7 @@ import { useAuth } from '@/app/providers';
 import LoadingLogo from '@/components/LoadingLogo';
 import SellerOfflineWarning from '@/components/SellerOfflineWarning';
 import { ShieldCheck, Wallet, Sparkles, ImageIcon, Check, Lock, Clock, Star } from 'lucide-react';
+import { useCurrency } from '@/lib/useCurrency';
 
 const API_BASE = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:3001/api/v1';
 
@@ -134,6 +135,7 @@ export default function CheckoutContent({ listingId }: { listingId: string }) {
   const subtotal = Number(listing.price);
   const total = subtotal;
   const seller = listing.seller;
+  const { fmt } = useCurrency();
 
   return (
     <div className="max-w-6xl mx-auto px-4">
@@ -244,7 +246,7 @@ export default function CheckoutContent({ listingId }: { listingId: string }) {
                 disabled={loading}
                 className="w-full bg-brand hover:bg-brand-dark py-4 rounded-xl font-bold transition disabled:opacity-50 text-white text-base shadow-lg shadow-brand/20"
               >
-                {loading ? 'Processing Escrow Deposit...' : `Pay $${total.toFixed(2)} — Secured by Escrow`}
+                {loading ? 'Processing Escrow Deposit...' : `Pay ${fmt(total)} — Secured by Escrow`}
               </button>
             </form>
           </div>
@@ -306,7 +308,7 @@ export default function CheckoutContent({ listingId }: { listingId: string }) {
             <div className="space-y-3 text-sm">
               <div className="flex justify-between text-gray-400">
                 <span>Listing Price</span>
-                <span className="text-white font-semibold">${subtotal.toFixed(2)}</span>
+                <span className="text-white font-semibold">{fmt(subtotal)}</span>
               </div>
               <p className="text-[11px] text-gray-500 leading-relaxed">
                 A 10% platform fee is paid by the <span className="text-gray-400">seller</span> — you pay the listed price only.
@@ -315,7 +317,7 @@ export default function CheckoutContent({ listingId }: { listingId: string }) {
 
             <div className="border-t border-borderBg pt-4 flex justify-between items-baseline">
               <span className="font-bold text-white">Total</span>
-              <span className="font-black text-white text-xl">${total.toFixed(2)}</span>
+              <span className="font-black text-white text-xl">{fmt(total)}</span>
             </div>
           </div>
         </div>

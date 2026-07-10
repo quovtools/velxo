@@ -10,6 +10,7 @@ import {
 import { useAuth } from '@/app/providers';
 import SellerReportModal from '@/components/SellerReportModal';
 import VerifiedBadge from '@/components/VerifiedBadge';
+import { useCurrency } from '@/lib/useCurrency';
 
 interface SellerListing {
   id: string;
@@ -121,7 +122,7 @@ function ListingCard({ item }: { item: SellerListing }) {
           </h3>
         </div>
         <div className="flex items-center justify-between border-t border-borderBg pt-3">
-          <span className="text-lg font-black text-white tracking-tight">${Number(item.price).toFixed(2)}</span>
+          <span className="text-lg font-black text-white tracking-tight">{fmt(item.price)}</span>
           <span className="text-[11px] text-gray-500 flex items-center gap-1">
             <ShoppingBag className="w-3 h-3" /> {item.salesCount || 0} sold
           </span>
@@ -133,6 +134,7 @@ function ListingCard({ item }: { item: SellerListing }) {
 
 export default function SellerProfileContent({ id }: { id: string }) {
   const { user } = useAuth();
+  const { fmt } = useCurrency();
   const [profile, setProfile] = useState<SellerProfile | null>(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);

@@ -10,6 +10,7 @@ import {
   Clock, Eye, EyeOff, Star, Package,
 } from 'lucide-react';
 import Link from 'next/link';
+import { useCurrency } from '@/lib/useCurrency';
 
 interface Order {
   id: string;
@@ -121,6 +122,7 @@ function CopyableText({ label, value }: { label: string; value: string }) {
 export default function OrderTrackingContent({ id }: { id: string }) {
   const router = useRouter();
   const { user, loading: authLoading } = useAuth();
+  const { fmt } = useCurrency();
 
   const [order, setOrder] = useState<Order | null>(null);
   const [loading, setLoading] = useState(true);
@@ -744,15 +746,15 @@ export default function OrderTrackingContent({ id }: { id: string }) {
               <div className="border-t border-borderBg pt-4 space-y-2">
                 <div className="flex justify-between text-gray-400">
                   <span className="flex items-center gap-1.5"><HandCoins className="w-4 h-4 text-brand" /> Escrow Total</span>
-                  <span className="text-white font-bold">${escrowAmount.toFixed(2)}</span>
+                  <span className="text-white font-bold">{fmt(escrowAmount)}</span>
                 </div>
                 <div className="flex justify-between text-gray-400 text-xs">
                   <span>Platform fee (10%)</span>
-                  <span className="text-yellow-400">${fee.toFixed(2)}</span>
+                  <span className="text-yellow-400">{fmt(fee)}</span>
                 </div>
                 <div className="flex justify-between text-gray-400 text-xs">
                   <span>Seller payout</span>
-                  <span className="text-emerald-400">${payout.toFixed(2)}</span>
+                  <span className="text-emerald-400">{fmt(payout)}</span>
                 </div>
               </div>
 

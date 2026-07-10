@@ -8,6 +8,7 @@ import {
   Wallet, ArrowDownLeft, ArrowUpRight, Clock, Plus,
   TrendingUp, Lock, DollarSign, X, Loader2, AlertCircle,
 } from 'lucide-react';
+import { useCurrency } from '@/lib/useCurrency';
 
 interface WalletData {
   balance: string;
@@ -54,6 +55,7 @@ function StatCard({ label, value, sub, icon, highlight }: {
 export default function WalletPage() {
   const router = useRouter();
   const { user, loading: authLoading } = useAuth();
+  const { fmt } = useCurrency();
   const [wallet, setWallet]           = useState<WalletData | null>(null);
   const [transactions, setTxns]       = useState<Transaction[]>([]);
   const [loading, setLoading]         = useState(true);
@@ -142,13 +144,13 @@ export default function WalletPage() {
 
       {/* Stats */}
       <div className="grid grid-cols-2 lg:grid-cols-4 gap-4">
-        <StatCard label="Available" value={`$${Number(wallet?.balance || 0).toFixed(2)}`}
+        <StatCard label="Available" value={fmt(wallet?.balance || 0)}
           sub="Ready to withdraw" icon={<DollarSign className="w-4 h-4 text-brand" />} highlight />
-        <StatCard label="In Escrow" value={`$${Number(wallet?.lockedBalance || 0).toFixed(2)}`}
+        <StatCard label="In Escrow" value={fmt(wallet?.lockedBalance || 0)}
           sub="Held until order complete" icon={<Lock className="w-4 h-4 text-yellow-400" />} />
-        <StatCard label="Total Earned" value={`$${Number(wallet?.totalEarnings || 0).toFixed(2)}`}
+        <StatCard label="Total Earned" value={fmt(wallet?.totalEarnings || 0)}
           sub="Lifetime earnings" icon={<TrendingUp className="w-4 h-4 text-emerald-400" />} />
-        <StatCard label="Withdrawn" value={`$${Number(wallet?.totalWithdrawn || 0).toFixed(2)}`}
+        <StatCard label="Withdrawn" value={fmt(wallet?.totalWithdrawn || 0)}
           sub="Total paid out" icon={<ArrowUpRight className="w-4 h-4 text-gray-400" />} />
       </div>
 
@@ -183,9 +185,9 @@ export default function WalletPage() {
                   </div>
                   <div className="text-right flex-shrink-0">
                     <p className={`text-sm font-black ${cfg.color}`}>
-                      {cfg.sign}${Number(t.amount).toFixed(2)}
+                      {cfg.sign}{fmt(t.amount)}
                     </p>
-                    <p className="text-[10px] text-gray-500 mt-0.5">Bal: ${Number(t.balanceAfter || 0).toFixed(2)}</p>
+                    <p className="text-[10px] text-gray-500 mt-0.5">Bal: {fmt(t.balanceAfter || 0)}</p>
                   </div>
                 </div>
               );
@@ -207,7 +209,7 @@ export default function WalletPage() {
 
             <div className="bg-hoverBg/40 border border-borderBg rounded-xl px-4 py-3 flex items-center justify-between">
               <span className="text-xs text-gray-500">Available balance</span>
-              <span className="font-black text-lg">${Number(wallet?.balance || 0).toFixed(2)}</span>
+              <span className="font-black text-lg">{fmt(wallet?.balance || 0)}</span>
             </div>
 
             <form onSubmit={handleWithdraw} className="space-y-4">

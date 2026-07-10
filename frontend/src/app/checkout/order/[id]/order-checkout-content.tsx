@@ -6,10 +6,12 @@ import { api } from '@/lib/api';
 import { useAuth } from '@/app/providers';
 import LoadingLogo from '@/components/LoadingLogo';
 import { ShieldCheck, Zap, Gamepad2, Lock } from 'lucide-react';
+import { useCurrency } from '@/lib/useCurrency';
 
 export default function OrderCheckoutContent({ orderId }: { orderId: string }) {
   const router = useRouter();
   const { user, loading: authLoading } = useAuth();
+  const { fmt } = useCurrency();
 
   const [order, setOrder] = useState<any | null>(null);
   const [loadingOrder, setLoadingOrder] = useState(true);

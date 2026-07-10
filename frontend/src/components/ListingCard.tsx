@@ -3,6 +3,7 @@
 import { useState } from 'react'
 import Link from 'next/link'
 import { Gamepad2, Star, Flame, Clock } from 'lucide-react'
+import { useCurrency } from '@/lib/useCurrency'
 
 export interface ListingCardData {
   id: string
@@ -26,9 +27,9 @@ export interface ListingCardData {
 
 export default function ListingCard({ item }: { item: ListingCardData }) {
   const [imgError, setImgError] = useState(false)
+  const { fmt } = useCurrency()
   const img = item.images?.[0]
   const sold = item.isSold || item.status === 'SOLD'
-  const price = Number(item.price || 0).toFixed(2)
   const rating = Number(item.seller?.averageRating || 0).toFixed(1)
 
   return (
@@ -117,7 +118,7 @@ export default function ListingCard({ item }: { item: ListingCardData }) {
         <div className="flex items-center justify-between border-t border-borderBg pt-3">
           <div className="flex flex-col">
             <span className="text-[10px] text-gray-500 font-medium leading-none">Price</span>
-            <span className="text-lg font-black text-white tracking-tight leading-tight">${price}</span>
+            <span className="text-lg font-black text-white tracking-tight leading-tight">{fmt(item.price)}</span>
           </div>
           <Link
             href={`/listings/${item.id}`}

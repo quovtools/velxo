@@ -10,6 +10,7 @@ import {
 import { useAuth } from '@/app/providers';
 import SellerReportModal from '@/components/SellerReportModal';
 import VerifiedBadge from '@/components/VerifiedBadge';
+import { useCurrency } from '@/lib/useCurrency';
 
 interface Listing {
   id: string;
@@ -57,6 +58,7 @@ function StarRating({ rating }: { rating: number }) {
 
 export default function ListingDetailsContent({ id, initialData }: { id: string; initialData?: Listing | null }) {
   const { user } = useAuth();
+  const { fmt } = useCurrency();
   const [listing, setListing]   = useState<Listing | null>(initialData ?? null);
   const [loading, setLoading]   = useState(!initialData);
   const [error, setError]       = useState<string | null>(null);
@@ -243,8 +245,7 @@ export default function ListingDetailsContent({ id, initialData }: { id: string;
             <div>
               <p className="text-xs text-gray-500 uppercase tracking-wider">Price</p>
               <div className="flex items-end gap-2 mt-1">
-                <span className="text-4xl font-black text-white">${Number(listing.price).toFixed(2)}</span>
-                <span className="text-xs text-gray-500 mb-1">USD</span>
+                <span className="text-4xl font-black text-white">{fmt(listing.price)}</span>
               </div>
             </div>
 

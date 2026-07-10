@@ -4,6 +4,7 @@ import React, { useState, useEffect, Suspense } from 'react';
 import { useSearchParams } from 'next/navigation';
 import Link from 'next/link';
 import { LoadingArea } from '@/components/LoadingLogo';
+import { useCurrency } from '@/lib/useCurrency';
 
 const API_BASE = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:3001/api/v1';
 
@@ -23,6 +24,7 @@ interface Listing {
 function SearchContent() {
   const searchParams = useSearchParams();
   const initialQuery = searchParams.get('query') || '';
+  const { fmt } = useCurrency();
 
   const [listings, setListings] = useState<Listing[]>([]);
   const [loading, setLoading] = useState(true);
@@ -200,7 +202,7 @@ function SearchContent() {
                 </div>
 
                 <div className="flex items-center justify-between border-t border-borderBg pt-4 mt-6">
-                  <span className="text-2xl font-black text-white">${Number(item.price).toFixed(2)}</span>
+                  <span className="text-2xl font-black text-white">{fmt(item.price)}</span>
                   <Link
                     href={`/listings/${item.id}`}
                     className="bg-gradient-to-r from-brand to-brand-dark hover:shadow-md hover:shadow-brand/30 px-4 py-2 rounded-lg text-xs font-semibold transition text-white"

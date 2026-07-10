@@ -7,6 +7,7 @@ import { useAuth } from '@/app/providers';
 import Link from 'next/link';
 import { LoadingArea } from '@/components/LoadingLogo';
 import { AlertTriangle, Clock, CheckCircle, ShieldCheck, Package, ExternalLink } from 'lucide-react';
+import { useCurrency } from '@/lib/useCurrency';
 
 interface Order {
   id: string;
@@ -34,6 +35,7 @@ const STATUS_META: Record<string, { label: string; badge: string; icon: any; act
 export default function OrdersPage() {
   const router = useRouter();
   const { user, loading: authLoading } = useAuth();
+  const { fmt } = useCurrency();
   const [orders, setOrders] = useState<Order[]>([]);
   const [loading, setLoading] = useState(true);
   const [tab, setTab] = useState<'active' | 'all'>('active');
@@ -115,7 +117,7 @@ export default function OrdersPage() {
                 <div className="flex items-center gap-4 w-full md:w-auto justify-between border-t border-borderBg pt-4 md:border-t-0 md:pt-0">
                   <div className="text-right">
                     <p className="text-xs text-gray-500">Amount</p>
-                    <p className="text-lg font-black text-white">${Number(order.totalAmount).toFixed(2)}</p>
+                    <p className="text-lg font-black text-white">{fmt(order.totalAmount)}</p>
                   </div>
                   <div className="flex items-center gap-2">
                     <span className={`px-3 py-1.5 rounded-full text-xs font-bold border ${meta.badge}`}>

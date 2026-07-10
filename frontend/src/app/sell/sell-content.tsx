@@ -7,6 +7,7 @@ import { fileToDataUrl } from '@/lib/file';
 import { uploadListingImage } from '@/lib/upload';
 import { useAuth } from '@/app/providers';
 import { GAME_NAMES, getGameConfig, REGIONS } from '@/lib/games';
+import { useCurrency } from '@/lib/useCurrency';
 import {
   Gamepad2, Package, ChevronRight, ChevronLeft,
   Check, AlertCircle, Loader2, Upload, Info,
@@ -52,6 +53,7 @@ function ProgressBar({ step, total }: { step: number; total: number }) {
 export default function SellPage() {
   const router = useRouter();
   const { user, loading: authLoading, updateUser } = useAuth();
+  const { fmt } = useCurrency();
 
   const [isSeller, setIsSeller] = useState(false);
   const [checkingStatus, setCheckingStatus] = useState(true);
@@ -535,15 +537,15 @@ export default function SellPage() {
               <div className="space-y-2 text-sm">
                 <div className="flex justify-between">
                   <span className="text-gray-400">Your price</span>
-                  <span className="font-bold text-white">${parseFloat(price).toFixed(2)}</span>
+                  <span className="font-bold text-white">{fmt(parseFloat(price) || 0)}</span>
                 </div>
                 <div className="flex justify-between">
                   <span className="text-gray-400">Platform fee (10%)</span>
-                  <span className="text-gray-400">-${(parseFloat(price) * 0.1).toFixed(2)}</span>
+                  <span className="text-gray-400">-{fmt((parseFloat(price) || 0) * 0.1)}</span>
                 </div>
                 <div className="border-t border-borderBg pt-2 flex justify-between">
                   <span className="font-bold text-white">You receive</span>
-                  <span className="font-black text-brand text-lg">${(parseFloat(price) * 0.9).toFixed(2)}</span>
+                  <span className="font-black text-brand text-lg">{fmt((parseFloat(price) || 0) * 0.9)}</span>
                 </div>
               </div>
             </div>
