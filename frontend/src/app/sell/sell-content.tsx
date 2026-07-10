@@ -491,7 +491,7 @@ export default function SellPage() {
 
             <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
               <div>
-                <label className="block text-xs font-semibold text-gray-400 mb-2 uppercase tracking-wide">Price (USD) *</label>
+                <label className="block text-xs font-semibold text-gray-400 mb-2 uppercase tracking-wide">Price *</label>
                 <div className="relative">
                   <span className="absolute left-3 top-1/2 -translate-y-1/2 text-gray-400 font-bold">$</span>
                   <input

@@ -433,7 +433,7 @@ export default function SellerDashboard() {
 
           {/* stat cards */}
           <div className="grid grid-cols-2 lg:grid-cols-3 gap-3">
-            <StatCard title="Revenue" value={money(totalRevenue)} icon={<DollarSign className="w-5 h-5" />} hint={`${orders.length} orders`} />
+            <StatCard title="Revenue" value={fmt(totalRevenue)} icon={<DollarSign className="w-5 h-5" />} hint={`${orders.length} orders`} />
             <StatCard title="Pending Orders" value={pendingOrders.length} icon={<Clock className="w-5 h-5" />} hint="Awaiting action" />
             <StatCard title="Completed Orders" value={completedOrders.length} icon={<CheckCircle className="w-5 h-5" />} hint={`${seller?.totalSales || 0} lifetime`} />
             <StatCard title="Active Listings" value={activeListings.length} icon={<Image className="w-5 h-5" />} hint={`${listings.length} total`} />
@@ -446,7 +446,7 @@ export default function SellerDashboard() {
             <div className="lg:col-span-2 bg-cardBg border border-borderBg rounded-2xl p-5">
               <div className="flex items-center justify-between mb-4">
                 <h2 className="font-bold text-white flex items-center gap-2"><BarChart3 className="w-5 h-5 text-brand" /> Revenue (last 6 months)</h2>
-                <span className="text-xs text-gray-500">{money(totalRevenue)} total</span>
+                <span className="text-xs text-gray-500">{fmt(totalRevenue)} total</span>
               </div>
               <div className="flex items-end justify-between gap-2 h-44">
                 {revenueByMonth.map(m => (
@@ -649,9 +649,9 @@ export default function SellerDashboard() {
           <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
             <div className="bg-cardBg border border-borderBg rounded-2xl p-5">
               <p className="text-xs text-gray-500 uppercase font-semibold">Available Balance</p>
-              <p className="text-3xl font-black text-white mt-1">{wallet ? money(wallet.balance, wallet.currency) : '—'}</p>
-              <p className="text-xs text-gray-500 mt-2">Total earned: {wallet ? money(wallet.totalEarnings, wallet.currency) : '—'}</p>
-              <p className="text-xs text-gray-500">Total withdrawn: {wallet ? money(wallet.totalWithdrawn, wallet.currency) : '—'}</p>
+              <p className="text-3xl font-black text-white mt-1">{wallet ? fmt(wallet.balance) : '—'}</p>
+              <p className="text-xs text-gray-500 mt-2">Total earned: {wallet ? fmt(wallet.totalEarnings) : '—'}</p>
+              <p className="text-xs text-gray-500">Total withdrawn: {wallet ? fmt(wallet.totalWithdrawn) : '—'}</p>
             </div>
             <div className="md:col-span-2 bg-cardBg border border-borderBg rounded-2xl p-5">
               <h3 className="font-bold text-white flex items-center gap-2 mb-3"><Banknote className="w-5 h-5 text-brand" /> Request a Payout</h3>

@@ -96,7 +96,7 @@ export default function SellerGigsPage() {
         region: form.region,
         accountType: form.accountType,
         price: parseFloat(form.price),
-        currency: 'USD',
+        currency: 'USD', // Always store in USD in database
         deliveryTime: parseInt(form.deliveryTime) || 24,
         imageUrl: form.imageUrl || undefined,
       });
@@ -224,7 +224,7 @@ export default function SellerGigsPage() {
               </select>
             </div>
             <div>
-              <label className="block text-xs font-semibold text-gray-400 mb-1.5">Price (USD) *</label>
+              <label className="block text-xs font-semibold text-gray-400 mb-1.5">Price *</label>
               <input type="number" step="0.01" min="0.5" value={form.price} onChange={e => setForm(f => ({ ...f, price: e.target.value }))} placeholder="0.00"
                 className="w-full bg-background border border-borderBg rounded-xl px-4 py-2.5 text-sm text-white placeholder-gray-500 focus:outline-none focus:border-brand transition" />
             </div>

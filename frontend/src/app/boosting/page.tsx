@@ -468,7 +468,7 @@ export default function BoostingPage() {
 
               <div className="grid grid-cols-2 gap-3">
                 <div>
-                  <label className={labelCls}>Price (USD) *</label>
+                  <label className={labelCls}>Price *</label>
                   <input className={inputCls} type="number" min="0" step="0.01" value={form.price} onChange={(e) => setForm({ ...form, price: e.target.value })} placeholder="0.00" />
                 </div>
                 <div>
