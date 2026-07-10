@@ -256,7 +256,6 @@ export class BulkOperationsService {
       where: { id: { in: userIds } },
       data: {
         isBanned: true,
-        bannedAt: new Date(),
         banReason: reason,
       },
     })
@@ -284,7 +283,6 @@ export class BulkOperationsService {
       where: { id: { in: userIds } },
       data: {
         isBanned: false,
-        bannedAt: null,
         banReason: null,
       },
     })
