@@ -6,7 +6,8 @@ import Link from 'next/link';
 import {
   ShieldCheck, LayoutDashboard, Eye, Scale,
   BarChart3, Image, LogOut, Lock, Menu, X, Megaphone, UserCheck,
-  Users, Store, ShoppingBag, CreditCard, LifeBuoy, FolderTree, Gamepad2, FileText, History
+  Users, Store, ShoppingBag, CreditCard, LifeBuoy, FolderTree, Gamepad2, FileText, History,
+  Package, Upload
 } from 'lucide-react';
 
 const ADMIN_PASSWORD = 'Fadekemi123@';
@@ -83,6 +84,8 @@ const navItems = [
   { href: '/admin/users', label: 'Users', icon: Users },
   { href: '/admin/sellers', label: 'Sellers', icon: Store },
   { href: '/admin/listings', label: 'Listings', icon: ShoppingBag },
+  { href: '/admin/listings-manager', label: 'Bulk Manager', icon: Package, badge: 'NEW' },
+  { href: '/admin/bulk-image-manager', label: 'Bulk Images', icon: Upload, badge: 'NEW' },
   { href: '/admin/orders', label: 'Orders', icon: CreditCard },
   { href: '/admin/withdrawals', label: 'Payouts', icon: LifeBuoy },
   { href: '/admin/disputes', label: 'Disputes', icon: Scale },

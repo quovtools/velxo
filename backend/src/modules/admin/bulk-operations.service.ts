@@ -1,6 +1,6 @@
 import { Injectable, Logger } from '@nestjs/common'
 import { PrismaService } from '@/common/services/prisma.service'
-import { ListingStatus, AuditAction } from '@prisma/client'
+import { ListingStatus } from '@prisma/client'
 import { NotificationsService } from '@/modules/notifications/notifications.service'
 
 @Injectable()
@@ -12,9 +12,13 @@ export class BulkOperationsService {
     private notifications: NotificationsService,
   ) {}
 
-  // Bulk approve listings
+  // ============ LISTING BULK OPERATIONS ============
+
+  /**
+   * Bulk approve listings
+   */
   async bulkApproveListings(listingIds: string[], adminId: string, reason?: string) {
-    this.logger.log(`Bulk approving ${listingIds.length} listings`)
+    this.logger.log(`Bulk approving ${listingIds.length} listings by admin ${adminId}`)
 
     const listings = await this.prisma.listings.findMany({
       where: { id: { in: listingIds } },
@@ -33,7 +37,9 @@ export class BulkOperationsService {
     // Send notifications to sellers
     for (const listing of listings) {
       if (listing.seller?.userId) {
-        await this.notifications.notifyListingApproved(listing.id, listing.seller.userId).catch(() => {})
+        await this.notifications
+          .notifyListingApproved(listing.id, listing.seller.userId)
+          .catch((err) => this.logger.error('Failed to notify seller', err))
       }
     }
 
@@ -41,22 +47,27 @@ export class BulkOperationsService {
     await this.prisma.adminAuditLogs.create({
       data: {
         actorId: adminId,
-        action: AuditAction.STATUS_CHANGE,
+        action: 'BULK_APPROVE_LISTINGS',
         entityType: 'LISTING',
-        entityId: 'BULK_APPROVE',
+        entityId: 'BULK',
         metadata: {
-          operation: 'BULK_APPROVE',
           count: listingIds.length,
           reason,
-          listingIds: listingIds.slice(0, 50),
+          listingIds: listingIds.slice(0, 10), // First 10 for reference
         },
       },
     })
 
-    return { approved: result.count, failed: listingIds.length - result.count }
+    return {
+      approved: result.count,
+      failed: listingIds.length - result.count,
+      total: listingIds.length,
+    }
   }
 
-  // Bulk reject listings
+  /**
+   * Bulk reject listings
+   */
   async bulkRejectListings(listingIds: string[], adminId: string, reason: string) {
     this.logger.log(`Bulk rejecting ${listingIds.length} listings`)
 
@@ -78,7 +89,9 @@ export class BulkOperationsService {
     // Send notifications to sellers
     for (const listing of listings) {
       if (listing.seller?.userId) {
-        await this.notifications.notifyListingRejected(listing.id, listing.seller.userId, reason).catch(() => {})
+        await this.notifications
+          .notifyListingRejected(listing.id, listing.seller.userId, reason)
+          .catch((err) => this.logger.error('Failed to notify seller', err))
       }
     }
 
@@ -86,21 +99,26 @@ export class BulkOperationsService {
     await this.prisma.adminAuditLogs.create({
       data: {
         actorId: adminId,
-        action: AuditAction.STATUS_CHANGE,
+        action: 'BULK_REJECT_LISTINGS',
         entityType: 'LISTING',
-        entityId: 'BULK_REJECT',
+        entityId: 'BULK',
         metadata: {
-          operation: 'BULK_REJECT',
           count: listingIds.length,
           reason,
         },
       },
     })
 
-    return { rejected: result.count, failed: listingIds.length - result.count }
+    return {
+      rejected: result.count,
+      failed: listingIds.length - result.count,
+      total: listingIds.length,
+    }
   }
 
-  // Bulk suspend listings
+  /**
+   * Bulk suspend listings
+   */
   async bulkSuspendListings(listingIds: string[], adminId: string, reason?: string) {
     this.logger.log(`Bulk suspending ${listingIds.length} listings`)
 
@@ -111,26 +129,29 @@ export class BulkOperationsService {
       },
     })
 
+    // Audit log
     await this.prisma.adminAuditLogs.create({
       data: {
         actorId: adminId,
-        action: AuditAction.STATUS_CHANGE,
+        action: 'BULK_SUSPEND_LISTINGS',
         entityType: 'LISTING',
-        entityId: 'BULK_SUSPEND',
-        metadata: {
-          operation: 'BULK_SUSPEND',
-          count: listingIds.length,
-          reason,
-        },
+        entityId: 'BULK',
+        metadata: { count: listingIds.length, reason },
       },
     })
 
-    return { suspended: result.count, failed: listingIds.length - result.count }
+    return {
+      suspended: result.count,
+      failed: listingIds.length - result.count,
+      total: listingIds.length,
+    }
   }
 
-  // Bulk unsuspend/activate listings
-  async bulkActivateListings(listingIds: string[], adminId: string) {
-    this.logger.log(`Bulk activating ${listingIds.length} listings`)
+  /**
+   * Bulk unsuspend/reactivate listings
+   */
+  async bulkUnsuspendListings(listingIds: string[], adminId: string) {
+    this.logger.log(`Bulk unsuspending ${listingIds.length} listings`)
 
     const result = await this.prisma.listings.updateMany({
       where: { id: { in: listingIds } },
@@ -142,20 +163,19 @@ export class BulkOperationsService {
     await this.prisma.adminAuditLogs.create({
       data: {
         actorId: adminId,
-        action: AuditAction.STATUS_CHANGE,
+        action: 'BULK_UNSUSPEND_LISTINGS',
         entityType: 'LISTING',
-        entityId: 'BULK_ACTIVATE',
-        metadata: {
-          operation: 'BULK_ACTIVATE',
-          count: listingIds.length,
-        },
+        entityId: 'BULK',
+        metadata: { count: listingIds.length },
       },
     })
 
-    return { activated: result.count }
+    return { unsuspended: result.count, total: listingIds.length }
   }
 
-  // Bulk feature listings
+  /**
+   * Bulk feature/unfeature listings
+   */
   async bulkFeatureListings(listingIds: string[], adminId: string, isFeatured: boolean) {
     this.logger.log(`Bulk ${isFeatured ? 'featuring' : 'unfeaturing'} ${listingIds.length} listings`)
 
@@ -167,21 +187,43 @@ export class BulkOperationsService {
     await this.prisma.adminAuditLogs.create({
       data: {
         actorId: adminId,
-        action: AuditAction.UPDATE,
+        action: isFeatured ? 'BULK_FEATURE_LISTINGS' : 'BULK_UNFEATURE_LISTINGS',
         entityType: 'LISTING',
-        entityId: 'BULK_FEATURE',
-        metadata: {
-          operation: isFeatured ? 'BULK_FEATURE' : 'BULK_UNFEATURE',
-          count: listingIds.length,
-          isFeatured,
-        },
+        entityId: 'BULK',
+        metadata: { count: listingIds.length, isFeatured },
       },
     })
 
-    return { updated: result.count }
+    return { updated: result.count, total: listingIds.length, isFeatured }
   }
 
-  // Bulk delete listings
+  /**
+   * Bulk sponsor listings
+   */
+  async bulkSponsorListings(listingIds: string[], adminId: string, isSponsored: boolean) {
+    this.logger.log(`Bulk ${isSponsored ? 'sponsoring' : 'unsponsoring'} ${listingIds.length} listings`)
+
+    const result = await this.prisma.listings.updateMany({
+      where: { id: { in: listingIds } },
+      data: { isSponsored },
+    })
+
+    await this.prisma.adminAuditLogs.create({
+      data: {
+        actorId: adminId,
+        action: isSponsored ? 'BULK_SPONSOR_LISTINGS' : 'BULK_UNSPONSOR_LISTINGS',
+        entityType: 'LISTING',
+        entityId: 'BULK',
+        metadata: { count: listingIds.length, isSponsored },
+      },
+    })
+
+    return { updated: result.count, total: listingIds.length, isSponsored }
+  }
+
+  /**
+   * Bulk delete listings
+   */
   async bulkDeleteListings(listingIds: string[], adminId: string) {
     this.logger.log(`Bulk deleting ${listingIds.length} listings`)
 
@@ -192,210 +234,180 @@ export class BulkOperationsService {
     await this.prisma.adminAuditLogs.create({
       data: {
         actorId: adminId,
-        action: AuditAction.DELETE,
+        action: 'BULK_DELETE_LISTINGS',
         entityType: 'LISTING',
-        entityId: 'BULK_DELETE',
-        metadata: {
-          operation: 'BULK_DELETE',
-          count: listingIds.length,
-          listingIds: listingIds.slice(0, 50),
-        },
+        entityId: 'BULK',
+        metadata: { count: listingIds.length },
       },
     })
 
-    return { deleted: result.count }
+    return { deleted: result.count, total: listingIds.length }
   }
 
-  // Bulk update listing properties
-  async bulkEditListings(
-    listingIds: string[],
-    adminId: string,
-    updates: {
-      title?: string
-      description?: string
-      price?: number
-      inventory?: number
-      gameName?: string
-      region?: string
-      platform?: string
-      deliveryTime?: string
-    },
-  ) {
-    this.logger.log(`Bulk editing ${listingIds.length} listings`)
+  // ============ USER BULK OPERATIONS ============
 
-    const result = await this.prisma.listings.updateMany({
-      where: { id: { in: listingIds } },
+  /**
+   * Bulk ban users
+   */
+  async bulkBanUsers(userIds: string[], adminId: string, reason?: string) {
+    this.logger.log(`Bulk banning ${userIds.length} users`)
+
+    const result = await this.prisma.users.updateMany({
+      where: { id: { in: userIds } },
       data: {
-        ...updates,
-        updatedAt: new Date(),
+        isBanned: true,
+        bannedAt: new Date(),
+        banReason: reason,
       },
     })
 
     await this.prisma.adminAuditLogs.create({
       data: {
         actorId: adminId,
-        action: AuditAction.UPDATE,
-        entityType: 'LISTING',
-        entityId: 'BULK_EDIT',
-        metadata: {
-          operation: 'BULK_EDIT',
-          count: listingIds.length,
-          updates,
-        },
+        action: 'BULK_BAN_USERS',
+        entityType: 'USER',
+        entityId: 'BULK',
+        metadata: { count: userIds.length, reason },
       },
     })
 
-    return { updated: result.count }
+    return { banned: result.count, total: userIds.length }
   }
 
-  // Bulk update images
-  async bulkUpdateImages(
-    listingIds: string[],
-    adminId: string,
-    imageUrls: string[],
-    mode: 'replace' | 'append' = 'replace',
-  ) {
-    this.logger.log(`Bulk updating images for ${listingIds.length} listings`)
+  /**
+   * Bulk unban users
+   */
+  async bulkUnbanUsers(userIds: string[], adminId: string) {
+    this.logger.log(`Bulk unbanning ${userIds.length} users`)
 
-    let updated = 0
-    let failed = 0
-
-    for (const listingId of listingIds) {
-      try {
-        const listing = await this.prisma.listings.findUnique({
-          where: { id: listingId },
-          select: { images: true },
-        })
-
-        if (!listing) {
-          failed++
-          continue
-        }
-
-        const newImages = mode === 'append' ? [...listing.images, ...imageUrls] : imageUrls
-
-        await this.prisma.listings.update({
-          where: { id: listingId },
-          data: { images: newImages },
-        })
-
-        updated++
-      } catch (error) {
-        this.logger.error(`Failed to update images for listing ${listingId}:`, error)
-        failed++
-      }
-    }
+    const result = await this.prisma.users.updateMany({
+      where: { id: { in: userIds } },
+      data: {
+        isBanned: false,
+        bannedAt: null,
+        banReason: null,
+      },
+    })
 
     await this.prisma.adminAuditLogs.create({
       data: {
         actorId: adminId,
-        action: AuditAction.UPDATE,
-        entityType: 'LISTING',
-        entityId: 'BULK_UPDATE_IMAGES',
-        metadata: {
-          operation: 'BULK_UPDATE_IMAGES',
-          count: listingIds.length,
-          updated,
-          failed,
-          mode,
-          imageCount: imageUrls.length,
-        },
+        action: 'BULK_UNBAN_USERS',
+        entityType: 'USER',
+        entityId: 'BULK',
+        metadata: { count: userIds.length },
       },
     })
 
-    return { updated, failed }
+    return { unbanned: result.count, total: userIds.length }
   }
 
-  // Get listings with advanced filters
-  async getFilteredListings(filters: {
-    status?: ListingStatus | ListingStatus[]
-    categoryId?: string
-    subcategoryId?: string
-    sellerId?: string
-    gameName?: string
-    region?: string
-    platform?: string
-    isFeatured?: boolean
-    isSponsored?: boolean
-    priceMin?: number
-    priceMax?: number
-    createdAfter?: Date
-    createdBefore?: Date
-    search?: string
-    limit?: number
-    offset?: number
-  }) {
-    const {
-      status,
-      categoryId,
-      subcategoryId,
-      sellerId,
-      gameName,
-      region,
-      platform,
-      isFeatured,
-      isSponsored,
-      priceMin,
-      priceMax,
-      createdAfter,
-      createdBefore,
-      search,
-      limit = 50,
-      offset = 0,
-    } = filters
+  // ============ SELLER BULK OPERATIONS ============
 
-    const where: any = {}
+  /**
+   * Bulk verify sellers
+   */
+  async bulkVerifySellers(sellerIds: string[], adminId: string) {
+    this.logger.log(`Bulk verifying ${sellerIds.length} sellers`)
 
-    if (status) {
-      where.status = Array.isArray(status) ? { in: status } : status
-    }
-    if (categoryId) where.categoryId = categoryId
-    if (subcategoryId) where.subcategoryId = subcategoryId
-    if (sellerId) where.sellerId = sellerId
-    if (gameName) where.gameName = { contains: gameName, mode: 'insensitive' }
-    if (region) where.region = region
-    if (platform) where.platform = platform
-    if (isFeatured !== undefined) where.isFeatured = isFeatured
-    if (isSponsored !== undefined) where.isSponsored = isSponsored
-    if (priceMin !== undefined || priceMax !== undefined) {
-      where.price = {}
-      if (priceMin !== undefined) where.price.gte = priceMin
-      if (priceMax !== undefined) where.price.lte = priceMax
-    }
-    if (createdAfter || createdBefore) {
-      where.createdAt = {}
-      if (createdAfter) where.createdAt.gte = createdAfter
-      if (createdBefore) where.createdAt.lte = createdBefore
-    }
-    if (search) {
-      where.OR = [
-        { title: { contains: search, mode: 'insensitive' } },
-        { description: { contains: search, mode: 'insensitive' } },
-        { sku: { contains: search, mode: 'insensitive' } },
-      ]
-    }
+    const result = await this.prisma.sellers.updateMany({
+      where: { id: { in: sellerIds } },
+      data: {
+        isVerified: true,
+        verifiedAt: new Date(),
+      },
+    })
 
-    const [listings, total] = await Promise.all([
-      this.prisma.listings.findMany({
-        where,
-        include: {
-          seller: { include: { user: true } },
-          category: true,
-          subcategory: true,
-        },
-        orderBy: { createdAt: 'desc' },
-        take: Math.min(limit, 500),
-        skip: offset,
-      }),
-      this.prisma.listings.count({ where }),
-    ])
+    await this.prisma.adminAuditLogs.create({
+      data: {
+        actorId: adminId,
+        action: 'BULK_VERIFY_SELLERS',
+        entityType: 'SELLER',
+        entityId: 'BULK',
+        metadata: { count: sellerIds.length },
+      },
+    })
 
-    return {
-      listings,
-      total,
-      limit,
-      offset,
-      hasMore: offset + listings.length < total,
-    }
+    return { verified: result.count, total: sellerIds.length }
+  }
+
+  /**
+   * Bulk suspend sellers
+   */
+  async bulkSuspendSellers(sellerIds: string[], adminId: string, reason?: string) {
+    this.logger.log(`Bulk suspending ${sellerIds.length} sellers`)
+
+    const result = await this.prisma.sellers.updateMany({
+      where: { id: { in: sellerIds } },
+      data: {
+        isSuspended: true,
+        suspendedAt: new Date(),
+        suspensionReason: reason,
+      },
+    })
+
+    await this.prisma.adminAuditLogs.create({
+      data: {
+        actorId: adminId,
+        action: 'BULK_SUSPEND_SELLERS',
+        entityType: 'SELLER',
+        entityId: 'BULK',
+        metadata: { count: sellerIds.length, reason },
+      },
+    })
+
+    return { suspended: result.count, total: sellerIds.length }
+  }
+
+  /**
+   * Bulk unsuspend sellers
+   */
+  async bulkUnsuspendSellers(sellerIds: string[], adminId: string) {
+    this.logger.log(`Bulk unsuspending ${sellerIds.length} sellers`)
+
+    const result = await this.prisma.sellers.updateMany({
+      where: { id: { in: sellerIds } },
+      data: {
+        isSuspended: false,
+        suspendedAt: null,
+        suspensionReason: null,
+      },
+    })
+
+    await this.prisma.adminAuditLogs.create({
+      data: {
+        actorId: adminId,
+        action: 'BULK_UNSUSPEND_SELLERS',
+        entityType: 'SELLER',
+        entityId: 'BULK',
+        metadata: { count: sellerIds.length },
+      },
+    })
+
+    return { unsuspended: result.count, total: sellerIds.length }
+  }
+
+  /**
+   * Bulk feature sellers
+   */
+  async bulkFeatureSellers(sellerIds: string[], adminId: string, isFeatured: boolean) {
+    this.logger.log(`Bulk ${isFeatured ? 'featuring' : 'unfeaturing'} ${sellerIds.length} sellers`)
+
+    const result = await this.prisma.sellers.updateMany({
+      where: { id: { in: sellerIds } },
+      data: { isFeatured },
+    })
+
+    await this.prisma.adminAuditLogs.create({
+      data: {
+        actorId: adminId,
+        action: isFeatured ? 'BULK_FEATURE_SELLERS' : 'BULK_UNFEATURE_SELLERS',
+        entityType: 'SELLER',
+        entityId: 'BULK',
+        metadata: { count: sellerIds.length, isFeatured },
+      },
+    })
+
+    return { updated: result.count, total: sellerIds.length, isFeatured }
   }
 }

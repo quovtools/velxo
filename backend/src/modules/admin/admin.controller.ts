@@ -12,6 +12,7 @@ import {
 } from '@nestjs/common'
 import { AdminService } from './admin.service'
 import { BulkOperationsService } from './bulk-operations.service'
+import { ImageBulkOperationsService } from './image-bulk-operations.service'
 import { AdminPasswordGuard } from '@/common/guards/admin-password.guard'
 import { CurrentUserId } from '@/common/decorators/current-user.decorator'
 import { ApiResponseDto } from '@/common/dto/api-response.dto'
@@ -23,6 +24,7 @@ export class AdminController {
   constructor(
     private adminService: AdminService,
     private bulkOpsService: BulkOperationsService,
+    private imageBulkOpsService: ImageBulkOperationsService,
   ) {}
 
   @Get('dashboard')
@@ -1102,6 +1104,325 @@ export class AdminController {
       return ApiResponseDto.ok(result.items, 'Audit logs retrieved', result.pagination)
     } catch (error) {
       this.logger.error('Error listing audit logs:', error)
+      throw error
+    }
+  }
+}
+
+
+  // ============ NEW ENHANCED BULK OPERATIONS ============
+
+  /**
+   * Enhanced bulk operations using new BulkOperationsService
+   */
+  @Post('bulk/listings/approve')
+  @UseGuards(AdminPasswordGuard)
+  async enhancedBulkApprove(
+    @Body('listingIds') listingIds: string[],
+    @Body('reason') reason?: string,
+    @CurrentUserId() adminId: string = 'admin-console',
+  ) {
+    try {
+      const result = await this.bulkOpsService.bulkApproveListings(listingIds, adminId, reason)
+      return ApiResponseDto.ok(result, `Approved ${result.approved} listings`)
+    } catch (error) {
+      this.logger.error('Error in bulk approve:', error)
+      throw error
+    }
+  }
+
+  @Post('bulk/listings/reject')
+  @UseGuards(AdminPasswordGuard)
+  async enhancedBulkReject(
+    @Body('listingIds') listingIds: string[],
+    @Body('reason') reason: string,
+    @CurrentUserId() adminId: string = 'admin-console',
+  ) {
+    try {
+      const result = await this.bulkOpsService.bulkRejectListings(listingIds, adminId, reason)
+      return ApiResponseDto.ok(result, `Rejected ${result.rejected} listings`)
+    } catch (error) {
+      this.logger.error('Error in bulk reject:', error)
+      throw error
+    }
+  }
+
+  @Patch('bulk/listings/suspend')
+  @UseGuards(AdminPasswordGuard)
+  async enhancedBulkSuspend(
+    @Body('listingIds') listingIds: string[],
+    @Body('reason') reason?: string,
+    @CurrentUserId() adminId: string = 'admin-console',
+  ) {
+    try {
+      const result = await this.bulkOpsService.bulkSuspendListings(listingIds, adminId, reason)
+      return ApiResponseDto.ok(result, `Suspended ${result.suspended} listings`)
+    } catch (error) {
+      this.logger.error('Error in bulk suspend:', error)
+      throw error
+    }
+  }
+
+  @Patch('bulk/listings/unsuspend')
+  @UseGuards(AdminPasswordGuard)
+  async enhancedBulkUnsuspend(
+    @Body('listingIds') listingIds: string[],
+    @CurrentUserId() adminId: string = 'admin-console',
+  ) {
+    try {
+      const result = await this.bulkOpsService.bulkUnsuspendListings(listingIds, adminId)
+      return ApiResponseDto.ok(result, `Unsuspended ${result.unsuspended} listings`)
+    } catch (error) {
+      this.logger.error('Error in bulk unsuspend:', error)
+      throw error
+    }
+  }
+
+  @Patch('bulk/listings/feature')
+  @UseGuards(AdminPasswordGuard)
+  async enhancedBulkFeature(
+    @Body('listingIds') listingIds: string[],
+    @Body('isFeatured') isFeatured: boolean,
+    @CurrentUserId() adminId: string = 'admin-console',
+  ) {
+    try {
+      const result = await this.bulkOpsService.bulkFeatureListings(listingIds, adminId, isFeatured)
+      return ApiResponseDto.ok(result, `${isFeatured ? 'Featured' : 'Unfeatured'} ${result.updated} listings`)
+    } catch (error) {
+      this.logger.error('Error in bulk feature:', error)
+      throw error
+    }
+  }
+
+  @Patch('bulk/listings/sponsor')
+  @UseGuards(AdminPasswordGuard)
+  async enhancedBulkSponsor(
+    @Body('listingIds') listingIds: string[],
+    @Body('isSponsored') isSponsored: boolean,
+    @CurrentUserId() adminId: string = 'admin-console',
+  ) {
+    try {
+      const result = await this.bulkOpsService.bulkSponsorListings(listingIds, adminId, isSponsored)
+      return ApiResponseDto.ok(result, `${isSponsored ? 'Sponsored' : 'Unsponsored'} ${result.updated} listings`)
+    } catch (error) {
+      this.logger.error('Error in bulk sponsor:', error)
+      throw error
+    }
+  }
+
+  @Delete('bulk/listings/delete')
+  @UseGuards(AdminPasswordGuard)
+  async enhancedBulkDelete(
+    @Body('listingIds') listingIds: string[],
+    @CurrentUserId() adminId: string = 'admin-console',
+  ) {
+    try {
+      const result = await this.bulkOpsService.bulkDeleteListings(listingIds, adminId)
+      return ApiResponseDto.ok(result, `Deleted ${result.deleted} listings`)
+    } catch (error) {
+      this.logger.error('Error in bulk delete:', error)
+      throw error
+    }
+  }
+
+  // ============ BULK USER OPERATIONS ============
+
+  @Post('bulk/users/ban')
+  @UseGuards(AdminPasswordGuard)
+  async enhancedBulkBan(
+    @Body('userIds') userIds: string[],
+    @Body('reason') reason?: string,
+    @CurrentUserId() adminId: string = 'admin-console',
+  ) {
+    try {
+      const result = await this.bulkOpsService.bulkBanUsers(userIds, adminId, reason)
+      return ApiResponseDto.ok(result, `Banned ${result.banned} users`)
+    } catch (error) {
+      this.logger.error('Error in bulk ban users:', error)
+      throw error
+    }
+  }
+
+  @Post('bulk/users/unban')
+  @UseGuards(AdminPasswordGuard)
+  async enhancedBulkUnban(
+    @Body('userIds') userIds: string[],
+    @CurrentUserId() adminId: string = 'admin-console',
+  ) {
+    try {
+      const result = await this.bulkOpsService.bulkUnbanUsers(userIds, adminId)
+      return ApiResponseDto.ok(result, `Unbanned ${result.unbanned} users`)
+    } catch (error) {
+      this.logger.error('Error in bulk unban users:', error)
+      throw error
+    }
+  }
+
+  // ============ BULK SELLER OPERATIONS ============
+
+  @Post('bulk/sellers/verify')
+  @UseGuards(AdminPasswordGuard)
+  async enhancedBulkVerifySellers(
+    @Body('sellerIds') sellerIds: string[],
+    @CurrentUserId() adminId: string = 'admin-console',
+  ) {
+    try {
+      const result = await this.bulkOpsService.bulkVerifySellers(sellerIds, adminId)
+      return ApiResponseDto.ok(result, `Verified ${result.verified} sellers`)
+    } catch (error) {
+      this.logger.error('Error in bulk verify sellers:', error)
+      throw error
+    }
+  }
+
+  @Post('bulk/sellers/suspend')
+  @UseGuards(AdminPasswordGuard)
+  async enhancedBulkSuspendSellers(
+    @Body('sellerIds') sellerIds: string[],
+    @Body('reason') reason?: string,
+    @CurrentUserId() adminId: string = 'admin-console',
+  ) {
+    try {
+      const result = await this.bulkOpsService.bulkSuspendSellers(sellerIds, adminId, reason)
+      return ApiResponseDto.ok(result, `Suspended ${result.suspended} sellers`)
+    } catch (error) {
+      this.logger.error('Error in bulk suspend sellers:', error)
+      throw error
+    }
+  }
+
+  @Post('bulk/sellers/unsuspend')
+  @UseGuards(AdminPasswordGuard)
+  async enhancedBulkUnsuspendSellers(
+    @Body('sellerIds') sellerIds: string[],
+    @CurrentUserId() adminId: string = 'admin-console',
+  ) {
+    try {
+      const result = await this.bulkOpsService.bulkUnsuspendSellers(sellerIds, adminId)
+      return ApiResponseDto.ok(result, `Unsuspended ${result.unsuspended} sellers`)
+    } catch (error) {
+      this.logger.error('Error in bulk unsuspend sellers:', error)
+      throw error
+    }
+  }
+
+  @Patch('bulk/sellers/feature')
+  @UseGuards(AdminPasswordGuard)
+  async enhancedBulkFeatureSellers(
+    @Body('sellerIds') sellerIds: string[],
+    @Body('isFeatured') isFeatured: boolean,
+    @CurrentUserId() adminId: string = 'admin-console',
+  ) {
+    try {
+      const result = await this.bulkOpsService.bulkFeatureSellers(sellerIds, adminId, isFeatured)
+      return ApiResponseDto.ok(result, `${isFeatured ? 'Featured' : 'Unfeatured'} ${result.updated} sellers`)
+    } catch (error) {
+      this.logger.error('Error in bulk feature sellers:', error)
+      throw error
+    }
+  }
+
+  // ============ BULK IMAGE OPERATIONS ============
+
+  @Post('bulk/images/update-listings')
+  @UseGuards(AdminPasswordGuard)
+  async bulkUpdateImages(
+    @Body('imageUrls') imageUrls: string[],
+    @Body('filter') filter: any,
+    @Body('strategy') strategy: string = 'rotate',
+    @CurrentUserId() adminId: string = 'admin-console',
+  ) {
+    try {
+      const result = await this.imageBulkOpsService.bulkUpdateListingImages(
+        imageUrls,
+        filter,
+        adminId,
+        strategy as any,
+      )
+      return ApiResponseDto.ok(
+        result,
+        `Updated ${result.updated} listings (${result.matched} matched)`,
+      )
+    } catch (error) {
+      this.logger.error('Error in bulk image update:', error)
+      throw error
+    }
+  }
+
+  @Post('bulk/images/replace')
+  @UseGuards(AdminPasswordGuard)
+  async bulkReplaceImage(
+    @Body('oldImageUrl') oldImageUrl: string,
+    @Body('newImageUrl') newImageUrl: string,
+    @Body('filter') filter: any,
+    @CurrentUserId() adminId: string = 'admin-console',
+  ) {
+    try {
+      const result = await this.imageBulkOpsService.bulkReplaceImages(
+        oldImageUrl,
+        newImageUrl,
+        filter,
+        adminId,
+      )
+      return ApiResponseDto.ok(result, `Replaced image in ${result.updated} listings`)
+    } catch (error) {
+      this.logger.error('Error in bulk image replace:', error)
+      throw error
+    }
+  }
+
+  @Post('bulk/images/append')
+  @UseGuards(AdminPasswordGuard)
+  async bulkAppendImages(
+    @Body('imageUrls') imageUrls: string[],
+    @Body('filter') filter: any,
+    @CurrentUserId() adminId: string = 'admin-console',
+  ) {
+    try {
+      const result = await this.imageBulkOpsService.bulkAppendImages(imageUrls, filter, adminId)
+      return ApiResponseDto.ok(result, `Appended images to ${result.updated} listings`)
+    } catch (error) {
+      this.logger.error('Error in bulk image append:', error)
+      throw error
+    }
+  }
+
+  @Delete('bulk/images/remove')
+  @UseGuards(AdminPasswordGuard)
+  async bulkRemoveImage(
+    @Body('imageUrl') imageUrl: string,
+    @Body('filter') filter: any,
+    @CurrentUserId() adminId: string = 'admin-console',
+  ) {
+    try {
+      const result = await this.imageBulkOpsService.bulkRemoveImage(imageUrl, filter, adminId)
+      return ApiResponseDto.ok(result, `Removed image from ${result.updated} listings`)
+    } catch (error) {
+      this.logger.error('Error in bulk image remove:', error)
+      throw error
+    }
+  }
+
+  @Get('bulk/images/missing')
+  @UseGuards(AdminPasswordGuard)
+  async findMissingImages() {
+    try {
+      const listings = await this.imageBulkOpsService.findListingsWithMissingImages()
+      return ApiResponseDto.ok(listings, `Found ${listings.length} listings with missing images`)
+    } catch (error) {
+      this.logger.error('Error finding missing images:', error)
+      throw error
+    }
+  }
+
+  @Get('bulk/images/usage')
+  @UseGuards(AdminPasswordGuard)
+  async getImageUsage(@Query('url') imageUrl: string) {
+    try {
+      const stats = await this.imageBulkOpsService.getImageUsageStats(imageUrl)
+      return ApiResponseDto.ok(stats, 'Image usage stats retrieved')
+    } catch (error) {
+      this.logger.error('Error getting image usage:', error)
       throw error
     }
   }

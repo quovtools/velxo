@@ -1395,12 +1395,12 @@ export class AdminService {
 
     const results = await this.prisma.users.updateMany({
       where: { id: { in: userIds } },
-      data: { isBanned: banned, banReason: reason, bannedAt: banned ? new Date() : null },
+      data: { isBanned: banned, banReason: reason },
     })
 
     await Promise.all(
       userIds.map(id =>
-        this.createAuditLog(moderatorId, banned ? 'BAN' : 'UNBAN', 'User', id, { reason }),
+        this.createAuditLog(moderatorId, banned ? 'STATUS_CHANGE' : 'STATUS_CHANGE', 'User', id, { reason, action: banned ? 'BAN' : 'UNBAN' }),
       ),
     )
 
@@ -1415,7 +1415,7 @@ export class AdminService {
 
     const results = await this.prisma.users.updateMany({
       where: { id: { in: userIds } },
-      data: { emailVerified: true, emailVerifiedAt: new Date() },
+      data: { emailVerified: true },
     })
 
     await Promise.all(
@@ -1438,14 +1438,14 @@ export class AdminService {
       data: {
         isSuspended: suspend,
         suspensionReason: reason,
-        suspendedAt: suspend ? new Date() : null,
       },
     })
 
     await Promise.all(
       sellerIds.map(id =>
-        this.createAuditLog(moderatorId, suspend ? 'SUSPEND' : 'UNSUSPEND', 'Seller', id, {
+        this.createAuditLog(moderatorId, suspend ? 'STATUS_CHANGE' : 'STATUS_CHANGE', 'Seller', id, {
           reason,
+          action: suspend ? 'SUSPEND' : 'UNSUSPEND'
         }),
       ),
     )
