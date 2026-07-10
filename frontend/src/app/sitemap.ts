@@ -1,20 +1,9 @@
 import { MetadataRoute } from 'next';
+import { GAME_LIST } from '@/lib/games';
 
 const BASE_URL = 'https://market.velxo.shop';
 
-const GAME_SLUGS = [
-  'free-fire',
-  'cod-mobile',
-  'blood-strike',
-  'delta-force',
-  'pubg-mobile',
-  'valorant',
-  'roblox',
-  'mobile-legends',
-  'efootball',
-  'fortnite',
-  'clash-of-clans',
-];
+const GAME_SLUGS = GAME_LIST.map((g) => g.slug);
 
 export default function sitemap(): MetadataRoute.Sitemap {
   const staticRoutes: {

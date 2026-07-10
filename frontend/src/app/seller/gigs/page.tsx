@@ -5,11 +5,17 @@ import { useRouter } from 'next/navigation';
 import { api } from '@/lib/api';
 import { useAuth } from '@/app/providers';
 import { fileToDataUrl } from '@/lib/file';
+import { GAME_NAMES, getGameConfig } from '@/lib/games';
 import { Gamepad2, Plus, Trash2, Loader2, Check, AlertCircle } from 'lucide-react';
 
-const GAMES = [
-  'Free Fire', 'PUBG Mobile', 'COD Mobile', 'Mobile Legends',
-  'Blood Strike', 'Delta Force', 'Valorant', 'Roblox', 'eFootball', 'Other',
+const GAMES = [...GAME_NAMES, 'Other'];
+const ALL_PLATFORMS = ['Android', 'iOS', 'PC', 'PlayStation', 'Xbox', 'Cross-Platform'];
+const DEFAULT_SERVICE_TYPES = [
+  { value: 'RANK_BOOST', label: 'Rank Boost' },
+  { value: 'ACCOUNT_LEVELING', label: 'Account Leveling' },
+  { value: 'SOLO', label: 'Solo Carry' },
+  { value: 'DUO', label: 'Duo Boost' },
+  { value: 'COACHING', label: 'Coaching' },
 ];
 const PLATFORMS = ['Android', 'iOS', 'PC', 'PlayStation', 'Xbox', 'Cross-Platform'];
 const REGIONS = ['Africa', 'Europe', 'North America', 'Asia', 'Middle East', 'Global'];
@@ -38,6 +44,11 @@ export default function SellerGigsPage() {
     rankFrom: '', rankTo: '', platform: 'Android', region: 'Africa',
     accountType: 'RANK_BOOST', price: '', deliveryTime: '24', imageUrl: '',
   });
+
+  const gameCfg = getGameConfig(form.gameName);
+  const platformOptions = gameCfg?.platforms ?? ALL_PLATFORMS;
+  const rankOptions = gameCfg?.ranks ?? [];
+  const serviceTypes = gameCfg?.serviceTypes ?? DEFAULT_SERVICE_TYPES;
 
   const loadGigs = useCallback(async () => {
     setLoadingGigs(true);
@@ -170,7 +181,11 @@ export default function SellerGigsPage() {
             </div>
             <div>
               <label className="block text-xs font-semibold text-gray-400 mb-1.5">Game *</label>
-              <select value={form.gameName} onChange={e => setForm(f => ({ ...f, gameName: e.target.value }))}
+              <select value={form.gameName} onChange={e => {
+                const name = e.target.value;
+                const cfg = getGameConfig(name);
+                setForm(f => ({ ...f, gameName: name, platform: cfg?.platforms?.[0] ?? 'Android' }));
+              }}
                 className="w-full bg-background border border-borderBg rounded-xl px-4 py-2.5 text-sm text-white focus:outline-none focus:border-brand transition">
                 {GAMES.map(g => <option key={g}>{g}</option>)}
               </select>
@@ -179,24 +194,24 @@ export default function SellerGigsPage() {
               <label className="block text-xs font-semibold text-gray-400 mb-1.5">Service Type *</label>
               <select value={form.accountType} onChange={e => setForm(f => ({ ...f, accountType: e.target.value }))}
                 className="w-full bg-background border border-borderBg rounded-xl px-4 py-2.5 text-sm text-white focus:outline-none focus:border-brand transition">
-                {SERVICE_TYPES.map(t => <option key={t.value} value={t.value}>{t.label}</option>)}
+                {serviceTypes.map(t => <option key={t.value} value={t.value}>{t.label}</option>)}
               </select>
             </div>
             <div>
               <label className="block text-xs font-semibold text-gray-400 mb-1.5">Rank From</label>
-              <input value={form.rankFrom} onChange={e => setForm(f => ({ ...f, rankFrom: e.target.value }))} placeholder="e.g. Gold"
+              <input value={form.rankFrom} onChange={e => setForm(f => ({ ...f, rankFrom: e.target.value }))} list="gig-rank-options" placeholder={rankOptions.length ? `e.g. ${rankOptions[0]}` : 'e.g. Gold'}
                 className="w-full bg-background border border-borderBg rounded-xl px-4 py-2.5 text-sm text-white placeholder-gray-500 focus:outline-none focus:border-brand transition" />
             </div>
             <div>
               <label className="block text-xs font-semibold text-gray-400 mb-1.5">Rank To</label>
-              <input value={form.rankTo} onChange={e => setForm(f => ({ ...f, rankTo: e.target.value }))} placeholder="e.g. Heroic"
+              <input value={form.rankTo} onChange={e => setForm(f => ({ ...f, rankTo: e.target.value }))} list="gig-rank-options" placeholder={rankOptions.length ? `e.g. ${rankOptions[rankOptions.length - 1]}` : 'e.g. Diamond'}
                 className="w-full bg-background border border-borderBg rounded-xl px-4 py-2.5 text-sm text-white placeholder-gray-500 focus:outline-none focus:border-brand transition" />
             </div>
             <div>
               <label className="block text-xs font-semibold text-gray-400 mb-1.5">Platform</label>
               <select value={form.platform} onChange={e => setForm(f => ({ ...f, platform: e.target.value }))}
                 className="w-full bg-background border border-borderBg rounded-xl px-4 py-2.5 text-sm text-white focus:outline-none focus:border-brand transition">
-                {PLATFORMS.map(p => <option key={p}>{p}</option>)}
+                {platformOptions.map(p => <option key={p}>{p}</option>)}
               </select>
             </div>
             <div>
@@ -228,6 +243,11 @@ export default function SellerGigsPage() {
                 }} />
               </label>
             </div>
+            {rankOptions.length > 0 && (
+              <datalist id="gig-rank-options">
+                {rankOptions.map(o => <option key={o} value={o} />)}
+              </datalist>
+            )}
           </div>
           <div className="flex gap-3">
             <button type="submit" disabled={submitting}

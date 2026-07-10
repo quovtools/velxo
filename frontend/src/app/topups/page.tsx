@@ -4,12 +4,10 @@ import React, { useState, useEffect, useCallback } from 'react';
 import { useRouter } from 'next/navigation';
 import { useAuth } from '@/app/providers';
 import { api } from '@/lib/api';
+import { GAME_NAMES } from '@/lib/games';
 import { Zap, ShieldCheck, Loader2, ChevronRight, Check, X, Minus, Plus, AlertCircle, ArrowRight } from 'lucide-react';
 
-const GAMES = [
-  'Free Fire', 'COD Mobile', 'Blood Strike', 'Delta Force',
-  'PUBG Mobile', 'Valorant', 'Roblox', 'Mobile Legends', 'eFootball',
-];
+const GAMES = GAME_NAMES;
 
 interface TopupProduct {
   id: string;

@@ -4,12 +4,10 @@ import React, { useState, useEffect, useCallback } from 'react';
 import { useRouter } from 'next/navigation';
 import { useAuth } from '@/app/providers';
 import { api } from '@/lib/api';
+import { GAME_NAMES, getGameConfig, REGIONS, SERVICE_TYPE_LABELS } from '@/lib/games';
 import { Gamepad2, Loader2, Check, Search, ShieldCheck, Clock, X, AlertCircle, Plus, ArrowRight } from 'lucide-react';
 
-const GAMES = [
-  'Free Fire', 'COD Mobile', 'Blood Strike', 'Delta Force',
-  'PUBG Mobile', 'Valorant', 'Roblox', 'Mobile Legends', 'eFootball',
-];
+const GAMES = GAME_NAMES;
 
 const SERVICE_TYPES = [
   { value: '', label: 'All Services' },
@@ -19,6 +17,8 @@ const SERVICE_TYPES = [
   { value: 'DUO', label: 'Duo Boost' },
   { value: 'COACHING', label: 'Coaching' },
 ];
+
+const ALL_PLATFORMS = ['Android', 'iOS', 'PC', 'PlayStation', 'Xbox', 'Cross-Platform'];
 
 interface Gig {
   id: string;
@@ -74,6 +74,17 @@ export default function BoostingPage() {
     deliveryTime: '',
     imageUrl: '',
   });
+
+  const gameCfg = getGameConfig(form.gameName);
+  const platformOptions = gameCfg?.platforms ?? ALL_PLATFORMS;
+  const rankOptions = gameCfg?.ranks ?? [];
+  const boostServiceTypes = gameCfg?.serviceTypes ?? [
+    { value: 'RANK_BOOST', label: 'Rank Boost' },
+    { value: 'ACCOUNT_LEVELING', label: 'Account Leveling' },
+    { value: 'SOLO', label: 'Solo Carry' },
+    { value: 'DUO', label: 'Duo Boost' },
+    { value: 'COACHING', label: 'Coaching' },
+  ];
 
   const fetchGigs = useCallback(async () => {
     setLoading(true);
@@ -411,14 +422,18 @@ export default function BoostingPage() {
               <div className="grid grid-cols-2 gap-3">
                 <div>
                   <label className={labelCls}>Game *</label>
-                  <select className={inputCls} value={form.gameName} onChange={(e) => setForm({ ...form, gameName: e.target.value })}>
+                  <select className={inputCls} value={form.gameName} onChange={(e) => {
+                    const name = e.target.value;
+                    const cfg = getGameConfig(name);
+                    setForm({ ...form, gameName: name, platform: cfg?.platforms?.[0] ?? '' });
+                  }}>
                     {GAMES.map((g) => <option key={g} value={g}>{g}</option>)}
                   </select>
                 </div>
                 <div>
                   <label className={labelCls}>Service Type</label>
                   <select className={inputCls} value={form.accountType} onChange={(e) => setForm({ ...form, accountType: e.target.value })}>
-                    {SERVICE_TYPES.filter((t) => t.value).map((t) => <option key={t.value} value={t.value}>{t.label}</option>)}
+                    {boostServiceTypes.map((t) => <option key={t.value} value={t.value}>{t.label}</option>)}
                   </select>
                 </div>
               </div>
@@ -426,22 +441,26 @@ export default function BoostingPage() {
               <div className="grid grid-cols-2 gap-3">
                 <div>
                   <label className={labelCls}>Rank From</label>
-                  <input className={inputCls} value={form.rankFrom} onChange={(e) => setForm({ ...form, rankFrom: e.target.value })} placeholder="e.g. Gold" />
+                  <input className={inputCls} value={form.rankFrom} onChange={(e) => setForm({ ...form, rankFrom: e.target.value })} list="boost-rank-options" placeholder={rankOptions.length ? `e.g. ${rankOptions[0]}` : 'e.g. Gold'} />
                 </div>
                 <div>
                   <label className={labelCls}>Rank To</label>
-                  <input className={inputCls} value={form.rankTo} onChange={(e) => setForm({ ...form, rankTo: e.target.value })} placeholder="e.g. Diamond" />
+                  <input className={inputCls} value={form.rankTo} onChange={(e) => setForm({ ...form, rankTo: e.target.value })} list="boost-rank-options" placeholder={rankOptions.length ? `e.g. ${rankOptions[rankOptions.length - 1]}` : 'e.g. Diamond'} />
                 </div>
               </div>
 
               <div className="grid grid-cols-2 gap-3">
                 <div>
                   <label className={labelCls}>Platform</label>
-                  <input className={inputCls} value={form.platform} onChange={(e) => setForm({ ...form, platform: e.target.value })} placeholder="e.g. PC, Mobile" />
+                  <select className={inputCls} value={form.platform} onChange={(e) => setForm({ ...form, platform: e.target.value })}>
+                    {platformOptions.map((p) => <option key={p} value={p}>{p}</option>)}
+                  </select>
                 </div>
                 <div>
                   <label className={labelCls}>Region</label>
-                  <input className={inputCls} value={form.region} onChange={(e) => setForm({ ...form, region: e.target.value })} placeholder="e.g. NA, EU" />
+                  <select className={inputCls} value={form.region} onChange={(e) => setForm({ ...form, region: e.target.value })}>
+                    {REGIONS.map((r) => <option key={r} value={r}>{r}</option>)}
+                  </select>
                 </div>
               </div>
 
@@ -460,6 +479,12 @@ export default function BoostingPage() {
                 <label className={labelCls}>Image URL</label>
                 <input className={inputCls} value={form.imageUrl} onChange={(e) => setForm({ ...form, imageUrl: e.target.value })} placeholder="https://..." />
               </div>
+
+              {rankOptions.length > 0 && (
+                <datalist id="boost-rank-options">
+                  {rankOptions.map((o) => <option key={o} value={o} />)}
+                </datalist>
+              )}
 
               <button onClick={handleCreate} disabled={creating || !form.title || !form.description || !form.price}
                 className="w-full flex items-center justify-center gap-2 bg-gradient-to-r from-purple-600 to-brand hover:from-purple-700 hover:to-brand-dark text-white text-sm font-bold py-3 rounded-xl transition disabled:opacity-50">

@@ -2,6 +2,7 @@
 
 import React, { useState, useEffect } from 'react';
 import Link from 'next/link';
+import { slugToGameName } from '@/lib/games';
 
 const API_BASE = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:3001/api/v1';
 
@@ -23,26 +24,7 @@ export default function GameCatalogContent({ slug }: { slug: string }) {
   const [listings, setListings] = useState<Listing[]>([]);
   const [loading, setLoading] = useState(true);
 
-  // Map slug → canonical game name. Must match the stored listing gameName
-  // exactly (e.g. 'PUBG Mobile', not title-cased 'Pubg Mobile'), otherwise the
-  // listings API filter returns nothing for those games.
-  const GAME_SLUG_TO_NAME: Record<string, string> = {
-    'free-fire': 'Free Fire',
-    'cod-mobile': 'COD Mobile',
-    'blood-strike': 'Blood Strike',
-    'delta-force': 'Delta Force',
-    'pubg-mobile': 'PUBG Mobile',
-    valorant: 'Valorant',
-    roblox: 'Roblox',
-    'mobile-legends': 'Mobile Legends',
-    efootball: 'eFootball',
-  };
-  const gameName =
-    GAME_SLUG_TO_NAME[slug] ||
-    slug
-      .split('-')
-      .map((word) => word.charAt(0).toUpperCase() + word.slice(1))
-      .join(' ');
+  const gameName = slugToGameName(slug);
 
   useEffect(() => {
     async function loadListings() {

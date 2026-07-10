@@ -6,19 +6,16 @@ import { api } from '@/lib/api';
 import { fileToDataUrl } from '@/lib/file';
 import { uploadListingImage } from '@/lib/upload';
 import { useAuth } from '@/app/providers';
+import { GAME_NAMES, getGameConfig, REGIONS } from '@/lib/games';
 import {
   Gamepad2, Package, ChevronRight, ChevronLeft,
   Check, AlertCircle, Loader2, Upload, Info,
   DollarSign, Tag, MapPin, Monitor, Star, Clock,
-  Plus, Image
+  Plus, Image, Zap
 } from 'lucide-react';
 
-const GAMES = [
-  'Free Fire', 'PUBG Mobile', 'COD Mobile', 'Mobile Legends',
-  'Blood Strike', 'Delta Force', 'Valorant', 'Roblox', 'eFootball', 'Other',
-];
-const PLATFORMS = ['Android', 'iOS', 'PC', 'PlayStation', 'Xbox', 'Nintendo Switch'];
-const REGIONS = ['Africa', 'Europe', 'North America', 'Asia', 'Middle East', 'Global'];
+const GAMES = [...GAME_NAMES, 'Other'];
+const ALL_PLATFORMS = ['Android', 'iOS', 'PC', 'PlayStation', 'Xbox', 'Nintendo Switch', 'Meta Quest'];
 const CATEGORIES = [
   { label: 'Game Account', value: 'account' },
   { label: 'In-Game Currency / Coins', value: 'coins' },
@@ -81,6 +78,13 @@ export default function SellPage() {
   const [loginMethod, setLoginMethod] = useState('');
   const [deliveryTime, setDeliveryTime] = useState('60');
   const [imageUrls, setImageUrls] = useState<string[]>(['', '', '', '']);
+
+  const gameCfg = getGameConfig(gameName);
+  const platformOptions = gameCfg?.platforms ?? ALL_PLATFORMS;
+  const rankOptions = gameCfg?.ranks ?? [];
+  const loginOptions = gameCfg?.loginMethods ?? [];
+  const currencyName = gameCfg?.currency.plural;
+  const supportsRank = !gameCfg || gameCfg.hasRanked;
 
   useEffect(() => {
     if (authLoading) return;
@@ -358,28 +362,48 @@ export default function SellPage() {
               />
             </div>
 
+            {category === 'coins' && currencyName && (
+              <div className="bg-brand/5 border border-brand/20 rounded-xl p-3 flex items-start gap-2 text-xs text-gray-400">
+                <Zap className="w-4 h-4 text-brand flex-shrink-0 mt-0.5" />
+                <p>You are selling <span className="font-semibold text-white">{currencyName}</span> for {gameName}. Mention the exact amount (e.g. &quot;1000 {currencyName}&quot;) in the title.</p>
+              </div>
+            )}
+
             {/* Account-specific fields */}
             {category === 'account' && (
               <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-                <div>
-                  <label className="block text-xs font-semibold text-gray-400 mb-2 uppercase tracking-wide">Rank (optional)</label>
-                  <input type="text" value={rank} onChange={e => setRank(e.target.value)}
-                    placeholder="e.g. Heroic, Diamond"
-                    className="w-full bg-background border border-borderBg rounded-xl px-4 py-3 text-sm focus:outline-none focus:border-brand transition" />
-                </div>
+                {supportsRank && (
+                  <div>
+                    <label className="block text-xs font-semibold text-gray-400 mb-2 uppercase tracking-wide">Rank (optional)</label>
+                    <input type="text" value={rank} onChange={e => setRank(e.target.value)} list="rank-options"
+                      placeholder={rankOptions.length ? `e.g. ${rankOptions[0]}, ${rankOptions[rankOptions.length - 1]}` : 'e.g. Heroic, Diamond'}
+                      className="w-full bg-background border border-borderBg rounded-xl px-4 py-3 text-sm focus:outline-none focus:border-brand transition" />
+                  </div>
+                )}
                 <div>
                   <label className="block text-xs font-semibold text-gray-400 mb-2 uppercase tracking-wide">Level (optional)</label>
                   <input type="number" value={level} onChange={e => setLevel(e.target.value)}
                     placeholder="e.g. 70"
                     className="w-full bg-background border border-borderBg rounded-xl px-4 py-3 text-sm focus:outline-none focus:border-brand transition" />
                 </div>
-                <div className="sm:col-span-2">
+                <div className={supportsRank ? 'sm:col-span-2' : ''}>
                   <label className="block text-xs font-semibold text-gray-400 mb-2 uppercase tracking-wide">Login Method (optional)</label>
-                  <input type="text" value={loginMethod} onChange={e => setLoginMethod(e.target.value)}
-                    placeholder="e.g. Google, Facebook, Guest"
+                  <input type="text" value={loginMethod} onChange={e => setLoginMethod(e.target.value)} list="login-options"
+                    placeholder={loginOptions.length ? `e.g. ${loginOptions[0]}, ${loginOptions[1]}` : 'e.g. Google, Facebook, Guest'}
                     className="w-full bg-background border border-borderBg rounded-xl px-4 py-3 text-sm focus:outline-none focus:border-brand transition" />
                 </div>
               </div>
+            )}
+
+            {category === 'account' && loginOptions.length > 0 && (
+              <datalist id="login-options">
+                {loginOptions.map(o => <option key={o} value={o} />)}
+              </datalist>
+            )}
+            {category === 'account' && rankOptions.length > 0 && (
+              <datalist id="rank-options">
+                {rankOptions.map(o => <option key={o} value={o} />)}
+              </datalist>
             )}
 
             <div>
@@ -451,7 +475,7 @@ export default function SellPage() {
                 <label className="block text-xs font-semibold text-gray-400 mb-2 uppercase tracking-wide">Platform *</label>
                 <select value={platform} onChange={e => setPlatform(e.target.value)}
                   className="w-full bg-background border border-borderBg rounded-xl px-4 py-3 text-sm focus:outline-none focus:border-brand transition">
-                  {PLATFORMS.map(p => <option key={p}>{p}</option>)}
+                  {platformOptions.map(p => <option key={p}>{p}</option>)}
                 </select>
               </div>
               <div>

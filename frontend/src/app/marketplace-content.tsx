@@ -13,6 +13,7 @@ import GameSlideshow from '@/components/GameSlideshow';
 import GameIcon from '@/components/GameIcon';
 import ListingCard from '@/components/ListingCard';
 import { storeReferralCode, trackReferralClick } from '@/lib/referral';
+import { GAME_LIST } from '@/lib/games';
 
 interface Listing {
   id: string;
@@ -29,17 +30,7 @@ interface Listing {
   seller: { storeName: string; averageRating: number; id?: string };
 }
 
-const GAMES = [
-  { name: 'Free Fire', slug: 'free-fire' },
-  { name: 'COD Mobile', slug: 'cod-mobile' },
-  { name: 'Blood Strike', slug: 'blood-strike' },
-  { name: 'Delta Force', slug: 'delta-force' },
-  { name: 'PUBG Mobile', slug: 'pubg-mobile' },
-  { name: 'Valorant', slug: 'valorant' },
-  { name: 'Roblox', slug: 'roblox' },
-  { name: 'Mobile Legends', slug: 'mobile-legends' },
-  { name: 'eFootball', slug: 'efootball' },
-];
+const GAMES = GAME_LIST.map((g) => ({ name: g.name, slug: g.slug }));
 
 const SORT_OPTIONS = [
   { value: 'newest', label: 'Newest First' },

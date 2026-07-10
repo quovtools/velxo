@@ -3,6 +3,7 @@
 import React, { useEffect, useState } from 'react';
 import { Gamepad2, RefreshCw, Trash2 } from 'lucide-react';
 import { api } from '@/lib/api';
+import { GAME_NAMES, getGameSlug, getGameConfig } from '@/lib/games';
 import { Badge, EmptyState, ErrorBanner, ActionButton, formatMoney } from '@/components/admin/ui';
 import { LoadingArea } from '@/components/LoadingLogo';
 
@@ -28,6 +29,10 @@ export default function AdminTopupPage() {
   const [form, setForm] = useState<Partial<Topup>>({ gameName: '', title: '', price: 0 });
   const [editing, setEditing] = useState<Topup | null>(null);
   const [busy, setBusy] = useState(false);
+
+  const gameCfg = getGameConfig(form.gameName || '');
+  const currencyName = gameCfg?.currency.plural;
+  const packagePresets = gameCfg?.topupPackages ?? [];
 
   const fetchItems = async () => {
     setLoading(true);
@@ -93,7 +98,21 @@ export default function AdminTopupPage() {
       <div className="bg-cardBg border border-borderBg rounded-2xl p-5 space-y-3">
         <h2 className="font-bold text-white">{editing ? `Edit ${editing.title}` : 'New Topup Product'}</h2>
         <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-3">
-          <Input label="Game" value={form.gameName || ''} onChange={v => setForm(f => ({ ...f, gameName: v }))} />
+          <div>
+            <span className="text-xs text-gray-400">Game *</span>
+            <select
+              value={form.gameName || ''}
+              onChange={e => {
+                const name = e.target.value;
+                setForm(f => ({ ...f, gameName: name, gameSlug: name ? (getGameSlug(name) ?? f.gameSlug) : f.gameSlug }));
+              }}
+              className="mt-1 w-full bg-background border border-borderBg rounded-xl px-3 py-2.5 text-sm text-white focus:outline-none focus:border-brand transition"
+            >
+              <option value="">Select a game…</option>
+              {GAME_NAMES.map(g => <option key={g} value={g}>{g}</option>)}
+              <option value="Other">Other</option>
+            </select>
+          </div>
           <Input label="Title" value={form.title || ''} onChange={v => setForm(f => ({ ...f, title: v }))} />
           <Input label="Price" type="number" value={form.price || 0} onChange={v => setForm(f => ({ ...f, price: Number(v) }))} />
           <Input label="Game Slug" value={form.gameSlug || ''} onChange={v => setForm(f => ({ ...f, gameSlug: v }))} />
@@ -103,6 +122,22 @@ export default function AdminTopupPage() {
           <Input label="Sort order" type="number" value={form.sortOrder ?? 0} onChange={v => setForm(f => ({ ...f, sortOrder: Number(v) }))} />
         </div>
         <Input label="Description" value={form.description || ''} onChange={v => setForm(f => ({ ...f, description: v }))} />
+
+        {currencyName && (
+          <div className="bg-brand/5 border border-brand/20 rounded-xl p-3 space-y-2">
+            <p className="text-xs text-gray-400">
+              This top-up sells <span className="font-semibold text-white">{currencyName}</span> for {form.gameName}. Click a package to prefill the title:
+            </p>
+            <div className="flex flex-wrap gap-2">
+              {packagePresets.map(p => (
+                <button key={p.amount} type="button" onClick={() => setForm(f => ({ ...f, title: p.label }))}
+                  className="text-xs px-2.5 py-1 rounded-lg bg-background border border-borderBg text-gray-300 hover:border-brand hover:text-white transition">
+                  {p.label}
+                </button>
+              ))}
+            </div>
+          </div>
+        )}
         <div className="flex gap-2">
           <ActionButton variant="brand" loading={busy} onClick={save}>{editing ? 'Update' : 'Create'}</ActionButton>
           {editing && <ActionButton variant="default" onClick={() => { setEditing(null); setForm({ gameName: '', title: '', price: 0 }); }}>Cancel</ActionButton>}
