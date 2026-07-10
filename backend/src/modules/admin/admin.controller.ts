@@ -1107,8 +1107,6 @@ export class AdminController {
       throw error
     }
   }
-}
-
 
   // ============ NEW ENHANCED BULK OPERATIONS ============
 
