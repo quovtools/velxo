@@ -4,6 +4,7 @@ import React, { useEffect, useState, useCallback } from 'react';
 import { Users, Search, Mail, RefreshCw } from 'lucide-react';
 import { api } from '@/lib/api';
 import { Badge, statusColor, Pagination, EmptyState, ErrorBanner, ActionButton, Modal, formatDate } from '@/components/admin/ui';
+import { LoadingArea } from '@/components/LoadingLogo';
 
 interface User {
   id: string;
@@ -104,7 +105,7 @@ export default function AdminUsersPage() {
       </div>
 
       {loading ? (
-        <div className="text-center py-20 text-gray-500">Loading users...</div>
+        <LoadingArea label="Loading users..." />
       ) : items.length === 0 ? (
         <EmptyState icon={Users} title="No users found" subtitle="Try adjusting your filters." />
       ) : (

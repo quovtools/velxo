@@ -4,6 +4,7 @@ import React, { useEffect, useState, useCallback } from 'react';
 import { CreditCard, XCircle, RefreshCw } from 'lucide-react';
 import { api } from '@/lib/api';
 import { Badge, statusColor, Pagination, EmptyState, ErrorBanner, ActionButton, Modal, formatDate, formatMoney } from '@/components/admin/ui';
+import { LoadingArea } from '@/components/LoadingLogo';
 
 interface Order {
   id: string;
@@ -82,7 +83,7 @@ export default function AdminOrdersPage() {
       </select>
 
       {loading ? (
-        <div className="text-center py-20 text-gray-500">Loading orders...</div>
+        <LoadingArea label="Loading orders..." />
       ) : items.length === 0 ? (
         <EmptyState icon={CreditCard} title="No orders found" />
       ) : (

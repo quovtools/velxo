@@ -3,6 +3,7 @@ import Link from 'next/link';
 import type { Metadata } from 'next';
 import { ShieldCheck, Lock, CheckCircle, AlertTriangle, ArrowRight, Clock, Banknote, RefreshCcw, Loader2 } from 'lucide-react';
 import OrderTrackingContent from '@/app/orders/[id]/order-tracking-content';
+import { LoadingArea } from '@/components/LoadingLogo';
 
 export const metadata: Metadata = {
   title: 'How Velxo Escrow Works | Safe Gaming Trades',
@@ -96,8 +97,8 @@ const faqs = [
 
 function TrackerFallback() {
   return (
-    <div className="bg-cardBg border border-borderBg rounded-3xl p-8 flex items-center justify-center text-gray-500 gap-2">
-      <Loader2 className="w-5 h-5 animate-spin" /> Loading escrow dashboard...
+    <div className="bg-cardBg border border-borderBg rounded-3xl p-8 flex items-center justify-center">
+      <LoadingArea label="Loading escrow dashboard..." />
     </div>
   );
 }

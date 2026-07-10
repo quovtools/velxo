@@ -9,10 +9,11 @@
   --card-bg: #ffffff;
   --border-bg: #e2e8f0;
   --hover-bg: #f1f5f9;
-  --brand-rgb: 10 10 10;
-  --brand-dark-rgb: 0 0 0;
-  --brand-light-rgb: 64 64 64;
-  --brand-accent-rgb: 82 82 82;
+  /* Brand primary = blue (white & black remain the brand/logo neutrals) */
+  --brand-rgb: 37 99 235;
+  --brand-dark-rgb: 29 78 216;
+  --brand-light-rgb: 59 130 246;
+  --brand-accent-rgb: 96 165 250;
 }
 
 /* ── Dark mode — toggled by adding .dark to <html> ── */
@@ -22,10 +23,10 @@
   --card-bg: #1e293b;
   --border-bg: #334155;
   --hover-bg: #475569;
-  --brand-rgb: 250 250 250;
-  --brand-dark-rgb: 229 229 229;
-  --brand-light-rgb: 255 255 255;
-  --brand-accent-rgb: 212 212 212;
+  --brand-rgb: 96 165 250;
+  --brand-dark-rgb: 59 130 246;
+  --brand-light-rgb: 147 197 253;
+  --brand-accent-rgb: 96 165 250;
 }
 
 body {
@@ -88,7 +89,7 @@ body {
 /* ── Monochrome brand: keep text readable on solid/gradient brand fills ── */
 :root.dark .bg-brand,
 :root.dark .from-brand,
-:root.dark .to-brand { color: #0a0a0a !important; }
+:root.dark .to-brand { color: #ffffff !important; }
 :root:not(.dark) .bg-brand,
 :root:not(.dark) .from-brand,
 :root:not(.dark) .to-brand { color: #ffffff !important; }

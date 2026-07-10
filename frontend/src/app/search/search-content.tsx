@@ -3,6 +3,7 @@
 import React, { useState, useEffect, Suspense } from 'react';
 import { useSearchParams } from 'next/navigation';
 import Link from 'next/link';
+import { LoadingArea } from '@/components/LoadingLogo';
 
 const API_BASE = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:3001/api/v1';
 
@@ -218,7 +219,7 @@ function SearchContent() {
 
 export default function SearchPage() {
   return (
-    <Suspense fallback={<div className="text-center py-20">Loading search console...</div>}>
+    <Suspense fallback={<LoadingArea label="Loading search console..." />}>
       <SearchContent />
     </Suspense>
   );

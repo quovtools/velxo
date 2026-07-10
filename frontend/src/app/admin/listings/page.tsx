@@ -4,6 +4,7 @@ import React, { useEffect, useState, useCallback } from 'react';
 import { ShoppingBag, Search, Star, Ban, CheckCircle, Trash2, RefreshCw } from 'lucide-react';
 import { api } from '@/lib/api';
 import { Badge, statusColor, Pagination, EmptyState, ErrorBanner, ActionButton, Modal, formatDate, formatMoney } from '@/components/admin/ui';
+import { LoadingArea } from '@/components/LoadingLogo';
 
 interface Listing {
   id: string;
@@ -98,7 +99,7 @@ export default function AdminListingsPage() {
       </div>
 
       {loading ? (
-        <div className="text-center py-20 text-gray-500">Loading listings...</div>
+        <LoadingArea label="Loading listings..." />
       ) : items.length === 0 ? (
         <EmptyState icon={ShoppingBag} title="No listings found" />
       ) : (

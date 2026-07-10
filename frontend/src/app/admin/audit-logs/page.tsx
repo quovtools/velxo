@@ -4,6 +4,7 @@ import React, { useEffect, useState, useCallback } from 'react';
 import { History, RefreshCw, Search } from 'lucide-react';
 import { api } from '@/lib/api';
 import { Badge, EmptyState, ErrorBanner, Pagination, formatDate } from '@/components/admin/ui';
+import { LoadingArea } from '@/components/LoadingLogo';
 
 interface Log {
   id: string;
@@ -78,7 +79,7 @@ export default function AdminAuditLogsPage() {
       </div>
 
       {loading ? (
-        <div className="text-center py-20 text-gray-500">Loading logs...</div>
+        <LoadingArea label="Loading logs..." />
       ) : items.length === 0 ? (
         <EmptyState icon={History} title="No audit logs found" />
       ) : (

@@ -5,6 +5,7 @@ import { useRouter } from 'next/navigation';
 import { api } from '@/lib/api';
 import { useAuth } from '@/app/providers';
 import Link from 'next/link';
+import { LoadingArea } from '@/components/LoadingLogo';
 
 interface Order {
   id: string;
@@ -49,7 +50,7 @@ export default function OrdersPage() {
   }, [user, authLoading, router]);
 
   if (loading) {
-    return <div className="text-center py-20 text-gray-400">Loading order history...</div>;
+    return <LoadingArea label="Loading order history..." />;
   }
 
   return (

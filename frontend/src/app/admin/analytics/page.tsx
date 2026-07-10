@@ -3,6 +3,7 @@
 import React, { useEffect, useState } from 'react';
 import { BarChart3, DollarSign, TrendingUp, Users, AlertTriangle, RefreshCw } from 'lucide-react';
 import { api } from '@/lib/api';
+import { LoadingArea } from '@/components/LoadingLogo';
 
 interface RevenueData {
   totalRevenue?: number;
@@ -80,7 +81,7 @@ export default function AnalyticsPage() {
       </div>
 
       {loading ? (
-        <div className="text-center py-20 text-gray-500">Loading analytics...</div>
+        <LoadingArea label="Loading analytics..." />
       ) : (
         <>
           {/* Revenue cards */}

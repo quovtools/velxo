@@ -4,6 +4,7 @@ import React, { useEffect, useState } from 'react';
 import { Gamepad2, RefreshCw, Trash2 } from 'lucide-react';
 import { api } from '@/lib/api';
 import { Badge, EmptyState, ErrorBanner, ActionButton, formatMoney } from '@/components/admin/ui';
+import { LoadingArea } from '@/components/LoadingLogo';
 
 interface Topup {
   id: string;
@@ -109,7 +110,7 @@ export default function AdminTopupPage() {
       </div>
 
       {loading ? (
-        <div className="text-center py-20 text-gray-500">Loading...</div>
+        <LoadingArea label="Loading topups..." />
       ) : items.length === 0 ? (
         <EmptyState icon={Gamepad2} title="No topup products" />
       ) : (

@@ -4,6 +4,7 @@ import React, { useEffect, useState, useCallback } from 'react';
 import { LifeBuoy, Search, CheckCircle, XCircle, RefreshCw } from 'lucide-react';
 import { api } from '@/lib/api';
 import { Badge, statusColor, Pagination, EmptyState, ErrorBanner, ActionButton, formatDate, formatMoney } from '@/components/admin/ui';
+import { LoadingArea } from '@/components/LoadingLogo';
 
 interface Withdrawal {
   id: string;
@@ -83,7 +84,7 @@ export default function AdminWithdrawalsPage() {
       </select>
 
       {loading ? (
-        <div className="text-center py-20 text-gray-500">Loading payouts...</div>
+        <LoadingArea label="Loading payouts..." />
       ) : items.length === 0 ? (
         <EmptyState icon={LifeBuoy} title="No payouts found" />
       ) : (

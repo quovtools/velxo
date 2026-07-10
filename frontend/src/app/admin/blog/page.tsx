@@ -4,6 +4,7 @@ import React, { useEffect, useState } from 'react';
 import { FileText, RefreshCw, Trash2, Send } from 'lucide-react';
 import { api } from '@/lib/api';
 import { Badge, EmptyState, ErrorBanner, ActionButton } from '@/components/admin/ui';
+import { LoadingArea } from '@/components/LoadingLogo';
 
 interface Post {
   id: string;
@@ -127,7 +128,7 @@ export default function AdminBlogPage() {
       </div>
 
       {loading ? (
-        <div className="text-center py-20 text-gray-500">Loading...</div>
+        <LoadingArea label="Loading posts..." />
       ) : items.length === 0 ? (
         <EmptyState icon={FileText} title="No blog posts" />
       ) : (

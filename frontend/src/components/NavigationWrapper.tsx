@@ -209,7 +209,7 @@ export default function NavigationWrapper() {
         </Link>
         <Link href="/messages" className="flex flex-col items-center gap-0.5 p-2 -mt-5" onClick={() => setMobileOpen(false)}>
           <div className="w-12 h-12 bg-brand rounded-full flex items-center justify-center shadow-lg shadow-brand/40 border-4 border-background">
-            <MessageSquare className="w-5 h-5 text-white" />
+            <MessageSquare className="w-5 h-5 text-background" />
           </div>
           <span className="text-[9px] font-semibold text-brand">Messages</span>
         </Link>

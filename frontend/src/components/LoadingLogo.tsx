@@ -54,6 +54,21 @@ export default function LoadingLogo({
   return content;
 }
 
+/* Area loader: centered Velxo logo with a message, fills its container */
+export function LoadingArea({
+  label = 'Loading...',
+  className = '',
+}: {
+  label?: string;
+  className?: string;
+}) {
+  return (
+    <div className={`w-full flex items-center justify-center py-20 ${className}`}>
+      <LoadingLogo label={label} size="md" />
+    </div>
+  );
+}
+
 export function InlineSpinner({ className = 'w-5 h-5' }: { className?: string }) {
   return <Loader2 className={`${className} text-brand animate-spin`} />;
 }

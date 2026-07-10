@@ -1,7 +1,7 @@
 'use client';
 import React, { useState, useEffect } from 'react';
 import Link from 'next/link';
-import { Menu, X, ShieldCheck, Sun, Moon } from 'lucide-react';
+import { Menu, X, Sun, Moon } from 'lucide-react';
 
 const NAV_LINKS = [
   { label: 'Home', href: '/' },
@@ -56,8 +56,8 @@ export default function Navbar() {
       >
         <div className="container-x flex h-16 items-center justify-between">
           <Link href="/" className="group flex items-center gap-2" aria-label="Velxo home">
-            <span className="relative flex h-9 w-9 items-center justify-center rounded-xl bg-gradient-to-br from-brand-500 to-accent shadow-glow">
-              <ShieldCheck className="h-5 w-5 text-white" />
+            <span className="relative flex h-9 w-9 items-center justify-center rounded-xl overflow-hidden bg-background/10 border border-white/15">
+              <img src="/logo.png" alt="Velxo" className="h-6 w-6 object-contain" />
             </span>
             <span className={`text-xl font-black tracking-wider ${scrolled ? 'text-white' : 'text-white'}`}>
               VELXO

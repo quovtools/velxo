@@ -3,6 +3,7 @@
 import React, { useEffect, useState } from 'react';
 import { Megaphone, Plus, Trash2, RefreshCw } from 'lucide-react';
 import { api } from '@/lib/api';
+import { LoadingArea } from '@/components/LoadingLogo';
 
 interface MarqueeItem {
   id?: string;
@@ -197,7 +198,7 @@ export default function MarqueeAdminPage() {
       )}
 
       {loading ? (
-        <div className="text-center py-20 text-gray-500">Loading news...</div>
+        <LoadingArea label="Loading news..." />
       ) : items.length === 0 ? (
         <div className="text-center py-20 bg-cardBg border border-borderBg rounded-2xl">
           <Megaphone className="w-12 h-12 text-gray-600 mx-auto mb-3" />

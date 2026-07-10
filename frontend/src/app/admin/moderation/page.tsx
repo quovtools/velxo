@@ -3,6 +3,7 @@
 import React, { useEffect, useState } from 'react';
 import { Eye, CheckCircle, XCircle, RefreshCw, AlertTriangle, DollarSign, Store, Mail, Clock } from 'lucide-react';
 import { api } from '@/lib/api';
+import { LoadingArea } from '@/components/LoadingLogo';
 
 interface Listing {
   id: string;
@@ -89,7 +90,7 @@ export default function ModerationPage() {
       )}
 
       {loading ? (
-        <div className="text-center py-20 text-gray-500">Loading listings...</div>
+        <LoadingArea label="Loading listings..." />
       ) : listings.length === 0 ? (
         <div className="text-center py-20 bg-cardBg border border-borderBg rounded-2xl">
           <CheckCircle className="w-12 h-12 text-green-400 mx-auto mb-3" />

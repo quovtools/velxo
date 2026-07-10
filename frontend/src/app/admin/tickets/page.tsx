@@ -4,6 +4,7 @@ import React, { useEffect, useState, useCallback } from 'react';
 import { LifeBuoy, RefreshCw } from 'lucide-react';
 import { api } from '@/lib/api';
 import { Badge, statusColor, Pagination, EmptyState, ErrorBanner, ActionButton, Modal, formatDate } from '@/components/admin/ui';
+import { LoadingArea } from '@/components/LoadingLogo';
 
 interface Ticket {
   id: string;
@@ -83,7 +84,7 @@ export default function AdminTicketsPage() {
       </div>
 
       {loading ? (
-        <div className="text-center py-20 text-gray-500">Loading tickets...</div>
+        <LoadingArea label="Loading tickets..." />
       ) : items.length === 0 ? (
         <EmptyState icon={LifeBuoy} title="No tickets found" />
       ) : (

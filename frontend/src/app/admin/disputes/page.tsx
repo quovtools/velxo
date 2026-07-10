@@ -3,6 +3,7 @@
 import React, { useEffect, useState } from 'react';
 import { Scale, RefreshCw, Clock, CheckCircle } from 'lucide-react';
 import { api } from '@/lib/api';
+import { LoadingArea } from '@/components/LoadingLogo';
 
 interface Dispute {
   id: string;
@@ -77,7 +78,7 @@ export default function DisputesPage() {
       </div>
 
       {loading ? (
-        <div className="text-center py-20 text-gray-500">Loading disputes...</div>
+        <LoadingArea label="Loading disputes..." />
       ) : disputes.length === 0 ? (
         <div className="text-center py-20 bg-cardBg border border-borderBg rounded-2xl">
           <CheckCircle className="w-12 h-12 text-green-400 mx-auto mb-3" />

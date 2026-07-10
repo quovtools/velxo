@@ -6,6 +6,7 @@ import Link from 'next/link';
 import { api } from '@/lib/api';
 import { useAuth } from '@/app/providers';
 import { Send, User, MessageSquare, Search, Loader2, ArrowLeft, Circle, Package } from 'lucide-react';
+import LoadingLogo from '@/components/LoadingLogo';
 import { io, Socket } from 'socket.io-client';
 
 interface Message {
@@ -250,7 +251,7 @@ function ChatContent() {
   if (loading) {
     return (
       <div className="h-[600px] bg-cardBg border border-borderBg rounded-2xl flex items-center justify-center">
-        <Loader2 className="w-8 h-8 text-brand animate-spin" />
+        <LoadingLogo label="Loading messages..." />
       </div>
     );
   }

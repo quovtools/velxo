@@ -4,6 +4,7 @@ import React, { useEffect, useState, useCallback } from 'react';
 import { Store, Search, CheckCircle, XCircle, Star, RefreshCw } from 'lucide-react';
 import { api } from '@/lib/api';
 import { Badge, Pagination, EmptyState, ErrorBanner, ActionButton, Modal, formatDate, formatMoney } from '@/components/admin/ui';
+import { LoadingArea } from '@/components/LoadingLogo';
 
 interface Seller {
   id: string;
@@ -85,7 +86,7 @@ export default function AdminSellersPage() {
       </div>
 
       {loading ? (
-        <div className="text-center py-20 text-gray-500">Loading sellers...</div>
+        <LoadingArea label="Loading sellers..." />
       ) : items.length === 0 ? (
         <EmptyState icon={Store} title="No sellers found" />
       ) : (

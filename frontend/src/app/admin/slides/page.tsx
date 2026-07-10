@@ -3,7 +3,7 @@
 import React, { useEffect, useState } from 'react';
 import { Image, Plus, Trash2, RefreshCw, GripVertical } from 'lucide-react';
 import { api } from '@/lib/api';
-import { fileToDataUrl } from '@/lib/file';
+import { LoadingArea } from '@/components/LoadingLogo';
 
 interface Slide {
   id?: string;
@@ -187,7 +187,7 @@ export default function SlidesPage() {
 
       {/* Slides list */}
       {loading ? (
-        <div className="text-center py-20 text-gray-500">Loading slides...</div>
+        <LoadingArea label="Loading slides..." />
       ) : slides.length === 0 ? (
         <div className="text-center py-20 bg-cardBg border border-borderBg rounded-2xl">
           <Image className="w-12 h-12 text-gray-600 mx-auto mb-3" />

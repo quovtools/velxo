@@ -2,6 +2,7 @@
 
 import { Suspense, useEffect } from 'react';
 import { useRouter, useSearchParams } from 'next/navigation';
+import LoadingLogo from '@/components/LoadingLogo';
 
 function RedirectToVerify() {
   const router = useRouter();
@@ -24,7 +25,7 @@ export default function AuthVerifyEmailPage() {
     <Suspense
       fallback={
         <div className="min-h-[60vh] flex items-center justify-center">
-          <p className="text-gray-400 text-sm">Loading…</p>
+          <LoadingLogo label="Loading…" size="lg" />
         </div>
       }
     >

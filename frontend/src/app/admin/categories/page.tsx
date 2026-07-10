@@ -4,6 +4,7 @@ import React, { useEffect, useState } from 'react';
 import { FolderTree, RefreshCw, Trash2, Save } from 'lucide-react';
 import { api } from '@/lib/api';
 import { Badge, EmptyState, ErrorBanner, ActionButton, Modal } from '@/components/admin/ui';
+import { LoadingArea } from '@/components/LoadingLogo';
 
 interface Subcategory {
   id: string;
@@ -133,7 +134,7 @@ export default function AdminCategoriesPage() {
       </div>
 
       {loading ? (
-        <div className="text-center py-20 text-gray-500">Loading categories...</div>
+        <LoadingArea label="Loading categories..." />
       ) : items.length === 0 ? (
         <EmptyState icon={FolderTree} title="No categories yet" />
       ) : (
