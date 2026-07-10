@@ -8,7 +8,7 @@ import {
   InvalidEscrowStateException,
   BadRequestException,
 } from '@/common/exceptions/custom-exceptions'
-import { OrderStatus, EscrowStatus, ListingStatus, PaymentStatus } from '@prisma/client'
+import { OrderStatus, EscrowStatus, PaymentStatus } from '@prisma/client'
 import { Decimal } from '@prisma/client/runtime/library'
 
 // Escrow timing windows (milliseconds).
@@ -147,11 +147,14 @@ export class OrdersService {
       })
 
       // Reserve the listing immediately so a second buyer cannot also purchase
-      // this single-unit account. It is reverted to ACTIVE if the payment fails
-      // (see PaymentsService.updatePaymentStatus) or if the order is cancelled.
+      // this single-unit account. We only flag isSold (which blocks re-purchase
+      // via the availability re-check below) but keep the listing ACTIVE until
+      // the payment is actually confirmed — it is only marked SOLD in
+      // PaymentsService.updatePaymentStatus once the payment completes. This
+      // prevents a product from showing as "sold/completed" before it is paid.
       await tx.listings.update({
         where: { id: dto.listingId },
-        data: { isSold: true, status: ListingStatus.SOLD },
+        data: { isSold: true },
       })
 
       return newOrder
