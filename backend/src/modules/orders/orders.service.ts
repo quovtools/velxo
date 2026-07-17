@@ -20,6 +20,7 @@ export const ESCROW_SELLER_WINDOW_MS = 60 * 60 * 1000
 export const ESCROW_BUYER_WINDOW_MS = 60 * 60 * 1000
 import { RewardsService } from '../rewards/rewards.service'
 import { NotificationsService } from '../notifications/notifications.service'
+import { AffiliateService } from '../affiliate/affiliate.service'
 
 /** Escrow commission rate by seller subscription tier (Seller Pro = lower). */
 function commissionRateForTier(tier?: string | null): number {
@@ -41,6 +42,7 @@ export class OrdersService {
     private prisma: PrismaService,
     private rewardsService: RewardsService,
     private notifications: NotificationsService,
+    private affiliateService: AffiliateService,
     @Optional() @Inject(REQUEST) private request?: Request,
   ) {}
 
@@ -468,34 +470,40 @@ export class OrdersService {
         )
       }
 
-      // Credit affiliate commission if applicable
-      const referral = await tx.affiliateReferrals.findFirst({
-        where: { referredUserId: order.buyerId },
-      })
-
-      if (referral) {
-        const affiliateCommission = Number(order.totalAmount) * Number(referral.commissionRate)
-        await tx.affiliateReferrals.update({
-          where: { id: referral.id },
-          data: {
-            totalEarned: { increment: affiliateCommission },
-            tradeCount: { increment: 1 },
-          },
-        })
-
-        // Also award coins to referrer
-        const referrerCoins = Math.floor(affiliateCommission * 10)
-        await this.rewardsService.creditCoins(
-          referral.referrerId,
-          referrerCoins,
-          'REFERRAL',
-          `Earned ${referrerCoins} coins from referral trade ${order.orderNumber}`,
-          orderId,
-        )
-      }
-
+      // Credit affiliate commission if applicable (handled outside the tx for wallet crediting)
       return updatedOrder
     })
+
+    // Credit affiliate commission to referrer's wallet (non-fatal, runs outside main tx)
+    try {
+      const velxoProfit = Number(updatedOrder.commissionAmount)
+      await this.affiliateService.creditCommission(updatedOrder.buyerId, velxoProfit, orderId)
+    } catch (e) {
+      this.logger.error('Affiliate commission credit failed (non-fatal):', e)
+    }
+
+    // Also award coins to referrer (legacy bonus on top)
+    try {
+      const referral = await this.prisma.affiliateReferrals.findFirst({
+        where: { referredUserId: updatedOrder.buyerId },
+        select: { referrerId: true, commissionRate: true },
+      })
+      if (referral) {
+        const affiliateCommission = Number(updatedOrder.totalAmount) * Number(referral.commissionRate)
+        const referrerCoins = Math.floor(affiliateCommission * 10)
+        if (referrerCoins > 0) {
+          await this.rewardsService.creditCoins(
+            referral.referrerId,
+            referrerCoins,
+            'REFERRAL',
+            `Earned ${referrerCoins} coins from referral trade ${updatedOrder.orderNumber}`,
+            orderId,
+          )
+        }
+      }
+    } catch (e) {
+      this.logger.error('Referrer coin bonus failed (non-fatal):', e)
+    }
 
     // Notify both parties that the order is complete and funds were released.
     await this.notifications.notifyCompleted(updatedOrder).catch(() => {})

@@ -10,7 +10,7 @@ import {
   User, Mail, Phone, ShieldCheck, Camera,
   Check, AlertTriangle, Loader2, Lock, LogOut,
   Bell, Globe, Package, Star, Wallet, Settings,
-  Eye, EyeOff, AlertCircle, ChevronRight
+  Eye, EyeOff, AlertCircle, ChevronRight, Crown
 } from 'lucide-react';
 
 interface ProfileData {
@@ -24,6 +24,13 @@ interface ProfileData {
   role: string;
   createdAt: string;
   notificationPreferences?: Record<string, boolean> | null;
+}
+
+interface CreatorProfile {
+  status: string;
+  isVerified: boolean;
+  tier: string;
+  handle: string | null;
 }
 
 function Toast({ msg, ok, onClose }: { msg: string; ok: boolean; onClose: () => void }) {
@@ -70,6 +77,7 @@ export default function ProfilePage() {
   const [savingNotif, setSavingNotif] = useState(false);
   const [confirmDelete, setConfirmDelete] = useState(false);
   const [activeOrderCount, setActiveOrderCount] = useState<number | null>(null);
+  const [creatorProfile, setCreatorProfile] = useState<CreatorProfile | null>(null);
 
   const [currentPw, setCurrentPw] = useState('');
   const [newPw, setNewPw] = useState('');
@@ -120,6 +128,11 @@ export default function ProfilePage() {
           setActiveOrderCount(active.length);
         }
       })
+      .catch(() => {});
+
+    // Load creator profile for badge
+    api.get<{ data: CreatorProfile | null }>('/affiliate/creator/me')
+      .then(res => setCreatorProfile((res as any).data))
       .catch(() => {});
   }, [user, authLoading, router]);
 
@@ -229,6 +242,16 @@ export default function ProfilePage() {
                 profile?.role === 'ADMIN' ? 'bg-red-500/10 text-red-400 border-red-500/20' :
                 'bg-brand/10 text-brand border-brand/20'
               }`}>{profile?.role}</span>
+              {creatorProfile?.status === 'APPROVED' && (
+                <span className="text-xs font-bold px-2 py-0.5 rounded-full border bg-gradient-to-r from-yellow-500/20 to-amber-500/20 text-yellow-400 border-yellow-500/30 flex items-center gap-1">
+                  <Crown className="w-3 h-3" /> Creator
+                </span>
+              )}
+              {creatorProfile?.status === 'PENDING' && (
+                <Link href="/affiliate" className="text-xs font-medium px-2 py-0.5 rounded-full border bg-orange-500/10 text-orange-400 border-orange-500/20 flex items-center gap-1 hover:bg-orange-500/20 transition">
+                  <Crown className="w-3 h-3" /> Creator (Pending)
+                </Link>
+              )}
               {profile?.emailVerified ? (
                 <span className="text-xs text-emerald-400 flex items-center gap-1 bg-emerald-900/20 px-2 py-0.5 rounded-full border border-emerald-500/20">
                   <Check className="w-3 h-3" /> Verified
@@ -244,7 +267,7 @@ export default function ProfilePage() {
         </div>
 
         {/* Quick links */}
-        <div className="grid grid-cols-3 gap-3 mt-5 pt-4 border-t border-borderBg">
+        <div className="grid grid-cols-4 gap-3 mt-5 pt-4 border-t border-borderBg">
           <Link href="/orders" className="relative flex flex-col items-center gap-1 p-3 bg-hoverBg/40 rounded-xl hover:bg-hoverBg transition">
             <Package className="w-5 h-5 text-brand" />
             <span className="text-xs text-gray-400">Orders</span>
@@ -269,6 +292,10 @@ export default function ProfilePage() {
               <span className="text-xs text-gray-400">Sell</span>
             </Link>
           )}
+          <Link href="/affiliate" className="flex flex-col items-center gap-1 p-3 bg-hoverBg/40 rounded-xl hover:bg-hoverBg transition">
+            <Crown className={`w-5 h-5 ${creatorProfile?.status === 'APPROVED' ? 'text-yellow-400' : 'text-brand'}`} />
+            <span className="text-xs text-gray-400">{creatorProfile?.status === 'APPROVED' ? 'Creator' : 'Affiliate'}</span>
+          </Link>
         </div>
       </div>
 

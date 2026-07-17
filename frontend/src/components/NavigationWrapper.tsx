@@ -213,9 +213,9 @@ export default function NavigationWrapper() {
           </div>
           <span className="text-[9px] font-semibold text-brand">Messages</span>
         </Link>
-        <Link href="/rewards" className="flex flex-col items-center gap-0.5 p-2 text-gray-400 hover:text-white transition" onClick={() => setMobileOpen(false)}>
+        <Link href="/affiliate" className="flex flex-col items-center gap-0.5 p-2 text-gray-400 hover:text-white transition" onClick={() => setMobileOpen(false)}>
           <Award className="w-5 h-5" />
-          <span className="text-[9px] font-semibold">Rewards</span>
+          <span className="text-[9px] font-semibold">Affiliate</span>
         </Link>
         <Link href={sellHref} className="flex flex-col items-center gap-0.5 p-2 text-gray-400 hover:text-white transition" onClick={() => setMobileOpen(false)}>
           <PlusCircle className="w-5 h-5" />

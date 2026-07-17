@@ -2,7 +2,7 @@
 
 import React, { useEffect, useState } from 'react';
 import Link from 'next/link';
-import { ShieldCheck, Eye, Scale, BarChart3, Image, Users, ShoppingBag, DollarSign, AlertTriangle, TrendingUp, Clock, Megaphone, Store, CreditCard, LifeBuoy, FolderTree, FileText, History } from 'lucide-react';
+import { ShieldCheck, Eye, Scale, BarChart3, Image, Users, ShoppingBag, DollarSign, AlertTriangle, TrendingUp, Clock, Megaphone, Store, CreditCard, LifeBuoy, FolderTree, FileText, History, Crown } from 'lucide-react';
 import { api } from '@/lib/api';
 
 interface DashboardStats {
@@ -50,6 +50,7 @@ const quickLinks = [
   { href: '/admin/slides', icon: Image, label: 'Homepage Slides', desc: 'Manage hero banner slides', color: 'text-purple-400' },
   { href: '/admin/marquee', icon: Megaphone, label: 'News Marquee', desc: 'Control the scrolling news bar', color: 'text-pink-400' },
   { href: '/admin/audit-logs', icon: History, label: 'Audit Logs', desc: 'Track all admin actions', color: 'text-gray-400' },
+  { href: '/admin/creators', icon: Crown, label: 'Creator Applications', desc: 'Review creator program applicants', color: 'text-yellow-400' },
 ];
 
 export default function AdminDashboardPage() {
