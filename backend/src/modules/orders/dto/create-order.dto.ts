@@ -15,4 +15,13 @@ export class CreateOrderDto {
   @IsString()
   @IsOptional()
   paymentMethodId?: string
+
+  /**
+   * ISO 4217 currency code detected from the buyer's location (e.g. "NGN", "GHS").
+   * When provided, the order and Flutterwave charge will use this currency
+   * instead of USD, with the amount converted at the stored exchange rate.
+   */
+  @IsString()
+  @IsOptional()
+  currency?: string
 }

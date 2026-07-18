@@ -108,8 +108,19 @@ function statusPill(status: string) {
   );
 }
 function money(n: string | number, currency = 'USD') {
+  // Format an amount that is already in `currency` (not USD) — used for
+  // wallet balances and order amounts stored in their native currency.
   const v = typeof n === 'string' ? Number(n) : n;
-  return `${currency} ${v.toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 })}`;
+  try {
+    return new Intl.NumberFormat(undefined, {
+      style: 'currency',
+      currency,
+      minimumFractionDigits: 2,
+      maximumFractionDigits: 2,
+    }).format(v);
+  } catch {
+    return `${currency} ${v.toFixed(2)}`;
+  }
 }
 function initials(name?: string) {
   return (name || '?').trim().charAt(0).toUpperCase() || '?';
@@ -627,7 +638,7 @@ export default function SellerDashboard() {
                     <p className="font-bold text-white truncate">{l.title}</p>
                     <p className="text-xs text-gray-500">{l.gameName}</p>
                     <div className="flex items-center justify-between mt-3">
-                      <span className="text-brand font-black">{money(l.price, l.currency)}</span>
+                      <span className="text-brand font-black">{fmt(l.price)}</span>
                       <span className="text-xs text-gray-500">{l.viewCount} views · {l.salesCount} sold</span>
                     </div>
                     <div className="flex gap-2 mt-3">

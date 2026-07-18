@@ -9,6 +9,7 @@ import {
 } from 'lucide-react';
 import { api } from '@/lib/api';
 import VerifiedBadge from '@/components/VerifiedBadge';
+import { useCurrency } from '@/lib/useCurrency';
 
 interface StoreListing {
   id: string;
@@ -33,10 +34,6 @@ interface PublicStore {
   listings: StoreListing[];
 }
 
-function money(n: number | string, currency = 'USD') {
-  const v = typeof n === 'string' ? Number(n) : n;
-  return `${currency} ${v.toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 })}`;
-}
 function initials(name?: string | null) {
   return (name || '?').trim().charAt(0).toUpperCase() || '?';
 }
@@ -48,6 +45,8 @@ export default function PublicStorePage() {
   const [error, setError] = useState<string | null>(null);
   const [loading, setLoading] = useState(true);
   const [copied, setCopied] = useState(false);
+
+  const { fmt } = useCurrency();
 
   useEffect(() => {
     let active = true;
@@ -172,7 +171,7 @@ export default function PublicStorePage() {
                     <p className="font-semibold text-white text-sm truncate">{l.title}</p>
                     <p className="text-xs text-gray-500 truncate">{l.gameName}</p>
                     <div className="flex items-center justify-between mt-2">
-                      <span className="text-brand font-black text-sm">{money(l.price, l.currency)}</span>
+                      <span className="text-brand font-black text-sm">{fmt(l.price)}</span>
                       <span className="text-[10px] text-gray-500">{l.salesCount || 0} sold</span>
                     </div>
                   </div>

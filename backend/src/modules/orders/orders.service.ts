@@ -21,6 +21,7 @@ export const ESCROW_BUYER_WINDOW_MS = 60 * 60 * 1000
 import { RewardsService } from '../rewards/rewards.service'
 import { NotificationsService } from '../notifications/notifications.service'
 import { AffiliateService } from '../affiliate/affiliate.service'
+import { CurrencyService } from '@/common/services/currency.service'
 
 /** Escrow commission rate by seller subscription tier (Seller Pro = lower). */
 function commissionRateForTier(tier?: string | null): number {
@@ -43,6 +44,7 @@ export class OrdersService {
     private rewardsService: RewardsService,
     private notifications: NotificationsService,
     private affiliateService: AffiliateService,
+    private currencyService: CurrencyService,
     @Optional() @Inject(REQUEST) private request?: Request,
   ) {}
 
@@ -87,6 +89,23 @@ export class OrdersService {
     const commissionAmount = subtotal.times(commissionRate)
     const sellerPayout = subtotal.minus(commissionAmount)
 
+    // If the buyer's detected currency is provided (and differs from USD),
+    // convert amounts so Flutterwave charges in the buyer's local currency.
+    const buyerCurrencyCode = dto.currency?.toUpperCase() || listing.currency || 'USD'
+    const currencyConfig = this.currencyService.getCurrencyByCode(buyerCurrencyCode)
+    const isUSD = currencyConfig.code === 'USD'
+
+    // Amounts stored in the DB and sent to the payment provider are in local currency.
+    const localSubtotal = isUSD
+      ? subtotal
+      : new Decimal(this.currencyService.convertFromUSD(subtotal.toNumber(), currencyConfig))
+    const localCommission = isUSD
+      ? commissionAmount
+      : new Decimal(this.currencyService.convertFromUSD(commissionAmount.toNumber(), currencyConfig))
+    const localPayout = isUSD
+      ? sellerPayout
+      : new Decimal(this.currencyService.convertFromUSD(sellerPayout.toNumber(), currencyConfig))
+
     // Create order in a transaction
     const order = await this.prisma.$transaction(async (tx) => {
       // Re-check availability atomically (guards against two buyers ordering
@@ -101,12 +120,12 @@ export class OrdersService {
           orderNumber: `ORD-${Date.now()}-${Math.random().toString(36).substr(2, 9).toUpperCase()}`,
           buyerId,
           sellerId,
-          subtotal,
-          totalAmount: subtotal,
+          subtotal: localSubtotal,
+          totalAmount: localSubtotal,
           commissionRate: new Decimal(commissionRate),
-          commissionAmount,
-          sellerPayout,
-          currency: listing.currency,
+          commissionAmount: localCommission,
+          sellerPayout: localPayout,
+          currency: buyerCurrencyCode,
           buyerNote: dto.buyerNote,
           status: OrderStatus.PENDING,
           metadata: dto.paymentMethodId ? { paymentMethod: dto.paymentMethodId } : undefined,
@@ -115,13 +134,13 @@ export class OrdersService {
               listingId: dto.listingId,
               quantity: dto.quantity,
               unitPrice: listing.price,
-              totalPrice: subtotal,
+              totalPrice: localSubtotal,
             },
           },
           escrow: {
             create: {
-              amount: subtotal,
-              currency: listing.currency,
+              amount: localSubtotal,
+              currency: buyerCurrencyCode,
               status: EscrowStatus.HELD,
             },
           },
@@ -140,8 +159,8 @@ export class OrdersService {
           orderId: newOrder.id,
           sellerId,
           rate: new Decimal(commissionRate),
-          amount: commissionAmount,
-          currency: listing.currency,
+          amount: localCommission,
+          currency: buyerCurrencyCode,
         },
       })
 

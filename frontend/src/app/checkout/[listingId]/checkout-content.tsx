@@ -60,6 +60,8 @@ export default function CheckoutContent({ listingId }: { listingId: string }) {
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
 
+  const { fmt, currency } = useCurrency();
+
   const isProviderConfigured = (id: 'FLUTTERWAVE' | 'PAYMENT_IO') => {
     const cfg = providerConfig as any;
     return id === 'FLUTTERWAVE'
@@ -106,6 +108,7 @@ export default function CheckoutContent({ listingId }: { listingId: string }) {
         quantity: 1,
         buyerNote,
         paymentMethodId: paymentProvider,
+        currency: currency.code,
       });
       if (!response.success || !response.data) throw new Error('Could not establish escrow holding order');
       router.push(`/orders/${response.data.id}`);
@@ -135,7 +138,6 @@ export default function CheckoutContent({ listingId }: { listingId: string }) {
   const subtotal = Number(listing.price);
   const total = subtotal;
   const seller = listing.seller;
-  const { fmt } = useCurrency();
 
   return (
     <div className="max-w-6xl mx-auto px-4">
