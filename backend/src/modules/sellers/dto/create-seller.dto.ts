@@ -38,7 +38,7 @@ export class UploadVerificationDocumentsDto {
   documentType: string // 'id', 'proof_of_address', 'business_license'
 
   @IsString()
-  documentUrl: string // URL from Supabase storage
+  documentUrl: string // URL from B2 storage
 }
 
 export class SubmitKycDto {
