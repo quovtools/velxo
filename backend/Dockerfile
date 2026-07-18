@@ -5,7 +5,7 @@ COPY package*.json ./
 COPY prisma ./prisma/
 
 # Install ALL deps (including dev) so we can build and generate
-RUN npm ci
+RUN npm install
 
 COPY . .
 
@@ -20,7 +20,7 @@ ENV NODE_ENV=production
 # Install ALL deps including prisma CLI needed for db push at runtime
 COPY package*.json ./
 COPY prisma ./prisma/
-RUN npm ci
+RUN npm install --omit=dev
 
 # Copy compiled app
 COPY --from=builder /app/dist ./dist
