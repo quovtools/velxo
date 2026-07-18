@@ -33,7 +33,7 @@ services:
       - key: PAYMENT_IO_API_URL
         value: https://api.paymento.io/v1
       - key: PAYMENT_IO_IPN_URL
-        value: https://velxo.onrender.com/api/v1/payments/webhook/paymentio
+        value: https://api.velxo.shop/api/v1/payments/webhook/paymentio
       - key: PAYMENT_IO_API_KEY
         sync: false
       - key: PAYMENT_IO_SECRET_KEY
@@ -63,7 +63,7 @@ services:
     rootDir: landing
     envVars:
       - key: NEXT_PUBLIC_API_URL
-        value: https://velxo.onrender.com/api/v1
+        value: https://api.velxo.shop/api/v1
 
   # Next.js Frontend (market.velxo.shop)
   - type: web
@@ -73,7 +73,7 @@ services:
     rootDir: frontend
     envVars:
       - key: NEXT_PUBLIC_API_URL
-        value: https://velxo.onrender.com/api/v1
+        value: https://api.velxo.shop/api/v1
       - key: NEXT_PUBLIC_SUPABASE_URL
         sync: false
       - key: NEXT_PUBLIC_SUPABASE_ANON_KEY

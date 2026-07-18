@@ -143,7 +143,7 @@ async function bootstrap() {
   const nodeEnv = process.env.NODE_ENV || 'development'
   const apiUrl =
     nodeEnv === 'production'
-      ? process.env.API_URL || `https://velxo.onrender.com/api/v1`
+      ? process.env.API_URL || `https://api.velxo.shop/api/v1`
       : `http://localhost:${port}/api/v1`
 
   // Log key config at startup so it's visible in Render logs
