@@ -4,7 +4,7 @@ import React, { useState, useEffect, useCallback } from 'react';
 import { useRouter } from 'next/navigation';
 import { api } from '@/lib/api';
 import { useAuth } from '@/app/providers';
-import { fileToDataUrl } from '@/lib/file';
+import { uploadGigImage } from '@/lib/upload';
 import { GAME_NAMES, getGameConfig } from '@/lib/games';
 import { Gamepad2, Plus, Trash2, Loader2, Check, AlertCircle } from 'lucide-react';
 import { useCurrency } from '@/lib/useCurrency';
@@ -240,8 +240,12 @@ export default function SellerGigsPage() {
                 <input type="file" accept="image/*" className="hidden" onChange={async e => {
                   const file = e.target.files?.[0];
                   if (!file) return;
-                  const dataUrl = await fileToDataUrl(file);
-                  setForm(f => ({ ...f, imageUrl: dataUrl }));
+                  try {
+                    const url = await uploadGigImage(file);
+                    setForm(f => ({ ...f, imageUrl: url }));
+                  } catch (err) {
+                    console.error('Gig image upload failed:', err);
+                  }
                 }} />
               </label>
             </div>

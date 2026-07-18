@@ -783,6 +783,77 @@ export class AdminService {
     return order
   }
 
+  /**
+   * Manually mark a PENDING order as PAID. Creates a synthetic MANUAL payment
+   * record so the rest of the escrow flow (seller accepts → delivers → buyer
+   * confirms) works exactly the same way as a real payment.
+   */
+  async markOrderPaid(orderId: string, note: string, moderatorId?: string) {
+    this.logger.log(`Admin manually marking order ${orderId} as paid`)
+
+    const order = await this.prisma.orders.findUnique({
+      where: { id: orderId },
+      include: { orderItems: true },
+    })
+    if (!order) throw new Error('Order not found')
+    if (order.status !== OrderStatus.PENDING) {
+      throw new Error(`Order is already in status ${order.status} and cannot be manually marked paid`)
+    }
+
+    const listingId = order.orderItems?.[0]?.listingId
+
+    const updated = await this.prisma.$transaction(async (tx) => {
+      // Create a synthetic payment record so payment history is accurate
+      await tx.payments.create({
+        data: {
+          orderId,
+          amount: order.totalAmount,
+          currency: order.currency,
+          provider: 'MANUAL' as any,
+          status: 'COMPLETED' as any,
+          paidAt: new Date(),
+          providerTransactionId: `ADMIN-MANUAL-${Date.now()}`,
+          metadata: { adminNote: note || 'Manually confirmed by admin', moderatorId },
+        },
+      })
+
+      // Update the order to PAID
+      const updatedOrder = await tx.orders.update({
+        where: { id: orderId },
+        data: { status: OrderStatus.PAID, paidAt: new Date() },
+        include: {
+          buyer: { select: { email: true, firstName: true, lastName: true } },
+          seller: { select: { storeName: true } },
+          orderItems: { include: { listing: { select: { title: true } } } },
+        },
+      })
+
+      // Mark listing as sold
+      if (listingId) {
+        await tx.listings.update({
+          where: { id: listingId },
+          data: { isSold: true, status: 'SOLD' as any },
+        })
+      }
+
+      return updatedOrder
+    })
+
+    await this.createAuditLog(
+      moderatorId || 'admin-console',
+      'STATUS_CHANGE',
+      'order',
+      orderId,
+      { status: OrderStatus.PENDING },
+      { status: OrderStatus.PAID, note, manualPayment: true },
+    )
+
+    // Notify buyer & seller
+    await this.notifications.notifyPaymentConfirmed(updated).catch(() => {})
+
+    return updated
+  }
+
   // ---------------------------------------------------------------------------
   // WITHDRAWALS / PAYOUTS
   // ---------------------------------------------------------------------------

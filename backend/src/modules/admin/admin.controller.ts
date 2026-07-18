@@ -738,6 +738,22 @@ export class AdminController {
     }
   }
 
+  @Patch('orders/:id/mark-paid')
+  @UseGuards(AdminPasswordGuard)
+  async markOrderPaid(
+    @Param('id') id: string,
+    @CurrentUserId() moderatorId: string,
+    @Body('note') note?: string,
+  ) {
+    try {
+      const order = await this.adminService.markOrderPaid(id, note || '', moderatorId)
+      return ApiResponseDto.ok(order, 'Order manually marked as paid')
+    } catch (error) {
+      this.logger.error('Error marking order as paid:', error)
+      throw error
+    }
+  }
+
   // ---------------------------------------------------------------------------
   // WITHDRAWALS / PAYOUTS
   // ---------------------------------------------------------------------------

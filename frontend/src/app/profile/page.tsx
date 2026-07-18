@@ -5,6 +5,7 @@ import { useRouter } from 'next/navigation';
 import { api } from '@/lib/api';
 import { useAuth } from '@/app/providers';
 import { fileToDataUrl } from '@/lib/file';
+import { uploadAvatar } from '@/lib/upload';
 import Link from 'next/link';
 import {
   User, Mail, Phone, ShieldCheck, Camera,
@@ -357,7 +358,13 @@ export default function ProfilePage() {
                   onChange={async e => {
                     const file = e.target.files?.[0];
                     if (!file) return;
-                    setAvatar(await fileToDataUrl(file));
+                    try {
+                      const url = await uploadAvatar(file);
+                      setAvatar(url);
+                    } catch {
+                      // fallback to local preview if upload fails
+                      setAvatar(await fileToDataUrl(file));
+                    }
                   }} />
               </label>
               <p className="text-xs text-gray-500 mt-1">Upload a photo from your device</p>

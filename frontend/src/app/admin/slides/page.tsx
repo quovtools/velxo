@@ -3,7 +3,7 @@
 import React, { useEffect, useState } from 'react';
 import { Image, Plus, Trash2, RefreshCw, GripVertical } from 'lucide-react';
 import { api } from '@/lib/api';
-import { fileToDataUrl } from '@/lib/file';
+import { uploadListingImage } from '@/lib/upload';
 import { LoadingArea } from '@/components/LoadingLogo';
 
 interface Slide {
@@ -149,8 +149,12 @@ export default function SlidesPage() {
                   onChange={async e => {
                     const file = e.target.files?.[0];
                     if (!file) return;
-                    const dataUrl = await fileToDataUrl(file);
-                    setForm(f => ({ ...f, imageUrl: dataUrl }));
+                    try {
+                      const url = await uploadListingImage(file);
+                      setForm(f => ({ ...f, imageUrl: url }));
+                    } catch (err) {
+                      console.error('Slide image upload failed:', err);
+                    }
                   }}
                 />
               </label>
