@@ -7,10 +7,13 @@ COPY prisma ./prisma/
 # Install ALL deps (including dev) so we can build and generate
 RUN npm install
 
+# Generate Prisma client
+RUN npx prisma generate
+
 COPY . .
 
 RUN npm run build
-RUN npx prisma generate
+
 
 FROM node:20-alpine AS runner
 WORKDIR /app
