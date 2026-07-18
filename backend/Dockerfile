@@ -1,13 +1,13 @@
 FROM node:20-alpine AS builder
 WORKDIR /app
 
-COPY package*.json ./
-COPY prisma ./prisma/
+COPY backend/package*.json ./
+COPY backend/prisma ./prisma/
 
 # Install ALL deps (including dev) so we can build and generate
 RUN npm ci
 
-COPY . .
+COPY backend . .
 
 RUN npm run build
 RUN npx prisma generate
@@ -18,8 +18,8 @@ WORKDIR /app
 ENV NODE_ENV=production
 
 # Install ALL deps including prisma CLI needed for db push at runtime
-COPY package*.json ./
-COPY prisma ./prisma/
+COPY backend/package*.json ./
+COPY backend/prisma ./prisma/
 RUN npm ci
 
 # Copy compiled app
