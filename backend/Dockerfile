@@ -4,14 +4,15 @@ WORKDIR /app
 # Install OpenSSL (required for Prisma in Alpine)
 RUN apk add --no-cache openssl
 
-# Clear npm cache to prevent corruption issues
-RUN npm cache clean --force
+# Update npm to latest to fix potential version resolution issues
+RUN npm install -g npm@latest
 
 COPY package*.json ./
 COPY prisma ./prisma/
 
 # Install ALL deps (including dev) so we can build and generate
-RUN npm install
+# Use npm ci for reproducible installs, fall back to npm install if no lock file
+RUN npm ci --legacy-peer-deps || npm install --legacy-peer-deps
 
 # Generate Prisma client
 RUN npx prisma generate
@@ -29,13 +30,13 @@ ENV NODE_ENV=production
 # Install OpenSSL (required for Prisma in Alpine)
 RUN apk add --no-cache openssl
 
-# Clear npm cache to prevent corruption issues
-RUN npm cache clean --force
+# Update npm to latest to fix potential version resolution issues
+RUN npm install -g npm@latest
 
 # Install ALL deps including prisma CLI needed for db push at runtime
 COPY package*.json ./
 COPY prisma ./prisma/
-RUN npm install --omit=dev
+RUN npm ci --legacy-peer-deps --omit=dev || npm install --legacy-peer-deps --omit=dev
 
 # Copy compiled app
 COPY --from=builder /app/dist ./dist
