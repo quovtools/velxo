@@ -186,8 +186,9 @@ export class WalletService {
           amount,
           currency: wallet.currency,
           method,
-          destination,
+          destination: destination ? { address: destination } : {},
           status: 'PENDING',
+          netAmount: amount,
         },
       })
 
