@@ -2,6 +2,11 @@ import { getToken } from './auth';
 
 const API_BASE_URL = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:3001/api/v1';
 
+// Log backend connection status
+if (typeof window !== 'undefined') {
+  console.log(`[Velxo] Backend API URL: ${API_BASE_URL}`);
+}
+
 interface RequestOptions extends RequestInit {
   params?: Record<string, string | number | boolean>;
 }
@@ -42,17 +47,25 @@ async function request<T>(endpoint: string, options: RequestOptions = {}): Promi
     const controller = new AbortController();
     const timeoutId = setTimeout(() => controller.abort(), 20000);
     try {
+      console.log(`[Velxo API] Attempt ${attempt}: ${customOptions.method || 'GET'} ${url}`);
       const res = await fetch(url, { ...config, signal: controller.signal });
       clearTimeout(timeoutId);
+      
+      if (res.ok) {
+        console.log(`[Velxo API] ✓ Success (${res.status}): ${url}`);
+      } else {
+        console.warn(`[Velxo API] ⚠ Response error (${res.status}): ${url}`);
+      }
+      
       return res;
     } catch (err: any) {
       clearTimeout(timeoutId);
       if (attempt < 2 && (err.name === 'AbortError' || err.message === 'Failed to fetch')) {
-        console.warn(`[API] Attempt ${attempt} failed for ${url}, retrying...`);
+        console.warn(`[Velxo API] Attempt ${attempt} failed for ${url}, retrying...`);
         await new Promise((r) => setTimeout(r, 2000));
         return fetchWithRetry(attempt + 1);
       }
-      console.error('[API] Network error on', url, err);
+      console.error('[Velxo API] ✗ Network error on', url, err.message);
       if (err.name === 'AbortError') {
         throw new Error('Request timed out. The server may be starting up — please try again.');
       }

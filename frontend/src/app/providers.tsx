@@ -84,8 +84,27 @@ export function Providers({ children }: { children: React.ReactNode }) {
 
   useEffect(() => {
     refreshSession();
-    const apiUrl = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:3001/api/v1';
-    fetch(apiUrl, { method: 'GET' }).catch(() => {});
+    
+    // Check backend connection on app load
+    const checkBackendConnection = async () => {
+      const apiUrl = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:3001/api/v1';
+      try {
+        console.log('[Velxo] Checking backend connection...');
+        const response = await fetch(apiUrl, { 
+          method: 'GET',
+          signal: AbortSignal.timeout(5000)
+        });
+        if (response.ok) {
+          console.log(`[Velxo] ✓ Backend connected: ${apiUrl}`);
+        } else {
+          console.warn(`[Velxo] ⚠ Backend responded with status ${response.status}: ${apiUrl}`);
+        }
+      } catch (error: any) {
+        console.error(`[Velxo] ✗ Cannot reach backend: ${apiUrl}`, error.message);
+      }
+    };
+    
+    checkBackendConnection();
   }, []);
 
   const logout = () => {
