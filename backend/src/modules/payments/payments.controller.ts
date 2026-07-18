@@ -45,8 +45,25 @@ export class PaymentsController {
   }
 
   @Post('webhook/flutterwave')
-  async handleFlutterwaveWebhook(@Body() event: any) {
+  async handleFlutterwaveWebhook(
+    @Headers('verif-hash') verifHash: string,
+    @Body() event: any,
+  ) {
     try {
+      // FIX #30: Verify the Flutterwave webhook signature early before processing.
+      // Flutterwave sends a `verif-hash` header with an HMAC-SHA256 signature
+      // of the raw request body using the secret key. While the verify-transaction
+      // call will catch forged transactions server-side, rejecting invalid signatures
+      // upfront prevents wasted processing and is standard practice.
+      const webhookSecret = process.env.FLUTTERWAVE_WEBHOOK_SECRET || ''
+      if (webhookSecret && verifHash) {
+        const crypto = require('crypto')
+        const hash = crypto.createHmac('sha256', webhookSecret).update(JSON.stringify(event)).digest('base64')
+        if (hash !== verifHash) {
+          this.logger.warn('Flutterwave webhook signature verification failed — rejecting')
+          return ApiResponseDto.ok(null, 'Invalid signature')
+        }
+      }
       await this.paymentsService.handleFlutterwaveWebhook(event)
       return ApiResponseDto.ok(null, 'Webhook processed')
     } catch (error) {

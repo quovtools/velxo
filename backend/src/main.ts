@@ -65,10 +65,17 @@ async function bootstrap() {
   expressApp.use('/images', express.static(publicPath))
 
   app.use(helmet())
+  // FIX #31: Rate limiter now exempts GET requests to public endpoints so
+  // basic browsing and search don't hit rate limits on shared IPs. Only POST,
+  // PATCH, DELETE operations (which consume resources or modify data) are limited.
   app.use(
     rateLimit({
       windowMs: 60 * 1000,
       max: 100,
+      skip: (req) => {
+        // Exempt GET requests (read-only, safe operations)
+        return req.method === 'GET'
+      },
       message: { success: false, message: 'Too many requests. Please try again later.' },
       validate: { xForwardedForHeader: false },
     }),
@@ -116,12 +123,14 @@ async function bootstrap() {
   })
 
   // Self-healing schema migration: apply the full Prisma schema to the
-  // production database at startup, using the app's own runtime DATABASE_URL.
-  // This guarantees every table/column added in newer code exists, regardless
-  // of whether the build-time push reached the runtime database.
+  // production database at startup. Uses --skip-generate to avoid regenerating
+  // the Prisma client (already done at build time). The --accept-data-loss flag
+  // is intentionally OMITTED — if the schema change is destructive, the push
+  // will fail and the error will surface in logs rather than silently dropping
+  // data. For destructive changes, run a proper migration separately.
   try {
     logger.log('Running schema migration (prisma db push)...')
-    execSync('npx prisma db push --accept-data-loss --skip-generate', {
+    execSync('npx prisma db push --skip-generate', {
       stdio: 'inherit',
       env: process.env,
     })

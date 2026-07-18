@@ -1,15 +1,9 @@
-import { Injectable, UnauthorizedException } from '@nestjs/common'
-import { PassportStrategy } from '@nestjs/passport'
-import { Strategy } from 'passport-local'
+import { Injectable } from '@nestjs/common'
+import { AuthGuard } from '@nestjs/passport'
 
+/**
+ * Guard that validates email/password credentials using the 'local' Passport
+ * strategy. Extends AuthGuard so it has canActivate().
+ */
 @Injectable()
-export class LocalAuthGuard extends PassportStrategy(Strategy) {
-  constructor() {
-    super({ usernameField: 'email' })
-  }
-
-  async validate(email: string, password: string) {
-    // Validate handled in auth controller
-    return { email, passwordHash: password }
-  }
-}
+export class LocalAuthGuard extends AuthGuard('local') {}

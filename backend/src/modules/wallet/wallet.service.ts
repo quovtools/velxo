@@ -151,6 +151,12 @@ export class WalletService {
         throw new InsufficientFundsException('Insufficient wallet balance')
       }
 
+      // Find the seller record for this user (withdrawals are seller-scoped)
+      const seller = await tx.sellers.findUnique({ where: { userId } })
+      if (!seller) {
+        throw new NotFoundException('Seller profile — only sellers can withdraw')
+      }
+
       const newBalance = wallet.balance.minus(amount)
 
       await tx.wallet.update({
@@ -172,7 +178,20 @@ export class WalletService {
         },
       })
 
-      return { balance: newBalance, totalWithdrawn: wallet.totalWithdrawn.plus(amount) }
+      // FIX #8: Create a WithdrawalRequest so the admin approval flow has
+      // something to process. Previously the record was never created.
+      const withdrawalRequest = await tx.withdrawalRequests.create({
+        data: {
+          sellerId: seller.id,
+          amount,
+          currency: wallet.currency,
+          method,
+          destination,
+          status: 'PENDING',
+        },
+      })
+
+      return { balance: newBalance, totalWithdrawn: wallet.totalWithdrawn.plus(amount), withdrawalRequest }
     })
   }
 }

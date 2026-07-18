@@ -171,4 +171,35 @@ export class PaymentIoService {
     if (expectedBuf.length !== providedBuf.length) return false
     return crypto.timingSafeEqual(expectedBuf, providedBuf)
   }
+
+  /**
+   * FIX #10: Issue a refund via Paymento for a completed payment token.
+   * Returns true if the refund was accepted by the provider.
+   */
+  async refundPayment(token: string): Promise<boolean> {
+    if (!this.isConfigured) {
+      this.logger.warn('Paymento not configured — cannot issue refund for token ' + token)
+      return false
+    }
+    try {
+      const res = await fetch(`${this.apiUrl}/payment/refund`, {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+          'Api-key': this.apiKey,
+        },
+        body: JSON.stringify({ token }),
+      })
+      if (!res.ok) {
+        const text = await res.text()
+        this.logger.error(`Paymento refund failed for token ${token}: ${res.status} ${text}`)
+        return false
+      }
+      this.logger.log(`Paymento refund issued for token ${token}`)
+      return true
+    } catch (err: any) {
+      this.logger.error(`Paymento refundPayment error for token ${token}:`, err?.message || err)
+      return false
+    }
+  }
 }

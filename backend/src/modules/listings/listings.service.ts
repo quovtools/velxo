@@ -226,14 +226,15 @@ export class ListingsService {
     return this.prisma.listings.update({
       where: { id },
       data: {
-        title: dto.title || listing.title,
-        description: dto.description || listing.description,
-        price: dto.price || listing.price,
-        platform: dto.platform || listing.platform,
-
-        region: dto.region || listing.region,
-        images: dto.images || listing.images,
-        videos: dto.videos || listing.videos,
+        // FIX #26: Use explicit undefined check instead of || fallback so that
+        // falsy-but-valid values (price=0, empty description) are not silently ignored.
+        title: dto.title !== undefined ? dto.title : listing.title,
+        description: dto.description !== undefined ? dto.description : listing.description,
+        price: dto.price !== undefined ? dto.price : listing.price,
+        platform: dto.platform !== undefined ? dto.platform : listing.platform,
+        region: dto.region !== undefined ? dto.region : listing.region,
+        images: dto.images !== undefined ? dto.images : listing.images,
+        videos: dto.videos !== undefined ? dto.videos : listing.videos,
         isFeatured,
       },
       include: { seller: true, category: true },

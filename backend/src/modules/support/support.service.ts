@@ -152,6 +152,7 @@ export class SupportService {
 
     const existingTicket = await this.prisma.supportTickets.findUnique({
       where: { id: ticketId },
+      include: { user: true },
     })
 
     const ticket = await this.prisma.supportTickets.update({
@@ -166,9 +167,90 @@ export class SupportService {
       include: { user: true },
     })
 
-    // TODO: Send notification to user
+    // FIX #14: Notify user that their ticket has been resolved
+    if (existingTicket?.userId) {
+      // Import NotificationsService is not available here — use Prisma directly
+      await this.prisma.notifications.create({
+        data: {
+          userId: existingTicket.userId,
+          type: 'SYSTEM',
+          title: 'Support Ticket Resolved',
+          body: `Your support ticket "${existingTicket.subject}" has been resolved. ${resolutionNotes ? `Resolution: ${resolutionNotes}` : ''}`,
+          data: { ticketId },
+        },
+      }).catch(() => {})
+    }
 
     return ticket
+  }
+
+  /**
+   * FIX #11: Add a reply/message to a support ticket.
+   * Messages are stored inside the ticket metadata as an ordered array so
+   * support agents and users can have a conversation thread without a
+   * dedicated table (the schema has no ticketMessages model).
+   */
+  async addTicketMessage(
+    ticketId: string,
+    authorId: string,
+    authorRole: 'USER' | 'AGENT' | 'ADMIN',
+    message: string,
+  ) {
+    this.logger.log(`Adding message to ticket ${ticketId} by ${authorRole} ${authorId}`)
+
+    const ticket = await this.prisma.supportTickets.findUnique({
+      where: { id: ticketId },
+    })
+
+    if (!ticket) {
+      throw new NotFoundException('Support ticket')
+    }
+
+    const existing = (ticket as any).metadata as Record<string, any> | null
+    const messages: any[] = existing?.messages || []
+
+    messages.push({
+      id: `msg-${Date.now()}-${Math.random().toString(36).slice(2, 7)}`,
+      authorId,
+      authorRole,
+      message,
+      createdAt: new Date().toISOString(),
+    })
+
+    const updated = await this.prisma.supportTickets.update({
+      where: { id: ticketId },
+      data: {
+        metadata: { ...(existing || {}), messages },
+        // Re-open the ticket if it was closed/resolved and a user replies
+        status:
+          authorRole === 'USER' && ticket.status === SupportTicketStatus.RESOLVED
+            ? SupportTicketStatus.OPEN
+            : ticket.status,
+      },
+      include: { user: true },
+    })
+
+    return updated
+  }
+
+  /**
+   * FIX #11: Retrieve the conversation thread for a ticket.
+   */
+  async getTicketMessages(ticketId: string, requestingUserId?: string) {
+    const ticket = await this.prisma.supportTickets.findUnique({
+      where: { id: ticketId },
+    })
+
+    if (!ticket) {
+      throw new NotFoundException('Support ticket')
+    }
+
+    if (requestingUserId && ticket.userId !== requestingUserId) {
+      throw new ForbiddenException('You do not have access to this ticket')
+    }
+
+    const meta = (ticket as any).metadata as Record<string, any> | null
+    return meta?.messages || []
   }
 
   async closeTicket(ticketId: string) {

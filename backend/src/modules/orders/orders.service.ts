@@ -413,13 +413,12 @@ export class OrdersService {
         },
       })
 
-      // Update order
+      // Update order — do NOT overwrite paidAt (already set when payment completed)
       const updatedOrder = await tx.orders.update({
         where: { id: orderId },
         data: {
           status: OrderStatus.COMPLETED,
           completedAt: new Date(),
-          paidAt: new Date(),
         },
         include: {
           buyer: true,
@@ -466,10 +465,21 @@ export class OrdersService {
         },
       })
 
-      // Award Velxo Coins to buyer and seller
-      const buyerCoinAmount = Math.floor(Number(order.totalAmount))
-      const sellerCoinAmount = Math.floor(Number(order.sellerPayout)) * 2
+      // FIX #19: Do NOT call rewardsService.creditCoins() here — it opens its
+      // own $transaction internally which causes nested transaction deadlocks.
+      // Coin credits are issued after this transaction commits (see below).
 
+      // Credit affiliate commission if applicable (handled outside the tx for wallet crediting)
+      return updatedOrder
+    })
+
+    // FIX #19: Credit Velxo Coins OUTSIDE the main transaction to avoid
+    // nested Prisma transaction deadlocks. These are non-critical bonuses so
+    // any failure is caught and logged without rolling back the order completion.
+    const buyerCoinAmount = Math.floor(Number(order.totalAmount))
+    const sellerCoinAmount = Math.floor(Number(order.sellerPayout)) * 2
+
+    try {
       await this.rewardsService.creditCoins(
         order.buyerId,
         buyerCoinAmount,
@@ -477,9 +487,13 @@ export class OrdersService {
         `Earned ${buyerCoinAmount} coins from order ${order.orderNumber}`,
         orderId,
       )
+    } catch (e) {
+      this.logger.error('Buyer coin credit failed (non-fatal):', e)
+    }
 
-      const sellerUserId = order.seller?.userId
-      if (sellerUserId) {
+    const sellerUserId = order.seller?.userId
+    if (sellerUserId) {
+      try {
         await this.rewardsService.creditCoins(
           sellerUserId,
           sellerCoinAmount,
@@ -487,11 +501,10 @@ export class OrdersService {
           `Earned ${sellerCoinAmount} coins from order ${order.orderNumber}`,
           orderId,
         )
+      } catch (e) {
+        this.logger.error('Seller coin credit failed (non-fatal):', e)
       }
-
-      // Credit affiliate commission if applicable (handled outside the tx for wallet crediting)
-      return updatedOrder
-    })
+    }
 
     // Credit affiliate commission to referrer's wallet (non-fatal, runs outside main tx)
     try {
@@ -580,6 +593,12 @@ export class OrdersService {
 
     if (order.status !== OrderStatus.PAID) {
       throw new BadRequestException('Order must be paid before it can be marked delivered')
+    }
+
+    // FIX #17: Prevent delivery without prior acceptance — the seller must
+    // explicitly accept the order first, which starts the 1-hour delivery timer.
+    if (!order.acceptedAt) {
+      throw new BadRequestException('You must accept the order before marking it as delivered')
     }
 
     const updated = await this.prisma.orders.update({

@@ -60,6 +60,8 @@ export default function CheckoutContent({ listingId }: { listingId: string }) {
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
 
+  // FIX #21: useCurrency() must be called unconditionally at the top level,
+  // BEFORE any early returns, to satisfy React's Rules of Hooks.
   const { fmt, currency } = useCurrency();
 
   const isProviderConfigured = (id: 'FLUTTERWAVE' | 'PAYMENT_IO') => {

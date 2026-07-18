@@ -803,17 +803,23 @@ export class AdminService {
     const listingId = order.orderItems?.[0]?.listingId
 
     const updated = await this.prisma.$transaction(async (tx) => {
-      // Create a synthetic payment record so payment history is accurate
+      // Create a synthetic payment record so payment history is accurate.
+      // We store the provider as a raw string in providerTransactionId so we
+      // don't need to add MANUAL to the PaymentProvider enum (which would
+      // require a DB migration). The metadata field carries the admin note.
       await tx.payments.create({
         data: {
           orderId,
           amount: order.totalAmount,
           currency: order.currency,
-          provider: 'MANUAL' as any,
+          // Use PAYMENT_IO as the nearest neutral enum value for admin-created
+          // payments. The real source is identified by providerTransactionId
+          // starting with "ADMIN-MANUAL-" and the metadata adminNote.
+          provider: 'PAYMENT_IO' as any,
           status: 'COMPLETED' as any,
           paidAt: new Date(),
           providerTransactionId: `ADMIN-MANUAL-${Date.now()}`,
-          metadata: { adminNote: note || 'Manually confirmed by admin', moderatorId },
+          metadata: { adminNote: note || 'Manually confirmed by admin', moderatorId, source: 'MANUAL' },
         },
       })
 

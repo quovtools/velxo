@@ -15,6 +15,7 @@ import { SellersService } from './sellers.service'
 import { JwtAuthGuard } from '@/common/guards/jwt-auth.guard'
 import { CurrentUserId } from '@/common/decorators/current-user.decorator'
 import { ApiResponseDto } from '@/common/dto/api-response.dto'
+import { ForbiddenException } from '@/common/exceptions/custom-exceptions'
 
 @Controller('sellers')
 export class SellersController {
@@ -46,21 +47,25 @@ export class SellersController {
   }
 
   /**
-   * Get seller profile
+   * Get current user's seller profile — aliased to /sellers/me (frontend uses
+   * this path) AND /sellers/me/profile for backward compatibility.
+   * MUST be declared BEFORE the :id param route to avoid "me" being treated as
+   * a seller ID.
    */
-  @Get(':id')
-  async getSeller(@Param('id') sellerId: string) {
+  @Get('me')
+  @UseGuards(JwtAuthGuard)
+  async getMySellerProfileShort(@CurrentUserId() userId: string) {
     try {
-      const seller = await this.sellersService.getSellerProfile(sellerId)
-      return ApiResponseDto.ok(seller, 'Seller retrieved')
+      const seller = await this.sellersService.getSellerByUserId(userId)
+      return ApiResponseDto.ok(seller, 'Seller profile retrieved')
     } catch (error) {
-      this.logger.error('Error fetching seller:', error)
+      this.logger.error('Error fetching seller profile (me):', error)
       throw error
     }
   }
 
   /**
-   * Get current user's seller profile
+   * Get current user's seller profile (legacy path)
    */
   @Get('me/profile')
   @UseGuards(JwtAuthGuard)
@@ -75,16 +80,35 @@ export class SellersController {
   }
 
   /**
-   * Update seller profile
+   * Get seller profile — param route must come AFTER all static routes above.
+   */
+  @Get(':id')
+  async getSeller(@Param('id') sellerId: string) {
+    try {
+      const seller = await this.sellersService.getSellerProfile(sellerId)
+      return ApiResponseDto.ok(seller, 'Seller retrieved')
+    } catch (error) {
+      this.logger.error('Error fetching seller:', error)
+      throw error
+    }
+  }
+
+  /**
+   * Update seller profile — only the owner may update their own profile.
    */
   @Patch(':id')
   @UseGuards(JwtAuthGuard)
   async updateSeller(
     @Param('id') sellerId: string,
-    @CurrentUserId() _userId: string,
+    @CurrentUserId() userId: string,
     @Body() updates: any,
   ) {
     try {
+      // Fetch the seller first to verify ownership
+      const existing = await this.sellersService.getSellerProfile(sellerId)
+      if (existing.user?.id !== userId) {
+        throw new ForbiddenException('You can only update your own seller profile')
+      }
       const seller = await this.sellersService.updateSeller(sellerId, updates)
       return ApiResponseDto.ok(seller, 'Seller profile updated')
     } catch (error) {

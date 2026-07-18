@@ -1,0 +1,118 @@
+
+---
+
+# 🔴 CRITICAL — Will crash or cause data loss
+
+**#1 — `refundFunds` never actually credits the buyer's wallet**
+`EscrowService.refundFunds()` records a `REFUND` transaction but never calls `wallet.update` to increment the balance. The buyer's money disappears. `DisputesService.resolveDispute()` does this correctly — `refundFunds` does not.
+
+**#2 — `JwtAuthGuard` in `auth/guards/` is a Strategy, not a Guard**
+`auth/guards/jwt-auth.guard.ts` extends `PassportStrategy(Strategy)` instead of `AuthGuard('jwt')`. It has no `canActivate` method. Any route decorated with `@UseGuards(JwtAuthGuard)` importing from this file will crash at runtime.
+
+**#3 — `GET /sellers/me` always 404s — breaks every seller dashboard**
+`sellers.controller.ts` only has `GET /sellers/me/profile`, not `GET /sellers/me`. The frontend calls `/sellers/me`. Additionally, route ordering places `GET :id` before `GET me/profile`, so `"me"` gets passed as a seller ID to a DB query that returns null → `NotFoundException`. Every seller dashboard fails to load.
+
+**#4 — `MANUAL` payment provider crashes Prisma**
+`AdminService.markOrderPaid()` sets `provider: 'MANUAL' as any`. `PaymentProvider` enum has no `MANUAL` member. This will throw a Prisma validation error at runtime.
+
+**#5 — Admin password hardcoded and publicly exposed**
+`AdminPasswordGuard` falls back to `'Fadekemi123@'` and the same value is in `.env.example`. Anyone who clones the repo has a working admin password.
+
+**#6 — WebSocket notifications auth bypass**
+The notifications gateway authenticates by having the client send its own `userId` string with no JWT verification. Any client can subscribe to any other user's real-time notifications by sending any `userId`. Same issue in `MessagesGateway`.
+
+**#7 — `prisma db push --accept-data-loss` runs on every server startup**
+`main.ts` executes this on boot. In a multi-instance deployment (e.g., Render auto-scaling), two instances starting simultaneously with a destructive schema change could silently drop columns/tables.
+
+---
+
+# 🟠 BROKEN FEATURES / MISSING IMPLEMENTATIONS
+
+**#8 — No withdrawal requests are ever created in the DB**
+`WalletService.withdraw()` debits the wallet and records a wallet transaction but never calls `withdrawalRequests.create`. The admin withdrawal approval flow has nothing to approve — the creation path is missing entirely.
+
+**#9 — `reviews/seller/:id` route doesn't exist**
+`getSellerReviews()` exists in the service but is never exposed via a controller endpoint. The seller dashboard calls this and gets 404s.
+
+**#10 — `processRefund` is a TODO with no real provider call**
+It only marks the payment as `REFUNDED` in the DB but never calls Flutterwave or Paymento to actually refund the money.
+
+**#11 — `SupportTickets` has no message/response model**
+There's no way for support agents to reply to tickets. The model has status/assignment endpoints but no conversation thread.
+
+**#12 — `CurrencyService` (backend) is registered in no module**
+`common/services/currency.service.ts` is dead code — never provided anywhere.
+
+**#13 — `WalletsModule` is a dead duplicate of `WalletModule`**
+`wallets.module.ts` registers identical routes and is never imported. But `wallet/index.ts` re-exports from it, which can cause confusing import resolution.
+
+**#14 — `support.service.ts` never notifies user on ticket resolution**
+Has a `// TODO: Send notification to user` comment and nothing else.
+
+**#15 — Duplicate `RegisterDto` — two versions with different validation**
+`login.dto.ts` exports a `RegisterDto` with `@IsEmail()` and `@MinLength(8)`. `register.dto.ts` exports a different one without those validators. The controller uses the one from `login.dto.ts`; the barrel export uses `register.dto.ts`. Conflicting types.
+
+**#16 — `sellers.controller.ts` PATCH doesn't verify ownership**
+`updateSeller(@Param('id') sellerId, @CurrentUserId() _userId)` — `_userId` is unused. Any authenticated user can update any seller's profile.
+
+**#17 — `markDelivered` doesn't check `acceptedAt`**
+A seller can mark an order delivered without ever accepting it, bypassing the 1-hour delivery timer entirely.
+
+**#18 — `confirmDelivery` overwrites `paidAt`**
+Sets `paidAt: new Date()` at delivery confirmation time. This stomps over the original payment timestamp.
+
+**#19 — Nested `rewardsService.creditCoins()` inside a Prisma transaction**
+`creditCoins` opens its own `$transaction` inside the outer one in `confirmDelivery`. Nested Prisma transactions can deadlock. Should be called after the outer transaction resolves.
+
+---
+
+# 🟡 TYPE ERRORS, SCHEMA MISMATCHES & CONFIG
+
+**#20 — `listings/index.ts` exports from `./dto/search.dto` which doesn't exist**
+The file is `search-listing.dto.ts`. This barrel export will fail at compile time.
+
+**#21 — `checkout-content.tsx` calls `useCurrency()` after conditional early returns**
+React hook called conditionally. Will throw "Rendered more hooks than during the previous render" in the browser.
+
+**#22 — `auth/callback/page.tsx` reads user data from URL hash — open redirect risk**
+`firstName`, `lastName`, `role`, `email` are all read directly from the URL fragment with no validation. A crafted redirect URL can inject attacker-controlled user data.
+
+**#23 — `JwtStrategy` has no fallback for `JWT_SECRET`**
+`configService.get('JWT_SECRET')` returns `undefined` if the env var is missing. The app module has a fallback secret but the Passport strategy doesn't, causing JWT verification to fail inconsistently.
+
+**#24 — `DIRECT_URL` missing from `.env.example`**
+Prisma `schema.prisma` requires `DIRECT_URL` (needed for Supabase connection pooling) but it's not documented in `.env.example`. New devs won't know to set it.
+
+**#25 — `create-listing.dto.ts` has `skins`/`characters` typed as `@IsNumber()` but schema is `Json?`**
+The DTO has `skins?: number` but the DB column is a JSON array of objects. These fields aren't even mapped in `createListing`, making them stale dead code with wrong types.
+
+**#26 — `updateListing` uses `|| ` fallback — can't update a price to `0`**
+```ts
+price: dto.price || listing.price
+```
+A falsy value (like `0` or empty string) silently keeps the old value. Should use `dto.price !== undefined`.
+
+**#27 — `AffiliateService` loses decimal precision**
+Uses `Number(wallet.balance) + rewardAmount` instead of Prisma `Decimal.plus()`. The rest of the codebase uses `Decimal` arithmetic correctly.
+
+**#28 — Currency rates are hardcoded and inconsistent**
+Frontend uses NGN rate of `1615`, backend uses `1600`. No live rate fetching. Prices will drift from real-world values indefinitely.
+
+**#29 — `PaginationDto.skip` has no decorators and is dead**
+`skip` has no `@IsOptional()` or `@IsNumber()`. Sending `?skip=foo` bypasses validation. The field isn't even used — `offset` (a getter) is used instead.
+
+**#30 — `POST /payments/webhook/flutterwave` has no signature verification**
+The `verif-hash` header from Flutterwave is never checked. Security is maintained via the verify-transaction call, but rejecting forged webhooks early is standard practice.
+
+**#31 — Rate limiter (100 req/min) applies to all routes including public GET /listings**
+Shared office IPs or proxied users will be rate-limited on basic browsing. Public GET routes should be exempted or have a higher limit.
+
+**#32 — `LoggingInterceptor` uses `console.log` instead of NestJS `Logger`**
+Bypasses the structured NestJS logger. Inconsistent with the rest of the codebase.
+
+**#33 — `GigsModule` likely missing `OrdersModule` import**
+`GigsService` references `OrdersService`. If `OrdersModule` isn't imported in `GigsModule`, startup will throw.
+
+---
+
+That's 33 distinct issues across the full stack. The most urgent to fix before anything can work correctly: **#3** (seller dashboard 404), **#1** (refund doesn't credit wallet), **#4** (MANUAL enum crash), **#2** (guard is a strategy), and **#20** (compile error from bad barrel export). Want me to start fixing in priority order?

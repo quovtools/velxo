@@ -15,7 +15,11 @@ export class CurrencyService {
 
   private readonly COUNTRY_CURRENCY_MAP: Record<string, CurrencyConfig> = {
     // Africa
-    NG: { code: 'NGN', symbol: '₦', name: 'Nigerian Naira', rate: 1600, locale: 'en-NG' },
+    // FIX #28: Aligned NGN rate with frontend (was 1600, frontend uses 1615).
+    // Both should be updated together when adjusting to real market rates.
+    // TODO: Integrate a live exchange rate API (e.g. Open Exchange Rates) so
+    // these values update automatically and never drift.
+    NG: { code: 'NGN', symbol: '₦', name: 'Nigerian Naira', rate: 1615, locale: 'en-NG' },
     GH: { code: 'GHS', symbol: 'GH₵', name: 'Ghanaian Cedi', rate: 15.5, locale: 'en-GH' },
     ZA: { code: 'ZAR', symbol: 'R', name: 'South African Rand', rate: 18.5, locale: 'en-ZA' },
     KE: { code: 'KES', symbol: 'KSh', name: 'Kenyan Shilling', rate: 129, locale: 'en-KE' },

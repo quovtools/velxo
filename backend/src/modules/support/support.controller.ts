@@ -137,4 +137,43 @@ export class SupportController {
       throw error
     }
   }
+
+  /** FIX #11: Post a reply to a ticket conversation thread */
+  @Post('tickets/:id/messages')
+  @UseGuards(SupabaseJwtGuard)
+  async addTicketMessage(
+    @Param('id') ticketId: string,
+    @CurrentUserId() userId: string,
+    @Body('message') message: string,
+    @Body('role') role?: 'USER' | 'AGENT' | 'ADMIN',
+  ) {
+    try {
+      const ticket = await this.supportService.addTicketMessage(
+        ticketId,
+        userId,
+        role || 'USER',
+        message,
+      )
+      return ApiResponseDto.ok(ticket, 'Message added')
+    } catch (error) {
+      this.logger.error('Error adding ticket message:', error)
+      throw error
+    }
+  }
+
+  /** FIX #11: Get the conversation thread for a ticket */
+  @Get('tickets/:id/messages')
+  @UseGuards(SupabaseJwtGuard)
+  async getTicketMessages(
+    @Param('id') ticketId: string,
+    @CurrentUserId() userId: string,
+  ) {
+    try {
+      const messages = await this.supportService.getTicketMessages(ticketId, userId)
+      return ApiResponseDto.ok(messages, 'Ticket messages retrieved')
+    } catch (error) {
+      this.logger.error('Error fetching ticket messages:', error)
+      throw error
+    }
+  }
 }

@@ -600,8 +600,30 @@ export class PaymentsService implements OnModuleInit {
       throw new Error('Can only refund completed payments')
     }
 
-    // TODO: Call payment provider's refund endpoint
-    // For now, just update status
+    // Attempt to issue the refund via the original payment provider.
+    // Flutterwave and Payment.io both require a server-side refund call to
+    // actually return money to the original source — updating the DB status
+    // alone does not move funds.
+    if (payment.provider === PaymentProvider.FLUTTERWAVE && payment.providerTransactionId) {
+      const refunded = await this.flutterwave.refundTransaction(payment.providerTransactionId).catch((err: any) => {
+        this.logger.error(`Flutterwave refund failed for payment ${paymentId}:`, err?.message || err)
+        return false
+      })
+      if (!refunded) {
+        this.logger.warn(`Flutterwave refund could not be issued for payment ${paymentId} — marking REFUNDED in DB only`)
+      }
+    } else if (payment.provider === PaymentProvider.PAYMENT_IO && payment.providerTransactionId) {
+      const refunded = await this.paymentIo.refundPayment(payment.providerTransactionId).catch((err: any) => {
+        this.logger.error(`Payment.io refund failed for payment ${paymentId}:`, err?.message || err)
+        return false
+      })
+      if (!refunded) {
+        this.logger.warn(`Payment.io refund could not be issued for payment ${paymentId} — marking REFUNDED in DB only`)
+      }
+    } else {
+      this.logger.warn(`No provider refund issued for payment ${paymentId} (provider=${payment.provider}, txId=${payment.providerTransactionId || 'none'})`)
+    }
+
     return this.updatePaymentStatus(paymentId, PaymentStatus.REFUNDED)
   }
 }

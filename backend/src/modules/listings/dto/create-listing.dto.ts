@@ -53,15 +53,9 @@ export class CreateListingDto {
   @IsOptional()
   level?: number
 
-  @IsNumber()
-  @IsOptional()
-  @Min(0)
-  skins?: number
-
-  @IsNumber()
-  @IsOptional()
-  @Min(0)
-  characters?: number
+  // FIX #25: Removed stale `skins` and `characters` fields — they were typed
+  // as @IsNumber() but the DB column is Json? (array of objects). They were
+  // never mapped in createListing() so they were unreachable dead code.
 
   @IsString()
   @IsOptional()

@@ -102,4 +102,36 @@ export class FlutterwaveService {
       return false
     }
   }
+
+  /**
+   * FIX #10: Issue a refund via Flutterwave for a completed transaction.
+   * Docs: POST {apiUrl}/transactions/{id}/refund
+   * Returns true if the refund was accepted by Flutterwave.
+   */
+  async refundTransaction(transactionId: string | number): Promise<boolean> {
+    if (!this.isConfigured) {
+      this.logger.warn('Flutterwave not configured — cannot issue refund for tx ' + transactionId)
+      return false
+    }
+    try {
+      const res = await fetch(`${this.apiUrl}/transactions/${transactionId}/refund`, {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+          Authorization: `Bearer ${this.secretKey}`,
+        },
+        body: JSON.stringify({}),
+      })
+      if (!res.ok) {
+        const text = await res.text()
+        this.logger.error(`Flutterwave refund failed for tx ${transactionId}: ${res.status} ${text}`)
+        return false
+      }
+      this.logger.log(`Flutterwave refund issued for tx ${transactionId}`)
+      return true
+    } catch (err: any) {
+      this.logger.error(`Flutterwave refundTransaction error for tx ${transactionId}:`, err?.message || err)
+      return false
+    }
+  }
 }

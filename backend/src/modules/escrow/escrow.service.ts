@@ -319,20 +319,26 @@ export class EscrowService {
       })
 
       if (order && order.buyer) {
-        // TODO: Process refund to buyer's payment method or wallet
-        // For now, just record the transaction
         const buyerWallet = await tx.wallet.findUnique({
           where: { userId: order.buyer.id },
         })
 
         if (buyerWallet) {
+          // FIX #1: Actually increment the buyer's wallet balance on refund
+          const newBalance = buyerWallet.balance.plus(order.totalAmount)
+
+          await tx.wallet.update({
+            where: { id: buyerWallet.id },
+            data: { balance: newBalance },
+          })
+
           await tx.walletTransactions.create({
             data: {
               walletId: buyerWallet.id,
               type: 'REFUND',
               amount: order.totalAmount,
               currency: order.currency,
-              balanceAfter: buyerWallet.balance,
+              balanceAfter: newBalance,
               description: `Refund for order ${order.orderNumber}. Reason: ${reason}`,
               relatedId: orderId,
             },

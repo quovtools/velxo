@@ -115,22 +115,24 @@ export class AffiliateService {
         },
       })
 
-      // Credit wallet
+      // FIX #27: Use Decimal arithmetic instead of Number() conversion to
+      // avoid floating-point precision loss on large wallet balances.
       const wallet = await tx.wallet.findUnique({ where: { userId: referrer.id } })
       if (wallet) {
-        const newBalance = Number(wallet.balance) + rewardAmount
-        const newEarnings = Number(wallet.totalEarnings) + rewardAmount
+        const reward = new Decimal(rewardAmount)
+        const newBalance = wallet.balance.plus(reward)
+        const newEarnings = wallet.totalEarnings.plus(reward)
         await tx.wallet.update({
           where: { userId: referrer.id },
-          data: { balance: new Decimal(newBalance), totalEarnings: new Decimal(newEarnings) },
+          data: { balance: newBalance, totalEarnings: newEarnings },
         })
         await tx.walletTransactions.create({
           data: {
             walletId: wallet.id,
             type: 'CREDIT',
-            amount: new Decimal(rewardAmount),
+            amount: reward,
             currency: 'NGN',
-            balanceAfter: new Decimal(newBalance),
+            balanceAfter: newBalance,
             description: `Signup reward — referral joined`,
             relatedId: updated.id,
           },
@@ -176,22 +178,23 @@ export class AffiliateService {
         },
       })
 
-      // Credit wallet
+      // FIX #27: Use Decimal arithmetic for wallet crediting to avoid precision loss.
       const wallet = await tx.wallet.findUnique({ where: { userId: referral.referrerId } })
       if (wallet) {
-        const newBalance = Number(wallet.balance) + commissionAmount
-        const newEarnings = Number(wallet.totalEarnings) + commissionAmount
+        const commission = new Decimal(commissionAmount)
+        const newBalance = wallet.balance.plus(commission)
+        const newEarnings = wallet.totalEarnings.plus(commission)
         await tx.wallet.update({
           where: { userId: referral.referrerId },
-          data: { balance: new Decimal(newBalance), totalEarnings: new Decimal(newEarnings) },
+          data: { balance: newBalance, totalEarnings: newEarnings },
         })
         await tx.walletTransactions.create({
           data: {
             walletId: wallet.id,
             type: 'CREDIT',
-            amount: new Decimal(commissionAmount),
+            amount: commission,
             currency: 'NGN',
-            balanceAfter: new Decimal(newBalance),
+            balanceAfter: newBalance,
             description: creator
               ? `Creator commission (20%) on referred trade`
               : `Affiliate commission on referred trade`,

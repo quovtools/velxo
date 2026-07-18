@@ -10,7 +10,13 @@ import { Server, Socket } from 'socket.io'
 
 @WebSocketGateway({
   namespace: 'messages',
-  cors: { origin: '*', credentials: true },
+  // Use the app's CORS_ORIGIN env var instead of a wildcard
+  cors: {
+    origin: process.env.CORS_ORIGIN
+      ? process.env.CORS_ORIGIN.split(',').map((o) => o.trim())
+      : true,
+    credentials: true,
+  },
 })
 export class MessagesGateway implements OnGatewayInit, OnGatewayConnection, OnGatewayDisconnect {
   private readonly logger = new Logger(MessagesGateway.name)
