@@ -4,9 +4,6 @@ WORKDIR /app
 # Install OpenSSL (required for Prisma in Alpine)
 RUN apk add --no-cache openssl
 
-# Update npm to latest to fix potential version resolution issues
-RUN npm install -g npm@latest
-
 COPY package*.json ./
 COPY prisma ./prisma/
 
@@ -29,9 +26,6 @@ ENV NODE_ENV=production
 
 # Install OpenSSL (required for Prisma in Alpine)
 RUN apk add --no-cache openssl
-
-# Update npm to latest to fix potential version resolution issues
-RUN npm install -g npm@latest
 
 # Install ALL deps including prisma CLI needed for db push at runtime
 COPY package*.json ./
