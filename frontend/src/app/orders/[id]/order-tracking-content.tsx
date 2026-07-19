@@ -743,18 +743,22 @@ export default function OrderTrackingContent({ id }: { id: string }) {
                 </p>
               </div>
 
-              <div className="border-t border-borderBg pt-4 space-y-2">
+              <div className="border-t border-borderBg pt-4 space-y-3">
                 <div className="flex justify-between text-gray-400">
-                  <span className="flex items-center gap-1.5"><HandCoins className="w-4 h-4 text-brand" /> Escrow Total</span>
-                  <span className="text-white font-bold">{fmt(escrowAmount)}</span>
+                  <span className="flex items-center gap-1.5"><HandCoins className="w-4 h-4 text-brand" /> Item Price</span>
+                  <span className="text-white font-bold">{fmt(item?.listing?.price || '0')}</span>
                 </div>
                 <div className="flex justify-between text-gray-400 text-xs">
                   <span>Platform fee (10%)</span>
                   <span className="text-yellow-400">{fmt(fee)}</span>
                 </div>
-                <div className="flex justify-between text-gray-400 text-xs">
-                  <span>Seller payout</span>
-                  <span className="text-emerald-400">{fmt(payout)}</span>
+                <div className="border-t border-borderBg pt-3 flex justify-between text-gray-300">
+                  <span className="font-semibold">Total Escrow</span>
+                  <span className="text-white font-bold text-base">{fmt(escrowAmount)}</span>
+                </div>
+                <div className="flex justify-between text-gray-400 text-xs bg-background p-2.5 rounded-lg">
+                  <span>Seller receives</span>
+                  <span className="text-emerald-400 font-semibold">{fmt(payout)}</span>
                 </div>
               </div>
 
@@ -791,6 +795,29 @@ export default function OrderTrackingContent({ id }: { id: string }) {
               </div>
             </div>
           </div>
+
+          {/* Dispute/Confirmation Timer - for IN_PROGRESS status */}
+          {order.status === 'IN_PROGRESS' && isBuyer && buyerWindowRemaining != null && (
+            <div className={`rounded-3xl p-6 border ${buyerWindowRemaining < 600_000 ? 'bg-red-950/30 border-red-500/30' : 'bg-brand/10 border-brand/30'}`}>
+              <div className="flex items-start gap-3">
+                <Clock className={`w-6 h-6 flex-shrink-0 mt-0.5 ${buyerWindowRemaining < 600_000 ? 'text-red-400 animate-pulse' : 'text-brand'}`} />
+                <div className="flex-1">
+                  <p className="font-bold text-white text-sm">Confirm Receipt Window</p>
+                  <p className={`text-3xl font-black font-mono mt-2 ${countdownColor(buyerWindowRemaining)}`}>
+                    {formatCountdown(buyerWindowRemaining)}
+                  </p>
+                  <p className="text-xs text-gray-400 mt-2">
+                    Confirm your item before this timer expires. After expiration, you can open a dispute for a refund.
+                  </p>
+                  {buyerOverdue && (
+                    <p className="text-xs text-red-400 mt-2 font-semibold">
+                      ⚠️ Window expired — you can still confirm or file a dispute.
+                    </p>
+                  )}
+                </div>
+              </div>
+            </div>
+          )}
         </div>
       </div>
 
