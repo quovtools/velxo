@@ -5,11 +5,12 @@ import Link from 'next/link';
 import {
   Shield, Sparkles, UserCheck, MessageSquare, Star,
   ChevronLeft, ChevronRight, Clock, MapPin, Monitor,
-  Award, ShoppingCart, Loader2, Flag, Store,
+  Award, ShoppingCart, Loader2, Flag, Store, Zap, CheckCircle,
 } from 'lucide-react';
 import { useAuth } from '@/app/providers';
 import SellerReportModal from '@/components/SellerReportModal';
 import VerifiedBadge from '@/components/VerifiedBadge';
+import SellerLevelBadge from '@/components/SellerLevelBadge';
 import { useCurrency } from '@/lib/useCurrency';
 
 interface Listing {
@@ -34,6 +35,10 @@ interface Listing {
     averageRating: number;
     totalSales: number;
     isVerified: boolean;
+    sellerLevel?: string;
+    responseTime?: number | null;
+    deliverySuccessRate?: number;
+    isOnline?: boolean;
   };
   listingReviews: Array<{
     id: string;
@@ -240,7 +245,7 @@ export default function ListingDetailsContent({ id, initialData }: { id: string;
 
         {/* ── Right: Purchase card ── */}
         <div>
-          <div className="bg-cardBg border border-borderBg rounded-2xl p-6 space-y-5 lg:sticky lg:top-20">
+          <div className="bg-cardBg border border-borderBg glass glass-hover rounded-2xl p-6 space-y-5 lg:sticky lg:top-20">
             {/* Price */}
             <div>
               <p className="text-xs text-gray-500 uppercase tracking-wider">Price</p>
@@ -293,33 +298,40 @@ export default function ListingDetailsContent({ id, initialData }: { id: string;
                   </div>
                 </div>
                 <div className="flex-1 min-w-0">
-                  <div className="flex items-center gap-1.5">
+                  <div className="flex items-center gap-1.5 flex-wrap">
                     <span className="font-bold text-sm truncate group-hover:text-brand transition">{listing.seller?.storeName}</span>
-                    {listing.seller?.isVerified && (
-                      <VerifiedBadge size="sm" label="Verified" />
+                    {listing.seller?.isVerified && <VerifiedBadge size="sm" label="Verified" />}
+                    {listing.seller?.isOnline && (
+                      <span className="text-[9px] bg-emerald-900/20 text-emerald-300 border border-emerald-500/20 px-1.5 py-0.5 rounded font-bold">● Online</span>
                     )}
                   </div>
-                  <div className="flex items-center gap-2 mt-0.5">
+                  <div className="flex items-center gap-2 mt-0.5 flex-wrap">
                     <StarRating rating={Math.round(avgRating)} />
                     <span className="text-xs text-gray-500">{avgRating.toFixed(1)} · {listing.seller?.totalSales || 0} sales</span>
+                    {listing.seller?.sellerLevel && listing.seller.sellerLevel !== 'BRONZE' && (
+                      <SellerLevelBadge level={listing.seller.sellerLevel} size="xs" />
+                    )}
                   </div>
+                  {listing.seller?.responseTime && (
+                    <div className="flex items-center gap-1 mt-0.5">
+                      <Zap className="w-2.5 h-2.5 text-emerald-400" />
+                      <span className="text-[10px] text-gray-500">
+                        {listing.seller.responseTime < 60 ? `${listing.seller.responseTime}m` : `${Math.round(listing.seller.responseTime / 60)}h`} avg response
+                      </span>
+                    </div>
+                  )}
                 </div>
                 <ChevronRight className="w-4 h-4 text-gray-600 group-hover:text-brand transition flex-shrink-0" />
               </Link>
 
               <div className="flex items-center gap-2 pt-1">
-                <Link
-                  href={`/seller/${listing.seller?.id}`}
-                  className="flex-1 flex items-center justify-center gap-1.5 bg-background border border-borderBg hover:border-brand/40 py-2.5 rounded-xl text-xs font-bold text-gray-300 hover:text-white transition"
-                >
-                  <Store className="w-3.5 h-3.5" /> View store &amp; listings
+                <Link href={`/seller/${listing.seller?.id}`}
+                  className="flex-1 flex items-center justify-center gap-1.5 bg-background border border-borderBg hover:border-brand/40 py-2.5 rounded-xl text-xs font-bold text-gray-300 hover:text-white transition">
+                  <Store className="w-3.5 h-3.5" /> View store
                 </Link>
                 {user && (user as any).id !== listing.seller?.userId && (
-                  <button
-                    onClick={() => setReportOpen(true)}
-                    className="flex items-center justify-center gap-1.5 bg-background border border-borderBg hover:border-red-500/40 py-2.5 px-3 rounded-xl text-xs font-bold text-gray-300 hover:text-red-400 transition"
-                    title="Report seller"
-                  >
+                  <button onClick={() => setReportOpen(true)}
+                    className="flex items-center justify-center gap-1.5 bg-background border border-borderBg hover:border-red-500/40 py-2.5 px-3 rounded-xl text-xs font-bold text-gray-300 hover:text-red-400 transition" title="Report seller">
                     <Flag className="w-3.5 h-3.5" />
                   </button>
                 )}

@@ -224,6 +224,32 @@ export class MessagesService {
       this.logger.warn(`Failed to notify message recipient: ${err}`)
     }
 
+    // Track seller response time: when a seller replies to the buyer's last
+    // message, compute the gap and update the seller's responseTime field.
+    // This is non-fatal and runs after the message is already returned.
+    this.updateSellerResponseTime(conversation, senderId, message.createdAt).catch(() => {})
+
+    // Notify the buyer when a seller sends the FIRST message in a brand-new
+    // order conversation. Non-fatal.
+    try {
+      if (senderId === conversation.sellerId && conversation.orderId) {
+        const priorSellerMsgs = await this.prisma.messages.count({
+          where: { conversationId, senderId: conversation.sellerId },
+        })
+        if (priorSellerMsgs === 0) {
+          const order = await this.prisma.orders.findUnique({
+            where: { id: conversation.orderId },
+            include: { seller: true, orderItems: { include: { listing: true } } },
+          })
+          if (order) {
+            await this.notifications.notifySellerFirstResponse(order)
+          }
+        }
+      }
+    } catch (err) {
+      this.logger.warn(`Failed to notify seller first response: ${err}`)
+    }
+
     return message
   }
 
@@ -299,6 +325,53 @@ export class MessagesService {
     return this.prisma.conversations.update({
       where: { id: conversationId },
       data: { isBlocked: true },
+    })
+  }
+
+  /**
+   * When a seller sends a message in reply to the buyer's last message,
+   * compute the minutes between the buyer's message and now, and update the
+   * seller's responseTime with a rolling average (weighted towards recent data).
+   * Runs fire-and-forget — never blocks message delivery.
+   */
+  private async updateSellerResponseTime(
+    conversation: { buyerId: string; sellerId: string },
+    senderId: string,
+    repliedAt: Date,
+  ) {
+    // Only track when the seller is the one replying
+    if (senderId !== conversation.sellerId) return
+
+    // Find the most recent message from the buyer before this reply
+    const lastBuyerMsg = await this.prisma.messages.findFirst({
+      where: {
+        conversationId: { in: await this.prisma.conversations.findMany({ where: { sellerId: conversation.sellerId }, select: { id: true } }).then(cs => cs.map(c => c.id)) },
+        senderId: conversation.buyerId,
+        createdAt: { lt: repliedAt },
+      },
+      orderBy: { createdAt: 'desc' },
+    })
+
+    if (!lastBuyerMsg) return
+
+    const gapMinutes = Math.round((repliedAt.getTime() - lastBuyerMsg.createdAt.getTime()) / 60000)
+    if (gapMinutes <= 0 || gapMinutes > 10080) return // ignore >1 week gaps
+
+    const seller = await this.prisma.sellers.findUnique({ where: { userId: conversation.sellerId } })
+    if (!seller) return
+
+    // Weighted rolling average: 70% existing, 30% new sample
+    const current = seller.responseTime ?? gapMinutes
+    const updated = Math.round(current * 0.7 + gapMinutes * 0.3)
+    const updatedHours = updated / 60
+
+    await this.prisma.sellers.update({
+      where: { id: seller.id },
+      data: {
+        responseTime: updated,
+        avgResponseTimeHours: updatedHours,
+        responseRate: Math.min(1, (seller.responseRate || 0.5) + 0.02),
+      } as any,
     })
   }
 }

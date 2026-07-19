@@ -339,7 +339,11 @@ export class OrdersService {
       where: { id: orderId },
       include: {
         buyer: true,
-        seller: true,
+        seller: {
+          include: {
+            user: { select: { id: true, email: true, lastSeenAt: true } as any },
+          },
+        },
         orderItems: { include: { listing: true } },
         escrow: true,
         payments: true,
@@ -356,7 +360,93 @@ export class OrdersService {
       throw new ForbiddenException('You do not have access to this order')
     }
 
-    return order
+    // Compute delivery speed (acceptedAt -> deliveredAt delta in minutes).
+    const deliverySpeedMinutes =
+      order.acceptedAt && order.deliveredAt
+        ? Math.round(
+            (new Date(order.deliveredAt).getTime() - new Date(order.acceptedAt).getTime()) / 60000,
+          )
+        : null
+
+    // Enrich seller data with level fields
+    const enrichedOrder = {
+      ...order,
+      deliverySpeedMinutes,
+      seller: order.seller ? {
+        ...order.seller,
+        sellerLevel: (order.seller as any).sellerLevel || 'BRONZE',
+        avgResponseTimeHours: (order.seller as any).avgResponseTimeHours || 0,
+        deliverySuccessRate: (order.seller as any).deliverySuccessRate || 100,
+        isOnline: (order.seller.user as any)?.lastSeenAt
+          ? (Date.now() - new Date((order.seller.user as any).lastSeenAt).getTime()) < 5 * 60 * 1000
+          : false,
+      } : null,
+    }
+
+    return enrichedOrder
+  }
+
+  /**
+   * Builds an ordered list of timeline events for an order derived from its
+   * existing timestamp fields. The most recent past event is marked `active`
+   * and any potential future events are `pending`.
+   */
+  async getOrderTimeline(orderId: string) {
+    const order = (await this.prisma.orders.findUnique({
+      where: { id: orderId },
+      include: { escrow: true, disputes: true },
+    })) as any
+
+    if (!order) {
+      throw new NotFoundException('Order')
+    }
+
+    type TimelineEvent = {
+      key: string
+      label: string
+      timestamp?: string
+      status: 'done' | 'active' | 'pending'
+    }
+
+    const candidates: TimelineEvent[] = []
+    const pushIf = (key: string, label: string, ts?: Date | null) => {
+      if (ts) {
+        candidates.push({ key, label, timestamp: new Date(ts).toISOString(), status: 'done' })
+      }
+    }
+
+    pushIf('created', 'Order placed', order.createdAt)
+    pushIf('paid', 'Payment secured (escrow)', order.paidAt)
+    pushIf('accepted', 'Seller accepted', order.acceptedAt)
+    pushIf('delivered', 'Delivered', order.deliveredAt)
+    pushIf('completed', 'Completed / funds released', order.completedAt)
+
+    if (order.disputes && order.disputes.length > 0) {
+      const disputeTs = order.disputes[0].createdAt
+      candidates.push({
+        key: 'disputed',
+        label: 'Dispute opened',
+        timestamp: disputeTs ? new Date(disputeTs).toISOString() : undefined,
+        status: 'done',
+      })
+    }
+
+    pushIf('cancelled', 'Cancelled', order.cancelledAt)
+    pushIf('refunded', 'Refunded', order.refundedAt)
+
+    // Sort by time. Events without a timestamp (none here) sort last.
+    candidates.sort((a, b) => {
+      const ta = a.timestamp ? new Date(a.timestamp).getTime() : Number.POSITIVE_INFINITY
+      const tb = b.timestamp ? new Date(b.timestamp).getTime() : Number.POSITIVE_INFINITY
+      return ta - tb
+    })
+
+    // Mark the most recent past event as active.
+    if (candidates.length > 0) {
+      candidates[candidates.length - 1].status = 'active'
+    }
+
+    return candidates
   }
 
   async confirmDelivery(orderId: string, buyerId: string) {
@@ -547,7 +637,16 @@ export class OrdersService {
     return this.prisma.orders.findMany({
       where: { buyerId },
       include: {
-        seller: true,
+        seller: {
+          select: {
+            id: true,
+            userId: true,
+            storeName: true,
+            isVerified: true,
+            averageRating: true,
+            sellerLevel: true,
+          } as any,
+        },
         orderItems: { include: { listing: true } },
       },
       orderBy: { createdAt: 'desc' },
@@ -618,6 +717,28 @@ export class OrdersService {
 
     // Notify the buyer that the seller has delivered.
     await this.notifications.notifyDelivered(updated).catch(() => {})
+
+    // Schedule a "confirm receipt soon" nudge ~15 min before the buyer
+    // confirmation deadline (clamped >=0, max 1 hour). Only fires if the
+    // order is still IN_PROGRESS at that time. Non-fatal.
+    try {
+      if (updated.buyerConfirmDeadline) {
+        const deadline = new Date(updated.buyerConfirmDeadline).getTime()
+        const delay = Math.min(Math.max(deadline - 15 * 60 * 1000 - Date.now(), 0), 60 * 60 * 1000)
+        setTimeout(async () => {
+          try {
+            const fresh = await this.prisma.orders.findUnique({ where: { id: updated.id } })
+            if (fresh && fresh.status === OrderStatus.IN_PROGRESS) {
+              await this.notifications.notifyBuyerNearDeadline(updated)
+            }
+          } catch (err) {
+            this.logger.warn(`Buyer near-deadline nudge failed: ${err}`)
+          }
+        }, delay)
+      }
+    } catch (err) {
+      this.logger.warn(`Failed to schedule buyer near-deadline nudge: ${err}`)
+    }
 
     return updated
   }

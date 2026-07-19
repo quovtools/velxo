@@ -172,6 +172,7 @@ model users {
   isBanned         Boolean  @default(false)
   banReason        String?
   lastLoginAt      DateTime?
+  lastSeenAt       DateTime?
   createdAt        DateTime @default(now())
   updatedAt        DateTime @updatedAt
   deletedAt        DateTime?
@@ -208,6 +209,13 @@ enum SellerAccountType {
   BOTH
 }
 
+enum SellerLevel {
+  BRONZE
+  SILVER
+  GOLD
+  ELITE
+}
+
 model sellers {
   id              String   @id @default(cuid())
   userId          String   @unique
@@ -226,12 +234,15 @@ model sellers {
   kycSubmittedAt  DateTime?
   kycReviewedAt   DateTime?
   kycRejectionReason String?
+  sellerLevel     SellerLevel @default(BRONZE)
   reputationScore Float    @default(0.0)
   totalSales      Int      @default(0)
   totalRevenue    Decimal  @default(0) @db.Decimal(12, 2)
   averageRating   Float    @default(0.0)
   responseRate    Float    @default(0.0)
   responseTime    Int?
+  avgResponseTimeHours Float @default(0.0)
+  deliverySuccessRate  Float @default(100.0)
   subscriptionTier String @default("FREE")
   subscriptionEndsAt DateTime?
   featuredUntil    DateTime?

@@ -9,6 +9,9 @@ export class UsersService {
   constructor(private prisma: PrismaService) {}
 
   async getUserProfile(userId: string) {
+    // Touch lastSeenAt so online status stays current (fire-and-forget)
+    this.prisma.users.update({ where: { id: userId }, data: { lastSeenAt: new Date() } as any }).catch(() => {})
+
     const user = await this.prisma.users.findUnique({
       where: { id: userId },
       select: {

@@ -6,8 +6,9 @@ import { api } from '@/lib/api';
 import { useAuth } from '@/app/providers';
 import LoadingLogo from '@/components/LoadingLogo';
 import SellerOfflineWarning from '@/components/SellerOfflineWarning';
-import { ShieldCheck, Wallet, Sparkles, ImageIcon, Check, Lock, Clock, Star } from 'lucide-react';
+import { ShieldCheck, Wallet, Sparkles, ImageIcon, Check, Lock, Clock, Star, Zap, CheckCircle, ArrowRight } from 'lucide-react';
 import { useCurrency } from '@/lib/useCurrency';
+import SellerLevelBadge from '@/components/SellerLevelBadge';
 
 const API_BASE = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:3001/api/v1';
 
@@ -19,6 +20,7 @@ interface Listing {
   platform: string;
   region: string;
   images?: string[];
+  deliveryTime?: number | null;
   seller?: {
     id?: string;
     storeName?: string;
@@ -26,6 +28,8 @@ interface Listing {
     averageRating?: number;
     totalSales?: number;
     responseTime?: number | null;
+    sellerLevel?: string;
+    deliverySuccessRate?: number;
   };
 }
 
@@ -146,7 +150,7 @@ export default function CheckoutContent({ listingId }: { listingId: string }) {
       <div className="grid grid-cols-1 lg:grid-cols-5 gap-6 lg:gap-8 my-6">
         {/* Payment form */}
         <div className="lg:col-span-3 space-y-6">
-          <div className="bg-cardBg border border-borderBg rounded-3xl p-6 sm:p-8 space-y-7">
+          <div className="bg-cardBg border border-borderBg glass glass-hover rounded-3xl p-6 sm:p-8 space-y-7">
             <div>
               <h1 className="text-2xl sm:text-3xl font-extrabold text-white">Escrow Checkout</h1>
               <p className="text-gray-400 text-sm mt-1">
@@ -258,7 +262,7 @@ export default function CheckoutContent({ listingId }: { listingId: string }) {
 
         {/* Product + price summary */}
         <div className="lg:col-span-2">
-          <div className="bg-cardBg border border-borderBg rounded-3xl p-6 sm:p-8 lg:sticky lg:top-6 space-y-6">
+          <div className="bg-cardBg border border-borderBg glass glass-hover rounded-3xl p-6 sm:p-8 lg:sticky lg:top-6 space-y-6">
             <h3 className="text-lg font-bold text-white border-b border-borderBg pb-4">Order Summary</h3>
 
             <div className="flex gap-4">
@@ -282,25 +286,43 @@ export default function CheckoutContent({ listingId }: { listingId: string }) {
 
             {/* Seller trust signals */}
             {seller && (
-              <div className="space-y-2">
-                {seller.isVerified && (
-                  <div className="flex items-center gap-2 text-xs text-emerald-400">
-                    <ShieldCheck className="w-3.5 h-3.5" />
-                    <span>Verified Seller</span>
+              <div className="space-y-2 bg-background border border-borderBg rounded-2xl p-3">
+                <div className="flex items-center gap-2 justify-between">
+                  <div className="flex items-center gap-2">
+                    <div className="w-9 h-9 rounded-full bg-gradient-to-br from-brand to-purple-600 p-0.5 flex-shrink-0">
+                      <div className="w-full h-full rounded-full bg-cardBg flex items-center justify-center text-xs font-black text-white">
+                        {(seller.storeName || 'S')[0].toUpperCase()}
+                      </div>
+                    </div>
+                    <div>
+                      <p className="text-sm font-bold text-white">{seller.storeName}</p>
+                      {seller.sellerLevel && <SellerLevelBadge level={seller.sellerLevel} size="xs" />}
+                    </div>
                   </div>
-                )}
-                {seller.averageRating != null && seller.averageRating > 0 && (
-                  <div className="flex items-center gap-2 text-xs text-yellow-400">
-                    <Star className="w-3.5 h-3.5" />
-                    <span>{Number(seller.averageRating).toFixed(1)} rating • {seller.totalSales || 0} sales</span>
+                  {seller.isVerified && (
+                    <span className="text-[10px] bg-emerald-900/30 text-emerald-400 border border-emerald-500/20 px-2 py-0.5 rounded-md font-bold flex items-center gap-1">
+                      <ShieldCheck className="w-3 h-3" /> Verified
+                    </span>
+                  )}
+                </div>
+                <div className="grid grid-cols-3 gap-2 pt-2">
+                  {seller.averageRating != null && seller.averageRating > 0 && (
+                    <div className="text-center">
+                      <p className="text-sm font-black text-white">{Number(seller.averageRating).toFixed(1)}★</p>
+                      <p className="text-[10px] text-gray-500">Rating</p>
+                    </div>
+                  )}
+                  <div className="text-center">
+                    <p className="text-sm font-black text-white">{seller.totalSales || 0}</p>
+                    <p className="text-[10px] text-gray-500">Sales</p>
                   </div>
-                )}
-                {seller.responseTime && seller.responseTime > 0 && (
-                  <div className="flex items-center gap-2 text-xs text-gray-400">
-                    <Clock className="w-3.5 h-3.5" />
-                    <span>~{seller.responseTime < 60 ? `${seller.responseTime}min` : `${Math.round(seller.responseTime / 60)}h`} avg response</span>
-                  </div>
-                )}
+                  {seller.deliverySuccessRate != null && (
+                    <div className="text-center">
+                      <p className="text-sm font-black text-white">{Math.round(seller.deliverySuccessRate)}%</p>
+                      <p className="text-[10px] text-gray-500">Delivery</p>
+                    </div>
+                  )}
+                </div>
               </div>
             )}
 

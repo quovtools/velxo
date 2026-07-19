@@ -6,6 +6,7 @@ import { api } from '@/lib/api';
 import { useAuth } from '@/app/providers';
 import Link from 'next/link';
 import VerifiedBadge from '@/components/VerifiedBadge';
+import SellerLevelBadge, { SellerLevelProgress } from '@/components/SellerLevelBadge';
 import { useCurrency } from '@/lib/useCurrency';
 import {
   LayoutDashboard, Package, DollarSign, Store, Star, TrendingUp, Wallet, MessageSquare,
@@ -30,6 +31,9 @@ interface Seller {
   responseRate: number;
   responseTime: number;
   subscriptionTier: string;
+  sellerLevel?: string;
+  avgResponseTimeHours?: number;
+  deliverySuccessRate?: number;
   verifiedAt?: string;
   storeSlug?: string | null;
 }
@@ -441,6 +445,35 @@ export default function SellerDashboard() {
               </div>
             );
           })()}
+
+          {/* Seller Level Progress */}
+          {seller && (
+            <div className="bg-cardBg border border-borderBg rounded-2xl p-5">
+              <SellerLevelProgress
+                level={seller.sellerLevel || 'BRONZE'}
+                totalSales={seller.totalSales || 0}
+                averageRating={seller.averageRating || 0}
+              />
+              <div className="grid grid-cols-3 gap-3 mt-4">
+                <div className="text-center bg-background rounded-xl p-2.5">
+                  <p className="text-sm font-black text-white">{Math.round(seller.deliverySuccessRate ?? 100)}%</p>
+                  <p className="text-[10px] text-gray-500 mt-0.5">Delivery Rate</p>
+                </div>
+                <div className="text-center bg-background rounded-xl p-2.5">
+                  <p className="text-sm font-black text-white">
+                    {seller.avgResponseTimeHours && seller.avgResponseTimeHours > 0
+                      ? seller.avgResponseTimeHours < 1 ? `${Math.round(seller.avgResponseTimeHours * 60)}m` : `${seller.avgResponseTimeHours.toFixed(1)}h`
+                      : seller.responseTime ? `${seller.responseTime}m` : '< 1h'}
+                  </p>
+                  <p className="text-[10px] text-gray-500 mt-0.5">Avg Response</p>
+                </div>
+                <div className="text-center bg-background rounded-xl p-2.5">
+                  <p className="text-sm font-black text-white">{Math.round((seller.responseRate || 0) * 100)}%</p>
+                  <p className="text-[10px] text-gray-500 mt-0.5">Response Rate</p>
+                </div>
+              </div>
+            </div>
+          )}
 
           {/* stat cards */}
           <div className="grid grid-cols-2 lg:grid-cols-3 gap-3">

@@ -13,6 +13,7 @@ import { CreateOrderDto } from './dto/create-order.dto'
 import { SupabaseJwtGuard } from '@/common/guards/supabase-jwt.guard'
 import { CurrentUserId } from '@/common/decorators/current-user.decorator'
 import { ApiResponseDto } from '@/common/dto/api-response.dto'
+import { ForbiddenException } from '@/common/exceptions/custom-exceptions'
 
 @Controller('orders')
 export class OrdersController {
@@ -53,6 +54,22 @@ export class OrdersController {
       return ApiResponseDto.ok(orders, 'Orders retrieved successfully')
     } catch (error) {
       this.logger.error('Error fetching orders:', error)
+      throw error
+    }
+  }
+
+  @Get(':id/timeline')
+  @UseGuards(SupabaseJwtGuard)
+  async getOrderTimeline(@Param('id') orderId: string, @CurrentUserId() userId: string) {
+    try {
+      const order = await this.ordersService.getOrderById(orderId, userId)
+      if (order.buyerId !== userId && order.seller?.userId !== userId) {
+        throw new ForbiddenException('You do not have access to this order')
+      }
+      const timeline = await this.ordersService.getOrderTimeline(orderId)
+      return ApiResponseDto.ok(timeline, 'Order timeline retrieved successfully')
+    } catch (error) {
+      this.logger.error('Error fetching order timeline:', error)
       throw error
     }
   }

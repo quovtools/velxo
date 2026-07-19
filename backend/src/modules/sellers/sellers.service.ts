@@ -7,6 +7,17 @@ import { PaymentIoService } from '@/modules/payments/paymentio.service'
 import { Decimal } from '@prisma/client/runtime/library'
 
 /**
+ * Seller Level thresholds (P2P marketplace standard).
+ * Levels are BRONZE → SILVER → GOLD → ELITE based on completed sales + average rating.
+ */
+export function computeSellerLevel(totalSales: number, averageRating: number, deliverySuccessRate: number): string {
+  if (totalSales >= 200 && averageRating >= 4.8 && deliverySuccessRate >= 98) return 'ELITE'
+  if (totalSales >= 50 && averageRating >= 4.5 && deliverySuccessRate >= 95) return 'GOLD'
+  if (totalSales >= 10 && averageRating >= 4.0 && deliverySuccessRate >= 90) return 'SILVER'
+  return 'BRONZE'
+}
+
+/**
  * Subscription plan definitions. The default `FREE` tier is what every new
  * seller starts on. `PRO` ("Seller Pro") and `PREMIUM` are the paid tiers that
  * unlock a public, shareable live storefront plus a lower escrow commission.
@@ -138,7 +149,7 @@ export class SellersService {
       where: { id: sellerId },
       include: {
         user: {
-          select: { id: true, email: true, firstName: true, lastName: true, avatarUrl: true },
+          select: { id: true, email: true, firstName: true, lastName: true, avatarUrl: true, lastSeenAt: true } as any,
         },
       },
     })
@@ -182,6 +193,13 @@ export class SellersService {
       responseRate: seller.responseRate,
       reputationScore: seller.reputationScore,
       subscriptionTier: seller.subscriptionTier,
+      sellerLevel: (seller as any).sellerLevel || 'BRONZE',
+      avgResponseTimeHours: (seller as any).avgResponseTimeHours || 0,
+      deliverySuccessRate: (seller as any).deliverySuccessRate || 100,
+      isOnline: (seller.user as any)?.lastSeenAt
+        ? (Date.now() - new Date((seller.user as any).lastSeenAt).getTime()) < 5 * 60 * 1000
+        : false,
+      lastSeenAt: (seller.user as any)?.lastSeenAt || null,
       isSuspended: seller.isSuspended,
       createdAt: seller.createdAt,
       user: seller.user,
@@ -193,6 +211,9 @@ export class SellersService {
         responseTime: seller.responseTime,
         responseRate: seller.responseRate,
         memberSince: seller.createdAt,
+        sellerLevel: (seller as any).sellerLevel || 'BRONZE',
+        avgResponseTimeHours: (seller as any).avgResponseTimeHours || 0,
+        deliverySuccessRate: (seller as any).deliverySuccessRate || 100,
       },
       listings: recentListings.map((l) => ({
         id: l.id,
@@ -569,12 +590,24 @@ export class SellersService {
       where: { sellerId: seller.id },
     })
 
-    const avgRating = allReviews.length > 0 
+    const avgRating = allReviews.length > 0
       ? allReviews.reduce((sum, r) => sum + r.rating, 0) / allReviews.length
       : 0
 
-    // Update reputation score based on reviews and sales
+    // Calculate delivery success rate: orders that completed vs total accepted
+    const acceptedOrders = await this.prisma.orders.count({
+      where: { sellerId: seller.id, acceptedAt: { not: null } },
+    })
+    const deliverySuccessRate = acceptedOrders > 0 ? (totalSales / acceptedOrders) * 100 : 100
+
+    // Average response hours from stored responseTime (minutes)
+    const avgResponseHours = seller.responseTime ? seller.responseTime / 60 : 0
+
+    // Reputation score: weighted avg + sales bonus
     const reputationScore = Math.min(5, (avgRating * 0.7) + ((totalSales / 100) * 0.3))
+
+    // Compute seller level
+    const sellerLevel = computeSellerLevel(totalSales, avgRating, deliverySuccessRate) as any
 
     return this.prisma.sellers.update({
       where: { id: sellerId },
@@ -583,6 +616,9 @@ export class SellersService {
         totalRevenue,
         averageRating: avgRating,
         reputationScore,
+        deliverySuccessRate,
+        avgResponseTimeHours: avgResponseHours,
+        sellerLevel,
       },
     })
   }

@@ -1,2 +1,24 @@
-dont create md files 
-dont ever lose current database { dont accept data lose}
+# Velxo P2P Overhaul — Instructions for all agents/subagents
+
+## Hard rules (MUST follow)
+1. NEVER create new `.md` files. Only edit `UPGRADE_PROGRESS.md` (the single progress tracker).
+2. NEVER lose data. Migrations are ADDITIVE ONLY — no column drops, no `prisma migrate reset`, no destructive schema changes. The DB is production. Do not run `prisma migrate reset` or `prisma db push --force-reset`.
+3. NEVER build or run locally in a way that could affect the live DB. Do not run `prisma migrate deploy` / `db push` / `generate` against production. Schema edits are additive and committed with code; deployment handles migration.
+4. Keep changes minimal, surgical, and consistent with existing code conventions (NestJS backend, Next.js App Router frontend, Tailwind with brand tokens).
+5. Do NOT touch the migration SQL files in `backend/prisma/migrations/` unless adding a NEW additive migration folder. Never edit existing migration files.
+6. Do NOT modify `UPGRADE_PROGRESS.md` Status Key checkboxes incorrectly — only mark `[x]` when the code is verified complete.
+7. After finishing, report exactly which files changed and whether the tracked item is verified.
+
+## Backend conventions
+- Service methods live in `backend/src/modules/<module>/<module>.service.ts`, controllers in `*.controller.ts`.
+- Responses wrapped with `ApiResponseDto.ok(data, msg)`.
+- Use `this.prisma` (PrismaService). Decimal math uses `Decimal` from `@prisma/client/runtime/library`.
+- New endpoints must be guarded with `SupabaseJwtGuard` or `JwtAuthGuard` where auth is required.
+- Seller level fields: `sellers.sellerLevel` (enum), `avgResponseTimeHours`, `deliverySuccessRate` already exist in schema.
+
+## Frontend conventions
+- Components are `'use client'` unless server. Pages under `frontend/src/app/**`.
+- API via `api.get/post/patch/delete` from `@/lib/api` OR raw `fetch(${API_BASE}/...)` where used.
+- `API_BASE = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:3001/api/v1'`.
+- Tailwind uses brand color tokens + `SellerLevelBadge` from `@/components/SellerLevelBadge`.
+- Money formatting via `useCurrency().fmt`.

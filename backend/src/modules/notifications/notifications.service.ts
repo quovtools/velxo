@@ -382,6 +382,42 @@ export class NotificationsService {
     await this.sendRefundedEmail(order, amount).catch(() => {})
   }
 
+  /** Notify the buyer when a seller sends their first message in a new order conversation. */
+  async notifySellerFirstResponse(order: any): Promise<void> {
+    try {
+      if (!order?.buyerId) return
+      await this.prisma.notifications.create({
+        data: {
+          userId: order.buyerId,
+          type: NotificationType.MESSAGE,
+          title: 'Seller responded',
+          body: `${order.seller?.storeName || 'The seller'} has replied to your order. View the conversation to continue.`,
+          data: { orderId: order.id, conversation: true },
+        },
+      })
+    } catch (err) {
+      this.logger.warn(`Failed to notify seller first response: ${err}`)
+    }
+  }
+
+  /** Notify the buyer that their escrow confirmation window is about to close. */
+  async notifyBuyerNearDeadline(order: any): Promise<void> {
+    try {
+      if (!order?.buyerId) return
+      await this.prisma.notifications.create({
+        data: {
+          userId: order.buyerId,
+          type: NotificationType.ORDER_STATUS,
+          title: 'Confirm receipt soon',
+          body: 'Your escrow confirmation window is about to close — confirm receipt to release funds to the seller.',
+          data: { orderId: order.id },
+        },
+      })
+    } catch (err) {
+      this.logger.warn(`Failed to notify buyer near deadline: ${err}`)
+    }
+  }
+
   // ─── Standard CRUD helpers ──────────────────────────────────────────────
 
   async getNotifications(userId: string, limit: number = 50) {

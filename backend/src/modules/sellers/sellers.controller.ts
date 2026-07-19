@@ -57,7 +57,10 @@ export class SellersController {
   async getMySellerProfileShort(@CurrentUserId() userId: string) {
     try {
       const seller = await this.sellersService.getSellerByUserId(userId)
-      return ApiResponseDto.ok(seller, 'Seller profile retrieved')
+      // Also compute/refresh level on every fetch (lazy recompute)
+      await this.sellersService.updateSellerStats(seller.id).catch(() => {})
+      const profile = await this.sellersService.getSellerProfile(seller.id)
+      return ApiResponseDto.ok(profile, 'Seller profile retrieved')
     } catch (error) {
       this.logger.error('Error fetching seller profile (me):', error)
       throw error

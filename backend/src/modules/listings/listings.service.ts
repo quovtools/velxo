@@ -177,7 +177,14 @@ export class ListingsService {
       where: { id },
       include: {
         seller: {
-          include: { user: true },
+          include: {
+            user: {
+              select: {
+                id: true, email: true, firstName: true, lastName: true,
+                avatarUrl: true, lastSeenAt: true,
+              } as any,
+            },
+          },
         },
         category: true,
         orderItems: true,
@@ -198,7 +205,21 @@ export class ListingsService {
       data: { viewCount: { increment: 1 } },
     })
 
-    return listing
+    // Enrich with computed seller fields
+    const enriched = {
+      ...listing,
+      seller: listing.seller ? {
+        ...listing.seller,
+        sellerLevel: (listing.seller as any).sellerLevel || 'BRONZE',
+        deliverySuccessRate: (listing.seller as any).deliverySuccessRate || 100,
+        avgResponseTimeHours: (listing.seller as any).avgResponseTimeHours || 0,
+        isOnline: (listing.seller.user as any)?.lastSeenAt
+          ? (Date.now() - new Date((listing.seller.user as any).lastSeenAt).getTime()) < 5 * 60 * 1000
+          : false,
+      } : null,
+    }
+
+    return enriched
   }
 
   async updateListing(id: string, sellerId: string, dto: Partial<CreateListingDto>) {

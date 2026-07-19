@@ -152,7 +152,7 @@ export class AuthService {
 
     await this.prisma.users.update({
       where: { id: user.id },
-      data: { lastLoginAt: new Date() },
+      data: { lastLoginAt: new Date(), lastSeenAt: new Date() } as any,
     })
 
     const accessToken = this.signToken(user.id, user.email, user.role)

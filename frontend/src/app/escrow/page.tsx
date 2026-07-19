@@ -1,17 +1,20 @@
 import React, { Suspense } from 'react';
 import Link from 'next/link';
 import type { Metadata } from 'next';
-import { ShieldCheck, Lock, CheckCircle, AlertTriangle, ArrowRight, Clock, Banknote, RefreshCcw, Loader2 } from 'lucide-react';
+import {
+  ShieldCheck, Lock, CheckCircle, AlertTriangle, ArrowRight,
+  Clock, Banknote, RefreshCcw, Zap, Star, Award,
+} from 'lucide-react';
 import OrderTrackingContent from '@/app/orders/[id]/order-tracking-content';
 import { LoadingArea } from '@/components/LoadingLogo';
 
 export const metadata: Metadata = {
-  title: 'How Velxo Escrow Works | Safe Gaming Trades',
-  description: 'Learn how Velxo Escrow protects every gaming transaction — funds are held securely until you confirm delivery. Dispute resolution, fees, and buyer protection explained.',
+  title: 'How Velxo Escrow Works | Safe P2P Gaming Trades',
+  description: 'Velxo Escrow holds your funds securely until delivery is confirmed. Learn how our P2P escrow system, seller levels, and dispute resolution protect every trade.',
   alternates: { canonical: 'https://market.velxo.shop/escrow' },
   openGraph: {
-    title: 'How Velxo Escrow Works | Safe Gaming Trades',
-    description: 'Your money is locked in escrow until you confirm delivery. Learn how Velxo keeps every trade safe.',
+    title: 'How Velxo Escrow Works | Safe P2P Gaming Trades',
+    description: 'Your money is locked until you confirm delivery. P2P-grade protection on every trade.',
     url: 'https://market.velxo.shop/escrow',
     type: 'website',
   },
@@ -19,79 +22,101 @@ export const metadata: Metadata = {
 
 const steps = [
   {
-    step: '01',
-    icon: <Banknote className="w-6 h-6 text-brand" />,
+    step: '01', icon: Banknote, color: 'text-brand',
     title: 'Buyer Places Order',
-    desc: 'The buyer pays for the item. Funds are immediately locked in Velxo Escrow — not sent to the seller yet.',
+    desc: 'Buyer pays — funds are immediately locked in Velxo Escrow. The seller receives nothing until you confirm.',
   },
   {
-    step: '02',
-    icon: <Lock className="w-6 h-6 text-brand" />,
+    step: '02', icon: Lock, color: 'text-yellow-400',
     title: 'Seller Accepts',
-    desc: 'The seller accepts the paid order, which starts a 60-minute delivery timer. Funds stay locked in escrow the whole time.',
+    desc: 'Seller accepts the paid order, which starts a 60-minute delivery timer. Funds stay locked the entire time.',
   },
   {
-    step: '03',
-    icon: <ArrowRight className="w-6 h-6 text-brand" />,
-    title: 'Seller Delivers (within 60 min)',
-    desc: 'The seller has 60 minutes to hand over the account, coins, gift card, or complete the service. Miss the window and both parties can open a dispute or complaint.',
+    step: '03', icon: ArrowRight, color: 'text-purple-400',
+    title: 'Seller Delivers',
+    desc: 'The seller delivers login credentials or completes the service within 60 minutes of accepting.',
   },
   {
-    step: '04',
-    icon: <CheckCircle className="w-6 h-6 text-brand" />,
-    title: 'Buyer Confirms (within 60 min)',
-    desc: 'Delivery resets the clock: the buyer has a fresh 60 minutes to log in and click "Confirm Receipt", which releases the escrow funds.',
+    step: '04', icon: CheckCircle, color: 'text-emerald-400',
+    title: 'Buyer Confirms',
+    desc: 'The buyer has 60 minutes to verify the delivery and click Confirm Receipt on the order page.',
   },
   {
-    step: '05',
-    icon: <Banknote className="w-6 h-6 text-brand" />,
+    step: '05', icon: Banknote, color: 'text-brand',
     title: 'Seller Gets Paid',
-    desc: 'The funds (minus the 10% service fee) are credited to the seller\'s Velxo wallet, ready for withdrawal.',
+    desc: 'Funds (minus the platform fee) are released to the seller\'s wallet, ready for withdrawal.',
+  },
+];
+
+const levelBenefits = [
+  {
+    level: 'BRONZE', icon: '🥉', color: 'from-amber-700 to-amber-500', border: 'border-amber-600/30',
+    title: 'Bronze Seller',
+    desc: 'New sellers start here. Standard commission and escrow protection apply.',
+    req: 'Default starting level',
+  },
+  {
+    level: 'SILVER', icon: '🥈', color: 'from-slate-400 to-gray-300', border: 'border-slate-400/30',
+    title: 'Silver Seller',
+    desc: 'Proven sellers with good ratings. Shown higher in search results.',
+    req: '10+ sales · 4.0★ avg',
+  },
+  {
+    level: 'GOLD', icon: '🥇', color: 'from-yellow-500 to-amber-400', border: 'border-yellow-400/30',
+    title: 'Gold Seller',
+    desc: 'High-volume sellers with excellent track record. Priority placement.',
+    req: '50+ sales · 4.5★ avg',
+  },
+  {
+    level: 'ELITE', icon: '👑', color: 'from-violet-500 to-fuchsia-500', border: 'border-purple-400/30',
+    title: 'Elite Seller',
+    desc: 'Top-tier sellers with near-perfect stats. Max trust signal on all listings.',
+    req: '200+ sales · 4.8★ avg',
   },
 ];
 
 const disputeSteps = [
   {
-    icon: <AlertTriangle className="w-5 h-5 text-red-400" />,
-    title: 'Open a Dispute or Complaint',
-    desc: 'When a 60-minute window is missed, go to your Order page and click "File a Dispute" or "File a Complaint". Choose a reason and describe the issue clearly.',
+    icon: AlertTriangle, color: 'text-red-400',
+    title: 'Open a Dispute',
+    desc: 'From your Order page, click File a Dispute or File a Complaint. Choose a reason and provide details.',
   },
   {
-    icon: <Clock className="w-5 h-5 text-yellow-400" />,
+    icon: Clock, color: 'text-yellow-400',
     title: 'Moderation Review',
-    desc: 'Our team reviews evidence from both parties — chat logs, delivery screenshots, and order details — within 24–72 hours.',
+    desc: 'Our team reviews evidence from both parties — chat logs, delivery screenshots, and order history.',
   },
   {
-    icon: <RefreshCcw className="w-5 h-5 text-brand" />,
+    icon: RefreshCcw, color: 'text-brand',
     title: 'Resolution Issued',
-    desc: 'We issue a fair decision: full refund to buyer, partial refund, or full release to seller. Both parties are notified immediately.',
+    desc: 'We issue a fair decision within 24–72 hours: full refund, partial refund, or full release to seller.',
   },
 ];
 
 const faqs = [
   {
     q: 'What happens if the seller doesn\'t deliver?',
-    a: 'Once the seller accepts, they have 60 minutes to deliver. If that window passes without delivery, both the buyer and seller get buttons to File a Dispute or File a Complaint. If the seller cannot prove delivery, the buyer receives a full refund. Funds are never automatically released without buyer confirmation.',
+    a: 'Once accepted, the seller has 60 minutes to deliver. If the window lapses without delivery, both parties can open a dispute. If the seller can\'t prove delivery, the buyer receives a full refund. Funds are never automatically released.',
   },
   {
     q: 'How long do I have to confirm receipt?',
-    a: 'When the seller marks the order as delivered, a fresh 60-minute window starts for you to log in and click "Confirm Receipt". If you don\'t confirm in time, the seller can file a complaint to escalate — but you can still confirm receipt afterwards to release the funds.',
-  },
-  {
-    q: 'How long does escrow hold the funds?',
-    a: 'Funds are held until the buyer confirms delivery or a dispute is resolved. Nothing is released automatically — if a 60-minute window lapses, either party can raise a dispute or complaint and our team steps in to resolve it.',
+    a: 'When the seller marks delivery, a fresh 60-minute window starts for you to verify and click Confirm Receipt. If you don\'t confirm in time, the seller can file a complaint to escalate.',
   },
   {
     q: 'Can the seller cancel and take my money?',
-    a: 'No. Once a payment is locked in escrow, the seller cannot access it. Only buyer confirmation or a dispute resolution releases the funds.',
+    a: 'No. Once payment is locked in escrow, the seller cannot access it. Only buyer confirmation or a dispute resolution releases the funds.',
   },
   {
-    q: 'What is the escrow service fee?',
-    a: 'Velxo charges a 10% service fee on each completed transaction, deducted from the seller\'s payout. There are no fees for buyers.',
+    q: 'What is the platform fee?',
+    a: 'Velxo charges a 10% service fee on completed transactions, deducted from the seller\'s payout. Buyers pay the listed price only. Seller Pro subscribers get a reduced rate (5% for Pro, 3% for Premium).',
+  },
+  {
+    q: 'What is the seller level system?',
+    a: 'Sellers earn levels (Bronze → Silver → Gold → Elite) based on completed sales, average rating, and delivery success rate. Higher-level sellers appear more prominently in search and carry a stronger trust signal for buyers.',
   },
   {
     q: 'Is my payment safe?',
-    a: 'Yes. All payments are processed through Paystack or Flutterwave and held in a segregated escrow wallet. We use TLS encryption and bank-grade security standards.',
+    a: 'Yes. Payments are processed through Paystack or Flutterwave and held in a segregated escrow wallet. We use TLS encryption and bank-grade security standards throughout.',
   },
 ];
 
@@ -105,107 +130,132 @@ function TrackerFallback() {
 
 function EscrowInfo() {
   return (
-    <div className="space-y-16 my-8">
+    <div className="space-y-20 my-8">
       {/* Hero */}
       <div className="text-center space-y-5 max-w-2xl mx-auto">
-        <div className="w-16 h-16 bg-brand/10 rounded-2xl flex items-center justify-center mx-auto border border-brand/20">
-          <ShieldCheck className="w-8 h-8 text-brand" />
+        <div className="w-20 h-20 bg-brand/10 rounded-3xl flex items-center justify-center mx-auto border border-brand/20 shadow-lg shadow-brand/10">
+          <ShieldCheck className="w-10 h-10 text-brand" />
         </div>
-        <h1 className="text-4xl md:text-5xl font-extrabold text-white leading-tight">
+        <h1 className="text-4xl md:text-5xl font-black text-white leading-tight">
           How Velxo <span className="text-brand">Escrow Works</span>
         </h1>
-        <p className="text-gray-400 text-lg">
-          Velxo Escrow protects every transaction. Your money never touches the seller until you confirm you&apos;ve received exactly what was promised.
+        <p className="text-gray-400 text-lg leading-relaxed">
+          Every trade on Velxo is backed by escrow. Your money never touches the seller until you confirm delivery — guaranteed.
         </p>
+        <div className="flex flex-col sm:flex-row gap-3 justify-center">
+          <Link href="/search" className="bg-brand hover:bg-brand-dark px-8 py-3.5 rounded-xl font-bold text-white transition shadow-lg shadow-brand/20">
+            Browse Listings
+          </Link>
+          <Link href="#how-it-works" className="bg-cardBg border border-borderBg hover:border-brand/40 px-8 py-3.5 rounded-xl font-bold text-gray-300 hover:text-white transition">
+            See How It Works
+          </Link>
+        </div>
+      </div>
+
+      {/* Trust cards */}
+      <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+        {[
+          { icon: Lock, title: 'Funds Always Protected', desc: 'Money is locked the moment payment is made. Sellers cannot withdraw until buyer confirms.', color: 'text-brand' },
+          { icon: ShieldCheck, title: 'Neutral Moderation', desc: 'Our team reviews disputes fairly — evidence from both parties before any decision.', color: 'text-emerald-400' },
+          { icon: Zap, title: 'P2P Speed', desc: '60-minute delivery windows keep trades fast. Deadlines protect both buyers and sellers.', color: 'text-yellow-400' },
+        ].map((c, i) => (
+          <div key={i} className="bg-cardBg border border-borderBg rounded-2xl p-6 text-center space-y-3 hover:border-brand/30 transition">
+            <div className="w-12 h-12 rounded-2xl bg-background border border-borderBg flex items-center justify-center mx-auto">
+              <c.icon className={`w-6 h-6 ${c.color}`} />
+            </div>
+            <h3 className="font-bold text-white">{c.title}</h3>
+            <p className="text-sm text-gray-400 leading-relaxed">{c.desc}</p>
+          </div>
+        ))}
       </div>
 
       {/* Steps */}
-      <div className="space-y-6">
-        <h2 className="text-2xl font-extrabold text-white text-center">The escrow process</h2>
-        <div className="relative space-y-4 max-w-2xl mx-auto">
-          {steps.map((step, i) => (
-            <div key={i} className="flex items-start gap-5 bg-cardBg border border-borderBg rounded-2xl p-6 hover:border-brand/30 transition">
-              <div className="flex-shrink-0 w-12 h-12 bg-brand/10 rounded-xl flex items-center justify-center">
-                {step.icon}
+      <div id="how-it-works" className="space-y-6 scroll-mt-20">
+        <h2 className="text-2xl font-black text-white text-center">The escrow process</h2>
+        <div className="max-w-2xl mx-auto space-y-3">
+          {steps.map((s, i) => (
+            <div key={i} className="flex items-start gap-5 bg-cardBg border border-borderBg rounded-2xl p-5 hover:border-brand/25 transition">
+              <div className="flex-shrink-0 w-12 h-12 bg-background border border-borderBg rounded-xl flex items-center justify-center">
+                <s.icon className={`w-6 h-6 ${s.color}`} />
               </div>
-              <div className="flex-1">
+              <div>
                 <div className="flex items-center gap-2 mb-1">
-                  <span className="text-xs font-black text-brand">STEP {step.step}</span>
+                  <span className="text-[10px] font-black text-brand tracking-widest">STEP {s.step}</span>
                 </div>
-                <h3 className="font-bold text-white">{step.title}</h3>
-                <p className="text-sm text-gray-400 mt-1">{step.desc}</p>
+                <h3 className="font-bold text-white">{s.title}</h3>
+                <p className="text-sm text-gray-400 mt-1 leading-relaxed">{s.desc}</p>
               </div>
             </div>
           ))}
         </div>
       </div>
 
-      {/* Trust badges */}
-      <div className="grid grid-cols-1 md:grid-cols-3 gap-5">
-        <div className="bg-cardBg border border-borderBg rounded-2xl p-6 text-center space-y-3">
-          <Lock className="w-8 h-8 text-brand mx-auto" />
-          <h3 className="font-bold text-white">Funds Always Protected</h3>
-          <p className="text-sm text-gray-400">Money is locked the moment payment is made. Sellers cannot withdraw until you confirm.</p>
+      {/* Seller Levels */}
+      <div className="space-y-6">
+        <div className="text-center space-y-2">
+          <h2 className="text-2xl font-black text-white">Seller Level System</h2>
+          <p className="text-gray-400 text-sm">Sellers earn trust through performance — levels let you know exactly who you&apos;re trading with.</p>
         </div>
-        <div className="bg-cardBg border border-borderBg rounded-2xl p-6 text-center space-y-3">
-          <ShieldCheck className="w-8 h-8 text-brand mx-auto" />
-          <h3 className="font-bold text-white">Neutral Moderation</h3>
-          <p className="text-sm text-gray-400">Our team reviews disputes fairly with evidence from both parties before making any decision.</p>
-        </div>
-        <div className="bg-cardBg border border-borderBg rounded-2xl p-6 text-center space-y-3">
-          <CheckCircle className="w-8 h-8 text-brand mx-auto" />
-          <h3 className="font-bold text-white">You Control Release</h3>
-          <p className="text-sm text-gray-400">Funds are only released when you click confirm. Never automatically. Never without your approval.</p>
+        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
+          {levelBenefits.map(l => (
+            <div key={l.level} className={`bg-cardBg border ${l.border} rounded-2xl p-5 space-y-3 hover:shadow-lg transition`}>
+              <div className={`inline-flex items-center gap-2 px-3 py-1.5 rounded-full text-sm font-black bg-gradient-to-r ${l.color} text-white`}>
+                <span>{l.icon}</span> {l.title}
+              </div>
+              <p className="text-sm text-gray-400 leading-relaxed">{l.desc}</p>
+              <p className="text-[10px] font-bold text-gray-600 uppercase tracking-widest">{l.req}</p>
+            </div>
+          ))}
         </div>
       </div>
 
       {/* Dispute section */}
       <div id="disputes" className="space-y-6">
         <div className="text-center space-y-2">
-          <h2 className="text-2xl font-extrabold text-white">Dispute Resolution</h2>
-          <p className="text-gray-400 text-sm">Something went wrong? Here&apos;s how we handle it.</p>
+          <h2 className="text-2xl font-black text-white">Dispute Resolution</h2>
+          <p className="text-gray-400 text-sm">Something went wrong? Here&apos;s exactly what happens.</p>
         </div>
-        <div className="grid grid-cols-1 md:grid-cols-3 gap-5 max-w-3xl mx-auto">
-          {disputeSteps.map((step, i) => (
-            <div key={i} className="bg-cardBg border border-borderBg rounded-2xl p-6 space-y-3 text-center">
-              <div className="w-11 h-11 bg-background rounded-xl flex items-center justify-center mx-auto border border-borderBg">
-                {step.icon}
+        <div className="grid grid-cols-1 md:grid-cols-3 gap-4 max-w-3xl mx-auto">
+          {disputeSteps.map((s, i) => (
+            <div key={i} className="bg-cardBg border border-borderBg rounded-2xl p-6 space-y-3 text-center hover:border-brand/25 transition">
+              <div className="w-12 h-12 bg-background border border-borderBg rounded-xl flex items-center justify-center mx-auto">
+                <s.icon className={`w-6 h-6 ${s.color}`} />
               </div>
-              <h3 className="font-bold text-white text-sm">{step.title}</h3>
-              <p className="text-xs text-gray-400">{step.desc}</p>
+              <h3 className="font-bold text-white text-sm">{s.title}</h3>
+              <p className="text-xs text-gray-400 leading-relaxed">{s.desc}</p>
             </div>
           ))}
         </div>
         <div className="bg-red-950/20 border border-red-500/20 rounded-2xl p-5 max-w-2xl mx-auto text-sm text-gray-400 space-y-2">
-          <p className="font-bold text-red-300">Important:</p>
-          <p>Velxo runs on tight <strong className="text-white">60-minute</strong> windows: the seller has 60 minutes to deliver after accepting, and the buyer has 60 minutes to confirm after delivery. If either window is missed, the affected party can open a dispute or complaint straight from the order page. Funds are <strong className="text-white">never</strong> released automatically without buyer confirmation or a support decision.</p>
+          <p className="font-bold text-red-300">Important timing rules:</p>
+          <p>Velxo enforces tight <strong className="text-white">60-minute</strong> windows: seller has 60 min to deliver after accepting, buyer has 60 min to confirm after delivery. Missing either window enables the affected party to open a dispute from their order page. Funds are <strong className="text-white">never</strong> released automatically without buyer confirmation or a moderator decision.</p>
         </div>
       </div>
 
       {/* FAQ */}
-      <div className="space-y-5 max-w-2xl mx-auto">
-        <h2 className="text-2xl font-extrabold text-white text-center">Common Questions</h2>
+      <div className="space-y-4 max-w-2xl mx-auto">
+        <h2 className="text-2xl font-black text-white text-center">Common Questions</h2>
         {faqs.map((faq, i) => (
-          <details key={i} className="bg-cardBg border border-borderBg rounded-2xl group open:border-brand/30 transition">
+          <details key={i} className="bg-cardBg border border-borderBg rounded-2xl group open:border-brand/25 transition">
             <summary className="flex justify-between items-center px-6 py-4 cursor-pointer list-none">
               <span className="font-semibold text-white text-sm">{faq.q}</span>
+              <span className="text-gray-500 group-open:rotate-180 transition-transform text-lg leading-none ml-2 flex-shrink-0">⌄</span>
             </summary>
-            <div className="px-6 pb-5 text-sm text-gray-400 leading-relaxed border-t border-borderBg pt-4">
-              {faq.a}
-            </div>
+            <div className="px-6 pb-5 text-sm text-gray-400 leading-relaxed border-t border-borderBg pt-4">{faq.a}</div>
           </details>
         ))}
       </div>
 
       {/* CTA */}
-      <div className="bg-cardBg border border-borderBg rounded-3xl p-10 text-center space-y-4">
-        <h3 className="text-2xl font-extrabold text-white">Ready to trade safely?</h3>
-        <p className="text-gray-400 text-sm">Every trade on Velxo is protected. Start buying or selling with confidence.</p>
+      <div className="bg-gradient-to-br from-brand/15 via-cardBg to-purple-900/15 border border-borderBg rounded-3xl p-10 text-center space-y-4">
+        <ShieldCheck className="w-12 h-12 text-brand mx-auto" />
+        <h3 className="text-2xl font-black text-white">Ready to trade safely?</h3>
+        <p className="text-gray-400 text-sm">Every trade on Velxo is protected by escrow. Start buying or selling with confidence.</p>
         <div className="flex flex-col sm:flex-row gap-3 justify-center">
-          <Link href="/search" className="bg-brand hover:bg-brand-dark px-8 py-3.5 rounded-xl font-bold transition text-white">
+          <Link href="/search" className="bg-brand hover:bg-brand-dark px-8 py-3.5 rounded-xl font-bold text-white transition shadow-lg shadow-brand/20">
             Browse Listings
           </Link>
-          <Link href="/support" className="bg-background border border-borderBg hover:border-brand/40 px-8 py-3.5 rounded-xl font-bold transition text-gray-300">
+          <Link href="/support" className="bg-background border border-borderBg hover:border-brand/40 px-8 py-3.5 rounded-xl font-bold text-gray-300 hover:text-white transition">
             Get Help
           </Link>
         </div>
@@ -221,8 +271,6 @@ export default async function EscrowPage({
 }) {
   const { orderId } = await searchParams;
 
-  // When arriving with an order id (e.g. from checkout), show the live
-  // track-order view instead of the informational page.
   if (orderId) {
     return (
       <Suspense fallback={<TrackerFallback />}>

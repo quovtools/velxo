@@ -31,6 +31,11 @@ const config: Config = {
           700: "#404040",
           900: "#171717",
         },
+        // Seller level colors
+        bronze: { DEFAULT: '#cd7f32', light: '#e8a85f', dark: '#a0622a' },
+        silver: { DEFAULT: '#c0c0c0', light: '#d8d8d8', dark: '#9a9a9a' },
+        gold:   { DEFAULT: '#ffd700', light: '#ffe44d', dark: '#ccac00' },
+        elite:  { DEFAULT: '#a855f7', light: '#c084fc', dark: '#7e22ce' },
       },
     },
   },
