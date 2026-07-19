@@ -109,7 +109,8 @@ export class SellersController {
     try {
       // Fetch the seller first to verify ownership
       const existing = await this.sellersService.getSellerProfile(sellerId)
-      if (existing.user?.id !== userId) {
+      const existingUserId = (existing as any).user?.id
+      if (existingUserId !== userId) {
         throw new ForbiddenException('You can only update your own seller profile')
       }
       const seller = await this.sellersService.updateSeller(sellerId, updates)
