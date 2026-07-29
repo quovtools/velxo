@@ -1,5 +1,11 @@
-import { redirect } from 'next/navigation';
+import type { Metadata } from 'next';
+import LegalPageContent from '@/components/LegalPageContent';
+
+export const metadata: Metadata = {
+  title: 'Privacy Policy',
+  description: 'Learn how Velxo Market collects, uses and protects your personal information.',
+};
 
 export default function PrivacyPage() {
-  redirect('https://velxo.shop/privacy');
+  return <LegalPageContent pageType="privacy" fallbackTitle="Privacy Policy" />;
 }
