@@ -1,9 +1,17 @@
 'use client';
 
 import React, { useState, useEffect, useRef, useCallback } from 'react';
+import { usePathname } from 'next/navigation';
 import { MessageCircle, X, Send, Loader2, ChevronDown, ShieldCheck } from 'lucide-react';
 
 const API_BASE = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:3001/api/v1';
+
+export default function LiveChatWidget({ showAlways }: { showAlways?: boolean }) {
+  const pathname = usePathname?.() ?? (typeof window !== 'undefined' ? window.location.pathname : '');
+  // Only show by default on these frontend paths
+  const allowedDefault = ['/profile', '/support'];
+  const allowed = showAlways || allowedDefault.some(p => pathname === p || pathname.startsWith(p + '/'));
+  if (!allowed) return null;
 
 /* ── Generate / retrieve a stable visitor ID ─────────────────────────── */
 function getVisitorId(): string {
