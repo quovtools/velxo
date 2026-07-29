@@ -47,7 +47,7 @@ services:
       - key: FRONTEND_URL
         value: https://market.velxo.shop
       - key: CORS_ORIGIN
-        value: https://velxo.shop,https://market.velxo.shop
+        value: https://velxo.shop,https://www.velxo.shop,https://market.velxo.shop
       - key: GOOGLE_CLIENT_ID
         sync: false
       - key: GOOGLE_CLIENT_SECRET
