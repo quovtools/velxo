@@ -9,6 +9,12 @@ const ALLOWED_PATHS = ['/', '/profile', '/support'];
 
 const API_BASE = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:3001/api/v1';
 
+export default function LiveChatWidget({ showAlways }: { showAlways?: boolean }) {
+  const pathname = usePathname?.() ?? (typeof window !== 'undefined' ? window.location.pathname : '');
+  // Only show by default on these frontend paths
+  const allowedDefault = ['/profile', '/support'];
+  const allowed = showAlways || allowedDefault.some(p => pathname === p || pathname.startsWith(p + '/'));
+  if (!allowed) return null;
 
 /* ── Generate / retrieve a stable visitor ID ─────────────────────────── */
 function getVisitorId(): string {
@@ -25,7 +31,10 @@ interface ChatMsg { id: string; senderType: string; content: string; createdAt: 
 
 type Step = 'idle' | 'intro' | 'chat';
 
-export default function LiveChatWidget({ showAlways }: { showAlways?: boolean }) {
+export default function LiveChatWidget() {
+  const pathname = usePathname();
+  const visible  = ALLOWED_PATHS.includes(pathname);
+
   const [step,       setStep]       = useState<Step>('idle');
   const [messages,   setMessages]   = useState<ChatMsg[]>([]);
   const [input,      setInput]      = useState('');
@@ -40,12 +49,8 @@ export default function LiveChatWidget({ showAlways }: { showAlways?: boolean })
   const inputRef   = useRef<HTMLInputElement>(null);
   const visitorId  = useRef(getVisitorId());
 
-  // Only show by default on these frontend paths
-  const pathname = usePathname?.() ?? (typeof window !== 'undefined' ? window.location.pathname : '');
-  const allowedDefault = ['/profile', '/support'];
-  const allowed = showAlways || allowedDefault.some(p => pathname === p || pathname.startsWith(p + '/'));
-  if (!allowed) return null;
-
+  // Don't render on pages that aren't in the allowed list
+  if (!visible) return null;
 
   /* ── Auto-scroll ── */
   useEffect(() => {
