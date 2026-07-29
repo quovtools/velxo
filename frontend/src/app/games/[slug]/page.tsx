@@ -18,23 +18,22 @@ export async function generateMetadata({
   const { slug } = await params;
   const gameName = formatGameName(slug);
   return {
-    title: `${gameName} Accounts, Coins & Top-Ups`,
-    description: `Buy and sell ${gameName} accounts, UC/diamonds top-ups, gift cards and boosting services on Velxo. Verified sellers and escrow-protected trades.`,
+    title: `${gameName} Accounts & Boosting`,
+    description: `Buy and sell ${gameName} accounts and boosting services on Velxo. Verified sellers and escrow-protected trades.`,
     keywords: [
       `${gameName} accounts`,
-      `${gameName} top up`,
-      `${gameName} coins`,
       `${gameName} marketplace`,
       'escrow gaming',
     ],
     alternates: { canonical: `${SITE_URL}/games/${slug}` },
     openGraph: {
       title: `${gameName} Marketplace | Velxo`,
-      description: `Buy and sell ${gameName} accounts, coins and top-ups with escrow protection.`,
+    description: `Buy and sell ${gameName} accounts and boosting services with escrow protection.`,
       url: `${SITE_URL}/games/${slug}`,
       siteName: 'Velxo Market',
       type: 'website',
     },
+
   };
 }
 
@@ -47,7 +46,8 @@ export default async function GameCatalogPage({ params }: { params: Promise<{ sl
     '@type': 'CollectionPage',
     name: `${gameName} Marketplace`,
     url: `${SITE_URL}/games/${slug}`,
-    description: `Browse ${gameName} accounts, coins and top-ups on Velxo Market.`,
+    description: `Browse ${gameName} accounts and boosting services on Velxo Market.`,
+
   };
 
   return (

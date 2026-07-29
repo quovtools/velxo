@@ -57,6 +57,19 @@ export class DisputesController {
     }
   }
 
+  @Get(':id/ai-suggest')
+  @UseGuards(SupabaseJwtGuard)
+  async aiSuggest(@Req() req: Request, @Param('id') disputeId: string) {
+    try {
+      assertStaff(req)
+      const suggestion = await this.disputesService.aiSuggestResolution(disputeId)
+      return ApiResponseDto.ok(suggestion, 'AI suggestion generated')
+    } catch (error) {
+      this.logger.error('Error generating AI suggestion:', error)
+      throw error
+    }
+  }
+
   @Get(':id')
   @UseGuards(SupabaseJwtGuard)
   async getDisputeById(@Req() req: Request, @Param('id') disputeId: string) {

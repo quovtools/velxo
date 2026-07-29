@@ -32,7 +32,7 @@ export default function NavigationWrapper() {
           {/* Logo */}
           <div className="flex items-center gap-4 md:gap-8">
             <Link href="/" className="flex items-center gap-2" onClick={() => setMobileOpen(false)}>
-              <img src="/logo.png" alt="Velxo" className="w-7 h-7 rounded-lg object-cover" />
+              <img src="/logo-new.png" alt="Velxo" className="w-7 h-7 rounded-lg object-cover" />
               <span className="text-xl md:text-2xl font-black tracking-wider">VELXO</span>
             </Link>
             {/* Desktop nav links */}
@@ -43,10 +43,6 @@ export default function NavigationWrapper() {
                 Sell
               </Link>
               <Link href="/escrow" className="hover:text-brand transition">How it Works</Link>
-              <Link href="/topups" className="hover:text-brand transition flex items-center gap-1.5">
-                <Zap className="w-4 h-4" />
-                Top-Ups
-              </Link>
               <Link href="/boosting" className="hover:text-brand transition flex items-center gap-1.5">
                 <Gamepad2 className="w-4 h-4" />
                 Boosting

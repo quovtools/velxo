@@ -2,7 +2,7 @@
 
 import React, { useState, useEffect } from 'react';
 import Link from 'next/link';
-import { slugToGameName } from '@/lib/games';
+import { slugToGameName, getGameConfig } from '@/lib/games';
 import { useCurrency } from '@/lib/useCurrency';
 
 const API_BASE = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:3001/api/v1';
@@ -27,6 +27,7 @@ export default function GameCatalogContent({ slug }: { slug: string }) {
   const [loading, setLoading] = useState(true);
 
   const gameName = slugToGameName(slug);
+  const cfg = getGameConfig(gameName);
 
   useEffect(() => {
     async function loadListings() {
@@ -49,7 +50,7 @@ export default function GameCatalogContent({ slug }: { slug: string }) {
     <div className="space-y-8">
       <div className="border-b border-borderBg pb-6">
         <h1 className="text-4xl font-extrabold text-white">{gameName} Marketplace</h1>
-        <p className="text-gray-400 mt-2">Browse active accounts, top-ups, and coins for {gameName}</p>
+        <p className="text-gray-400 mt-2">Browse active accounts and boosting services for {gameName}{cfg?.currency ? ` — ${cfg.currency.plural}` : ''}</p>
       </div>
 
       {loading ? (

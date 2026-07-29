@@ -12,6 +12,7 @@ import SellerReportModal from '@/components/SellerReportModal';
 import VerifiedBadge from '@/components/VerifiedBadge';
 import SellerLevelBadge from '@/components/SellerLevelBadge';
 import { useCurrency } from '@/lib/useCurrency';
+import GameListingTemplate from '@/components/GameListingTemplate';
 
 interface Listing {
   id: string;
@@ -202,6 +203,11 @@ export default function ListingDetailsContent({ id, initialData }: { id: string;
                   <p className="text-sm font-bold mt-0.5 truncate">{m.val}</p>
                 </div>
               ))}
+            </div>
+
+            {/* Game-specific template */}
+            <div className="mt-4">
+              <GameListingTemplate listing={listing} />
             </div>
 
             {/* Description */}
