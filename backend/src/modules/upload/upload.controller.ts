@@ -30,7 +30,7 @@ const ALLOWED_MIME = new Set([
 const MAX_SIZE = 8 * 1024 * 1024
 
 // Folders whose keys may be signed without authentication (public-facing images)
-const PUBLIC_FOLDERS = new Set(['listings', 'avatars', 'gigs', 'slides', 'misc'])
+const PUBLIC_FOLDERS = new Set(['listings', 'avatars', 'gigs', 'slides', 'banners', 'misc'])
 
 // KYC folder — signing requires authentication (handled by guard at the route level)
 const PRIVATE_FOLDERS = new Set(['kyc'])

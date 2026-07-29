@@ -28,6 +28,8 @@ import { RewardsModule } from './modules/rewards/rewards.module'
 import { GatewayModule } from './modules/gateways'
 import { UploadModule } from './modules/upload/upload.module'
 import { ForumModule } from './modules/forum/forum.module'
+import { GameBannersModule } from './modules/game-banners/game-banners.module'
+import { BuyerRequestsModule } from './modules/buyer-requests/buyer-requests.module'
 import { AllExceptionsFilter } from './common/filters/all-exceptions.filter'
 
 @Module({
@@ -64,6 +66,8 @@ import { AllExceptionsFilter } from './common/filters/all-exceptions.filter'
     GatewayModule,
     UploadModule,
     ForumModule,
+    GameBannersModule,
+    BuyerRequestsModule,
   ],
   providers: [
     {

@@ -51,6 +51,7 @@ const quickLinks = [
   { href: '/admin/marquee', icon: Megaphone, label: 'News Marquee', desc: 'Control the scrolling news bar', color: 'text-pink-400' },
   { href: '/admin/audit-logs', icon: History, label: 'Audit Logs', desc: 'Track all admin actions', color: 'text-gray-400' },
   { href: '/admin/creators', icon: Crown, label: 'Creator Applications', desc: 'Review creator program applicants', color: 'text-yellow-400' },
+  { href: '/admin/game-banners', icon: Image, label: 'Game Banners', desc: 'Manage per-game listing banners', color: 'text-brand' },
 ];
 
 export default function AdminDashboardPage() {

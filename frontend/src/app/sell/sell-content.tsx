@@ -3,71 +3,111 @@
 import React, { useState, useEffect } from 'react';
 import { useRouter } from 'next/navigation';
 import { api } from '@/lib/api';
-import { fileToDataUrl } from '@/lib/file';
-import { uploadListingImage } from '@/lib/upload';
 import { useAuth } from '@/app/providers';
 import { GAME_NAMES, getGameConfig, REGIONS } from '@/lib/games';
 import { useCurrency } from '@/lib/useCurrency';
 import {
   Gamepad2, Package, ChevronRight, ChevronLeft,
-  Check, AlertCircle, Loader2, Upload, Info,
-  DollarSign, Tag, MapPin, Monitor, Star, Clock,
-  Plus, Image, Zap
+  Check, AlertCircle, Loader2, Info,
+  DollarSign, Tag, MapPin, Clock,
+  Zap, ShieldCheck, Star, TrendingUp,
+  Store, BadgeCheck, Layers, ArrowRight,
+  MessageCircle, ImageOff,
 } from 'lucide-react';
 
+/* ─────────────────────────── Constants ──────────────────────────────── */
 const GAMES = [...GAME_NAMES, 'Other'];
 const ALL_PLATFORMS = ['Android', 'iOS', 'PC', 'PlayStation', 'Xbox', 'Nintendo Switch', 'Meta Quest'];
+
 const CATEGORIES = [
-  { label: 'Game Account', value: 'account' },
-  { label: 'In-Game Currency / Coins', value: 'coins' },
-  { label: 'Top-Up Service', value: 'topup' },
-  { label: 'Gift Card', value: 'giftcard' },
-  { label: 'Boosting Service', value: 'boost' },
-  { label: 'Skins / Items', value: 'skins' },
+  { label: 'Game Account', value: 'account', icon: Gamepad2, desc: 'Sell your full game account with all its contents' },
+  { label: 'In-Game Currency', value: 'coins', icon: Zap, desc: 'Coins, diamonds, gems, tokens and other currencies' },
+  { label: 'Top-Up Service', value: 'topup', icon: TrendingUp, desc: 'Offer top-up services for various games' },
+  { label: 'Gift Card', value: 'giftcard', icon: Tag, desc: 'Sell gift cards for game stores & platforms' },
+  { label: 'Boosting Service', value: 'boost', icon: Star, desc: 'Rank boosting, leveling, coaching and carry' },
+  { label: 'Skins / Items', value: 'skins', icon: Package, desc: 'Rare skins, weapons, items and collectibles' },
 ];
 
-function ProgressBar({ step, total }: { step: number; total: number }) {
+const ACCOUNT_TYPES = [
+  { value: 'STANDARD', label: 'Item Seller', icon: Store, desc: 'Sell accounts, coins, gift cards, and items' },
+  { value: 'BOOSTER', label: 'Booster / Coach', icon: TrendingUp, desc: 'Offer rank boosting, leveling, and coaching gigs' },
+  { value: 'BOTH', label: 'Both', icon: Layers, desc: 'Sell items and offer boosting services' },
+];
+
+/* ─────────────────────────── Wizard step labels ─────────────────────── */
+// Phase A = store onboarding (steps 0-3 when new)
+// Phase B = listing creation (steps 4-6)
+const ONBOARDING_STEPS = ['Welcome', 'Store Info', 'Account Type', 'Ready'];
+const LISTING_STEPS = ['Category', 'Details', 'Pricing'];
+
+/* ─────────────────────────── Progress Bar ───────────────────────────── */
+interface ProgressBarProps {
+  currentStep: number;   // 0-indexed within the labels array
+  labels: string[];
+  color?: string;
+}
+function ProgressBar({ currentStep, labels, color = 'bg-brand border-brand' }: ProgressBarProps) {
   return (
-    <div className="flex items-center gap-2 mb-8">
-      {Array.from({ length: total }).map((_, i) => (
-        <React.Fragment key={i}>
-          <div className={`flex items-center gap-1.5 ${i < step ? 'text-brand' : i === step ? 'text-white' : 'text-gray-500'}`}>
-            <div className={`w-7 h-7 rounded-full flex items-center justify-center text-xs font-bold border-2 transition-all ${
-              i < step ? 'bg-brand border-brand text-white' :
-              i === step ? 'border-brand text-white bg-brand/10' :
-              'border-gray-600 text-gray-600'
+    <div className="flex items-center gap-1.5 mb-8">
+      {labels.map((label, i) => (
+        <React.Fragment key={label}>
+          <div className={`flex items-center gap-1.5 ${i < currentStep ? 'text-brand' : i === currentStep ? 'text-white' : 'text-gray-600'}`}>
+            <div className={`w-7 h-7 rounded-full flex items-center justify-center text-xs font-bold border-2 transition-all duration-300 ${
+              i < currentStep
+                ? 'bg-brand border-brand text-white'
+                : i === currentStep
+                  ? 'border-brand text-white bg-brand/10'
+                  : 'border-gray-700 text-gray-600'
             }`}>
-              {i < step ? <Check className="w-3.5 h-3.5" /> : i + 1}
+              {i < currentStep ? <Check className="w-3.5 h-3.5" /> : i + 1}
             </div>
-            <span className="text-xs font-medium hidden sm:block">
-              {['Store Setup', 'Item Details', 'Pricing & Info', 'Review'][i]}
-            </span>
+            <span className="text-[11px] font-semibold hidden sm:block whitespace-nowrap">{label}</span>
           </div>
-          {i < total - 1 && <div className={`flex-1 h-0.5 ${i < step ? 'bg-brand' : 'bg-gray-700'}`} />}
+          {i < labels.length - 1 && (
+            <div className={`flex-1 h-0.5 transition-all duration-300 ${i < currentStep ? 'bg-brand' : 'bg-gray-800'}`} />
+          )}
         </React.Fragment>
       ))}
     </div>
   );
 }
 
+/* ─────────────────────────── Step shell ─────────────────────────────── */
+function StepCard({ children }: { children: React.ReactNode }) {
+  return (
+    <div className="bg-cardBg border border-borderBg rounded-2xl p-6 space-y-5">
+      {children}
+    </div>
+  );
+}
+
+/* ─────────────────────────── Main component ─────────────────────────── */
 export default function SellPage() {
   const router = useRouter();
   const { user, loading: authLoading, updateUser } = useAuth();
   const { fmt } = useCurrency();
 
+  /* ── auth / seller check ── */
   const [isSeller, setIsSeller] = useState(false);
   const [checkingStatus, setCheckingStatus] = useState(true);
-  const [step, setStep] = useState(0); // 0 = store setup, 1-3 = listing steps
+
+  /* ── global UI ── */
   const [submitting, setSubmitting] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [success, setSuccess] = useState(false);
 
-  // Store onboarding
+  /* ── onboarding phase (0-3) ── */
+  const [onboardStep, setOnboardStep] = useState(0);
+
+  /* ── store fields ── */
   const [storeName, setStoreName] = useState('');
   const [storeDescription, setStoreDescription] = useState('');
-  const [storeNameError, setStoreNameError] = useState(false);
+  const [accountType, setAccountType] = useState<'STANDARD' | 'BOOSTER' | 'BOTH'>('STANDARD');
 
-  // Listing fields
+  /* ── listing phase (1-3, matching LISTING_STEPS) ── */
+  const [listStep, setListStep] = useState(1);
+
+  /* ── listing fields ── */
   const [category, setCategory] = useState('account');
   const [gameName, setGameName] = useState('Free Fire');
   const [title, setTitle] = useState('');
@@ -79,7 +119,6 @@ export default function SellPage() {
   const [level, setLevel] = useState('');
   const [loginMethod, setLoginMethod] = useState('');
   const [deliveryTime, setDeliveryTime] = useState('60');
-  const [imageUrls, setImageUrls] = useState<string[]>(['', '', '', '']);
 
   const gameCfg = getGameConfig(gameName);
   const platformOptions = gameCfg?.platforms ?? ALL_PLATFORMS;
@@ -88,49 +127,34 @@ export default function SellPage() {
   const currencyName = gameCfg?.currency.plural;
   const supportsRank = !gameCfg || gameCfg.hasRanked;
 
+  /* ── check seller status on mount ── */
   useEffect(() => {
     if (authLoading) return;
-    if (!user) {
-      router.push('/auth/login?redirect=/sell');
-      return;
-    }
-
+    if (!user) { router.push('/auth/login?redirect=/sell'); return; }
     api.get<{ success: boolean; data: any }>('/sellers/me')
       .then(res => {
-        if (res.success && res.data) {
+        if ((res as any).success && (res as any).data) {
           setIsSeller(true);
-          setStep(1);
-        } else {
-          setIsSeller(false);
-          setStep(0);
         }
       })
-      .catch(() => {
-        setIsSeller(false);
-        setStep(0);
-      })
+      .catch(() => {})
       .finally(() => setCheckingStatus(false));
   }, [user, authLoading, router]);
 
-  const handleOnboard = async (e: React.FormEvent) => {
-    e.preventDefault();
-    if (!storeName.trim()) {
-      setStoreNameError(true);
-      return;
-    }
-    setStoreNameError(false);
-    setError(null);
-    setSubmitting(true);
+  /* ── onboarding submit ── */
+  const handleOnboard = async () => {
+    if (!storeName.trim()) return;
+    setError(null); setSubmitting(true);
     try {
       const res = await api.post<{ success: boolean; data: any }>('/sellers', {
         storeName: storeName.trim(),
         storeDescription: storeDescription.trim(),
+        accountType,
       });
-      if (res.success) {
+      if ((res as any).success) {
         setIsSeller(true);
-        // Update user role in session without page reload
         updateUser({ role: 'SELLER' });
-        setStep(1);
+        setOnboardStep(3); // go to "Ready" confirmation
       }
     } catch (err: any) {
       setError(err.message || 'Failed to create store. Please try again.');
@@ -139,9 +163,9 @@ export default function SellPage() {
     }
   };
 
+  /* ── listing submit ── */
   const handleCreateListing = async () => {
-    setError(null);
-    setSubmitting(true);
+    setError(null); setSubmitting(true);
     try {
       const res = await api.post<{ success: boolean; data: any }>('/listings', {
         title: title.trim(),
@@ -155,11 +179,9 @@ export default function SellPage() {
         loginMethod: loginMethod || undefined,
         deliveryTime: parseInt(deliveryTime),
         categoryId: 'auto',
-        images: imageUrls.map(u => u.trim()).filter(Boolean),
+        images: [],   // no per-listing uploads; game banner is used instead
       });
-      if (res.success) {
-        setSuccess(true);
-      }
+      if ((res as any).success) setSuccess(true);
     } catch (err: any) {
       setError(err.message || 'Failed to create listing. Please try again.');
     } finally {
@@ -167,33 +189,42 @@ export default function SellPage() {
     }
   };
 
+  /* ── loading state ── */
   if (authLoading || checkingStatus) {
     return (
       <div className="flex items-center justify-center min-h-[60vh]">
         <div className="text-center space-y-4">
           <Loader2 className="w-10 h-10 text-brand animate-spin mx-auto" />
-          <p className="text-gray-400 text-sm">Loading...</p>
+          <p className="text-gray-400 text-sm">Loading…</p>
         </div>
       </div>
     );
   }
 
+  /* ── success screen ── */
   if (success) {
     return (
-      <div className="max-w-lg mx-auto text-center py-20 space-y-6 fade-in">
-        <div className="w-20 h-20 bg-emerald-500/20 rounded-full flex items-center justify-center mx-auto">
+      <div className="max-w-lg mx-auto text-center py-20 space-y-6">
+        <div className="w-20 h-20 bg-emerald-500/20 rounded-full flex items-center justify-center mx-auto animate-bounce-in">
           <Check className="w-10 h-10 text-emerald-400" />
         </div>
         <h2 className="text-2xl font-black text-white">Listing Submitted!</h2>
-        <p className="text-gray-400 text-sm">
-          Your listing has been submitted for review. It will go live within 24 hours after our team approves it.
+        <p className="text-gray-400 text-sm max-w-xs mx-auto">
+          Your listing is under review. Our team will approve it within 24 hours and buyers will start seeing it.
         </p>
+        <div className="bg-cardBg border border-borderBg rounded-2xl p-5 text-left space-y-2 text-sm">
+          <div className="flex justify-between"><span className="text-gray-400">Game</span><span className="font-bold text-white">{gameName}</span></div>
+          <div className="flex justify-between"><span className="text-gray-400">Title</span><span className="font-bold text-white truncate max-w-[180px]">{title}</span></div>
+          <div className="flex justify-between"><span className="text-gray-400">Price</span><span className="font-bold text-brand">{fmt(parseFloat(price) || 0)}</span></div>
+        </div>
         <div className="flex flex-col sm:flex-row gap-3 justify-center">
-          <button onClick={() => { setSuccess(false); setStep(1); setTitle(''); setDescription(''); setPrice(''); setImageUrls(['', '', '', '']); }}
+          <button
+            onClick={() => { setSuccess(false); setListStep(1); setTitle(''); setDescription(''); setPrice(''); }}
             className="px-6 py-3 bg-brand hover:bg-brand-dark rounded-xl font-bold text-white transition">
             Create Another Listing
           </button>
-          <button onClick={() => router.push('/seller/dashboard')}
+          <button
+            onClick={() => router.push('/seller/dashboard')}
             className="px-6 py-3 bg-hoverBg/50 border border-borderBg hover:border-brand/30 rounded-xl font-bold text-white transition">
             View Dashboard
           </button>
@@ -202,109 +233,258 @@ export default function SellPage() {
     );
   }
 
-  // Step 0: Store onboarding
-  if (!isSeller || step === 0) {
+  /* ══════════════════════════════════════════════════════════════════════
+     PHASE A — SELLER ONBOARDING WIZARD (shown when !isSeller)
+     Steps: 0 = Welcome  1 = Store Info  2 = Account Type  3 = Ready!
+  ══════════════════════════════════════════════════════════════════════ */
+  if (!isSeller) {
     return (
-      <div className="max-w-lg mx-auto py-10 fade-in">
-        <div className="text-center mb-8">
-          <div className="w-16 h-16 bg-brand/10 rounded-2xl flex items-center justify-center mx-auto mb-4">
-            <Gamepad2 className="w-8 h-8 text-brand" />
-          </div>
-          <h1 className="text-3xl font-black text-white">Start Selling on Velxo</h1>
-          <p className="text-gray-400 mt-2 text-sm">Set up your store in seconds. It's free.</p>
-        </div>
+      <div className="max-w-xl mx-auto py-8">
 
-        {error && (
-          <div className="bg-red-900/20 border border-red-500/40 text-red-300 text-sm px-4 py-3 rounded-xl mb-6 flex items-center gap-2">
-            <AlertCircle className="w-4 h-4 flex-shrink-0" /> {error}
+        {/* Step 0 — Welcome */}
+        {onboardStep === 0 && (
+          <div className="space-y-8 text-center">
+            <div className="w-20 h-20 bg-brand/10 rounded-3xl flex items-center justify-center mx-auto">
+              <Gamepad2 className="w-10 h-10 text-brand" />
+            </div>
+            <div>
+              <h1 className="text-3xl font-black text-white">Become a Seller on Velxo</h1>
+              <p className="text-gray-400 mt-2 text-sm max-w-sm mx-auto">
+                Join thousands of sellers earning from game accounts, coins, boosting, and more. Setup takes 2 minutes.
+              </p>
+            </div>
+
+            <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 text-left">
+              {[
+                { icon: ShieldCheck, color: 'text-emerald-400', title: 'Escrow Protection', desc: 'Funds are held safely until delivery confirmed' },
+                { icon: TrendingUp, color: 'text-brand', title: 'Grow Your Store', desc: 'Reputation system with buyer reviews and ratings' },
+                { icon: Zap, color: 'text-orange-400', title: 'Fast Payouts', desc: 'Withdraw earnings to your wallet anytime' },
+                { icon: MessageCircle, color: 'text-violet-400', title: 'Direct Messaging', desc: 'Chat with buyers directly in the platform' },
+              ].map(({ icon: Icon, color, title, desc }) => (
+                <div key={title} className="bg-cardBg border border-borderBg rounded-xl p-4 flex gap-3 items-start">
+                  <Icon className={`w-5 h-5 flex-shrink-0 mt-0.5 ${color}`} />
+                  <div>
+                    <p className="text-sm font-bold text-white">{title}</p>
+                    <p className="text-xs text-gray-400 mt-0.5">{desc}</p>
+                  </div>
+                </div>
+              ))}
+            </div>
+
+            <button
+              onClick={() => setOnboardStep(1)}
+              className="w-full flex items-center justify-center gap-2 bg-brand hover:bg-brand-dark py-4 rounded-xl font-black text-white text-base transition shadow-xl shadow-brand/20">
+              Get Started <ArrowRight className="w-5 h-5" />
+            </button>
+            <p className="text-xs text-gray-600">Free to join · No hidden fees · Earn from day one</p>
           </div>
         )}
 
-        <form onSubmit={handleOnboard} className="space-y-5">
-          <div className="bg-cardBg border border-borderBg rounded-2xl p-6 space-y-5">
-            <div>
-              <label className="block text-sm font-semibold text-white mb-2">Store Name *</label>
-              <input
-                type="text"
-                required
-                maxLength={60}
-                className={`w-full bg-background border rounded-xl px-4 py-3 text-sm focus:outline-none focus:border-brand transition ${storeNameError ? 'border-red-500/60' : 'border-borderBg'}`}
-                placeholder="e.g. GamePro Store, Apex Coins"
-                value={storeName}
-                onChange={e => { setStoreName(e.target.value); if (storeNameError) setStoreNameError(false); }}
-                onBlur={() => setStoreNameError(!storeName.trim())}
-              />
-              <p className="text-xs text-gray-500 mt-1">{storeName.length}/60 characters</p>
-              {storeNameError && (
-                <p className="text-xs text-red-400 mt-1 flex items-center gap-1"><AlertCircle className="w-3.5 h-3.5" /> Store name is required</p>
-              )}
+        {/* Step 1 — Store Info */}
+        {onboardStep === 1 && (
+          <div className="space-y-6">
+            <ProgressBar currentStep={0} labels={ONBOARDING_STEPS} />
+
+            <div className="text-center">
+              <h2 className="text-2xl font-black text-white">Name Your Store</h2>
+              <p className="text-gray-400 text-sm mt-1">This is how buyers will find and recognise you.</p>
             </div>
 
-            <div>
-              <label className="block text-sm font-semibold text-white mb-2">Store Description</label>
-              <textarea
-                rows={3}
-                maxLength={300}
-                className="w-full bg-background border border-borderBg rounded-xl px-4 py-3 text-sm focus:outline-none focus:border-brand transition resize-none"
-                placeholder="Tell buyers what you sell — game accounts, top-ups, boosting services..."
-                value={storeDescription}
-                onChange={e => setStoreDescription(e.target.value)}
-              />
-            </div>
-          </div>
-
-          <div className="bg-brand/5 border border-brand/20 rounded-xl p-4 space-y-2">
-            <p className="text-sm font-semibold text-white">What you get as a seller:</p>
-            {['Create unlimited listings', 'Sell to 10,000+ buyers', 'Get paid via escrow — safely', 'Build your reputation with reviews'].map((f, i) => (
-              <div key={i} className="flex items-center gap-2 text-xs text-gray-400">
-                <Check className="w-3.5 h-3.5 text-brand flex-shrink-0" /> {f}
+            {error && (
+              <div className="bg-red-900/20 border border-red-500/40 text-red-300 text-sm px-4 py-3 rounded-xl flex items-center gap-2">
+                <AlertCircle className="w-4 h-4 flex-shrink-0" /> {error}
               </div>
-            ))}
-          </div>
+            )}
 
-          <button type="submit" disabled={submitting || !storeName.trim()}
-            className="w-full flex items-center justify-center gap-2 bg-brand hover:bg-brand-dark py-3.5 rounded-xl font-bold text-white transition disabled:opacity-50 shadow-lg shadow-brand/20">
-            {submitting ? <><Loader2 className="w-4 h-4 animate-spin" /> Creating Store...</> : <>Create My Store <ChevronRight className="w-4 h-4" /></>}
-          </button>
-        </form>
+            <StepCard>
+              <div>
+                <label className="block text-sm font-semibold text-white mb-2">Store Name *</label>
+                <input
+                  type="text"
+                  required
+                  maxLength={60}
+                  autoFocus
+                  className={`w-full bg-background border rounded-xl px-4 py-3 text-sm text-white focus:outline-none focus:border-brand transition ${!storeName.trim() && error ? 'border-red-500/60' : 'border-borderBg'}`}
+                  placeholder="e.g. GamePro Store, Apex Coins, DiamondDeals"
+                  value={storeName}
+                  onChange={e => setStoreName(e.target.value)}
+                />
+                <p className="text-xs text-gray-500 mt-1">{storeName.length}/60 characters · Choose something memorable</p>
+              </div>
+              <div>
+                <label className="block text-sm font-semibold text-white mb-2">Store Description <span className="text-gray-500 font-normal">(optional)</span></label>
+                <textarea
+                  rows={3}
+                  maxLength={300}
+                  className="w-full bg-background border border-borderBg rounded-xl px-4 py-3 text-sm text-white focus:outline-none focus:border-brand transition resize-none"
+                  placeholder="Tell buyers what you specialise in — game accounts, Free Fire coins, boosting…"
+                  value={storeDescription}
+                  onChange={e => setStoreDescription(e.target.value)}
+                />
+                <p className="text-xs text-gray-500 mt-1">{storeDescription.length}/300</p>
+              </div>
+            </StepCard>
+
+            <div className="flex gap-3">
+              <button onClick={() => setOnboardStep(0)}
+                className="flex items-center gap-2 px-5 py-3 border border-borderBg hover:border-brand/40 rounded-xl text-gray-300 hover:text-white transition">
+                <ChevronLeft className="w-4 h-4" /> Back
+              </button>
+              <button
+                onClick={() => { if (!storeName.trim()) { setError('Store name is required.'); return; } setError(null); setOnboardStep(2); }}
+                disabled={!storeName.trim()}
+                className="flex-1 flex items-center justify-center gap-2 bg-brand hover:bg-brand-dark py-3 rounded-xl font-bold text-white transition disabled:opacity-50">
+                Continue <ChevronRight className="w-4 h-4" />
+              </button>
+            </div>
+          </div>
+        )}
+
+        {/* Step 2 — Account Type */}
+        {onboardStep === 2 && (
+          <div className="space-y-6">
+            <ProgressBar currentStep={1} labels={ONBOARDING_STEPS} />
+
+            <div className="text-center">
+              <h2 className="text-2xl font-black text-white">What will you sell?</h2>
+              <p className="text-gray-400 text-sm mt-1">This determines which listing types you can create. You can change this later.</p>
+            </div>
+
+            {error && (
+              <div className="bg-red-900/20 border border-red-500/40 text-red-300 text-sm px-4 py-3 rounded-xl flex items-center gap-2">
+                <AlertCircle className="w-4 h-4 flex-shrink-0" /> {error}
+              </div>
+            )}
+
+            <div className="space-y-3">
+              {ACCOUNT_TYPES.map(({ value, label, icon: Icon, desc }) => (
+                <button
+                  key={value}
+                  type="button"
+                  onClick={() => setAccountType(value as any)}
+                  className={`w-full flex items-center gap-4 p-4 rounded-2xl border text-left transition-all ${
+                    accountType === value
+                      ? 'bg-brand/10 border-brand shadow-lg shadow-brand/10'
+                      : 'bg-cardBg border-borderBg hover:border-brand/30'
+                  }`}
+                >
+                  <div className={`w-10 h-10 rounded-xl flex items-center justify-center flex-shrink-0 ${accountType === value ? 'bg-brand text-white' : 'bg-background text-gray-400'}`}>
+                    <Icon className="w-5 h-5" />
+                  </div>
+                  <div className="flex-1">
+                    <p className={`font-bold text-sm ${accountType === value ? 'text-white' : 'text-gray-300'}`}>{label}</p>
+                    <p className="text-xs text-gray-500 mt-0.5">{desc}</p>
+                  </div>
+                  {accountType === value && <Check className="w-5 h-5 text-brand flex-shrink-0" />}
+                </button>
+              ))}
+            </div>
+
+            <div className="flex gap-3">
+              <button onClick={() => setOnboardStep(1)}
+                className="flex items-center gap-2 px-5 py-3 border border-borderBg hover:border-brand/40 rounded-xl text-gray-300 hover:text-white transition">
+                <ChevronLeft className="w-4 h-4" /> Back
+              </button>
+              <button
+                onClick={handleOnboard}
+                disabled={submitting}
+                className="flex-1 flex items-center justify-center gap-2 bg-brand hover:bg-brand-dark py-3 rounded-xl font-bold text-white transition disabled:opacity-50">
+                {submitting ? <><Loader2 className="w-4 h-4 animate-spin" /> Creating…</> : <>Create My Store <ChevronRight className="w-4 h-4" /></>}
+              </button>
+            </div>
+          </div>
+        )}
+
+        {/* Step 3 — Ready! */}
+        {onboardStep === 3 && (
+          <div className="space-y-8 text-center">
+            <ProgressBar currentStep={3} labels={ONBOARDING_STEPS} />
+
+            <div className="w-20 h-20 bg-emerald-500/20 rounded-full flex items-center justify-center mx-auto">
+              <BadgeCheck className="w-10 h-10 text-emerald-400" />
+            </div>
+
+            <div>
+              <h2 className="text-2xl font-black text-white">"{storeName}" is live!</h2>
+              <p className="text-gray-400 text-sm mt-2 max-w-xs mx-auto">
+                Your store is ready. Now create your first listing and start selling.
+              </p>
+            </div>
+
+            <div className="bg-cardBg border border-borderBg rounded-2xl p-5 text-left space-y-3">
+              <p className="text-sm font-bold text-white">Your store summary</p>
+              <div className="space-y-2 text-sm">
+                <div className="flex justify-between"><span className="text-gray-400">Store name</span><span className="text-white font-semibold">{storeName}</span></div>
+                <div className="flex justify-between"><span className="text-gray-400">Seller type</span><span className="text-white font-semibold">{ACCOUNT_TYPES.find(t => t.value === accountType)?.label}</span></div>
+                <div className="flex justify-between"><span className="text-gray-400">Status</span><span className="text-emerald-400 font-bold">Active</span></div>
+              </div>
+            </div>
+
+            <div className="flex flex-col sm:flex-row gap-3">
+              <button
+                onClick={() => { setIsSeller(true); setListStep(1); }}
+                className="flex-1 flex items-center justify-center gap-2 bg-brand hover:bg-brand-dark py-3.5 rounded-xl font-bold text-white transition shadow-lg shadow-brand/20">
+                Create First Listing <ArrowRight className="w-4 h-4" />
+              </button>
+              <button
+                onClick={() => router.push('/seller/dashboard')}
+                className="flex-1 py-3.5 rounded-xl font-bold text-white border border-borderBg hover:border-brand/30 transition">
+                Go to Dashboard
+              </button>
+            </div>
+          </div>
+        )}
       </div>
     );
   }
 
-  // Steps 1-3: Listing creation wizard
+  /* ══════════════════════════════════════════════════════════════════════
+     PHASE B — LISTING CREATION WIZARD (shown when isSeller)
+     Steps: 1 = Category & Game  2 = Details  3 = Pricing & Submit
+  ══════════════════════════════════════════════════════════════════════ */
   return (
-    <div className="max-w-2xl mx-auto py-6 fade-in">
-      <div className="mb-6">
-        <h1 className="text-2xl font-black text-white">Create a Listing</h1>
-        <p className="text-gray-400 text-sm mt-1">Fill in the details to list your item for sale</p>
+    <div className="max-w-2xl mx-auto py-6">
+      <div className="mb-6 flex items-start justify-between gap-4">
+        <div>
+          <h1 className="text-2xl font-black text-white">Create a Listing</h1>
+          <p className="text-gray-400 text-sm mt-1">Fill in the details to list your item for sale</p>
+        </div>
+        <div className="flex items-center gap-1.5 text-xs text-gray-500 bg-cardBg border border-borderBg px-3 py-1.5 rounded-xl whitespace-nowrap">
+          <ImageOff className="w-3.5 h-3.5 text-violet-400" />
+          Game banner auto-applied
+        </div>
       </div>
 
-      <ProgressBar step={step - 1} total={3} />
+      <ProgressBar currentStep={listStep - 1} labels={LISTING_STEPS} />
 
       {error && (
         <div className="bg-red-900/20 border border-red-500/40 text-red-300 text-sm px-4 py-3 rounded-xl mb-6 flex items-center gap-2">
           <AlertCircle className="w-4 h-4 flex-shrink-0" /> {error}
+          <button onClick={() => setError(null)} className="ml-auto text-red-300/60 hover:text-red-300">✕</button>
         </div>
       )}
 
-      {/* Step 1: Category & Game */}
-      {step === 1 && (
-        <div className="space-y-5 fade-in">
-          <div className="bg-cardBg border border-borderBg rounded-2xl p-6 space-y-5">
+      {/* ── Step 1: Category & Game ── */}
+      {listStep === 1 && (
+        <div className="space-y-5">
+          <StepCard>
             <h2 className="font-bold text-white flex items-center gap-2"><Tag className="w-5 h-5 text-brand" /> What are you selling?</h2>
 
             <div>
               <label className="block text-xs font-semibold text-gray-400 mb-2 uppercase tracking-wide">Category *</label>
-              <div className="grid grid-cols-2 sm:grid-cols-3 gap-3">
-                {CATEGORIES.map(cat => (
-                  <button key={cat.value} type="button"
-                    onClick={() => setCategory(cat.value)}
-                    className={`p-3 rounded-xl border text-sm font-semibold text-left transition ${
-                      category === cat.value
+              <div className="grid grid-cols-1 sm:grid-cols-2 gap-2.5">
+                {CATEGORIES.map(({ value, label, icon: Icon, desc }) => (
+                  <button key={value} type="button" onClick={() => setCategory(value)}
+                    className={`flex items-center gap-3 p-3.5 rounded-xl border text-left transition-all ${
+                      category === value
                         ? 'bg-brand/10 border-brand text-white'
-                        : 'border-borderBg text-gray-400 hover:border-brand/40 hover:text-white'
+                        : 'border-borderBg text-gray-400 hover:border-brand/30 hover:text-white'
                     }`}>
-                    {cat.label}
+                    <Icon className={`w-5 h-5 flex-shrink-0 ${category === value ? 'text-brand' : 'text-gray-500'}`} />
+                    <div className="min-w-0">
+                      <p className="text-sm font-bold leading-none">{label}</p>
+                      <p className="text-[10px] text-gray-500 mt-0.5 leading-tight">{desc}</p>
+                    </div>
                   </button>
                 ))}
               </div>
@@ -315,26 +495,30 @@ export default function SellPage() {
               <select
                 value={gameName}
                 onChange={e => setGameName(e.target.value)}
-                className="w-full bg-background border border-borderBg rounded-xl px-4 py-3 text-sm focus:outline-none focus:border-brand transition"
+                className="w-full bg-background border border-borderBg rounded-xl px-4 py-3 text-sm text-white focus:outline-none focus:border-brand transition"
               >
                 {GAMES.map(g => <option key={g}>{g}</option>)}
               </select>
+              <p className="text-xs text-gray-500 mt-1.5 flex items-center gap-1.5">
+                <Info className="w-3.5 h-3.5 text-brand" />
+                The game's official banner (set by our team) will be shown on your listing — no image upload needed.
+              </p>
             </div>
-          </div>
+          </StepCard>
 
           <div className="flex justify-end">
-            <button onClick={() => setStep(2)} disabled={!category || !gameName}
-              className="flex items-center gap-2 bg-brand hover:bg-brand-dark px-6 py-3 rounded-xl font-bold text-white transition disabled:opacity-50">
+            <button onClick={() => setListStep(2)} disabled={!category || !gameName}
+              className="flex items-center gap-2 bg-brand hover:bg-brand-dark px-6 py-3 rounded-xl font-bold text-white transition disabled:opacity-50 shadow-lg shadow-brand/10">
               Next <ChevronRight className="w-4 h-4" />
             </button>
           </div>
         </div>
       )}
 
-      {/* Step 2: Details */}
-      {step === 2 && (
-        <div className="space-y-5 fade-in">
-          <div className="bg-cardBg border border-borderBg rounded-2xl p-6 space-y-5">
+      {/* ── Step 2: Details ── */}
+      {listStep === 2 && (
+        <div className="space-y-5">
+          <StepCard>
             <h2 className="font-bold text-white flex items-center gap-2"><Package className="w-5 h-5 text-brand" /> Item Details</h2>
 
             <div>
@@ -343,31 +527,45 @@ export default function SellPage() {
                 type="text"
                 required
                 maxLength={150}
+                autoFocus
                 value={title}
                 onChange={e => setTitle(e.target.value)}
-                placeholder={`e.g. ${gameName} ${category === 'account' ? 'Level 70 Account' : category === 'coins' ? '5000 Coins'  : 'Service'}`}
-                className="w-full bg-background border border-borderBg rounded-xl px-4 py-3 text-sm focus:outline-none focus:border-brand transition"
+                placeholder={
+                  category === 'account' ? `e.g. ${gameName} Diamond Rank Account — 500+ Skins` :
+                  category === 'coins'   ? `e.g. 5000 ${currencyName || 'Diamonds'} — ${gameName}` :
+                  category === 'boost'   ? `e.g. ${gameName} Bronze → Diamond Boost` :
+                  `e.g. ${gameName} ${category}`
+                }
+                className="w-full bg-background border border-borderBg rounded-xl px-4 py-3 text-sm text-white focus:outline-none focus:border-brand transition"
               />
-              <p className="text-xs text-gray-500 mt-1">{title.length}/150</p>
+              <p className="text-xs text-gray-500 mt-1">{title.length}/150 characters · Make it descriptive</p>
             </div>
 
             <div>
               <label className="block text-xs font-semibold text-gray-400 mb-2 uppercase tracking-wide">Description *</label>
               <textarea
                 required
-                rows={4}
+                rows={5}
                 maxLength={2000}
                 value={description}
                 onChange={e => setDescription(e.target.value)}
-                placeholder="Describe exactly what the buyer gets — level, rank, skins, linked accounts, delivery method..."
-                className="w-full bg-background border border-borderBg rounded-xl px-4 py-3 text-sm focus:outline-none focus:border-brand transition resize-none"
+                placeholder={
+                  category === 'account'
+                    ? 'Describe the account: rank, level, skins, linked login, region, and anything else a buyer would want to know…'
+                    : category === 'boost'
+                    ? 'Describe the service: which ranks you cover, estimated time, what you need from the buyer…'
+                    : 'Describe exactly what the buyer receives — quantity, delivery method, any requirements…'
+                }
+                className="w-full bg-background border border-borderBg rounded-xl px-4 py-3 text-sm text-white focus:outline-none focus:border-brand transition resize-none"
               />
+              <p className="text-xs text-gray-500 mt-1">{description.length}/2000 · Clear descriptions convert better</p>
             </div>
 
+            {/* Currency hint for coins */}
             {category === 'coins' && currencyName && (
               <div className="bg-brand/5 border border-brand/20 rounded-xl p-3 flex items-start gap-2 text-xs text-gray-400">
                 <Zap className="w-4 h-4 text-brand flex-shrink-0 mt-0.5" />
-                <p>You are selling <span className="font-semibold text-white">{currencyName}</span> for {gameName}. Mention the exact amount (e.g. &quot;1000 {currencyName}&quot;) in the title.</p>
+                <p>Selling <span className="font-semibold text-white">{currencyName}</span> for {gameName}. Include the exact amount in your title (e.g. "5000 {currencyName}").</p>
               </div>
             )}
 
@@ -376,89 +574,44 @@ export default function SellPage() {
               <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
                 {supportsRank && (
                   <div>
-                    <label className="block text-xs font-semibold text-gray-400 mb-2 uppercase tracking-wide">Rank (optional)</label>
+                    <label className="block text-xs font-semibold text-gray-400 mb-2 uppercase tracking-wide">Rank <span className="text-gray-600 font-normal normal-case">(optional)</span></label>
                     <input type="text" value={rank} onChange={e => setRank(e.target.value)} list="rank-options"
-                      placeholder={rankOptions.length ? `e.g. ${rankOptions[0]}, ${rankOptions[rankOptions.length - 1]}` : 'e.g. Heroic, Diamond'}
-                      className="w-full bg-background border border-borderBg rounded-xl px-4 py-3 text-sm focus:outline-none focus:border-brand transition" />
+                      placeholder={rankOptions.length ? rankOptions[Math.floor(rankOptions.length / 2)] : 'e.g. Diamond'}
+                      className="w-full bg-background border border-borderBg rounded-xl px-4 py-3 text-sm text-white focus:outline-none focus:border-brand transition" />
+                    {rankOptions.length > 0 && <datalist id="rank-options">{rankOptions.map(o => <option key={o} value={o} />)}</datalist>}
                   </div>
                 )}
                 <div>
-                  <label className="block text-xs font-semibold text-gray-400 mb-2 uppercase tracking-wide">Level (optional)</label>
-                  <input type="number" value={level} onChange={e => setLevel(e.target.value)}
-                    placeholder="e.g. 70"
-                    className="w-full bg-background border border-borderBg rounded-xl px-4 py-3 text-sm focus:outline-none focus:border-brand transition" />
+                  <label className="block text-xs font-semibold text-gray-400 mb-2 uppercase tracking-wide">Level <span className="text-gray-600 font-normal normal-case">(optional)</span></label>
+                  <input type="number" value={level} onChange={e => setLevel(e.target.value)} placeholder="e.g. 70"
+                    className="w-full bg-background border border-borderBg rounded-xl px-4 py-3 text-sm text-white focus:outline-none focus:border-brand transition" />
                 </div>
-                <div className={supportsRank ? 'sm:col-span-2' : ''}>
-                  <label className="block text-xs font-semibold text-gray-400 mb-2 uppercase tracking-wide">Login Method (optional)</label>
+                <div className="sm:col-span-2">
+                  <label className="block text-xs font-semibold text-gray-400 mb-2 uppercase tracking-wide">Login Method <span className="text-gray-600 font-normal normal-case">(optional)</span></label>
                   <input type="text" value={loginMethod} onChange={e => setLoginMethod(e.target.value)} list="login-options"
-                    placeholder={loginOptions.length ? `e.g. ${loginOptions[0]}, ${loginOptions[1]}` : 'e.g. Google, Facebook, Guest'}
-                    className="w-full bg-background border border-borderBg rounded-xl px-4 py-3 text-sm focus:outline-none focus:border-brand transition" />
+                    placeholder={loginOptions.length ? loginOptions.join(', ') : 'e.g. Google, Facebook'}
+                    className="w-full bg-background border border-borderBg rounded-xl px-4 py-3 text-sm text-white focus:outline-none focus:border-brand transition" />
+                  {loginOptions.length > 0 && <datalist id="login-options">{loginOptions.map(o => <option key={o} value={o} />)}</datalist>}
                 </div>
               </div>
             )}
 
-            {category === 'account' && loginOptions.length > 0 && (
-              <datalist id="login-options">
-                {loginOptions.map(o => <option key={o} value={o} />)}
-              </datalist>
-            )}
-            {category === 'account' && rankOptions.length > 0 && (
-              <datalist id="rank-options">
-                {rankOptions.map(o => <option key={o} value={o} />)}
-              </datalist>
-            )}
-
-            <div>
-              <label className="block text-xs font-semibold text-gray-400 mb-2 uppercase tracking-wide">Screenshots (optional)</label>
-              <div className="space-y-2">
-                {imageUrls.map((url, i) => (
-                  <div key={i} className="flex items-center gap-2">
-                    <Image className="w-4 h-4 text-gray-400 flex-shrink-0" />
-                    <label className="flex-1 flex items-center gap-2 cursor-pointer bg-background border border-borderBg rounded-xl px-4 py-2.5 text-sm text-gray-400 focus-within:border-brand transition overflow-hidden">
-                      {url ? (
-                        <span className="truncate text-white">{(decodeURIComponent(url.split('/').pop() || 'Image selected'))}</span>
-                      ) : (
-                        <span>Choose image {i + 1}</span>
-                      )}
-                      <input
-                        type="file"
-                        accept="image/*"
-                        className="hidden"
-                        onChange={async e => {
-                          const file = e.target.files?.[0];
-                          if (!file) return;
-                          const url = await uploadListingImage(file);
-                          const next = [...imageUrls];
-                          next[i] = url;
-                          setImageUrls(next);
-                        }}
-                      />
-                    </label>
-                    {imageUrls.length > 1 && (
-                      <button type="button" onClick={() => setImageUrls(imageUrls.filter((_, idx) => idx !== i))}
-                        className="px-2 py-2 text-gray-500 hover:text-red-400 transition flex-shrink-0">
-                        <AlertCircle className="w-4 h-4" />
-                      </button>
-                    )}
-                  </div>
-                ))}
+            {/* Image note */}
+            <div className="bg-violet-900/15 border border-violet-500/20 rounded-xl p-4 flex gap-3 items-start text-xs text-gray-400">
+              <ImageOff className="w-4 h-4 text-violet-400 flex-shrink-0 mt-0.5" />
+              <div>
+                <p className="font-semibold text-white mb-0.5">No image upload needed</p>
+                <p>Your listing will automatically display the official <span className="text-white">{gameName}</span> game banner. Buyers can request specific account screenshots via private messages after purchase.</p>
               </div>
-              {imageUrls.length < 4 && (
-                <button type="button" onClick={() => setImageUrls([...imageUrls, ''])}
-                  className="mt-2 flex items-center gap-1.5 text-xs font-semibold text-brand hover:text-brand/80 transition">
-                  <Plus className="w-3.5 h-3.5" /> Add another image (up to 4)
-                </button>
-              )}
-              <p className="text-xs text-gray-500 mt-2">Upload images from your device. The first image is your main thumbnail.</p>
             </div>
-          </div>
+          </StepCard>
 
           <div className="flex justify-between">
-            <button onClick={() => setStep(1)}
+            <button onClick={() => setListStep(1)}
               className="flex items-center gap-2 px-6 py-3 border border-borderBg hover:border-brand/40 rounded-xl text-gray-300 hover:text-white transition">
               <ChevronLeft className="w-4 h-4" /> Back
             </button>
-            <button onClick={() => setStep(3)} disabled={!title.trim() || !description.trim()}
+            <button onClick={() => { setError(null); setListStep(3); }} disabled={!title.trim() || !description.trim()}
               className="flex items-center gap-2 bg-brand hover:bg-brand-dark px-6 py-3 rounded-xl font-bold text-white transition disabled:opacity-50">
               Next <ChevronRight className="w-4 h-4" />
             </button>
@@ -466,24 +619,24 @@ export default function SellPage() {
         </div>
       )}
 
-      {/* Step 3: Pricing & Review */}
-      {step === 3 && (
-        <div className="space-y-5 fade-in">
-          <div className="bg-cardBg border border-borderBg rounded-2xl p-6 space-y-5">
+      {/* ── Step 3: Pricing & Submit ── */}
+      {listStep === 3 && (
+        <div className="space-y-5">
+          <StepCard>
             <h2 className="font-bold text-white flex items-center gap-2"><DollarSign className="w-5 h-5 text-brand" /> Pricing & Delivery</h2>
 
             <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
               <div>
                 <label className="block text-xs font-semibold text-gray-400 mb-2 uppercase tracking-wide">Platform *</label>
                 <select value={platform} onChange={e => setPlatform(e.target.value)}
-                  className="w-full bg-background border border-borderBg rounded-xl px-4 py-3 text-sm focus:outline-none focus:border-brand transition">
+                  className="w-full bg-background border border-borderBg rounded-xl px-4 py-3 text-sm text-white focus:outline-none focus:border-brand transition">
                   {platformOptions.map(p => <option key={p}>{p}</option>)}
                 </select>
               </div>
               <div>
                 <label className="block text-xs font-semibold text-gray-400 mb-2 uppercase tracking-wide">Region *</label>
                 <select value={region} onChange={e => setRegion(e.target.value)}
-                  className="w-full bg-background border border-borderBg rounded-xl px-4 py-3 text-sm focus:outline-none focus:border-brand transition">
+                  className="w-full bg-background border border-borderBg rounded-xl px-4 py-3 text-sm text-white focus:outline-none focus:border-brand transition">
                   {REGIONS.map(r => <option key={r}>{r}</option>)}
                 </select>
               </div>
@@ -491,21 +644,17 @@ export default function SellPage() {
 
             <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
               <div>
-                <label className="block text-xs font-semibold text-gray-400 mb-2 uppercase tracking-wide">Price *</label>
+                <label className="block text-xs font-semibold text-gray-400 mb-2 uppercase tracking-wide">Your Price *</label>
                 <div className="relative">
-                  <span className="absolute left-3 top-1/2 -translate-y-1/2 text-gray-400 font-bold">$</span>
-                  <input
-                    type="number" required min="0.50" step="0.01"
-                    value={price} onChange={e => setPrice(e.target.value)}
-                    placeholder="0.00"
-                    className="w-full bg-background border border-borderBg rounded-xl pl-8 pr-4 py-3 text-sm focus:outline-none focus:border-brand transition"
-                  />
+                  <span className="absolute left-3.5 top-1/2 -translate-y-1/2 text-gray-400 font-bold text-sm">$</span>
+                  <input type="number" required min="0.50" step="0.01" value={price} onChange={e => setPrice(e.target.value)} placeholder="0.00"
+                    className="w-full bg-background border border-borderBg rounded-xl pl-8 pr-4 py-3 text-sm text-white focus:outline-none focus:border-brand transition" />
                 </div>
               </div>
               <div>
                 <label className="block text-xs font-semibold text-gray-400 mb-2 uppercase tracking-wide">Delivery Time</label>
                 <select value={deliveryTime} onChange={e => setDeliveryTime(e.target.value)}
-                  className="w-full bg-background border border-borderBg rounded-xl px-4 py-3 text-sm focus:outline-none focus:border-brand transition">
+                  className="w-full bg-background border border-borderBg rounded-xl px-4 py-3 text-sm text-white focus:outline-none focus:border-brand transition">
                   <option value="15">15 minutes</option>
                   <option value="30">30 minutes</option>
                   <option value="60">1 hour</option>
@@ -515,58 +664,70 @@ export default function SellPage() {
                 </select>
               </div>
             </div>
-          </div>
+          </StepCard>
 
-          {/* What buyers receive */}
-          <div className="bg-cardBg border border-borderBg rounded-2xl p-5 space-y-2">
-            <h3 className="text-sm font-bold text-white mb-1 flex items-center gap-2"><Package className="w-4 h-4 text-brand" /> What buyers receive</h3>
-            <div className="text-sm text-gray-400 space-y-1.5">
-              <div className="flex justify-between"><span>{title.trim() || 'Your item title'}</span><span className="text-white font-semibold">{gameName}</span></div>
-              <div className="flex justify-between"><span>Platform / Region</span><span className="text-white font-semibold">{platform} · {region}</span></div>
-              {category === 'account' && (rank || level || loginMethod) && (
-                <div className="flex justify-between"><span>Account details</span><span className="text-white font-semibold">{[rank, level && `Lvl ${level}`, loginMethod].filter(Boolean).join(', ')}</span></div>
-              )}
-              <div className="flex justify-between"><span>Delivery time</span><span className="text-white font-semibold">{deliveryTime} min</span></div>
+          {/* Listing preview summary */}
+          <div className="bg-cardBg border border-borderBg rounded-2xl p-5 space-y-3">
+            <h3 className="text-sm font-bold text-white flex items-center gap-2"><Package className="w-4 h-4 text-brand" /> Listing Preview</h3>
+            <div className="text-sm space-y-2 divide-y divide-borderBg">
+              {[
+                { label: 'Game', value: gameName },
+                { label: 'Category', value: CATEGORIES.find(c => c.value === category)?.label },
+                { label: 'Title', value: title || '—' },
+                { label: 'Platform / Region', value: `${platform} · ${region}` },
+                ...(category === 'account' && (rank || level || loginMethod)
+                  ? [{ label: 'Account', value: [rank, level && `Lvl ${level}`, loginMethod].filter(Boolean).join(', ') }]
+                  : []),
+                { label: 'Delivery', value: `${deliveryTime} min` },
+              ].map(({ label, value }) => (
+                <div key={label} className="flex justify-between pt-2 first:pt-0">
+                  <span className="text-gray-400">{label}</span>
+                  <span className="text-white font-semibold truncate max-w-[180px] text-right">{value}</span>
+                </div>
+              ))}
             </div>
           </div>
 
-          {/* Order Summary */}
-          {price && (
-            <div className="bg-cardBg border border-borderBg rounded-2xl p-5">
-              <h3 className="text-sm font-bold text-white mb-3">Preview</h3>
+          {/* Earnings breakdown */}
+          {price && parseFloat(price) > 0 && (
+            <div className="bg-cardBg border border-brand/20 rounded-2xl p-5 space-y-2">
+              <h3 className="text-sm font-bold text-white">Your Earnings</h3>
               <div className="space-y-2 text-sm">
                 <div className="flex justify-between">
-                  <span className="text-gray-400">Your price</span>
-                  <span className="font-bold text-white">{fmt(parseFloat(price) || 0)}</span>
+                  <span className="text-gray-400">Listing price</span>
+                  <span className="font-bold text-white">{fmt(parseFloat(price))}</span>
                 </div>
                 <div className="flex justify-between">
                   <span className="text-gray-400">Platform fee (10%)</span>
-                  <span className="text-gray-400">-{fmt((parseFloat(price) || 0) * 0.1)}</span>
+                  <span className="text-gray-500">−{fmt(parseFloat(price) * 0.1)}</span>
                 </div>
-                <div className="border-t border-borderBg pt-2 flex justify-between">
+                <div className="flex justify-between border-t border-borderBg pt-2">
                   <span className="font-bold text-white">You receive</span>
-                  <span className="font-black text-brand text-lg">{fmt((parseFloat(price) || 0) * 0.9)}</span>
+                  <span className="font-black text-brand text-xl">{fmt(parseFloat(price) * 0.9)}</span>
                 </div>
               </div>
             </div>
           )}
 
-          <div className="bg-violet-900/20 border border-violet-500/30 rounded-xl p-4 flex gap-3 text-xs text-gray-400">
+          <div className="bg-violet-900/15 border border-violet-500/20 rounded-xl p-4 flex gap-3 text-xs text-gray-400">
             <Info className="w-4 h-4 text-violet-400 flex-shrink-0 mt-0.5" />
-            <p>Your listing goes to <span className="font-semibold text-white">Pending Review</span>. Our team approves it within 24 hours. You'll get an email when it's live.</p>
+            <p>Your listing goes to <span className="font-semibold text-white">Pending Review</span>. Our team approves it within 24 hours. You'll get a notification when it's live.</p>
           </div>
 
           <div className="flex justify-between">
-            <button onClick={() => setStep(2)}
+            <button onClick={() => setListStep(2)}
               className="flex items-center gap-2 px-6 py-3 border border-borderBg hover:border-brand/40 rounded-xl text-gray-300 hover:text-white transition">
               <ChevronLeft className="w-4 h-4" /> Back
             </button>
             <button
               onClick={handleCreateListing}
-              disabled={submitting || !title.trim() || !description.trim() || !category || !gameName || !price || parseFloat(price) < 0.5}
+              disabled={submitting || !title.trim() || !description.trim() || !price || parseFloat(price) < 0.5}
               className="flex items-center gap-2 bg-brand hover:bg-brand-dark px-8 py-3 rounded-xl font-bold text-white transition disabled:opacity-50 shadow-lg shadow-brand/20"
             >
-              {submitting ? <><Loader2 className="w-4 h-4 animate-spin" /> Submitting...</> : <><Check className="w-4 h-4" /> Submit Listing</>}
+              {submitting
+                ? <><Loader2 className="w-4 h-4 animate-spin" /> Submitting…</>
+                : <><Check className="w-4 h-4" /> Submit Listing</>
+              }
             </button>
           </div>
         </div>

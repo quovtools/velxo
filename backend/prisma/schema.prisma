@@ -198,6 +198,7 @@ model users {
   rewardRedemptions   rewardRedemptions[]
   forumThreads        forumThreads[]
   forumPosts          forumPosts[]
+  buyerRequests       buyerRequests[]
 
   @@index([email])
   @@index([role])
@@ -1119,4 +1120,58 @@ model rewardRedemptions {
   @@index([status])
   @@index([createdAt])
   @@map("reward_redemptions")
+}
+
+// ─────────────────────────── Game Banners ───────────────────────────────────
+// Admin-managed per-game banner images displayed on listings.
+// Games are identified by their slug from GAME_CONFIG (client lib/games.ts).
+model gameBanners {
+  id          String   @id @default(cuid())
+  gameName    String   @unique // matches GAME_CONFIG key, e.g. "Free Fire"
+  gameSlug    String   @unique // matches GAME_CONFIG slug, e.g. "free-fire"
+  bannerUrl   String   // presigned / public URL stored in B2 "banners" folder
+  bannerKey   String?  // B2 storage key for re-signing
+  color       String?  // brand color override for the game card gradient
+  isActive    Boolean  @default(true)
+  sortOrder   Int      @default(0)
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+
+  @@index([isActive, sortOrder])
+  @@index([gameSlug])
+  @@map("game_banners")
+}
+
+// ─────────────────────────── Buyer Requests ─────────────────────────────────
+// Buyers can post "want-to-buy" requests that sellers can respond to.
+enum BuyerRequestStatus {
+  OPEN
+  CLOSED
+  EXPIRED
+}
+
+model buyerRequests {
+  id           String             @id @default(cuid())
+  buyerId      String
+  gameName     String
+  gameSlug     String?
+  title        String             // e.g. "Looking for a Diamond Free Fire account"
+  description  String
+  budget       Decimal?           @db.Decimal(12, 2)
+  currency     String             @default("NGN")
+  region       String?
+  platform     String?
+  rank         String?
+  status       BuyerRequestStatus @default(OPEN)
+  expiresAt    DateTime?
+  createdAt    DateTime           @default(now())
+  updatedAt    DateTime           @updatedAt
+
+  buyer        users @relation(fields: [buyerId], references: [id], onDelete: Cascade)
+
+  @@index([buyerId])
+  @@index([gameName])
+  @@index([status])
+  @@index([createdAt])
+  @@map("buyer_requests")
 }
