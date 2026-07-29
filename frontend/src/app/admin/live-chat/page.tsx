@@ -37,7 +37,9 @@ export default function AdminLiveChatPage() {
   const fetchChats = useCallback(async () => {
     setLoading(true); setError('');
     try {
-      const res: any = await api.get('/live-chat/admin/chats', { params: { status: filter || undefined, limit: 60 } });
+      const params: Record<string, string | number> = { limit: 60 };
+        if (filter) params.status = filter;
+        const res: any = await api.get('/live-chat/admin/chats', { params });
       setChats(res.data || []);
     } catch (e: any) {
       setError(e.message || 'Failed to load chats');
