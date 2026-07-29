@@ -154,9 +154,9 @@ export default function SellerKycPage() {
   if (seller?.isVerified && seller.kycStatus === 'APPROVED') {
     return (
       <div className="max-w-2xl mx-auto py-10 px-4">
-        <div className="bg-cardBg border border-blue-500/30 rounded-2xl p-8 text-center">
-          <div className="w-16 h-16 rounded-full bg-blue-500/15 flex items-center justify-center mx-auto mb-4">
-            <ShieldCheck className="w-9 h-9 text-blue-400" />
+        <div className="bg-cardBg border border-violet-500/30 rounded-2xl p-8 text-center">
+          <div className="w-16 h-16 rounded-full bg-violet-500/15 flex items-center justify-center mx-auto mb-4">
+            <ShieldCheck className="w-9 h-9 text-violet-400" />
           </div>
           <h1 className="text-2xl font-black text-white flex items-center justify-center gap-2">
             Identity Verified <VerifiedBadge size="md" variant="badge" />

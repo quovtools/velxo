@@ -6,8 +6,8 @@ type CalloutType = 'info' | 'warning' | 'tip' | 'success';
 
 const CALLOUT_STYLES: Record<CalloutType, { wrap: string; icon: React.ReactNode; label: string }> = {
   info: {
-    wrap: 'bg-blue-500/10 border-blue-500/30 text-blue-200',
-    icon: <Info className="w-5 h-5 text-blue-400" />,
+    wrap: 'bg-violet-500/10 border-violet-500/30 text-violet-200',
+    icon: <Info className="w-5 h-5 text-violet-400" />,
     label: 'Note',
   },
   warning: {

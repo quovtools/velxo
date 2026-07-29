@@ -61,7 +61,7 @@ const PLATFORMS = [
 
 const TIER_COLORS: Record<string, string> = {
   STARTER: 'text-gray-400',
-  RISING: 'text-blue-400',
+  RISING: 'text-violet-400',
   ELITE: 'text-yellow-400',
   BASIC: 'text-gray-400',
   ACTIVE: 'text-cyan-400',
@@ -70,7 +70,7 @@ const TIER_COLORS: Record<string, string> = {
 
 const TIER_BG: Record<string, string> = {
   STARTER: 'bg-gray-500/10 border-gray-500/20',
-  RISING: 'bg-blue-500/10 border-blue-500/20',
+  RISING: 'bg-violet-500/10 border-violet-500/20',
   ELITE: 'bg-yellow-500/10 border-yellow-500/20',
   BASIC: 'bg-gray-500/10 border-gray-500/20',
   ACTIVE: 'bg-cyan-500/10 border-cyan-500/20',
@@ -529,7 +529,7 @@ export default function AffiliateDashboardPage() {
               <div className="space-y-2">
                 {[
                   { tier: 'STARTER', label: '0 – 99 referral signups', reward: '₦10 / signup', commission: '20% of Velxo profit', color: 'text-gray-400', bg: 'bg-gray-500/10 border-gray-500/20' },
-                  { tier: 'RISING', label: '100 – 999 referral signups', reward: '₦25 / signup', commission: '20% of Velxo profit', color: 'text-blue-400', bg: 'bg-blue-500/10 border-blue-500/20' },
+                  { tier: 'RISING', label: '100 – 999 referral signups', reward: '₦25 / signup', commission: '20% of Velxo profit', color: 'text-violet-400', bg: 'bg-violet-500/10 border-violet-500/20' },
                   { tier: 'ELITE', label: '1,000+ referral signups', reward: '₦50 / signup', commission: '20% of Velxo profit', color: 'text-yellow-400', bg: 'bg-yellow-500/10 border-yellow-500/20' },
                 ].map(t => {
                   const isCurrent = stats?.isCreator && tierInfo?.current === t.tier;
@@ -619,7 +619,7 @@ export default function AffiliateDashboardPage() {
           <p className="text-xs text-gray-400">Approved creators get a top slot in our weekly BloodStrike & Free Fire tournaments. Regular users can also participate — more details coming soon.</p>
           <div className="flex gap-2 mt-2 flex-wrap">
             <span className="px-2.5 py-1 bg-red-500/10 border border-red-500/20 rounded-lg text-[11px] font-bold text-red-400">Free Fire</span>
-            <span className="px-2.5 py-1 bg-blue-500/10 border border-blue-500/20 rounded-lg text-[11px] font-bold text-blue-400">BloodStrike</span>
+            <span className="px-2.5 py-1 bg-violet-500/10 border border-violet-500/20 rounded-lg text-[11px] font-bold text-violet-400">BloodStrike</span>
           </div>
         </div>
         {stats?.isCreator && creatorProfile?.hasTournamentSlot ? (

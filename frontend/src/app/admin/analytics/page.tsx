@@ -89,7 +89,7 @@ export default function AnalyticsPage() {
             {[
               { icon: DollarSign, label: 'Total Revenue', value: `$${(revenue.totalRevenue ?? 0).toLocaleString()}`, color: 'text-green-400' },
               { icon: TrendingUp, label: 'Commissions Earned', value: `$${(revenue.totalCommissions ?? 0).toLocaleString()}`, color: 'text-brand' },
-              { icon: BarChart3, label: 'Total Orders', value: revenue.totalOrders ?? 0, color: 'text-blue-400' },
+               { icon: BarChart3, label: 'Total Orders', value: revenue.totalOrders ?? 0, color: 'text-violet-400' },
               { icon: Users, label: 'Avg Order Value', value: `$${(revenue.averageOrderValue ?? 0).toFixed(2)}`, color: 'text-purple-400' },
             ].map(({ icon: Icon, label, value, color }) => (
               <div key={label} className="bg-cardBg border border-borderBg rounded-2xl p-6 flex items-start gap-4">

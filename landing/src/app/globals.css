@@ -10,44 +10,44 @@
   --border: #e5e5e5;
   --nav-bg: rgba(255, 255, 255, 0.8);
 
-  /* Brand primary = blue (white & black remain the brand/logo neutrals) */
-  --brand-rgb: 37 99 235;
-  --brand-50-rgb: 239 246 255;
-  --brand-100-rgb: 219 234 254;
-  --brand-200-rgb: 191 219 254;
-  --brand-300-rgb: 147 197 253;
-  --brand-400-rgb: 96 165 250;
-  --brand-500-rgb: 59 130 246;
-  --brand-600-rgb: 37 99 235;
-  --brand-700-rgb: 29 78 216;
-  --brand-800-rgb: 30 64 175;
-  --brand-light-rgb: 59 130 246;
-  --brand-dark-rgb: 29 78 216;
-  --accent-rgb: 96 165 250;
+  /* Cyber violet brand */
+  --brand-rgb: 139 92 246;
+  --brand-50-rgb: 244 238 255;
+  --brand-100-rgb: 234 225 255;
+  --brand-200-rgb: 216 180 254;
+  --brand-300-rgb: 192 132 252;
+  --brand-400-rgb: 167 139 250;
+  --brand-500-rgb: 139 92 246;
+  --brand-600-rgb: 124 58 237;
+  --brand-700-rgb: 109 40 217;
+  --brand-800-rgb: 91 33 182;
+  --brand-light-rgb: 167 139 250;
+  --brand-dark-rgb: 124 58 237;
+  --accent-rgb: 217 70 239;
 }
 
 /* ── Dark mode — toggled by adding .dark to <html> ── */
 :root.dark {
-  --background: #0b0f19;
+  --background: #000000;
   --foreground: #f8fafc;
-  --surface: #111827;
-  --border: #1f2937;
-  --nav-bg: rgba(11, 15, 25, 0.8);
+  --surface: #0a0a0a;
+  --border: #1f1f1f;
+  --nav-bg: rgba(0, 0, 0, 0.8);
 
-  /* Brand primary = blue (white & black remain the brand/logo neutrals) */
-  --brand-rgb: 96 165 250;
-  --brand-50-rgb: 30 58 138;
-  --brand-100-rgb: 30 64 175;
-  --brand-200-rgb: 37 99 235;
-  --brand-300-rgb: 59 130 246;
-  --brand-400-rgb: 96 165 250;
-  --brand-500-rgb: 96 165 250;
-  --brand-600-rgb: 59 130 246;
-  --brand-700-rgb: 37 99 235;
-  --brand-800-rgb: 30 64 175;
-  --brand-light-rgb: 147 197 253;
-  --brand-dark-rgb: 59 130 246;
-  --accent-rgb: 147 197 253;
+  /* Cyber violet brand */
+  --brand-rgb: 167 139 250;
+  --brand-50-rgb: 91 33 182;
+  --brand-100-rgb: 109 40 217;
+  --brand-200-rgb: 124 58 237;
+  --brand-300-rgb: 139 92 246;
+  --brand-400-rgb: 167 139 250;
+  --brand-500-rgb: 167 139 250;
+  --brand-600-rgb: 139 92 246;
+  --brand-700-rgb: 124 58 237;
+  --brand-800-rgb: 109 40 217;
+  --brand-light-rgb: 192 132 252;
+  --brand-dark-rgb: 139 92 246;
+  --accent-rgb: 217 70 239;
 }
 
 * {

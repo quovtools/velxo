@@ -16,7 +16,7 @@ interface Dispute {
 
 const statusColor: Record<string, string> = {
   OPEN: 'bg-yellow-500/20 text-yellow-300',
-  UNDER_REVIEW: 'bg-blue-500/20 text-blue-300',
+  UNDER_REVIEW: 'bg-violet-500/20 text-violet-300',
   RESOLVED_BUYER: 'bg-green-500/20 text-green-300',
   RESOLVED_SELLER: 'bg-purple-500/20 text-purple-300',
   RESOLVED_PLATFORM: 'bg-gray-500/20 text-gray-300',

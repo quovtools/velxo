@@ -345,7 +345,7 @@ export default function BulkImageManagerPage() {
       </div>
 
       {/* How it works */}
-      <div className="bg-blue-900/20 border border-blue-500/30 rounded-lg p-5">
+      <div className="bg-violet-900/20 border border-violet-500/30 rounded-lg p-5">
         <h3 className="text-white font-bold mb-2 flex items-center gap-2"><AlertCircle size={18} /> How It Works</h3>
         <ol className="text-sm text-gray-300 space-y-1 list-decimal list-inside">
           <li>Upload images using drag &amp; drop or the file browser, then click Upload All</li>

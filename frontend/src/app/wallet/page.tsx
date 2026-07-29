@@ -29,7 +29,7 @@ interface Transaction {
 const TYPE_CONFIG: Record<string, { color: string; bg: string; label: string; sign: string }> = {
   CREDIT:  { color: 'text-emerald-400', bg: 'bg-emerald-900/20 border-emerald-500/20', label: 'Credit',  sign: '+' },
   RELEASE: { color: 'text-emerald-400', bg: 'bg-emerald-900/20 border-emerald-500/20', label: 'Released', sign: '+' },
-  REFUND:  { color: 'text-blue-400',    bg: 'bg-blue-900/20 border-blue-500/20',        label: 'Refund',  sign: '+' },
+  REFUND:  { color: 'text-violet-400',    bg: 'bg-violet-900/20 border-violet-500/20',        label: 'Refund',  sign: '+' },
   DEBIT:   { color: 'text-red-400',     bg: 'bg-red-900/20 border-red-500/20',          label: 'Debit',   sign: '-' },
   HOLD:    { color: 'text-yellow-400',  bg: 'bg-yellow-900/20 border-yellow-500/20',    label: 'Held',    sign: '-' },
   FEE:     { color: 'text-gray-400',    bg: 'bg-gray-800/40 border-gray-600/20',        label: 'Fee',     sign: '-' },

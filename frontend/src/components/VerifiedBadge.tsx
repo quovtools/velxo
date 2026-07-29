@@ -36,7 +36,7 @@ export default function VerifiedBadge({
     return (
       <span
         title="Verified Seller"
-        className={`inline-flex items-center justify-center rounded-full bg-blue-500 text-white shadow-[0_0_0_3px_rgba(59,130,246,0.25)] ${className}`}
+        className={`inline-flex items-center justify-center rounded-full bg-violet-500 text-white shadow-[0_0_0_3px_rgba(59,130,246,0.25)] ${className}`}
         style={{ width: s.icon + 10, height: s.icon + 10 }}
       >
         <BadgeCheck style={{ width: s.icon, height: s.icon }} />
@@ -48,7 +48,7 @@ export default function VerifiedBadge({
     return (
       <span
         title="Verified Seller"
-        className={`inline-flex items-center gap-1.5 rounded-lg bg-blue-500 ${s.pad} ${s.text} font-bold text-white shadow-sm shadow-blue-500/30 ${className}`}
+        className={`inline-flex items-center gap-1.5 rounded-lg bg-violet-500 ${s.pad} ${s.text} font-bold text-white shadow-sm shadow-violet-500/30 ${className}`}
       >
         <ShieldCheck style={{ width: s.icon, height: s.icon }} />
         {showLabel && label}
@@ -59,7 +59,7 @@ export default function VerifiedBadge({
   return (
     <span
       title="Verified Seller"
-      className={`inline-flex items-center gap-1 rounded-full bg-blue-500/10 text-blue-400 border border-blue-500/30 ${s.pad} ${s.text} font-bold ${className}`}
+      className={`inline-flex items-center gap-1 rounded-full bg-violet-500/10 text-violet-400 border border-violet-500/30 ${s.pad} ${s.text} font-bold ${className}`}
     >
       <ShieldCheck style={{ width: s.icon, height: s.icon }} />
       {showLabel && label}

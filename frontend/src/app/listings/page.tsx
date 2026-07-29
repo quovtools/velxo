@@ -178,7 +178,7 @@ function ListingCardList({ item }: { item: Listing }) {
           <p className="text-xs text-gray-600 mt-1 flex items-center gap-1">
             <ShieldCheck className="w-3 h-3 text-emerald-400" />
             {item.seller?.storeName || 'Velxo Seller'} 
-            {item.seller?.verified && <Check className="w-3 h-3 text-blue-400" />}
+            {item.seller?.verified && <Check className="w-3 h-3 text-violet-400" />}
           </p>
         </div>
         <div className="flex-shrink-0 text-right">
@@ -286,7 +286,7 @@ function ListingsPageContent() {
       <div className="flex flex-wrap items-center gap-3 text-xs text-gray-400">
         {[
           { icon: <ShieldCheck className="w-3.5 h-3.5 text-emerald-400" />, label: 'Escrow Protected' },
-          { icon: <Lock className="w-3.5 h-3.5 text-blue-400" />, label: 'Secure' },
+          { icon: <Lock className="w-3.5 h-3.5 text-violet-400" />, label: 'Secure' },
           { icon: <Check className="w-3.5 h-3.5 text-purple-400" />, label: 'Verified Sellers' },
           { icon: <Zap className="w-3.5 h-3.5 text-orange-400" />, label: 'Fast Delivery' },
         ].map(({ icon, label }) => (

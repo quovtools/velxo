@@ -104,7 +104,7 @@ export default function SellerSettingsPage() {
         <div className="flex items-center gap-2">
           <span className={`text-xs font-bold px-3 py-1 rounded-full border ${
             seller?.subscriptionTier === 'FREE' ? 'bg-gray-500/10 text-gray-400 border-gray-500/20' :
-            seller?.subscriptionTier === 'BASIC' ? 'bg-blue-500/10 text-blue-400 border-blue-500/20' :
+             seller?.subscriptionTier === 'BASIC' ? 'bg-violet-500/10 text-violet-400 border-violet-500/20' :
             seller?.subscriptionTier === 'PRO' ? 'bg-purple-500/10 text-purple-400 border-purple-500/20' :
             'bg-yellow-500/10 text-yellow-400 border-yellow-500/20'
           }`}>
@@ -115,7 +115,7 @@ export default function SellerSettingsPage() {
           ) : (
             <Link
               href="/seller/kyc"
-              className="text-xs font-bold px-3 py-1 rounded-full bg-blue-500/10 text-blue-400 border border-blue-500/20 flex items-center gap-1 hover:bg-blue-500/20 transition"
+              className="text-xs font-bold px-3 py-1 rounded-full bg-violet-500/10 text-violet-400 border border-violet-500/20 flex items-center gap-1 hover:bg-violet-500/20 transition"
             >
               <Shield className="w-3 h-3" /> Get Verified
             </Link>

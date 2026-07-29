@@ -7,7 +7,7 @@ import { Bell, CheckCheck, Loader2, Package, MessageSquare, ShoppingBag, ShieldA
 import { useNotifications, AppNotification } from './NotificationProvider';
 
 const TYPE_ICON: Record<string, ReactNode> = {
-  ORDER_STATUS: <ShoppingBag className="w-4 h-4 text-blue-400" />,
+  ORDER_STATUS: <ShoppingBag className="w-4 h-4 text-violet-400" />,
   MESSAGE: <MessageSquare className="w-4 h-4 text-brand-light" />,
   DISPUTE: <ShieldAlert className="w-4 h-4 text-red-400" />,
   WITHDRAWAL: <Wallet className="w-4 h-4 text-emerald-400" />,

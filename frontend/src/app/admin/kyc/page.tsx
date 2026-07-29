@@ -186,7 +186,7 @@ export default function AdminKycPage() {
                   <button
                     onClick={() => approve(s.id)}
                     disabled={actionLoading === s.id}
-                    className="flex-1 flex items-center justify-center gap-1 bg-blue-600 hover:bg-blue-700 disabled:opacity-50 text-white text-sm font-bold py-2.5 rounded-xl transition"
+                    className="flex-1 flex items-center justify-center gap-1 bg-violet-600 hover:bg-violet-700 disabled:opacity-50 text-white text-sm font-bold py-2.5 rounded-xl transition"
                   >
                     {actionLoading === s.id ? <Loader2 className="w-4 h-4 animate-spin" /> : <ShieldCheck className="w-4 h-4" />} Approve & Verify
                   </button>

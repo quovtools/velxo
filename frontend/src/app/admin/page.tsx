@@ -35,7 +35,7 @@ function StatCard({ icon: Icon, label, value, color = 'text-brand', sub }: {
 }
 
 const quickLinks = [
-  { href: '/admin/moderation', icon: Eye, label: 'Listings Moderation', desc: 'Approve or reject pending listings', color: 'text-blue-400' },
+  { href: '/admin/moderation', icon: Eye, label: 'Listings Moderation', desc: 'Approve or reject pending listings', color: 'text-violet-400' },
   { href: '/admin/users', icon: Users, label: 'User Management', desc: 'Ban, suspend or re-role users', color: 'text-cyan-400' },
   { href: '/admin/sellers', icon: Store, label: 'Sellers', desc: 'Verify, suspend or feature stores', color: 'text-purple-400' },
   { href: '/admin/listings', icon: ShoppingBag, label: 'All Listings', desc: 'Feature, suspend or remove listings', color: 'text-indigo-400' },
@@ -77,7 +77,7 @@ export default function AdminDashboardPage() {
 
       {/* Stats grid */}
       <div className="grid grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-4">
-        <StatCard icon={Users} label="Total Users" value={loading ? '—' : (stats.totalUsers ?? 0)} color="text-blue-400" />
+        <StatCard icon={Users} label="Total Users" value={loading ? '—' : (stats.totalUsers ?? 0)} color="text-violet-400" />
         <StatCard icon={Store} label="Total Sellers" value={loading ? '—' : (stats.totalSellers ?? 0)} color="text-purple-400" />
         <StatCard icon={ShoppingBag} label="Total Listings" value={loading ? '—' : (stats.totalListings ?? 0)} color="text-indigo-400" />
         <StatCard icon={TrendingUp} label="Active Listings" value={loading ? '—' : (stats.activeListings ?? 0)} color="text-cyan-400" />

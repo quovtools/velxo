@@ -4,29 +4,29 @@
 
 /* ── Light mode (default) ── */
 :root {
-  --background: #f8fafc;
-  --foreground: #0f172a;
+  --background: #ffffff;
+  --foreground: #0a0a0a;
   --card-bg: #ffffff;
-  --border-bg: #e2e8f0;
-  --hover-bg: #f1f5f9;
-  /* Brand primary = blue (white & black remain the brand/logo neutrals) */
-  --brand-rgb: 37 99 235;
-  --brand-dark-rgb: 29 78 216;
-  --brand-light-rgb: 59 130 246;
-  --brand-accent-rgb: 96 165 250;
+  --border-bg: #e5e5e5;
+  --hover-bg: #f5f5f5;
+  /* Cyber violet brand */
+  --brand-rgb: 139 92 246;
+  --brand-dark-rgb: 124 58 237;
+  --brand-light-rgb: 167 139 250;
+  --brand-accent-rgb: 217 70 239;
 }
 
 /* ── Dark mode — toggled by adding .dark to <html> ── */
 :root.dark {
-  --background: #0f172a;
+  --background: #000000;
   --foreground: #f8fafc;
-  --card-bg: #1e293b;
-  --border-bg: #334155;
-  --hover-bg: #475569;
-  --brand-rgb: 96 165 250;
-  --brand-dark-rgb: 59 130 246;
-  --brand-light-rgb: 147 197 253;
-  --brand-accent-rgb: 96 165 250;
+  --card-bg: #0a0a0a;
+  --border-bg: #1f1f1f;
+  --hover-bg: #171717;
+  --brand-rgb: 167 139 250;
+  --brand-dark-rgb: 139 92 246;
+  --brand-light-rgb: 192 132 252;
+  --brand-accent-rgb: 217 70 239;
 }
 
 body {
@@ -109,14 +109,14 @@ body {
   box-shadow: 0 8px 32px rgba(0, 0, 0, 0.25);
 }
 .glass-brand {
-  background: linear-gradient(135deg, rgba(99, 165, 250, 0.10), rgba(139, 92, 246, 0.06));
+  background: linear-gradient(135deg, rgba(139, 92, 246, 0.10), rgba(217, 70, 239, 0.06));
   backdrop-filter: blur(14px);
   -webkit-backdrop-filter: blur(14px);
-  border: 1px solid rgba(99, 165, 250, 0.18);
+  border: 1px solid rgba(139, 92, 246, 0.18);
 }
 .glass-hover {
   transition: border-color 0.25s ease, background-color 0.25s ease;
 }
 .glass-hover:hover {
-  border-color: rgba(99, 165, 250, 0.35);
+  border-color: rgba(139, 92, 246, 0.35);
 }

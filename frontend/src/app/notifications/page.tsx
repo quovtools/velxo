@@ -20,7 +20,7 @@ interface Notification {
 }
 
 const TYPE_ICON: Record<string, React.ReactNode> = {
-  ORDER_STATUS:      <ShoppingBag className="w-4 h-4 text-blue-400" />,
+  ORDER_STATUS:      <ShoppingBag className="w-4 h-4 text-violet-400" />,
   MESSAGE:           <MessageSquare className="w-4 h-4 text-brand-light" />,
   DISPUTE:           <ShieldAlert className="w-4 h-4 text-red-400" />,
   WITHDRAWAL:        <Wallet className="w-4 h-4 text-emerald-400" />,
@@ -31,7 +31,7 @@ const TYPE_ICON: Record<string, React.ReactNode> = {
 };
 
 const TYPE_BG: Record<string, string> = {
-  ORDER_STATUS:     'bg-blue-900/20 border-blue-500/20',
+  ORDER_STATUS:     'bg-violet-900/20 border-violet-500/20',
   MESSAGE:          'bg-brand/10 border-brand/20',
   DISPUTE:          'bg-red-900/20 border-red-500/20',
   WITHDRAWAL:       'bg-emerald-900/20 border-emerald-500/20',

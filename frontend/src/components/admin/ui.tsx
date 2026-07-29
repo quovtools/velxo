@@ -16,7 +16,7 @@ export function Badge({
   color = 'gray',
   children,
 }: {
-  color?: 'gray' | 'green' | 'red' | 'yellow' | 'blue' | 'purple' | 'brand';
+  color?: 'gray' | 'green' | 'red' | 'yellow' | 'violet' | 'purple' | 'brand';
   children: React.ReactNode;
 }) {
   const map: Record<string, string> = {
@@ -24,7 +24,7 @@ export function Badge({
     green: 'bg-green-500/15 text-green-400',
     red: 'bg-red-500/15 text-red-400',
     yellow: 'bg-yellow-500/15 text-yellow-400',
-    blue: 'bg-blue-500/15 text-blue-400',
+    violet: 'bg-violet-500/15 text-violet-400',
     purple: 'bg-purple-500/15 text-purple-400',
     brand: 'bg-brand/15 text-brand',
   };
@@ -35,7 +35,7 @@ export function Badge({
   );
 }
 
-export function statusColor(status: string): 'gray' | 'green' | 'red' | 'yellow' | 'blue' | 'purple' | 'brand' {
+export function statusColor(status: string): 'gray' | 'green' | 'red' | 'yellow' | 'violet' | 'purple' | 'brand' {
   const s = status?.toUpperCase() || '';
   if (['ACTIVE', 'COMPLETED', 'APPROVED', 'PUBLISHED', 'VERIFIED', 'PAID', 'OPEN', 'RELEASED'].includes(s))
     return 'green';
@@ -43,7 +43,7 @@ export function statusColor(status: string): 'gray' | 'green' | 'red' | 'yellow'
     return 'red';
   if (['PENDING', 'PENDING_APPROVAL', 'SUBMITTED', 'IN_PROGRESS', 'UNDER_REVIEW', 'PROCESSING'].includes(s))
     return 'yellow';
-  if (['RESOLVED_BUYER', 'RESOLVED_SELLER', 'RESOLVED_PLATFORM', 'INACTIVE'].includes(s)) return 'blue';
+  if (['RESOLVED_BUYER', 'RESOLVED_SELLER', 'RESOLVED_PLATFORM', 'INACTIVE'].includes(s)) return 'violet';
   return 'gray';
 }
 

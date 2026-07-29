@@ -245,7 +245,7 @@ export default function AdminUsersPage() {
                       </button>
                     </td>
                     <td className="px-4 py-3">
-                      <Badge color={u.role === 'ADMIN' || u.role === 'SUPER_ADMIN' ? 'red' : u.role === 'SELLER' ? 'purple' : u.role === 'MODERATOR' ? 'blue' : 'brand'}>
+                      <Badge color={u.role === 'ADMIN' || u.role === 'SUPER_ADMIN' ? 'red' : u.role === 'SELLER' ? 'purple' : u.role === 'MODERATOR' ? 'violet' : 'brand'}>
                         {u.role}
                       </Badge>
                     </td>
@@ -395,7 +395,7 @@ export default function AdminUsersPage() {
                 <div className="grid grid-cols-3 gap-3">
                   <StatBadge icon={ShoppingCart} label="Orders" value={detail.stats.orders} />
                   <StatBadge icon={MessageSquare} label="Disputes" value={detail.stats.disputes} color="text-orange-400" />
-                  <StatBadge icon={TicketIcon} label="Tickets" value={detail.stats.tickets} color="text-blue-400" />
+                   <StatBadge icon={TicketIcon} label="Tickets" value={detail.stats.tickets} color="text-violet-400" />
                 </div>
               </Section>
             )}

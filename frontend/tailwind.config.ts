@@ -21,14 +21,12 @@ const config: Config = {
         cardBg: "var(--card-bg)",
         borderBg: "var(--border-bg)",
         hoverBg: "var(--hover-bg)",
-        // Override the default purple scale so the old "purple" brand
-        // gradients render as monochrome grays instead of blue/purple.
-        purple: {
+        violet: {
           300: "#d4d4d4",
-          400: "#a3a3a3",
-          500: "#737373",
-          600: "#525252",
-          700: "#404040",
+          400: "#a78bfa",
+          500: "#8b5cf6",
+          600: "#7c3aed",
+          700: "#6d28d9",
           900: "#171717",
         },
         // Seller level colors

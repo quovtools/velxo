@@ -172,7 +172,7 @@ export default function ListingsManagerPage() {
       DRAFT: 'bg-gray-600/30 text-gray-300',
       REJECTED: 'bg-red-600/30 text-red-300',
       SUSPENDED: 'bg-orange-600/30 text-orange-300',
-      SOLD: 'bg-blue-600/30 text-blue-300',
+      SOLD: 'bg-violet-600/30 text-violet-300',
     };
     return colors[status] || 'bg-gray-600/30 text-gray-300';
   };
@@ -265,7 +265,7 @@ export default function ListingsManagerPage() {
 
       {/* Bulk Actions Toolbar */}
       {selected.size > 0 && (
-        <div className="bg-blue-900/30 border border-blue-500/50 rounded-lg p-4 space-y-4">
+        <div className="bg-violet-900/30 border border-violet-500/50 rounded-lg p-4 space-y-4">
           <div className="flex items-center justify-between">
             <p className="text-white font-semibold">
               {selected.size} listing{selected.size !== 1 ? 's' : ''} selected

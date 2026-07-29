@@ -30,7 +30,7 @@ interface Order {
 
 const STATUS_META: Record<string, { label: string; badge: string; icon: any; action?: string; urgent?: boolean }> = {
   PENDING:     { label: 'Awaiting Payment',   badge: 'bg-yellow-950/40 text-yellow-400 border-yellow-500/25', icon: Clock,        action: 'Pay Now', urgent: true },
-  PAID:        { label: 'Funds in Escrow',    badge: 'bg-blue-950/40 text-blue-400 border-blue-500/25',      icon: ShieldCheck,  action: 'View' },
+  PAID:        { label: 'Funds in Escrow',    badge: 'bg-violet-950/40 text-violet-400 border-violet-500/25',      icon: ShieldCheck,  action: 'View' },
   IN_PROGRESS: { label: 'Confirm Receipt',    badge: 'bg-brand/10 text-brand-light border-brand/30',         icon: AlertTriangle, action: 'Confirm', urgent: true },
   COMPLETED:   { label: 'Completed',          badge: 'bg-emerald-950/40 text-emerald-400 border-emerald-500/25', icon: CheckCircle },
   DISPUTED:    { label: 'In Dispute',         badge: 'bg-red-950/40 text-red-400 border-red-500/25',         icon: AlertTriangle, action: 'View' },

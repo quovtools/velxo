@@ -26,7 +26,7 @@ const STATUS_BADGE_CLASS: Record<string, string> = {
   HELD: 'bg-yellow-500/20 text-yellow-400 border border-yellow-500/20',
   PENDING: 'bg-yellow-500/20 text-yellow-400 border border-yellow-500/20',
   RELEASED: 'bg-emerald-500/20 text-emerald-400 border border-emerald-500/20',
-  REFUNDED: 'bg-blue-500/20 text-blue-400 border border-blue-500/20',
+  REFUNDED: 'bg-violet-500/20 text-violet-400 border border-violet-500/20',
   DISPUTED: 'bg-red-500/20 text-red-400 border border-red-500/20',
 };
 

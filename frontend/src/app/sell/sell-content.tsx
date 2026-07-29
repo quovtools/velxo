@@ -551,8 +551,8 @@ export default function SellPage() {
             </div>
           )}
 
-          <div className="bg-blue-900/20 border border-blue-500/30 rounded-xl p-4 flex gap-3 text-xs text-gray-400">
-            <Info className="w-4 h-4 text-blue-400 flex-shrink-0 mt-0.5" />
+          <div className="bg-violet-900/20 border border-violet-500/30 rounded-xl p-4 flex gap-3 text-xs text-gray-400">
+            <Info className="w-4 h-4 text-violet-400 flex-shrink-0 mt-0.5" />
             <p>Your listing goes to <span className="font-semibold text-white">Pending Review</span>. Our team approves it within 24 hours. You'll get an email when it's live.</p>
           </div>
 

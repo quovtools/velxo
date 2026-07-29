@@ -86,7 +86,7 @@ const SECTIONS = [
 
 const ORDER_STATUS_COLORS: Record<string, string> = {
   PENDING: 'bg-yellow-500/10 text-yellow-400 border-yellow-500/20',
-  PAID: 'bg-blue-500/10 text-blue-400 border-blue-500/20',
+  PAID: 'bg-violet-500/10 text-violet-400 border-violet-500/20',
   IN_PROGRESS: 'bg-brand/10 text-brand border-brand/30',
   DELIVERED: 'bg-purple-500/10 text-purple-400 border-purple-500/20',
   COMPLETED: 'bg-emerald-500/10 text-emerald-400 border-emerald-500/20',
@@ -303,7 +303,7 @@ export default function SellerDashboard() {
   const tierColor =
     seller?.subscriptionTier === 'PREMIUM' ? 'text-yellow-400' :
     seller?.subscriptionTier === 'PRO' ? 'text-purple-400' :
-    seller?.subscriptionTier === 'BASIC' ? 'text-blue-400' : 'text-gray-400';
+    seller?.subscriptionTier === 'BASIC' ? 'text-violet-400' : 'text-gray-400';
 
   return (
     <div className="max-w-7xl mx-auto py-4 px-3 sm:px-4">

@@ -458,7 +458,7 @@ function MarketplaceContent() {
       <div className="flex flex-wrap items-center justify-center gap-3 md:gap-5 text-sm text-gray-400">
         {[
           { icon: <ShieldCheck className="w-4 h-4 text-emerald-400" />, label: 'Escrow Protected' },
-          { icon: <Lock className="w-4 h-4 text-blue-400" />, label: 'Secure Transactions' },
+          { icon: <Lock className="w-4 h-4 text-violet-400" />, label: 'Secure Transactions' },
           { icon: <Check className="w-4 h-4 text-purple-400" />, label: 'Verified Sellers' },
           { icon: <Zap className="w-4 h-4 text-orange-400" />, label: 'Fast Delivery' },
         ].map(({ icon, label }) => (

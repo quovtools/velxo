@@ -16,8 +16,8 @@ export default async function OgImage() {
           justifyContent: 'space-between',
           padding: '64px 72px',
           backgroundColor: '#0f172a',
-          backgroundImage:
-            'linear-gradient(135deg, #0f172a 0%, #1e293b 45%, #334155 100%)',
+           backgroundImage:
+             'linear-gradient(135deg, #000000 0%, #1a052e 45%, #2e1065 100%)',
           color: '#ffffff',
           fontFamily: 'sans-serif',
         }}
@@ -33,7 +33,7 @@ export default async function OgImage() {
                 width: '64px',
                 height: '64px',
                 borderRadius: '16px',
-                backgroundColor: '#2563eb',
+                 backgroundColor: '#8b5cf6',
                 fontSize: '40px',
                 fontWeight: 800,
                 color: '#ffffff',
@@ -68,10 +68,10 @@ export default async function OgImage() {
           <div style={{ display: 'flex', fontSize: '60px', fontWeight: 800, lineHeight: 1.1 }}>
             The Safe Marketplace
           </div>
-          <div style={{ display: 'flex', fontSize: '60px', fontWeight: 800, lineHeight: 1.1, color: '#60a5fa' }}>
+          <div style={{ display: 'flex', fontSize: '60px', fontWeight: 800, lineHeight: 1.1,             color: '#a78bfa' }}>
             for Gaming Accounts, Items
           </div>
-          <div style={{ display: 'flex', fontSize: '60px', fontWeight: 800, lineHeight: 1.1, color: '#60a5fa' }}>
+          <div style={{ display: 'flex', fontSize: '60px', fontWeight: 800, lineHeight: 1.1, color: '#a78bfa' }}>
             &amp; Top-Ups
           </div>
         </div>
