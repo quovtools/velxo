@@ -27,6 +27,7 @@ import { AffiliateModule } from './modules/affiliate/affiliate.module'
 import { RewardsModule } from './modules/rewards/rewards.module'
 import { GatewayModule } from './modules/gateways'
 import { UploadModule } from './modules/upload/upload.module'
+import { ForumModule } from './modules/forum/forum.module'
 import { AllExceptionsFilter } from './common/filters/all-exceptions.filter'
 
 @Module({
@@ -62,6 +63,7 @@ import { AllExceptionsFilter } from './common/filters/all-exceptions.filter'
     RewardsModule,
     GatewayModule,
     UploadModule,
+    ForumModule,
   ],
   providers: [
     {

@@ -5,6 +5,7 @@ import Marquee from '@/components/Marquee';
 import HowItWorks from '@/components/HowItWorks';
 import Games from '@/components/Games';
 import Features from '@/components/Features';
+import AccountValueCheck from '@/components/AccountValueCheck';
 import Pricing from '@/components/Pricing';
 import Testimonials from '@/components/Testimonials';
 import About from '@/components/About';
@@ -21,6 +22,7 @@ export default function LandingPage() {
         <HowItWorks />
         <Games />
         <Features />
+        <AccountValueCheck />
         <Pricing />
         <Testimonials />
         <About />

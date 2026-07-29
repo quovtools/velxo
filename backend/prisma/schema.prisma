@@ -196,6 +196,8 @@ model users {
   creatorProfile      creatorProfiles?
   velxoCoins          velxoCoins?
   rewardRedemptions   rewardRedemptions[]
+  forumThreads        forumThreads[]
+  forumPosts          forumPosts[]
 
   @@index([email])
   @@index([role])
@@ -924,6 +926,50 @@ model blogPosts {
   @@index([category])
   @@index([publishedAt])
   @@map("blog_posts")
+}
+
+model forumThreads {
+  id            String   @id @default(cuid())
+  title         String
+  content       String
+  category      String   @default("General")
+  tags          String[] @default([])
+  isPinned      Boolean  @default(false)
+  isLocked      Boolean  @default(false)
+  viewCount     Int      @default(0)
+  authorId      String
+  lastActivityAt DateTime @default(now())
+  createdAt     DateTime @default(now())
+  updatedAt     DateTime @updatedAt
+
+  author        users            @relation(fields: [authorId], references: [id], onDelete: Cascade)
+  posts         forumPosts[]
+
+  @@index([category, isPinned, createdAt])
+  @@index([authorId])
+  @@index([lastActivityAt])
+  @@map("forum_threads")
+}
+
+model forumPosts {
+  id          String   @id @default(cuid())
+  content     String
+  isHidden    Boolean  @default(false)
+  authorId    String
+  threadId    String
+  parentId    String?
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+
+  author      users          @relation(fields: [authorId], references: [id], onDelete: Cascade)
+  thread      forumThreads   @relation(fields: [threadId], references: [id], onDelete: Cascade)
+  replies     forumPosts[]   @relation("ForumPostReplies")
+  parent      forumPosts?    @relation("ForumPostReplies", fields: [parentId], references: [id], onDelete: NoAction)
+
+  @@index([threadId, createdAt])
+  @@index([authorId])
+  @@index([parentId])
+  @@map("forum_posts")
 }
 
 model affiliateReferrals {

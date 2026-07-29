@@ -137,13 +137,6 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
       price: "0",
       priceCurrency: "USD",
     },
-    aggregateRating: {
-      "@type": "AggregateRating",
-      ratingValue: "4.9",
-      ratingCount: "10284",
-      bestRating: "5",
-      worstRating: "1",
-    },
   };
 
   return (

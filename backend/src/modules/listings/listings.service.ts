@@ -295,4 +295,60 @@ export class ListingsService {
       orderBy: { createdAt: 'desc' },
     })
   }
+
+  async estimateAccountValue(dto: {
+    gameId: string
+    rank: string
+    level: number
+    skins: number
+    platform: string
+  }) {
+    const GAME_BASE: Record<string, number> = {
+      'free-fire': 25,
+      'cod-mobile': 30,
+      'pubg-mobile': 35,
+      'blood-strike': 20,
+      'delta-force': 25,
+      'valorant': 40,
+      'roblox': 15,
+      'mobile-legends': 20,
+      'efootball': 20,
+    }
+
+    const RANK_MULTIPLIER: Record<string, number> = {
+      Bronze: 0.5,
+      Silver: 0.7,
+      Gold: 1.0,
+      Platinum: 1.5,
+      Diamond: 2.0,
+      Heroic: 2.5,
+      Mythic: 3.0,
+      Grandmaster: 3.5,
+      Challenger: 4.0,
+      Immortal: 4.5,
+      Radiant: 5.0,
+    }
+
+    const PLATFORM_MULTIPLIER: Record<string, number> = {
+      mobile: 1.0,
+      pc: 1.3,
+      console: 1.2,
+    }
+
+    const base = GAME_BASE[dto.gameId] || 20
+    const rankMult = RANK_MULTIPLIER[dto.rank] || 1.0
+    const platformMult = PLATFORM_MULTIPLIER[dto.platform] || 1.0
+    const levelBonus = Math.max(0, (dto.level - 1)) * 0.1
+    const skinBonus = dto.skins * 1.5
+
+    const estimated = base * rankMult * platformMult + levelBonus + skinBonus
+    const variance = estimated * 0.2
+    const low = Math.max(0, estimated - variance)
+    const high = estimated + variance
+
+    return {
+      estimated: Math.round(estimated * 100) / 100,
+      range: [Math.round(low * 100) / 100, Math.round(high * 100) / 100],
+    }
+  }
 }

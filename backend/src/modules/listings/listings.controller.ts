@@ -68,6 +68,17 @@ export class ListingsController {
     }
   }
 
+  @Post('estimate-value')
+  async estimateValue(@Body() dto: { gameId: string; rank: string; level: number; skins: number; platform: string }) {
+    try {
+      const result = await this.listingsService.estimateAccountValue(dto)
+      return ApiResponseDto.ok(result, 'Value estimated successfully')
+    } catch (error) {
+      this.logger.error('Error estimating value:', error)
+      throw error
+    }
+  }
+
   @Patch(':id')
   @UseGuards(SupabaseJwtGuard)
   async updateListing(

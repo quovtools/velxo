@@ -2,13 +2,6 @@
 import React from 'react';
 import { ShieldCheck, Zap, ArrowRight, Star, TrendingUp } from 'lucide-react';
 
-const STATS = [
-  { value: '10K+', label: 'Active Traders' },
-  { value: '50K+', label: 'Orders Completed' },
-  { value: '$2M+', label: 'Safely Traded' },
-  { value: '4.9/5', label: 'Avg Rating' },
-];
-
 const TRUST = [
   { icon: <ShieldCheck className="h-3.5 w-3.5 text-accent-emerald" />, text: 'Escrow on every trade' },
   { icon: <Zap className="h-3.5 w-3.5 text-yellow-400" />, text: 'Instant delivery' },
@@ -64,16 +57,6 @@ export default function Hero() {
             </div>
           ))}
         </div>
-
-        {/* Stats */}
-        <dl className="mx-auto mt-16 grid max-w-3xl grid-cols-2 gap-px overflow-hidden rounded-3xl border border-white/10 bg-white/5 sm:grid-cols-4">
-          {STATS.map((s) => (
-            <div key={s.label} className="bg-background/60 px-4 py-6 backdrop-blur">
-              <dt className="text-2xl font-black text-white sm:text-3xl">{s.value}</dt>
-              <dd className="mt-1 text-xs font-medium text-gray-500">{s.label}</dd>
-            </div>
-          ))}
-        </dl>
       </div>
     </section>
   );
