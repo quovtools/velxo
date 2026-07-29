@@ -1,7 +1,11 @@
 'use client';
 
 import React, { useState, useEffect, useRef, useCallback } from 'react';
+import { usePathname } from 'next/navigation';
 import { MessageCircle, X, Send, Loader2, ChevronDown, ShieldCheck } from 'lucide-react';
+
+/* Pages where the chat widget is allowed to appear */
+const ALLOWED_PATHS = ['/', '/profile', '/support'];
 
 const API_BASE = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:3001/api/v1';
 
@@ -21,6 +25,9 @@ interface ChatMsg { id: string; senderType: string; content: string; createdAt: 
 type Step = 'idle' | 'intro' | 'chat';
 
 export default function LiveChatWidget() {
+  const pathname = usePathname();
+  const visible  = ALLOWED_PATHS.includes(pathname);
+
   const [step,       setStep]       = useState<Step>('idle');
   const [messages,   setMessages]   = useState<ChatMsg[]>([]);
   const [input,      setInput]      = useState('');
@@ -34,6 +41,9 @@ export default function LiveChatWidget() {
   const bottomRef  = useRef<HTMLDivElement>(null);
   const inputRef   = useRef<HTMLInputElement>(null);
   const visitorId  = useRef(getVisitorId());
+
+  // Don't render on pages that aren't in the allowed list
+  if (!visible) return null;
 
   /* ── Auto-scroll ── */
   useEffect(() => {
