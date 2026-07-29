@@ -14,7 +14,7 @@ export const metadata: Metadata = {
     default: "Velxo Market | Buy & Sell Game Accounts, Coins & More",
     template: "%s | Velxo Market",
   },
-  description: "Browse thousands of verified gaming listings — accounts, top-ups, gift cards and boosting services. All trades protected by Velxo Escrow, Africa's trusted gaming marketplace.",
+  description: "Browse thousands of verified gaming listings — accounts and boosting services. All trades protected by Velxo Escrow, Africa's trusted gaming marketplace.", 
   applicationName: "Velxo Market",
   manifest: "/manifest.json",
   appleWebApp: {
@@ -32,9 +32,7 @@ export const metadata: Metadata = {
     "africa gaming marketplace",
     "free fire accounts",
     "pubg mobile uc",
-    "game top ups",
     "rank boosting",
-    "gift cards",
   ],
   authors: [{ name: "Velxo" }],
   creator: "Velxo",
@@ -91,7 +89,7 @@ export default function RootLayout({
       "@type": "Organization",
       "name": "Velxo Market",
       "url": SITE_URL,
-      "logo": `${SITE_URL}/favicon.png`,
+      "logo": `${SITE_URL}/logo-new.png`,
       "description": "Africa's trusted escrow-backed gaming marketplace. Buy and sell game accounts, coins, gift cards safely.",
       "sameAs": [
         "https://twitter.com/velxoshop",
@@ -125,8 +123,8 @@ export default function RootLayout({
           }}
         />
         <meta name="theme-color" content="#0f172a" />
-        <link rel="icon" href="/favicon.png" />
-        <link rel="apple-touch-icon" href="/favicon.png" />
+        <link rel="icon" href="/logo-new.png" />
+        <link rel="apple-touch-icon" href="/logo-new.png" />
         <script
           type="application/ld+json"
           dangerouslySetInnerHTML={{ __html: JSON.stringify(jsonLd) }}

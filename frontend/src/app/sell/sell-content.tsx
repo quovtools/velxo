@@ -21,17 +21,13 @@ const ALL_PLATFORMS = ['Android', 'iOS', 'PC', 'PlayStation', 'Xbox', 'Nintendo 
 
 const CATEGORIES = [
   { label: 'Game Account', value: 'account', icon: Gamepad2, desc: 'Sell your full game account with all its contents' },
-  { label: 'In-Game Currency', value: 'coins', icon: Zap, desc: 'Coins, diamonds, gems, tokens and other currencies' },
-  { label: 'Top-Up Service', value: 'topup', icon: TrendingUp, desc: 'Offer top-up services for various games' },
-  { label: 'Gift Card', value: 'giftcard', icon: Tag, desc: 'Sell gift cards for game stores & platforms' },
   { label: 'Boosting Service', value: 'boost', icon: Star, desc: 'Rank boosting, leveling, coaching and carry' },
-  { label: 'Skins / Items', value: 'skins', icon: Package, desc: 'Rare skins, weapons, items and collectibles' },
 ];
 
 const ACCOUNT_TYPES = [
-  { value: 'STANDARD', label: 'Item Seller', icon: Store, desc: 'Sell accounts, coins, gift cards, and items' },
+  { value: 'STANDARD', label: 'Item Seller', icon: Store, desc: 'Sell game accounts and items' },
   { value: 'BOOSTER', label: 'Booster / Coach', icon: TrendingUp, desc: 'Offer rank boosting, leveling, and coaching gigs' },
-  { value: 'BOTH', label: 'Both', icon: Layers, desc: 'Sell items and offer boosting services' },
+  { value: 'BOTH', label: 'Both', icon: Layers, desc: 'Sell accounts and offer boosting services' },
 ];
 
 /* ─────────────────────────── Wizard step labels ─────────────────────── */

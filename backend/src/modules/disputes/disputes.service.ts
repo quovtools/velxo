@@ -98,6 +98,29 @@ export class DisputesService {
     return dispute
   }
 
+  async aiSuggestResolution(disputeId: string) {
+    // Lightweight, deterministic heuristic stub for AI-powered suggestions.
+    // Returns a suggested resolution, confidence, and short rationale.
+    const dispute: any = await this.getDisputeById(disputeId)
+    const messagesText = ((dispute.messages || []) as any[]).map(m => (m.content || '')).join(' ').toLowerCase()
+
+    let suggestion: 'REFUND_BUYER' | 'RELEASE_TO_SELLER' | 'SPLIT' = 'RELEASE_TO_SELLER'
+    let confidence = 0.5
+    let rationale = 'No clear evidence in messages.'
+
+    if (messagesText.includes('not delivered') || messagesText.includes('did not') || messagesText.includes('scam') || messagesText.includes('fraud') || messagesText.includes('refund')) {
+      suggestion = 'REFUND_BUYER'
+      confidence = 0.78
+      rationale = 'Buyer claims non-delivery or explicitly requests a refund.'
+    } else if (messagesText.includes('delivered') || messagesText.includes('received') || messagesText.includes('completed')) {
+      suggestion = 'RELEASE_TO_SELLER'
+      confidence = 0.82
+      rationale = 'Messages indicate delivery to the buyer.'
+    }
+
+    return { suggestion, confidence, rationale }
+  }
+
   async getOpenDisputes(limit: number = 50) {
     return this.prisma.disputes.findMany({
       where: { status: { in: [DisputeStatus.OPEN, DisputeStatus.UNDER_REVIEW] } },

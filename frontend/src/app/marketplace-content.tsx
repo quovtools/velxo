@@ -624,12 +624,12 @@ function TopUpDealsSection() {
 /* ─────────────────── Trust Badges ───────────────────────────────────── */
 function TrustBadges() {
   const badges = [
-    { icon: <ShieldCheck className="w-4 h-4 text-emerald-400" />, label: 'Escrow Protected' },
-    { icon: <Lock className="w-4 h-4 text-violet-400" />, label: 'Secure Transactions' },
+    { icon: <ShieldCheck className="w-4 h-4 text-emerald-400" />, label: 'Buyer Protection' },
+    { icon: <Lock className="w-4 h-4 text-violet-400" />, label: 'Escrow Protected' },
     { icon: <Check className="w-4 h-4 text-purple-400" />, label: 'Verified Sellers' },
     { icon: <Zap className="w-4 h-4 text-orange-400" />, label: 'Fast Delivery' },
     { icon: <Star className="w-4 h-4 text-yellow-400" />, label: 'Rated Marketplace' },
-    { icon: <TrendingUp className="w-4 h-4 text-brand" />, label: '10,000+ Trades' },
+    { icon: <TrendingUp className="w-4 h-4 text-brand" />, label: 'AI Dispute Resolution' },
   ];
   return (
     <div className="flex flex-wrap items-center justify-center gap-2 md:gap-3">
