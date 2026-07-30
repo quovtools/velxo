@@ -26,7 +26,7 @@ interface LegalPage {
 const DEFAULT_PAGES: Record<string, LegalPage> = {
   terms: {
     pageType: 'terms', title: 'Terms of Service', version: '1.0', isPublished: false,
-    content: `<h2>1. Acceptance of Terms</h2>\n<p>By accessing Velxo Market you agree to these Terms of Service.</p>\n\n<h2>2. Use of the Platform</h2>\n<p>Velxo Market is a peer-to-peer gaming marketplace. You must be 13 or older to use this platform.</p>\n\n<h2>3. Escrow & Payments</h2>\n<p>All transactions are processed through Velxo Escrow. Funds are held securely until both parties confirm delivery.</p>\n\n<h2>4. Prohibited Items</h2>\n<p>Accounts obtained through cheating, hacking or TOS violations of the originating game are strictly forbidden.</p>\n\n<h2>5. Dispute Resolution</h2>\n<p>In the event of a dispute, Velxo Admin will investigate and make a final binding decision.</p>\n\n<h2>6. Termination</h2>\n<p>We reserve the right to suspend or terminate accounts that violate these terms without prior notice.</p>`,
+    content: `<h2>1. Acceptance of Terms</h2>\n<p>By accessing piyrox market you agree to these Terms of Service.</p>\n\n<h2>2. Use of the Platform</h2>\n<p>piyrox market is a peer-to-peer gaming marketplace. You must be 13 or older to use this platform.</p>\n\n<h2>3. Escrow & Payments</h2>\n<p>All transactions are processed through piyrox escrow. Funds are held securely until both parties confirm delivery.</p>\n\n<h2>4. Prohibited Items</h2>\n<p>Accounts obtained through cheating, hacking or TOS violations of the originating game are strictly forbidden.</p>\n\n<h2>5. Dispute Resolution</h2>\n<p>In the event of a dispute, piyrox admin will investigate and make a final binding decision.</p>\n\n<h2>6. Termination</h2>\n<p>We reserve the right to suspend or terminate accounts that violate these terms without prior notice.</p>`,
   },
   privacy: {
     pageType: 'privacy', title: 'Privacy Policy', version: '1.0', isPublished: false,
@@ -34,7 +34,7 @@ const DEFAULT_PAGES: Record<string, LegalPage> = {
   },
   refund: {
     pageType: 'refund', title: 'Refund Policy', version: '1.0', isPublished: false,
-    content: `<h2>Refund Eligibility</h2>\n<p>Refunds are handled through the Velxo Escrow dispute process. Once a buyer confirms delivery, funds are released and no refund is possible.</p>\n\n<h2>Dispute Window</h2>\n<p>Buyers have 72 hours after delivery to raise a dispute before funds are automatically released to the seller.</p>`,
+    content: `<h2>Refund Eligibility</h2>\n<p>Refunds are handled through the piyrox escrow dispute process. Once a buyer confirms delivery, funds are released and no refund is possible.</p>\n\n<h2>Dispute Window</h2>\n<p>Buyers have 72 hours after delivery to raise a dispute before funds are automatically released to the seller.</p>`,
   },
   cookies: {
     pageType: 'cookies', title: 'Cookie Policy', version: '1.0', isPublished: false,

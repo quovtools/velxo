@@ -23,7 +23,7 @@ export class TopupsController {
 
   constructor(private topupsService: TopupsService) {}
 
-  // Public — browse official Velxo top-ups
+  // Public — browse official piyrox top-ups
   @Get()
   async getActiveProducts(@Query('game') gameName?: string) {
     try {

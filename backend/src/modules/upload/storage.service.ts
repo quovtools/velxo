@@ -14,7 +14,7 @@ import { getSignedUrl } from '@aws-sdk/s3-request-presigner'
  * Required environment variables:
  *   B2_ENDPOINT      e.g. https://s3.us-east-005.backblazeb2.com
  *   B2_REGION        e.g. us-east-005
- *   B2_BUCKET        e.g. velxo-assets
+ *   B2_BUCKET        e.g. piyrox-assets
  *   B2_KEY_ID        your B2 applicationKeyId
  *   B2_APP_KEY       your B2 applicationKey
  *

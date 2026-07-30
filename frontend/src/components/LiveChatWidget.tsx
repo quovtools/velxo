@@ -9,14 +9,6 @@ const ALLOWED_PATHS = ['/', '/profile', '/support'];
 
 const API_BASE = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:3001/api/v1';
 
-export default function LiveChatWidget({ showAlways }: { showAlways?: boolean }) {
-  const pathname = usePathname?.() ?? (typeof window !== 'undefined' ? window.location.pathname : '');
-  // Only show by default on these frontend paths
-  const allowedDefault = ['/profile', '/support'];
-  const allowed = showAlways || allowedDefault.some(p => pathname === p || pathname.startsWith(p + '/'));
-  if (!allowed) return null;
-
-/* ── Generate / retrieve a stable visitor ID ─────────────────────────── */
 function getVisitorId(): string {
   if (typeof window === 'undefined') return 'ssr';
   let id = localStorage.getItem('vlx_visitor_id');
@@ -160,7 +152,7 @@ export default function LiveChatWidget() {
                 <ShieldCheck className="w-4 h-4 text-white" />
               </div>
               <div>
-                <p className="text-sm font-bold text-white leading-none">Velxo Support</p>
+                 <p className="text-sm font-bold text-white leading-none">Piyrox Support</p>
                 <p className="text-[11px] text-white/70 leading-none mt-0.5">
                   {chatStatus === 'ASSIGNED' ? '● Admin online' : '● Typically replies within 1 hr'}
                 </p>
@@ -174,9 +166,9 @@ export default function LiveChatWidget() {
           {/* ── Intro / name-email form ── */}
           {step === 'intro' && (
             <div className="flex-1 flex flex-col p-5 space-y-4">
-              <p className="text-sm text-gray-400 leading-relaxed">
-                Hi there 👋 Welcome to <span className="text-white font-semibold">Velxo Support</span>. Leave your name and email so we can follow up, then type your message.
-              </p>
+               <p className="text-sm text-gray-400 leading-relaxed">
+                 Hi there 👋 Welcome to <span className="text-white font-semibold">Piyrox Support</span>. Leave your name and email so we can follow up, then type your message.
+               </p>
               <div className="space-y-3">
                 <input
                   type="text"
@@ -220,7 +212,7 @@ export default function LiveChatWidget() {
                       <p className="text-sm text-gray-200 leading-relaxed">
                         Hi! How can we help you today? 😊
                       </p>
-                      <p className="text-[10px] text-gray-600 mt-1">Velxo Support</p>
+                       <p className="text-[10px] text-gray-600 mt-1">Piyrox Support</p>
                     </div>
                   </div>
                 )}
@@ -236,7 +228,7 @@ export default function LiveChatWidget() {
                         <p className="leading-relaxed break-words">{msg.content}</p>
                         <p className={`text-[10px] mt-1 ${isVisitor ? 'text-white/50 text-right' : 'text-gray-600'}`}>
                           {new Date(msg.createdAt).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}
-                          {!isVisitor && <span className="ml-1">· Velxo Support</span>}
+                           {!isVisitor && <span className="ml-1">· Piyrox Support</span>}
                         </p>
                       </div>
                     </div>

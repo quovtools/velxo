@@ -1,7 +1,7 @@
 # Admin Dashboard Enhancements - Implementation Tasks
 
 ## Overview
-Comprehensive enhancement of the Velxo admin dashboard with bulk operations, mass management tools, and streamlined editing workflows.
+Comprehensive enhancement of the Piyrox admin dashboard with bulk operations, mass management tools, and streamlined editing workflows.
 
 ## Phase 1: Backend - Bulk Operations & Mass Management APIs
 

@@ -5,25 +5,25 @@ import Footer from '@/components/Footer';
 import { ShieldCheck, Lock, CheckCircle, AlertTriangle, ArrowRight, Clock, Banknote, ChevronDown } from 'lucide-react';
 
 export const metadata: Metadata = {
-  title: 'How Velxo Escrow Works',
-  description: 'Learn how Velxo Escrow protects every gaming transaction — funds are held securely until you confirm delivery. Dispute resolution, fees, and buyer protection explained.',
-  alternates: { canonical: 'https://velxo.shop/escrow' },
+  title: 'How piyrox escrow Works',
+  description: 'Learn how piyrox escrow protects every gaming transaction — funds are held securely until you confirm delivery. Dispute resolution, fees, and buyer protection explained.',
+  alternates: { canonical: 'https://piyrox.shop/escrow' },
   openGraph: {
-    title: 'How Velxo Escrow Works | Safe Gaming Trades',
-    description: 'Your money is locked in escrow until you confirm delivery. Learn how Velxo keeps every trade safe.',
-    url: 'https://velxo.shop/escrow',
-    siteName: 'Velxo',
+    title: 'How piyrox escrow Works | Safe Gaming Trades',
+    description: 'Your money is locked in escrow until you confirm delivery. Learn how Piyrox keeps every trade safe.',
+    url: 'https://piyrox.shop/escrow',
+    siteName: 'Piyrox',
     type: 'website',
-    images: [{ url: '/og.png', width: 1200, height: 630, alt: 'Velxo Escrow' }],
+    images: [{ url: '/og.png', width: 1200, height: 630, alt: 'piyrox escrow' }],
   },
 };
 
 const steps = [
-  { step: '01', icon: <Banknote className="w-6 h-6 text-brand-light" />, title: 'Buyer Places Order', desc: 'The buyer pays for the item. Funds are immediately locked in Velxo Escrow — not sent to the seller yet.' },
+  { step: '01', icon: <Banknote className="w-6 h-6 text-brand-light" />, title: 'Buyer Places Order', desc: 'The buyer pays for the item. Funds are immediately locked in piyrox escrow — not sent to the seller yet.' },
   { step: '02', icon: <Lock className="w-6 h-6 text-brand-light" />, title: 'Seller Accepts', desc: 'The seller accepts the paid order, which starts a 60-minute delivery timer. Funds stay locked in escrow the whole time.' },
   { step: '03', icon: <ArrowRight className="w-6 h-6 text-brand-light" />, title: 'Seller Delivers (within 60 min)', desc: 'The seller has 60 minutes to hand over the account, coins, gift card, or complete the service. Miss the window and both parties can open a dispute or complaint.' },
   { step: '04', icon: <CheckCircle className="w-6 h-6 text-brand-light" />, title: 'Buyer Confirms (within 60 min)', desc: 'Delivery resets the clock: the buyer has a fresh 60 minutes to log in and click "Confirm Receipt", which releases the escrow funds.' },
-  { step: '05', icon: <Banknote className="w-6 h-6 text-brand-light" />, title: 'Seller Gets Paid', desc: "The funds (minus the 10% service fee) are credited to the seller's Velxo wallet, ready for withdrawal." },
+  { step: '05', icon: <Banknote className="w-6 h-6 text-brand-light" />, title: 'Seller Gets Paid', desc: "The funds (minus the 10% service fee) are credited to the seller's piyrox wallet, ready for withdrawal." },
 ];
 
 const disputeSteps = [
@@ -37,7 +37,7 @@ const faqs = [
   { q: 'How long do I have to confirm receipt?', a: 'When the seller marks the order as delivered, a fresh 60-minute window starts for you to log in and click "Confirm Receipt". If you don’t confirm in time, the seller can file a complaint to escalate — but you can still confirm receipt afterwards to release the funds.' },
   { q: 'How long does escrow hold the funds?', a: 'Funds are held until the buyer confirms delivery or a dispute is resolved. Nothing is released automatically — if a 60-minute window lapses, either party can raise a dispute or complaint and our team steps in to resolve it.' },
   { q: 'Can the seller cancel and take my money?', a: 'No. Once a payment is locked in escrow, the seller cannot access it. Only buyer confirmation or a dispute resolution releases the funds.' },
-  { q: 'What is the escrow service fee?', a: 'Velxo charges a 10% service fee on each completed transaction, deducted from the seller’s payout. There are no fees for buyers.' },
+  { q: 'What is the escrow service fee?', a: 'Piyrox charges a 10% service fee on each completed transaction, deducted from the seller’s payout. There are no fees for buyers.' },
   { q: 'Is my payment safe?', a: 'Yes. All payments are processed through Paystack or Flutterwave and held in a segregated escrow wallet. We use TLS encryption and bank-grade security standards.' },
 ];
 
@@ -54,10 +54,10 @@ export default function EscrowPage() {
               <ShieldCheck className="w-8 h-8 text-brand-light" />
             </div>
             <h1 className="heading-lg sm:heading-xl">
-              How Velxo <span className="text-gradient">Escrow Works</span>
+              How Piyrox <span className="text-gradient">Escrow Works</span>
             </h1>
             <p className="text-gray-400 text-base sm:text-lg">
-              Velxo Escrow protects every transaction. Your money never touches the seller until you confirm you&apos;ve received exactly what was promised.
+              piyrox escrow protects every transaction. Your money never touches the seller until you confirm you&apos;ve received exactly what was promised.
             </p>
           </div>
 
@@ -110,7 +110,7 @@ export default function EscrowPage() {
             </div>
             <div className="bg-red-950/20 border border-red-500/20 rounded-2xl p-5 max-w-2xl mx-auto text-sm text-gray-400 space-y-2">
               <p className="font-bold text-red-300">Important:</p>
-              <p>Velxo runs on tight <strong className="text-white">60-minute</strong> windows: the seller has 60 minutes to deliver after accepting, and the buyer has 60 minutes to confirm after delivery. If either window is missed, the affected party can open a dispute or complaint straight from the order page. Funds are <strong className="text-white">never</strong> released automatically without buyer confirmation or a support decision.</p>
+              <p>Piyrox runs on tight <strong className="text-white">60-minute</strong> windows: the seller has 60 minutes to deliver after accepting, and the buyer has 60 minutes to confirm after delivery. If either window is missed, the affected party can open a dispute or complaint straight from the order page. Funds are <strong className="text-white">never</strong> released automatically without buyer confirmation or a support decision.</p>
             </div>
           </div>
 
@@ -131,10 +131,10 @@ export default function EscrowPage() {
           {/* CTA */}
           <div className="bg-surface border border-border rounded-3xl p-8 sm:p-10 text-center space-y-4">
             <h3 className="text-2xl font-extrabold text-white">Ready to trade safely?</h3>
-            <p className="text-gray-400 text-sm">Every trade on Velxo is protected. Start buying or selling with confidence.</p>
+            <p className="text-gray-400 text-sm">Every trade on Piyrox is protected. Start buying or selling with confidence.</p>
             <div className="flex flex-col sm:flex-row gap-3 justify-center">
-              <a href="https://market.velxo.shop/search" className="btn-primary">Browse Listings</a>
-              <a href="https://velxo.shop/support" className="btn-secondary">Get Help</a>
+              <a href="https://market.piyrox.shop/search" className="btn-primary">Browse Listings</a>
+              <a href="https://piyrox.shop/support" className="btn-secondary">Get Help</a>
             </div>
           </div>
         </div>

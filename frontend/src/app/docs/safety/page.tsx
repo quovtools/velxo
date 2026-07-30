@@ -3,10 +3,10 @@ import { BadgeCheck, Fingerprint, ScanFace, ShieldAlert } from 'lucide-react';
 import { DocHeader, DocSection, Steps, Callout, FeatureGrid, RelatedLinks, DocShell } from '../components/doc-ui';
 
 export const metadata: Metadata = {
-  title: 'Safety & Verification — Velxo Documentation',
+  title: 'Safety & Verification — piyrox documentation',
   description:
-    'How Velxo verifies sellers with KYC, trust badges, and anti-fraud measures to keep the marketplace safe.',
-  alternates: { canonical: 'https://market.velxo.shop/docs/safety' },
+    'How Piyrox verifies sellers with KYC, trust badges, and anti-fraud measures to keep the marketplace safe.',
+  alternates: { canonical: 'https://market.piyrox.shop/docs/safety' },
 };
 
 export default function DocsSafety() {
@@ -15,7 +15,7 @@ export default function DocsSafety() {
       <DocHeader
         icon={<BadgeCheck className="w-6 h-6" />}
         title="Safety & Verification"
-        description="Trust is the foundation of Velxo. Learn how verification, trust signals, and our anti-fraud systems keep trades safe."
+        description="Trust is the foundation of Piyrox. Learn how verification, trust signals, and our anti-fraud systems keep trades safe."
       />
 
       <DocSection title="Seller verification (KYC)">
@@ -61,7 +61,7 @@ export default function DocsSafety() {
 
       <DocSection title="Our anti-fraud systems">
         <p>
-          Velxo monitors logins, payments, and behavior for suspicious patterns. Accounts showing
+          Piyrox monitors logins, payments, and behavior for suspicious patterns. Accounts showing
           fraudulent signals can be limited or suspended. Combined with escrow, this creates multiple
           layers of protection.
         </p>

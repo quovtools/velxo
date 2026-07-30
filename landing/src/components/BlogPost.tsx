@@ -18,7 +18,7 @@ interface Post {
   publishedAt?: string;
 }
 
-const API = process.env.NEXT_PUBLIC_API_URL || 'https://api.velxo.shop/api/v1';
+const API = process.env.NEXT_PUBLIC_API_URL || 'https://api.piyrox.shop/api/v1';
 
 export default function BlogPost() {
   const params = useParams();
@@ -96,7 +96,7 @@ export default function BlogPost() {
               </span>
               <h1 className="text-3xl font-black leading-tight text-white sm:text-4xl lg:text-5xl">{post.title}</h1>
               <div className="flex flex-wrap items-center gap-4 text-xs text-gray-500">
-                <span className="flex items-center gap-1.5"><User className="h-3.5 w-3.5" /> {post.author || 'Velxo Team'}</span>
+                <span className="flex items-center gap-1.5"><User className="h-3.5 w-3.5" /> {post.author || 'piyrox team'}</span>
                 {post.publishedAt && <span className="flex items-center gap-1.5"><Calendar className="h-3.5 w-3.5" /> {new Date(post.publishedAt).toLocaleDateString('en-US', { month: 'long', day: 'numeric', year: 'numeric' })}</span>}
                 {post.readTime && <span className="flex items-center gap-1.5"><Clock className="h-3.5 w-3.5" /> {post.readTime}</span>}
               </div>

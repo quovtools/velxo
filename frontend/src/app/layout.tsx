@@ -7,21 +7,21 @@ import InstallPrompt from "@/components/InstallPrompt";
 import ActiveOrderBanner from "@/components/ActiveOrderBanner";
 import LiveChatWidget from "@/components/LiveChatWidget";
 
-const SITE_URL = "https://market.velxo.shop";
+const SITE_URL = "https://market.piyrox.shop";
 
 export const metadata: Metadata = {
   metadataBase: new URL(SITE_URL),
   title: {
-    default: "Velxo Market | Buy & Sell Game Accounts, Coins & More",
-    template: "%s | Velxo Market",
+    default: "piyrox market | Buy & Sell Game Accounts, Coins & More",
+    template: "%s | piyrox market",
   },
-  description: "Browse thousands of verified gaming listings — accounts and boosting services. All trades protected by Velxo Escrow, Africa's trusted gaming marketplace.", 
-  applicationName: "Velxo Market",
+  description: "Browse thousands of verified gaming listings — accounts and boosting services. All trades protected by piyrox escrow, Africa's trusted gaming marketplace.", 
+  applicationName: "piyrox market",
   manifest: "/manifest.json",
   appleWebApp: {
     capable: true,
     statusBarStyle: "black-translucent",
-    title: "Velxo",
+    title: "Piyrox",
   },
   formatDetection: { telephone: false },
   keywords: [
@@ -29,14 +29,14 @@ export const metadata: Metadata = {
     "buy game accounts",
     "sell game accounts",
     "escrow gaming",
-    "velxo",
+    "piyrox",
     "africa gaming marketplace",
     "free fire accounts",
     "pubg mobile uc",
     "rank boosting",
   ],
-  authors: [{ name: "Velxo" }],
-  creator: "Velxo",
+  authors: [{ name: "Piyrox" }],
+  creator: "Piyrox",
   category: "marketplace",
   icons: {
     icon: "/favicon.png",
@@ -45,16 +45,16 @@ export const metadata: Metadata = {
   openGraph: {
     type: "website",
     url: SITE_URL,
-    siteName: "Velxo Market",
-    title: "Velxo Market | Buy & Sell Game Accounts, Coins & More",
-    description: "Browse thousands of verified gaming listings — accounts, top-ups, gift cards and boosting services. All trades protected by Velxo Escrow.",
+    siteName: "piyrox market",
+    title: "piyrox market | Buy & Sell Game Accounts, Coins & More",
+    description: "Browse thousands of verified gaming listings — accounts, top-ups, gift cards and boosting services. All trades protected by piyrox escrow.",
     locale: "en_US",
   },
   twitter: {
     card: "summary_large_image",
-    site: "@velxoshop",
-    creator: "@velxoshop",
-    title: "Velxo Market | Buy & Sell Game Accounts, Coins & More",
+    site: "@piyroxshop",
+    creator: "@piyroxshop",
+    title: "piyrox market | Buy & Sell Game Accounts, Coins & More",
     description: "Browse thousands of verified gaming listings with escrow protection.",
   },
   alternates: {
@@ -88,20 +88,20 @@ export default function RootLayout({
     {
       "@context": "https://schema.org",
       "@type": "Organization",
-      "name": "Velxo Market",
+      "name": "piyrox market",
       "url": SITE_URL,
       "logo": `${SITE_URL}/logo-new.png`,
       "description": "Africa's trusted escrow-backed gaming marketplace. Buy and sell game accounts, coins, gift cards safely.",
       "sameAs": [
-        "https://twitter.com/velxoshop",
-        "https://instagram.com/velxoshop",
-        "https://youtube.com/@velxo",
+        "https://twitter.com/piyroxshop",
+        "https://instagram.com/piyroxshop",
+        "https://youtube.com/@piyrox",
       ],
     },
     {
       "@context": "https://schema.org",
       "@type": "WebSite",
-      "name": "Velxo Market",
+      "name": "piyrox market",
       "url": SITE_URL,
       "potentialAction": {
         "@type": "SearchAction",
@@ -120,7 +120,7 @@ export default function RootLayout({
         <script
           dangerouslySetInnerHTML={{
             __html:
-              "(function(){try{var t=localStorage.getItem('velxo_theme')||'dark';var r=document.documentElement;r.classList.add(t);r.classList.remove(t==='dark'?'light':'dark');}catch(e){document.documentElement.classList.add('dark');}})();",
+              "(function(){try{var t=localStorage.getItem('piyrox_theme')||'dark';var r=document.documentElement;r.classList.add(t);r.classList.remove(t==='dark'?'light':'dark');}catch(e){document.documentElement.classList.add('dark');}})();",
           }}
         />
         <meta name="theme-color" content="#0f172a" />

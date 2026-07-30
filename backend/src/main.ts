@@ -27,7 +27,7 @@ async function bootstrap() {
   app.useGlobalFilters(new AllExceptionsFilter())
 
   // Support multiple allowed origins via comma-separated CORS_ORIGIN env var
-  // e.g. CORS_ORIGIN=https://market.velxo.shop,https://velxo-azure.vercel.app
+  // e.g. CORS_ORIGIN=https://market.piyrox.shop,https://piyrox-azure.vercel.app
   const rawOrigin = process.env.CORS_ORIGIN
   const allowedOrigins = rawOrigin
     ? rawOrigin.split(',').map((o) => o.trim())
@@ -111,7 +111,7 @@ async function bootstrap() {
   // Handle health checks at /api/v1 (Render pings this path)
   const healthPayload = JSON.stringify({
     status: 'ok',
-    service: 'Velxo API',
+    service: 'piyrox api',
     version: '1.0.0',
   })
   expressApp.get('/api/v1', (_req, res) => {
@@ -143,11 +143,11 @@ async function bootstrap() {
   const nodeEnv = process.env.NODE_ENV || 'development'
   const apiUrl =
     nodeEnv === 'production'
-      ? process.env.API_URL || `https://api.velxo.shop/api/v1`
+      ? process.env.API_URL || `https://api.piyrox.shop/api/v1`
       : `http://localhost:${port}/api/v1`
 
   // Log key config at startup so it's visible in Render logs
-  logger.log(`🚀 Velxo API running on ${apiUrl}`)
+  logger.log(`🚀 piyrox api running on ${apiUrl}`)
   logger.log(`📦 Environment: ${nodeEnv}`)
   logger.log(`🌐 CORS origins: ${allowedOrigins ? allowedOrigins.join(', ') : 'ALL (open)'}`)
   logger.log(`🗃️  Database URL: ${process.env.DATABASE_URL ? 'SET' : 'MISSING ⚠️'}`)
@@ -158,6 +158,6 @@ async function bootstrap() {
 
 // Catch bootstrap-level errors (e.g. DB connection failures) and print them clearly
 bootstrap().catch((err) => {
-  console.error('❌ Failed to start Velxo API:', err)
+  console.error('❌ Failed to start piyrox api:', err)
   process.exit(1)
 })

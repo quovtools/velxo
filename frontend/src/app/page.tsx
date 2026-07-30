@@ -1,12 +1,12 @@
 import type { Metadata } from 'next';
 import MarketplaceClient from './marketplace-content';
 
-const SITE_URL = 'https://market.velxo.shop';
+const SITE_URL = 'https://market.piyrox.shop';
 
 export const metadata: Metadata = {
   title: 'Buy & Sell Game Accounts, Coins, Top-Ups & Boosting',
   description:
-    'Discover verified gaming deals on Velxo — Free Fire, PUBG Mobile, COD Mobile accounts, UC & diamonds top-ups, gift cards and rank boosting. Every trade secured by Velxo Escrow.',
+    'Discover verified gaming deals on Piyrox — Free Fire, PUBG Mobile, COD Mobile accounts, UC & diamonds top-ups, gift cards and rank boosting. Every trade secured by piyrox escrow.',
   keywords: [
     'buy game accounts',
     'sell game accounts',
@@ -22,16 +22,16 @@ export const metadata: Metadata = {
     canonical: SITE_URL,
   },
   openGraph: {
-    title: 'Velxo Market | Buy & Sell Game Accounts, Coins & More',
+    title: 'piyrox market | Buy & Sell Game Accounts, Coins & More',
     description:
-      'Discover verified gaming deals — accounts, top-ups, gift cards and boosting. Every trade secured by Velxo Escrow.',
+      'Discover verified gaming deals — accounts, top-ups, gift cards and boosting. Every trade secured by piyrox escrow.',
     url: SITE_URL,
-    siteName: 'Velxo Market',
+    siteName: 'piyrox market',
     type: 'website',
   },
   twitter: {
     card: 'summary_large_image',
-    title: 'Velxo Market | Buy & Sell Game Accounts, Coins & More',
+    title: 'piyrox market | Buy & Sell Game Accounts, Coins & More',
     description: 'Discover verified gaming deals with escrow protection.',
   },
 };

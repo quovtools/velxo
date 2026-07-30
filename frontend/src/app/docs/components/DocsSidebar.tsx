@@ -23,7 +23,7 @@ export const DOC_SECTIONS = [
     ],
   },
   {
-    title: 'Using Velxo',
+    title: 'Using Piyrox',
     links: [
       { label: 'How to Buy', href: '/docs/buy', icon: ShoppingCart },
       { label: 'How to Sell', href: '/docs/sell', icon: Tag },
@@ -32,9 +32,9 @@ export const DOC_SECTIONS = [
     ],
   },
   {
-    title: 'Earn with Velxo',
+    title: 'Earn with Piyrox',
     links: [
-      { label: 'VelxoCoins & Rewards', href: '/docs/rewards', icon: Coins },
+      { label: 'PiyroxCoins & Rewards', href: '/docs/rewards', icon: Coins },
       { label: 'Affiliate Program', href: '/docs/affiliate', icon: Users },
     ],
   },

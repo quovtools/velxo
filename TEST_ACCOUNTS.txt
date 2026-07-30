@@ -1,5 +1,5 @@
 ================================================================================
-                    VELXO MARKETPLACE — TEST ACCOUNTS
+                     PIYROX MARKETPLACE — TEST ACCOUNTS
 ================================================================================
 
 To use these accounts, run the seed first:
@@ -11,7 +11,7 @@ Then login with any of these email addresses in the frontend.
                                  ADMIN ACCOUNT
 ================================================================================
 
-Email:              admin@velxo.shop
+Email:              admin@piyrox.shop
 Role:               SUPER_ADMIN
 Access:             Full admin dashboard
 
@@ -20,7 +20,7 @@ Access:             Full admin dashboard
 ================================================================================
 
 SELLER 1 — Kwame Gaming Store
-├─ Email:           kwame.gaming@velxo.shop
+├─ Email:           kwame.gaming@piyrox.shop
 ├─ Name:            Kwame Asante
 ├─ Country:         Ghana
 ├─ Subscription:    PRO (Verified)
@@ -30,7 +30,7 @@ SELLER 1 — Kwame Gaming Store
 └─ Wallet Balance:  $1,000-$5,000
 
 SELLER 2 — Zainab Pro Gaming
-├─ Email:           zainab.plays@velxo.shop
+├─ Email:           zainab.plays@piyrox.shop
 ├─ Name:            Zainab Okonkwo
 ├─ Country:         Nigeria
 ├─ Subscription:    FREE
@@ -40,7 +40,7 @@ SELLER 2 — Zainab Pro Gaming
 └─ Wallet Balance:  $1,000-$5,000
 
 SELLER 3 — Elite Boost Services
-├─ Email:           david.booster@velxo.shop
+├─ Email:           david.booster@piyrox.shop
 ├─ Name:            David Ochieng
 ├─ Country:         Kenya
 ├─ Subscription:    PREMIUM (Verified)
@@ -50,7 +50,7 @@ SELLER 3 — Elite Boost Services
 └─ Wallet Balance:  $1,000-$5,000
 
 SELLER 4 — Amina GameVault
-├─ Email:           amina.games@velxo.shop
+├─ Email:           amina.games@piyrox.shop
 ├─ Name:            Amina Hassan
 ├─ Country:         Egypt
 ├─ Subscription:    PRO (Verified)
@@ -60,7 +60,7 @@ SELLER 4 — Amina GameVault
 └─ Wallet Balance:  $1,000-$5,000
 
 SELLER 5 — Thabo Gaming Hub
-├─ Email:           thabo.gamer@velxo.shop
+├─ Email:           thabo.gamer@piyrox.shop
 ├─ Name:            Thabo Molefe
 ├─ Country:         South Africa
 ├─ Subscription:    FREE
@@ -78,49 +78,49 @@ BUYER 1
 ├─ Name:            Chidi Okafor
 ├─ Country:         Nigeria
 ├─ Wallet:          $0-$2,000
-└─ VelxoCoins:      0-2,000 coins
+└─ VelroxCoins:      0-2,000 coins
 
 BUYER 2
 ├─ Email:           fatou.ndiaye@gmail.com
 ├─ Name:            Fatou Ndiaye
 ├─ Country:         Senegal
 ├─ Wallet:          $0-$2,000
-└─ VelxoCoins:      0-2,000 coins
+└─ VelroxCoins:      0-2,000 coins
 
 BUYER 3
 ├─ Email:           yusuf.mohammed@gmail.com
 ├─ Name:            Yusuf Mohammed
 ├─ Country:         Ethiopia
 ├─ Wallet:          $0-$2,000
-└─ VelxoCoins:      0-2,000 coins
+└─ VelroxCoins:      0-2,000 coins
 
 BUYER 4
 ├─ Email:           nairobi.gamer@gmail.com
 ├─ Name:            Brian Kipchoge
 ├─ Country:         Kenya
 ├─ Wallet:          $0-$2,000
-└─ VelxoCoins:      0-2,000 coins
+└─ VelroxCoins:      0-2,000 coins
 
 BUYER 5
 ├─ Email:           grace.mwanza@gmail.com
 ├─ Name:            Grace Mwanza
 ├─ Country:         Zambia
 ├─ Wallet:          $0-$2,000
-└─ VelxoCoins:      0-2,000 coins
+└─ VelroxCoins:      0-2,000 coins
 
 BUYER 6
 ├─ Email:           kofi.mensah@gmail.com
 ├─ Name:            Kofi Mensah
 ├─ Country:         Ghana
 ├─ Wallet:          $0-$2,000
-└─ VelxoCoins:      0-2,000 coins
+└─ VelroxCoins:      0-2,000 coins
 
 BUYER 7
 ├─ Email:           amina.diop@gmail.com
 ├─ Name:            Amina Diop
 ├─ Country:         Morocco
 ├─ Wallet:          $0-$2,000
-└─ VelxoCoins:      0-2,000 coins
+└─ VelroxCoins:      0-2,000 coins
 
 ================================================================================
                           MARKETPLACE CONTENT
@@ -151,7 +151,7 @@ TOP-UP PRODUCTS (31 items)
 BLOG POSTS (3 published)
 ├─ How to Stay Safe When Buying Gaming Accounts
 ├─ Top 5 Gaming Trends to Watch in 2025
-└─ Velxo Seller Success Story: Kwame Gaming Store
+└─ Piyrox Seller Success Story: Kwame Gaming Store
 
 REWARD CATALOG (6 items)
 ├─ $5 Free Fire Gift Card (250 VXC)
@@ -210,14 +210,14 @@ SCENARIO 1: Browse as Buyer
    ✓ Add to cart
 
 SCENARIO 2: Seller Dashboard
-└─ Login: kwame.gaming@velxo.shop (best-rated seller)
+└─ Login: kwame.gaming@piyrox.shop (best-rated seller)
    ✓ View analytics
    ✓ See earnings
    ✓ Check orders
    ✓ Manage listings
 
 SCENARIO 3: Admin Panel
-└─ Login: admin@velxo.shop
+└─ Login: admin@piyrox.shop
    ✓ View all users
    ✓ Moderate listings
    ✓ Check analytics
@@ -313,5 +313,5 @@ Completion Status:    SEED_COMPLETION_CHECKLIST.md
 Questions? Check the documentation files above.
 
 ================================================================================
-                   READY TO TEST! ENJOY EXPLORING VELXO 🚀
+                    READY TO TEST! ENJOY EXPLORING PIYROX 🚀
 ================================================================================

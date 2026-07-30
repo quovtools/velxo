@@ -59,7 +59,7 @@ export function CurrencyProvider({ children }: { children: React.ReactNode }) {
     setCurrencyState(config);
     // Persist manual choice for the session so the user doesn't have to re-select
     try {
-      sessionStorage.setItem('velxo_currency', JSON.stringify(config));
+      sessionStorage.setItem('piyrox_currency', JSON.stringify(config));
     } catch { /* ignore */ }
   };
 

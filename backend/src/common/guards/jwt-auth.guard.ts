@@ -23,7 +23,7 @@ export class JwtAuthGuard implements CanActivate {
     }
 
     try {
-      const secret = this.configService.get<string>('JWT_SECRET') || 'velxo-fallback-secret-change-in-prod'
+      const secret = this.configService.get<string>('JWT_SECRET') || 'piyrox-fallback-secret-change-in-prod'
       const payload = await this.jwtService.verifyAsync(token, {
         secret,
       })

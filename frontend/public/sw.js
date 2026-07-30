@@ -1,4 +1,4 @@
-const CACHE = 'velxo-static-v1'
+const CACHE = 'piyrox-static-v1'
 const STATIC_RE = /\/(_next\/static|favicon\.ico|logo\.png|manifest\.json|games\/)/i
 
 self.addEventListener('install', (event) => {

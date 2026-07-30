@@ -1,4 +1,4 @@
-const REF_KEY = 'velxo_ref';
+const REF_KEY = 'piyrox_ref';
 const API_BASE = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:3001/api/v1';
 
 export function storeReferralCode(code: string | null) {

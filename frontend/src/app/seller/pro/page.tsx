@@ -140,7 +140,7 @@ function SellerProPage() {
   const shareLink = async () => {
     if (!mine?.storeUrl) return;
     try {
-      if (navigator.share) await navigator.share({ title: 'My Velxo store', url: mine.storeUrl });
+      if (navigator.share) await navigator.share({ title: 'My Piyrox store', url: mine.storeUrl });
       else await copyLink();
     } catch {}
   };

@@ -2,17 +2,17 @@ import type { Metadata, Viewport } from "next";
 import "./globals.css";
 import LiveChatWidget from '@/components/LiveChatWidget';
 
-const SITE_URL = "https://velxo.shop";
+const SITE_URL = "https://piyrox.shop";
 
 export const metadata: Metadata = {
   metadataBase: new URL(SITE_URL),
   title: {
-    default: "Velxo — Africa's No.1 Gaming Marketplace",
-    template: "%s | Velxo",
+    default: "Piyrox — Africa's No.1 Gaming Marketplace",
+    template: "%s | Piyrox",
   },
   description:
     "Buy and sell game accounts, top-ups, gift cards and boosting services with full escrow protection. Built for Africa's gaming community.",
-  applicationName: "Velxo",
+  applicationName: "Piyrox",
   keywords: [
     "gaming marketplace",
     "free fire accounts",
@@ -24,11 +24,11 @@ export const metadata: Metadata = {
     "game top ups",
     "gift cards africa",
     "boosting services",
-    "velxo",
+    "piyrox",
   ],
-  authors: [{ name: "Velxo", url: SITE_URL }],
-  creator: "Velxo",
-  publisher: "Velxo",
+  authors: [{ name: "Piyrox", url: SITE_URL }],
+  creator: "Piyrox",
+  publisher: "Piyrox",
   category: "Gaming",
   alternates: {
     canonical: SITE_URL,
@@ -36,26 +36,26 @@ export const metadata: Metadata = {
   openGraph: {
     type: "website",
     url: SITE_URL,
-    siteName: "Velxo",
-    title: "Velxo — Africa's No.1 Gaming Marketplace",
+    siteName: "Piyrox",
+    title: "Piyrox — Africa's No.1 Gaming Marketplace",
     description:
-      "Trade gaming assets safely with Velxo Escrow. No more scams. Africa's most trusted gaming marketplace.",
+      "Trade gaming assets safely with piyrox escrow. No more scams. Africa's most trusted gaming marketplace.",
     locale: "en_US",
     images: [
       {
         url: "/og.png",
         width: 1200,
         height: 630,
-        alt: "Velxo — Africa's No.1 Gaming Marketplace",
+        alt: "Piyrox — Africa's No.1 Gaming Marketplace",
       },
     ],
   },
   twitter: {
     card: "summary_large_image",
-    site: "@velxoshop",
-    creator: "@velxoshop",
-    title: "Velxo — Africa's No.1 Gaming Marketplace",
-    description: "Trade gaming assets safely with Velxo Escrow. No more scams.",
+    site: "@piyroxshop",
+    creator: "@piyroxshop",
+    title: "Piyrox — Africa's No.1 Gaming Marketplace",
+    description: "Trade gaming assets safely with piyrox escrow. No more scams.",
     images: ["/og.png"],
   },
   robots: {
@@ -87,7 +87,7 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
   const orgJsonLd = {
     "@context": "https://schema.org",
     "@type": "Organization",
-    name: "Velxo",
+    name: "Piyrox",
     url: SITE_URL,
     logo: `${SITE_URL}/logo.png`,
     image: `${SITE_URL}/og.png`,
@@ -105,17 +105,17 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
     },
     areaServed: ["NG", "GH", "KE", "UG", "ZA"],
     sameAs: [
-      "https://twitter.com/velxoshop",
-      "https://instagram.com/velxoshop",
-      "https://youtube.com/@velxo",
-      "https://discord.gg/velxo",
+      "https://twitter.com/piyroxshop",
+      "https://instagram.com/piyroxshop",
+      "https://youtube.com/@piyrox",
+      "https://discord.gg/piyrox",
     ],
   };
 
   const websiteJsonLd = {
     "@context": "https://schema.org",
     "@type": "WebSite",
-    name: "Velxo",
+    name: "Piyrox",
     url: SITE_URL,
     inLanguage: "en",
     potentialAction: {
@@ -128,11 +128,11 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
   const appJsonLd = {
     "@context": "https://schema.org",
     "@type": "SoftwareApplication",
-    name: "Velxo",
+    name: "Piyrox",
     operatingSystem: "Web, Android, iOS",
     applicationCategory: "BusinessApplication",
     url: SITE_URL,
-    sameAs: ["https://twitter.com/velxoshop", "https://discord.gg/velxo"],
+    sameAs: ["https://twitter.com/piyroxshop", "https://discord.gg/piyrox"],
     offers: {
       "@type": "Offer",
       price: "0",
@@ -154,7 +154,7 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
         <script
           dangerouslySetInnerHTML={{
             __html:
-              "(function(){try{var t=localStorage.getItem('velxo_theme')||(window.matchMedia('(prefers-color-scheme: light)').matches?'light':'dark');var r=document.documentElement;r.classList.add(t);r.classList.remove(t==='dark'?'light':'dark');}catch(e){document.documentElement.classList.add('dark');}})();",
+              "(function(){try{var t=localStorage.getItem('piyrox_theme')||(window.matchMedia('(prefers-color-scheme: light)').matches?'light':'dark');var r=document.documentElement;r.classList.add(t);r.classList.remove(t==='dark'?'light':'dark');}catch(e){document.documentElement.classList.add('dark');}})();",
           }}
         />
         <script type="application/ld+json" dangerouslySetInnerHTML={{ __html: JSON.stringify(orgJsonLd) }} />

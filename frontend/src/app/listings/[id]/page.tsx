@@ -2,7 +2,7 @@ import type { Metadata } from 'next';
 import ListingDetailsContent from './listing-details-content';
 
 const API_BASE = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:3001/api/v1';
-const SITE_URL = 'https://market.velxo.shop';
+const SITE_URL = 'https://market.piyrox.shop';
 
 export const dynamic = 'force-dynamic';
 
@@ -37,29 +37,29 @@ export async function generateMetadata({
   if (!listing) {
     return {
       title: 'Listing Not Found',
-      description: 'This listing is no longer available on Velxo Market.',
+      description: 'This listing is no longer available on Piyrox Market.',
       robots: { index: false, follow: true },
     };
   }
   const price = Number(listing.price || 0).toFixed(2);
   return {
-    title: `${listing.title} — ${listing.gameName} | Velxo Market`,
+    title: `${listing.title} — ${listing.gameName} | Piyrox Market`,
     description:
       listing.description?.slice(0, 160) ||
-      `Buy ${listing.title} (${listing.gameName}) on Velxo Market. Escrow-protected trade with ${listing.seller?.storeName || 'a verified seller'}.`,
+      `Buy ${listing.title} (${listing.gameName}) on Piyrox Market. Escrow-protected trade with ${listing.seller?.storeName || 'a verified seller'}.`,
     keywords: [listing.gameName, 'buy game account', 'escrow gaming', listing.title],
     alternates: { canonical: `${SITE_URL}/listings/${id}` },
     openGraph: {
-      title: `${listing.title} — ${listing.gameName} | Velxo Market`,
+      title: `${listing.title} — ${listing.gameName} | Piyrox Market`,
       description: `Escrow-protected ${listing.gameName} listing for $${price}.`,
       url: `${SITE_URL}/listings/${id}`,
-      siteName: 'Velxo Market',
+      siteName: 'Piyrox Market',
       type: 'website',
       images: listing.images?.length ? [{ url: listing.images[0] }] : undefined,
     },
     twitter: {
       card: 'summary_large_image',
-      title: `${listing.title} | Velxo Market`,
+      title: `${listing.title} | Piyrox Market`,
       description: `Escrow-protected ${listing.gameName} listing for $${price}.`,
     },
   };
@@ -83,7 +83,7 @@ export default async function ListingDetailsPage({ params }: { params: Promise<{
           availability: 'https://schema.org/InStock',
           seller: {
             '@type': 'Organization',
-            name: listing.seller?.storeName || 'Velxo Seller',
+            name: listing.seller?.storeName || 'Piyrox Seller',
           },
         },
       }

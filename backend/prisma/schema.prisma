@@ -194,7 +194,7 @@ model users {
   signupRewardsGiven  affiliateSignupRewards[] @relation("SignupRewardReferrer")
   signupRewardReceived affiliateSignupRewards? @relation("SignupRewardReferred")
   creatorProfile      creatorProfiles?
-  velxoCoins          velxoCoins?
+  piyroxCoins          piyroxCoins?
   rewardRedemptions   rewardRedemptions[]
   forumThreads        forumThreads[]
   forumPosts          forumPosts[]
@@ -913,7 +913,7 @@ model blogPosts {
   excerpt     String
   content     String
   category    String   @default("Platform")
-  author      String   @default("Velxo Team")
+  author      String   @default("piyrox team")
   coverImage  String?
   isPublished Boolean  @default(false)
   isFeatured  Boolean  @default(false)
@@ -1030,7 +1030,7 @@ model creatorProfiles {
   // Perks
   hasFreePremium        Boolean  @default(false)      // free seller premium access
   premiumGrantedAt      DateTime?
-  // Commission override (creators get 20% of Velxo profit on each referral trade)
+  // Commission override (creators get 20% of Piyrox profit on each referral trade)
   creatorCommissionRate Decimal  @default(0.20) @db.Decimal(5, 4)
   // Signup reward rate (10-50 NGN, increases at tiers)
   signupRewardBase      Decimal  @default(10) @db.Decimal(8, 2)
@@ -1049,7 +1049,7 @@ model creatorProfiles {
   @@map("creator_profiles")
 }
 
-model velxoCoins {
+model piyroxCoins {
   id        String   @id @default(cuid())
   userId    String   @unique
   balance   Int      @default(0)
@@ -1061,7 +1061,7 @@ model velxoCoins {
   transactions rewardCoinTransactions[] @relation("RewardCoinTransactions")
 
   @@index([userId])
-  @@map("velxo_coins")
+  @@map("piyrox_coins")
 }
 
 model rewardCoinTransactions {
@@ -1075,7 +1075,7 @@ model rewardCoinTransactions {
   metadata    Json?
   createdAt   DateTime @default(now())
 
-  coin        velxoCoins @relation("RewardCoinTransactions", fields: [coinId], references: [id], onDelete: Cascade)
+  coin        piyroxCoins @relation("RewardCoinTransactions", fields: [coinId], references: [id], onDelete: Cascade)
 
   @@index([coinId])
   @@index([createdAt])

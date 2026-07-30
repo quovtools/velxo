@@ -7,17 +7,17 @@ const isInternal = (href: string) => href.startsWith('/');
 
 const LINKS = {
   Marketplace: [
-    { label: 'Browse All Listings', href: 'https://market.velxo.shop' },
-    { label: 'Game Accounts', href: 'https://market.velxo.shop/?category=accounts' },
-    { label: 'Top-Ups & Coins', href: 'https://market.velxo.shop/?category=topups' },
-    { label: 'Gift Cards', href: 'https://market.velxo.shop/?category=giftcards' },
-    { label: 'Boosting Services', href: 'https://market.velxo.shop/?category=boosting' },
+    { label: 'Browse All Listings', href: 'https://market.piyrox.shop' },
+    { label: 'Game Accounts', href: 'https://market.piyrox.shop/?category=accounts' },
+    { label: 'Top-Ups & Coins', href: 'https://market.piyrox.shop/?category=topups' },
+    { label: 'Gift Cards', href: 'https://market.piyrox.shop/?category=giftcards' },
+    { label: 'Boosting Services', href: 'https://market.piyrox.shop/?category=boosting' },
   ],
   Sellers: [
-    { label: 'Start Selling', href: 'https://market.velxo.shop/sell' },
-    { label: 'Seller Dashboard', href: 'https://market.velxo.shop/seller/dashboard' },
-    { label: 'Seller Guidelines', href: 'https://market.velxo.shop/seller/guidelines' },
-    { label: 'Pricing & Fees', href: 'https://market.velxo.shop/pricing' },
+    { label: 'Start Selling', href: 'https://market.piyrox.shop/sell' },
+    { label: 'Seller Dashboard', href: 'https://market.piyrox.shop/seller/dashboard' },
+    { label: 'Seller Guidelines', href: 'https://market.piyrox.shop/seller/guidelines' },
+    { label: 'Pricing & Fees', href: 'https://market.piyrox.shop/pricing' },
     { label: 'Affiliate Program', href: '/affiliate' },
   ],
   Support: [
@@ -28,7 +28,7 @@ const LINKS = {
     { label: 'Responsible Gaming', href: '/responsible-gaming' },
   ],
   Company: [
-    { label: 'About Velxo', href: '/about' },
+    { label: 'About Piyrox', href: '/about' },
     { label: 'Blog', href: '/blog' },
     { label: 'Press', href: '/press' },
     { label: 'Careers', href: '/careers' },
@@ -38,10 +38,10 @@ const LINKS = {
 };
 
 const SOCIALS = [
-  { icon: <Twitter className="h-4 w-4" />, href: 'https://twitter.com/velxoshop', label: 'Twitter' },
-  { icon: <Instagram className="h-4 w-4" />, href: 'https://instagram.com/velxoshop', label: 'Instagram' },
-  { icon: <Youtube className="h-4 w-4" />, href: 'https://youtube.com/@velxo', label: 'YouTube' },
-  { icon: <MessageCircle className="h-4 w-4" />, href: 'https://discord.gg/velxo', label: 'Discord' },
+  { icon: <Twitter className="h-4 w-4" />, href: 'https://twitter.com/piyroxshop', label: 'Twitter' },
+  { icon: <Instagram className="h-4 w-4" />, href: 'https://instagram.com/piyroxshop', label: 'Instagram' },
+  { icon: <Youtube className="h-4 w-4" />, href: 'https://youtube.com/@piyrox', label: 'YouTube' },
+  { icon: <MessageCircle className="h-4 w-4" />, href: 'https://discord.gg/piyrox', label: 'Discord' },
 ];
 
 export default function Footer() {
@@ -62,11 +62,11 @@ export default function Footer() {
         <div className="grid grid-cols-1 gap-10 md:grid-cols-6">
           {/* Brand */}
           <div className="space-y-5 md:col-span-2">
-            <Link href="/" className="flex items-center gap-2" aria-label="Velxo home">
+            <Link href="/" className="flex items-center gap-2" aria-label="Piyrox home">
               <span className="flex h-9 w-9 items-center justify-center rounded-xl bg-gradient-to-br from-brand-500 to-accent shadow-glow">
                 <ShieldCheck className="h-5 w-5 text-white" />
               </span>
-              <span className="text-2xl font-black tracking-wider text-white">VELXO</span>
+              <span className="text-2xl font-black tracking-wider text-white">PIYROX</span>
             </Link>
             <p className="max-w-xs text-sm leading-relaxed text-gray-400">
               Africa&apos;s most trusted escrow-backed gaming marketplace. Buy and sell safely — every trade, every time.
@@ -132,7 +132,7 @@ export default function Footer() {
       {/* Bottom bar */}
       <div className="border-t border-white/10">
         <div className="container-x flex flex-col items-center justify-between gap-3 py-5 text-xs text-gray-500 md:flex-row">
-          <p>&copy; {new Date().getFullYear()} Velxo.shop — All rights reserved. Built for Africa&apos;s gaming community.</p>
+          <p>&copy; {new Date().getFullYear()} Piyrox.shop — All rights reserved. Built for Africa&apos;s gaming community.</p>
           <div className="flex gap-5">
             <Link href="/terms" className="transition hover:text-brand-light">Terms</Link>
             <Link href="/privacy" className="transition hover:text-brand-light">Privacy</Link>

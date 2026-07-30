@@ -51,7 +51,7 @@ export class PrismaService extends PrismaClient implements OnModuleInit, OnModul
         update: {},
         create: {
           id: 'admin-console',
-          email: 'admin-console@system.velxo',
+          email: 'admin-console@system.piyrox',
           firstName: 'Admin',
           lastName: 'Console',
           role: 'ADMIN',

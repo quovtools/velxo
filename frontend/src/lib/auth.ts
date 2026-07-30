@@ -1,7 +1,7 @@
 // Manual JWT auth helper — replaces Supabase client auth
 
-const TOKEN_KEY = 'velxo_token';
-const USER_KEY = 'velxo_user';
+const TOKEN_KEY = 'piyrox_token';
+const USER_KEY = 'piyrox_user';
 
 export interface AuthUser {
   id: string;

@@ -2,7 +2,7 @@
 
 ## Overview
 
-The Velxo frontend now supports location-based currency conversion. Visitors' prices are automatically displayed in their local currency based on their IP geolocation, with fallback to USD.
+The Piyrox frontend now supports location-based currency conversion. Visitors' prices are automatically displayed in their local currency based on their IP geolocation, with fallback to USD.
 
 ## What Was Implemented
 

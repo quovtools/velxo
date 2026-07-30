@@ -1,4 +1,4 @@
-# Velxo P2P Overhaul — Instructions for all agents/subagents
+# Piyrox P2P Overhaul — Instructions for all agents/subagents
 
 ## Hard rules (MUST follow)
 1. NEVER create new `.md` files. Only edit `UPGRADE_PROGRESS.md` (the single progress tracker).

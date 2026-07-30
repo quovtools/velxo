@@ -26,7 +26,7 @@ interface RewardTransaction {
 export default function RewardsPage() {
   const { user } = useAuth();
   const { fmt } = useCurrency();
-  const [activeTab, setActiveTab] = useState<'overview' | 'affiliate' | 'velxo-coins' | 'redeem'>('overview');
+  const [activeTab, setActiveTab] = useState<'overview' | 'affiliate' | 'piyrox-coins' | 'redeem'>('overview');
   const [affiliateStats, setAffiliateStats] = useState<AffiliateStats | null>(null);
   const [referral, setReferral] = useState<{ id: string; referralCode: string } | null>(null);
   const [coinBalance, setCoinBalance] = useState<number>(0);
@@ -92,13 +92,13 @@ export default function RewardsPage() {
           <Award className="w-8 h-8 text-brand" />
           Rewards Center
         </h1>
-        <p className="text-gray-400 text-sm">Earn Velxo Coins, affiliate commissions, and exclusive perks.</p>
+        <p className="text-gray-400 text-sm">Earn piyrox coins, affiliate commissions, and exclusive perks.</p>
       </div>
 
       {/* Coin Balance Card */}
       <div className="bg-gradient-to-r from-brand/20 to-brand/5 border border-brand/30 rounded-2xl p-6 flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4">
         <div className="space-y-1">
-          <p className="text-xs font-bold text-brand uppercase tracking-wider">Your Velxo Coin Balance</p>
+          <p className="text-xs font-bold text-brand uppercase tracking-wider">Your Piyrox Coin Balance</p>
           <div className="flex items-baseline gap-2">
             <span className="text-4xl font-black text-white">{coinBalance.toLocaleString()}</span>
             <span className="text-sm font-bold text-brand">VXC</span>
@@ -116,7 +116,7 @@ export default function RewardsPage() {
         {[
           { key: 'overview', label: 'Overview' },
           { key: 'affiliate', label: 'Affiliate' },
-          { key: 'velxo-coins', label: 'Velxo Coins' },
+          { key: 'piyrox-coins', label: 'piyrox coins' },
           { key: 'redeem', label: 'Redeem' },
         ].map((tab) => (
           <button
@@ -140,7 +140,7 @@ export default function RewardsPage() {
             <div className="bg-cardBg border border-borderBg rounded-2xl p-5 space-y-2">
               <Trophy className="w-5 h-5 text-yellow-400 mb-1" />
               <p className="text-3xl font-black text-white">{coinBalance.toLocaleString()}</p>
-              <p className="text-xs text-gray-500 font-medium">Velxo Coins</p>
+              <p className="text-xs text-gray-500 font-medium">piyrox coins</p>
             </div>
             <div className="bg-cardBg border border-borderBg rounded-2xl p-5 space-y-2">
               <DollarSign className="w-5 h-5 text-emerald-400 mb-1" />
@@ -221,12 +221,12 @@ export default function RewardsPage() {
           </div>
         )}
 
-        {activeTab === 'velxo-coins' && (
+        {activeTab === 'piyrox-coins' && (
           <div className="space-y-4">
             <div className="bg-cardBg border border-borderBg rounded-2xl p-6 space-y-4">
               <h3 className="text-lg font-bold text-white flex items-center gap-2">
                 <Coins className="w-5 h-5 text-yellow-400" />
-                How to Earn Velxo Coins
+                How to Earn piyrox coins
               </h3>
               <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
                 <div className="bg-background border border-borderBg rounded-xl p-4 space-y-2">

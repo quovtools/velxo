@@ -10,7 +10,7 @@ export default function AppLoader() {
 
   return (
     <div className="fixed inset-0 z-[100] bg-background flex items-center justify-center">
-      <LoadingLogo label="Loading Velxo..." size="lg" />
+      <LoadingLogo label="Loading Piyrox..." size="lg" />
     </div>
   );
 }

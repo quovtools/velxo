@@ -107,7 +107,7 @@ function ListingCardGrid({ item }: { item: Listing }) {
           </h3>
           <p className="text-xs text-gray-500 mt-2 flex items-center gap-1">
             <span className="inline-block w-1.5 h-1.5 rounded-full bg-brand/50" />
-            {item.seller?.storeName || 'Velxo Seller'}
+            {item.seller?.storeName || 'piyrox seller'}
           </p>
         </div>
         <div className="flex items-center justify-between border-t border-borderBg pt-3">
@@ -177,7 +177,7 @@ function ListingCardList({ item }: { item: Listing }) {
           </p>
           <p className="text-xs text-gray-600 mt-1 flex items-center gap-1">
             <ShieldCheck className="w-3 h-3 text-emerald-400" />
-            {item.seller?.storeName || 'Velxo Seller'} 
+            {item.seller?.storeName || 'piyrox seller'} 
             {item.seller?.verified && <Check className="w-3 h-3 text-violet-400" />}
           </p>
         </div>

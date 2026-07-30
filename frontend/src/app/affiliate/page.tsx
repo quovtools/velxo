@@ -228,8 +228,8 @@ export default function AffiliateDashboardPage() {
         <div className="w-20 h-20 bg-brand/10 rounded-full flex items-center justify-center mx-auto">
           <Share2 className="w-10 h-10 text-brand" />
         </div>
-        <h1 className="text-3xl font-black text-white">Velxo Affiliate Program</h1>
-        <p className="text-gray-400 text-sm">Earn rewards for every signup and trade. Creators earn even more — 20% of Velxo's profit, free Premium, and tournament slots.</p>
+        <h1 className="text-3xl font-black text-white">Piyrox Affiliate Program</h1>
+        <p className="text-gray-400 text-sm">Earn rewards for every signup and trade. Creators earn even more — 20% of Piyrox's profit, free Premium, and tournament slots.</p>
         <a href="/auth/login" className="inline-flex items-center justify-center gap-2 bg-brand hover:bg-brand-dark px-6 py-3 rounded-xl text-white font-bold transition shadow-lg shadow-brand/20">
           Sign In to Start Earning
         </a>
@@ -291,7 +291,7 @@ export default function AffiliateDashboardPage() {
           </div>
           <div className="bg-background border border-borderBg rounded-xl px-4 py-3 overflow-hidden">
             <p className="text-sm font-mono font-bold text-white truncate">
-              {typeof window !== 'undefined' ? `${window.location.origin}/?ref=${referral.referralCode}` : `velxo.shop/?ref=${referral.referralCode}`}
+              {typeof window !== 'undefined' ? `${window.location.origin}/?ref=${referral.referralCode}` : `piyrox.shop/?ref=${referral.referralCode}`}
             </p>
           </div>
           <p className="text-xs text-gray-500">Share this link. Anyone who signs up through it becomes your referral.</p>
@@ -396,7 +396,7 @@ export default function AffiliateDashboardPage() {
                 </div>
               ))}
             </div>
-            <p className="text-xs text-gray-500">Rewards are paid in NGN directly to your Velxo wallet on each successful signup.</p>
+            <p className="text-xs text-gray-500">Rewards are paid in NGN directly to your piyrox wallet on each successful signup.</p>
           </div>
 
           {/* Want More? Creator CTA */}
@@ -495,9 +495,9 @@ export default function AffiliateDashboardPage() {
                 <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
                   {[
                     { icon: Star, color: 'text-yellow-400 bg-yellow-500/10', title: 'Free Seller Premium', desc: 'Get free access to Seller Premium once approved' },
-                    { icon: DollarSign, color: 'text-emerald-400 bg-emerald-500/10', title: '20% Commission', desc: '20% of Velxo\'s profit on every trade from your referrals' },
+                    { icon: DollarSign, color: 'text-emerald-400 bg-emerald-500/10', title: '20% Commission', desc: '20% of Piyrox\'s profit on every trade from your referrals' },
                     { icon: Users, color: 'text-cyan-400 bg-cyan-500/10', title: '₦10–₦50 Per Signup', desc: 'Higher per-signup rewards than regular users' },
-                    { icon: Gamepad2, color: 'text-purple-400 bg-purple-500/10', title: 'Tournament Priority', desc: 'Top slot at Velxo Weekly (BloodStrike & Free Fire)' },
+                    { icon: Gamepad2, color: 'text-purple-400 bg-purple-500/10', title: 'Tournament Priority', desc: 'Top slot at Piyrox Weekly (BloodStrike & Free Fire)' },
                     { icon: Crown, color: 'text-brand bg-brand/10', title: 'Creator Badge', desc: 'Verified Creator badge visible on your profile' },
                     { icon: TrendingUp, color: 'text-pink-400 bg-pink-500/10', title: 'Tier Bonuses', desc: '₦25/signup at Rising, ₦50/signup at Elite tier' },
                   ].map((b, i) => {
@@ -528,9 +528,9 @@ export default function AffiliateDashboardPage() {
               <h3 className="text-base font-bold text-white flex items-center gap-2"><Trophy className="w-4 h-4 text-yellow-400" /> Creator Tiers</h3>
               <div className="space-y-2">
                 {[
-                  { tier: 'STARTER', label: '0 – 99 referral signups', reward: '₦10 / signup', commission: '20% of Velxo profit', color: 'text-gray-400', bg: 'bg-gray-500/10 border-gray-500/20' },
-                  { tier: 'RISING', label: '100 – 999 referral signups', reward: '₦25 / signup', commission: '20% of Velxo profit', color: 'text-violet-400', bg: 'bg-violet-500/10 border-violet-500/20' },
-                  { tier: 'ELITE', label: '1,000+ referral signups', reward: '₦50 / signup', commission: '20% of Velxo profit', color: 'text-yellow-400', bg: 'bg-yellow-500/10 border-yellow-500/20' },
+                  { tier: 'STARTER', label: '0 – 99 referral signups', reward: '₦10 / signup', commission: '20% of Piyrox profit', color: 'text-gray-400', bg: 'bg-gray-500/10 border-gray-500/20' },
+                  { tier: 'RISING', label: '100 – 999 referral signups', reward: '₦25 / signup', commission: '20% of Piyrox profit', color: 'text-violet-400', bg: 'bg-violet-500/10 border-violet-500/20' },
+                  { tier: 'ELITE', label: '1,000+ referral signups', reward: '₦50 / signup', commission: '20% of Piyrox profit', color: 'text-yellow-400', bg: 'bg-yellow-500/10 border-yellow-500/20' },
                 ].map(t => {
                   const isCurrent = stats?.isCreator && tierInfo?.current === t.tier;
                   return (
@@ -615,7 +615,7 @@ export default function AffiliateDashboardPage() {
           <Gamepad2 className="w-7 h-7 text-purple-400" />
         </div>
         <div className="flex-1 space-y-1">
-          <h3 className="text-base font-bold text-white">Velxo Weekly Tournament</h3>
+          <h3 className="text-base font-bold text-white">Piyrox Weekly Tournament</h3>
           <p className="text-xs text-gray-400">Approved creators get a top slot in our weekly BloodStrike & Free Fire tournaments. Regular users can also participate — more details coming soon.</p>
           <div className="flex gap-2 mt-2 flex-wrap">
             <span className="px-2.5 py-1 bg-red-500/10 border border-red-500/20 rounded-lg text-[11px] font-bold text-red-400">Free Fire</span>
@@ -640,7 +640,7 @@ export default function AffiliateDashboardPage() {
         <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
           {[
             { step: '1', title: 'Share Your Link', desc: 'Copy your unique referral link and share it on social media, forums, WhatsApp — anywhere.' },
-            { step: '2', title: 'They Sign Up', desc: 'When someone joins Velxo through your link, they become your referral instantly.' },
+            { step: '2', title: 'They Sign Up', desc: 'When someone joins Piyrox through your link, they become your referral instantly.' },
             { step: '3', title: 'Earn Rewards', desc: 'Get ₦10–₦50 per signup (wallet credited immediately) plus commission on every trade.' },
           ].map(s => (
             <div key={s.step} className="space-y-3 p-4 bg-hoverBg/20 rounded-xl border border-borderBg/50">

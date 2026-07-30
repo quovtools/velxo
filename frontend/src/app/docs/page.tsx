@@ -4,10 +4,10 @@ import { Sparkles, ShieldCheck, Wallet, ArrowRight, Gamepad2, Store, Coins, User
 import { DocHeader, DocSection, FeatureGrid, Callout, RelatedLinks, DocShell } from './components/doc-ui';
 
 export const metadata: Metadata = {
-  title: 'Velxo Documentation — Introduction',
+  title: 'piyrox documentation — Introduction',
   description:
-    'What is Velxo and how to get started buying, selling, and trading game accounts, top-ups, and coins safely with escrow protection.',
-  alternates: { canonical: 'https://market.velxo.shop/docs' },
+    'What is Piyrox and how to get started buying, selling, and trading game accounts, top-ups, and coins safely with escrow protection.',
+  alternates: { canonical: 'https://market.piyrox.shop/docs' },
 };
 
 export default function DocsIntroduction() {
@@ -15,18 +15,18 @@ export default function DocsIntroduction() {
     <DocShell>
       <DocHeader
         icon={<Sparkles className="w-6 h-6" />}
-        title="Welcome to Velxo"
-        description="Velxo is Africa's trusted escrow-backed marketplace for gaming accounts, in-game items, top-ups, and boosting services. This documentation walks you through everything — from making your first purchase to becoming a verified seller and earning through our affiliate program."
+        title="Welcome to Piyrox"
+        description="Piyrox is Africa's trusted escrow-backed marketplace for gaming accounts, in-game items, top-ups, and boosting services. This documentation walks you through everything — from making your first purchase to becoming a verified seller and earning through our affiliate program."
       />
 
-      <DocSection title="What is Velxo?">
+      <DocSection title="What is Piyrox?">
         <p>
-          Velxo connects gamers who want to buy or sell digital gaming assets with a layer of
+          Piyrox connects gamers who want to buy or sell digital gaming assets with a layer of
           protection that traditional social-media trades lack. Every transaction is held in
-          Velxo Escrow: the buyer&apos;s payment is secured, the seller delivers, and funds are
+          piyrox escrow: the buyer&apos;s payment is secured, the seller delivers, and funds are
           only released once the buyer confirms everything works.
         </p>
-        <Callout type="success" title="Why people choose Velxo">
+        <Callout type="success" title="Why people choose Piyrox">
           Verified sellers, escrow protection on every order, local payment methods across Africa,
           and a built-in dispute process — so you never trade with a stranger unprotected.
         </Callout>
@@ -52,7 +52,7 @@ export default function DocsIntroduction() {
             },
             {
               icon: <Coins className="w-5 h-5" />,
-              title: 'VelxoCoins rewards',
+              title: 'PiyroxCoins rewards',
               body: 'Earn coins on activity and redeem them for fee discounts and perks.',
             },
             {

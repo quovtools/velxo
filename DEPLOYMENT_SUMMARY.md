@@ -17,7 +17,7 @@
   - 74 game account listings (20 FF + 18 BS + 18 CODM + 18 PUBG)
   - 5 categories with 44 properly-linked subcategories
   - 8 gigs (rank boosting services)
-  - Complete wallet and VelxoCoins setup
+  - Complete wallet and PiyroxCoins setup
   - 3 blog posts, 6 game slides, 7 marquee items, 6 rewards
 
 - ✅ **`backend/prisma/clean.ts`** (NEW)
@@ -65,7 +65,7 @@ Total Database Records:  200+
 ├─ Categories:          5
 ├─ Subcategories:       44
 ├─ Wallets:             28 (all users)
-├─ VelxoCoins:          28 (all users)
+├─ PiyroxCoins:          28 (all users)
 ├─ Blog Posts:          3
 ├─ Game Slides:         6
 ├─ Marquee Items:       7
@@ -93,7 +93,7 @@ All with:
 - ✅ Reputation scores (4.3-4.9 ⭐)
 - ✅ Sales history (50-400+ sales)
 - ✅ Wallets with realistic balances
-- ✅ VelxoCoins (1000-5000)
+- ✅ PiyroxCoins (1000-5000)
 - ✅ 6-7 listings each
 - ✅ Subscription tiers (FREE/PRO/PREMIUM)
 
@@ -117,7 +117,7 @@ All with:
 All from different African countries with:
 - ✅ Email verified accounts
 - ✅ Wallets ($0-$2000)
-- ✅ VelxoCoins (0-2000)
+- ✅ PiyroxCoins (0-2000)
 - ✅ Ready to purchase
 
 ---
@@ -162,15 +162,15 @@ All from different African countries with:
 
 ### Admin
 ```
-Email: admin@velxo.shop
+Email: admin@piyrox.shop
 Role: SUPER_ADMIN
 ```
 
 ### Sellers (Pick Any)
 ```
-noobmaster92@velxo.shop
-shadowhunter88@velxo.shop
-phoenixgamer23@velxo.shop
+noobmaster92@piyrox.shop
+shadowhunter88@piyrox.shop
+phoenixgamer23@piyrox.shop
 (+ 8 more)
 ```
 
@@ -269,9 +269,9 @@ Documentation:
 
 ### Testing URLs
 ```
-Production Frontend: https://market.velxo.shop
-Listings Page: https://market.velxo.shop/listings
-Featured: https://market.velxo.shop?featured=true
+Production Frontend: https://market.piyrox.shop
+Listings Page: https://market.piyrox.shop/listings
+Featured: https://market.piyrox.shop?featured=true
 ```
 
 ---
@@ -284,7 +284,7 @@ Featured: https://market.velxo.shop?featured=true
 - [x] All categories and subcategories linked
 - [x] Sellers with gamer names created
 - [x] Buyers from Africa created
-- [x] Wallets and VelxoCoins configured
+- [x] Wallets and PiyroxCoins configured
 - [x] Professional pricing set
 - [x] Committed to GitHub
 - [x] Pushed to main branch
@@ -332,7 +332,7 @@ Featured: https://market.velxo.shop?featured=true
 
 ## 🎊 Summary
 
-Your Velxo Gaming Marketplace is now:
+Your Piyrox Gaming Marketplace is now:
 - ✅ **Fully seeded** with professional data
 - ✅ **Production ready** with complete frontend
 - ✅ **GitHub deployed** and ready for auto-deploy

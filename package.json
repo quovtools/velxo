@@ -1,5 +1,5 @@
 {
-  "name": "velxo-monorepo",
+  "name": "piyrox-monorepo",
   "private": true,
   "scripts": {
     "build": "npm run build:backend && npm run build:frontend",

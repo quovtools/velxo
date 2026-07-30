@@ -1,5 +1,5 @@
 /**
- * upload.ts — File upload helpers for Velxo.
+ * upload.ts — File upload helpers for Piyrox.
  *
  * Bucket is PRIVATE on Backblaze B2.
  * - Uploads always require auth (POST /upload?folder=...).
@@ -15,7 +15,7 @@
 const API_BASE = (process.env.NEXT_PUBLIC_API_URL || 'http://localhost:3001/api/v1').replace(/\/$/, '')
 
 function getToken(): string | null {
-  return typeof window !== 'undefined' ? localStorage.getItem('velxo_token') : null
+  return typeof window !== 'undefined' ? localStorage.getItem('piyrox_token') : null
 }
 
 export interface UploadResult {

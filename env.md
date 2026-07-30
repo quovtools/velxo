@@ -1,13 +1,13 @@
-# Velxo Environment Variables
+# Piyrox Environment Variables
 
-This document covers all environment variables for the Velxo stack. Variables marked as **Client** are exposed to the browser (via `NEXT_PUBLIC_`), and **Server** variables run only in backend/Node.
+This document covers all environment variables for the Piyrox stack. Variables marked as **Client** are exposed to the browser (via `NEXT_PUBLIC_`), and **Server** variables run only in backend/Node.
 
 ## Per-App Summary
 
 | App | Required Variables |
 |-----|-------------------|
-| `landing` (velxo.shop) | `NEXT_PUBLIC_API_URL` |
-| `frontend` (market.velxo.shop) | `NEXT_PUBLIC_API_URL`, `NEXT_PUBLIC_SUPABASE_URL`, `NEXT_PUBLIC_SUPABASE_ANON_KEY` |
+| `landing` (piyrox.shop) | `NEXT_PUBLIC_API_URL` |
+| `frontend` (market.piyrox.shop) | `NEXT_PUBLIC_API_URL`, `NEXT_PUBLIC_SUPABASE_URL`, `NEXT_PUBLIC_SUPABASE_ANON_KEY` |
 | `backend` (NestJS API) | See Backend section below |
 
 ## Global / Deployment
@@ -15,22 +15,22 @@ This document covers all environment variables for the Velxo stack. Variables ma
 | Variable | Description |
 |----------|-------------|
 | `NODE_ENV` | Runtime environment: `development`, `production`, or `test` |
-| `APP_URL` | Public URL of the main frontend (`market.velxo.shop`) |
+| `APP_URL` | Public URL of the main frontend (`market.piyrox.shop`) |
 | `API_URL` | Public URL of the NestJS backend API |
 
-## Frontend (market.velxo.shop)
+## Frontend (market.piyrox.shop)
 
 | Variable | Scope | Description |
 |----------|-------|-------------|
-| `NEXT_PUBLIC_API_URL` | Client | Backend API base URL (e.g. `https://api.velxo.shop/api/v1`) |
+| `NEXT_PUBLIC_API_URL` | Client | Backend API base URL (e.g. `https://api.piyrox.shop/api/v1`) |
 | `NEXT_PUBLIC_SUPABASE_URL` | Client | Supabase project URL |
 | `NEXT_PUBLIC_SUPABASE_ANON_KEY` | Client | Supabase anon/public key |
 
-## Landing (velxo.shop)
+## Landing (piyrox.shop)
 
 | Variable | Scope | Description |
 |----------|-------|-------------|
-| `NEXT_PUBLIC_API_URL` | Client | Backend API base URL (e.g. `https://api.velxo.shop/api/v1`) |
+| `NEXT_PUBLIC_API_URL` | Client | Backend API base URL (e.g. `https://api.piyrox.shop/api/v1`) |
 
 > Note: The landing app is primarily marketing. It reads from the API for the blog listing only. All other calls are hardcoded external links.
 

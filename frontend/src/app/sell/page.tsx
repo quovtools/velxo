@@ -1,11 +1,11 @@
 import type { Metadata } from 'next';
 
-const SITE_URL = 'https://market.velxo.shop';
+const SITE_URL = 'https://market.piyrox.shop';
 
 export const metadata: Metadata = {
   title: 'Sell Your Game Accounts, Coins & Services',
   description:
-    'List your game accounts, in-game currency, top-ups, gift cards and boosting services on Velxo. Reach thousands of African gamers and get paid safely through Velxo Escrow.',
+    'List your game accounts, in-game currency, top-ups, gift cards and boosting services on Piyrox. Reach thousands of African gamers and get paid safely through piyrox escrow.',
   keywords: [
     'sell game account',
     'sell game coins',
@@ -18,10 +18,10 @@ export const metadata: Metadata = {
     canonical: `${SITE_URL}/sell`,
   },
   openGraph: {
-    title: 'Sell on Velxo Market',
-    description: 'List your gaming products and get paid safely through Velxo Escrow.',
+    title: 'Sell on piyrox market',
+    description: 'List your gaming products and get paid safely through piyrox escrow.',
     url: `${SITE_URL}/sell`,
-    siteName: 'Velxo Market',
+    siteName: 'piyrox market',
     type: 'website',
   },
 };

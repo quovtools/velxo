@@ -244,7 +244,7 @@ function PostRequestModal({ onClose, onSuccess }: { onClose: () => void; onSucce
   const [submitting, setSubmitting] = useState(false);
   const [error, setError] = useState('');
 
-  const token = typeof window !== 'undefined' ? localStorage.getItem('velxo_token') : null;
+  const token = typeof window !== 'undefined' ? localStorage.getItem('piyrox_token') : null;
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -543,7 +543,7 @@ function GigServicesSection() {
                   <h3 className="text-xs font-bold text-white line-clamp-2 leading-snug group-hover:text-purple-300 transition mt-0.5">{g.title}</h3>
                   {(g.rankFrom || g.rankTo) && <p className="text-[10px] text-purple-400 font-semibold mt-1">{g.rankFrom || '?'} → {g.rankTo || '?'}</p>}
                   <p className="text-[10px] text-gray-500 mt-1 flex items-center gap-1">
-                    <ShieldCheck className="w-3 h-3 text-emerald-400" />{g.seller?.storeName || 'Velxo Seller'}
+                    <ShieldCheck className="w-3 h-3 text-emerald-400" />{g.seller?.storeName || 'piyrox seller'}
                   </p>
                 </div>
                 <div className="flex items-center justify-between border-t border-borderBg pt-2">

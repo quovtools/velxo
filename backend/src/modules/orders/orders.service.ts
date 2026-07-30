@@ -563,7 +563,7 @@ export class OrdersService {
       return updatedOrder
     })
 
-    // FIX #19: Credit Velxo Coins OUTSIDE the main transaction to avoid
+    // FIX #19: Credit piyrox coins OUTSIDE the main transaction to avoid
     // nested Prisma transaction deadlocks. These are non-critical bonuses so
     // any failure is caught and logged without rolling back the order completion.
     const buyerCoinAmount = Math.floor(Number(order.totalAmount))
@@ -598,8 +598,8 @@ export class OrdersService {
 
     // Credit affiliate commission to referrer's wallet (non-fatal, runs outside main tx)
     try {
-      const velxoProfit = Number(updatedOrder.commissionAmount)
-      await this.affiliateService.creditCommission(updatedOrder.buyerId, velxoProfit, orderId)
+      const piyroxProfit = Number(updatedOrder.commissionAmount)
+      await this.affiliateService.creditCommission(updatedOrder.buyerId, piyroxProfit, orderId)
     } catch (e) {
       this.logger.error('Affiliate commission credit failed (non-fatal):', e)
     }

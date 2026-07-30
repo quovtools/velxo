@@ -1,7 +1,7 @@
 import { MetadataRoute } from 'next';
 import { GAME_LIST } from '@/lib/games';
 
-const BASE_URL = 'https://market.velxo.shop';
+const BASE_URL = 'https://market.piyrox.shop';
 
 const GAME_SLUGS = GAME_LIST.map((g) => g.slug);
 

@@ -1,7 +1,7 @@
 "use client";
 import React, { useEffect, useState } from "react";
 
-const API = process.env.NEXT_PUBLIC_API_URL || "https://api.velxo.shop/api/v1";
+const API = process.env.NEXT_PUBLIC_API_URL || "https://api.piyrox.shop/api/v1";
 
 type Props = {
   showAlways?: boolean;

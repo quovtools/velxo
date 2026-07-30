@@ -2,7 +2,7 @@ import type { Metadata } from 'next';
 import GameCatalogContent from './game-catalog-content';
 import { slugToGameName } from '@/lib/games';
 
-const SITE_URL = 'https://market.velxo.shop';
+const SITE_URL = 'https://market.piyrox.shop';
 
 export const dynamic = 'force-dynamic';
 
@@ -19,7 +19,7 @@ export async function generateMetadata({
   const gameName = formatGameName(slug);
   return {
     title: `${gameName} Accounts & Boosting`,
-    description: `Buy and sell ${gameName} accounts and boosting services on Velxo. Verified sellers and escrow-protected trades.`,
+      description: `Buy and sell ${gameName} accounts and boosting services on Piyrox. Verified sellers and escrow-protected trades.`,
     keywords: [
       `${gameName} accounts`,
       `${gameName} marketplace`,
@@ -27,10 +27,10 @@ export async function generateMetadata({
     ],
     alternates: { canonical: `${SITE_URL}/games/${slug}` },
     openGraph: {
-      title: `${gameName} Marketplace | Velxo`,
+      title: `${gameName} Marketplace | Piyrox`,
     description: `Buy and sell ${gameName} accounts and boosting services with escrow protection.`,
       url: `${SITE_URL}/games/${slug}`,
-      siteName: 'Velxo Market',
+      siteName: 'Piyrox Market',
       type: 'website',
     },
 
@@ -46,7 +46,7 @@ export default async function GameCatalogPage({ params }: { params: Promise<{ sl
     '@type': 'CollectionPage',
     name: `${gameName} Marketplace`,
     url: `${SITE_URL}/games/${slug}`,
-    description: `Browse ${gameName} accounts and boosting services on Velxo Market.`,
+      description: `Browse ${gameName} accounts and boosting services on Piyrox Market.`,
 
   };
 

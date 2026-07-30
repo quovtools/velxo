@@ -40,7 +40,7 @@ import { AllExceptionsFilter } from './common/filters/all-exceptions.filter'
     ConfigModule.forRoot({ isGlobal: true }),
     JwtModule.register({
       global: true,
-      secret: process.env.JWT_SECRET || 'velxo-fallback-secret-change-in-prod',
+      secret: process.env.JWT_SECRET || 'piyrox-fallback-secret-change-in-prod',
       signOptions: { expiresIn: '7d' },
     }),
     PrismaModule,

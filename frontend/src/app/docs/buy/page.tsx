@@ -3,10 +3,10 @@ import { ShoppingCart, Search, CreditCard, Package, CheckCircle2 } from 'lucide-
 import { DocHeader, DocSection, Steps, Callout, FeatureGrid, RelatedLinks, DocShell } from '../components/doc-ui';
 
 export const metadata: Metadata = {
-  title: 'How to Buy — Velxo Documentation',
+  title: 'How to Buy — piyrox documentation',
   description:
-    'Step-by-step guide to buying game accounts, items and top-ups on Velxo: browse, checkout, escrow, pay via payment link, receive delivery, release escrow.',
-  alternates: { canonical: 'https://market.velxo.shop/docs/buy' },
+    'Step-by-step guide to buying game accounts, items and top-ups on Piyrox: browse, checkout, escrow, pay via payment link, receive delivery, release escrow.',
+  alternates: { canonical: 'https://market.piyrox.shop/docs/buy' },
 };
 
 export default function DocsBuy() {
@@ -15,7 +15,7 @@ export default function DocsBuy() {
       <DocHeader
         icon={<ShoppingCart className="w-6 h-6" />}
         title="How to Buy"
-        description="Buying on Velxo is built around one idea: you only pay the seller once you've confirmed you received what you paid for. Here's the full journey from browsing to a completed, protected trade."
+        description="Buying on Piyrox is built around one idea: you only pay the seller once you've confirmed you received what you paid for. Here's the full journey from browsing to a completed, protected trade."
       />
 
       <DocSection title="The buyer journey at a glance">
@@ -46,7 +46,7 @@ export default function DocsBuy() {
 
       <DocSection title="2. Checkout & escrow">
         <p>
-          When you start checkout, Velxo creates an order and locks the amount in escrow. The money
+          When you start checkout, Piyrox creates an order and locks the amount in escrow. The money
           does not go to the seller yet — it is held safely until you release it. You&apos;ll see the
           order status change to <span className="text-white font-semibold">Awaiting Payment</span>.
         </p>
@@ -59,7 +59,7 @@ export default function DocsBuy() {
           moves to <span className="text-white font-semibold">Paid — awaiting delivery</span> and the
           seller is notified to deliver.
         </p>
-        <Callout type="warning" title="Never pay outside Velxo">
+        <Callout type="warning" title="Never pay outside Piyrox">
           Always pay through the in-app payment link. Payments sent directly to a seller via chat or
           external apps are NOT covered by escrow and cannot be recovered.
         </Callout>

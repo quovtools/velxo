@@ -3,10 +3,10 @@ import { Wallet, CreditCard, Smartphone, Banknote, ArrowDownToLine } from 'lucid
 import { DocHeader, DocSection, Steps, Callout, FeatureGrid, RelatedLinks, DocShell } from '../components/doc-ui';
 
 export const metadata: Metadata = {
-  title: 'Payments & Wallets — Velxo Documentation',
+  title: 'Payments & Wallets — piyrox documentation',
   description:
-    'How payments, the Velxo wallet, payouts, and withdrawals work — supported methods, processing, and fees.',
-  alternates: { canonical: 'https://market.velxo.shop/docs/payments' },
+    'How payments, the piyrox wallet, payouts, and withdrawals work — supported methods, processing, and fees.',
+  alternates: { canonical: 'https://market.piyrox.shop/docs/payments' },
 };
 
 export default function DocsPayments() {
@@ -15,7 +15,7 @@ export default function DocsPayments() {
       <DocHeader
         icon={<Wallet className="w-6 h-6" />}
         title="Payments & Wallets"
-        description="Velxo supports local payment methods across Africa through Paystack and Flutterwave, plus an in-platform wallet for sellers to manage earnings."
+        description="Piyrox supports local payment methods across Africa through Paystack and Flutterwave, plus an in-platform wallet for sellers to manage earnings."
       />
 
       <DocSection title="Supported payment methods">
@@ -44,9 +44,9 @@ export default function DocsPayments() {
         />
       </DocSection>
 
-      <DocSection title="The Velxo wallet">
+      <DocSection title="The piyrox wallet">
         <p>
-          Sellers receive released funds in their Velxo wallet. From the wallet you can track balances,
+          Sellers receive released funds in their piyrox wallet. From the wallet you can track balances,
           view transaction history, and request withdrawals. Buyers don&apos;t need a funded wallet —
           payment is made per order.
         </p>
@@ -71,7 +71,7 @@ export default function DocsPayments() {
         </Callout>
       </DocSection>
 
-      <RelatedLinks links={[{ label: 'How to Sell', href: '/docs/sell' }, { label: 'Escrow & Buyer Protection', href: '/docs/escrow' }, { label: 'VelxoCoins & Rewards', href: '/docs/rewards' }]} />
+      <RelatedLinks links={[{ label: 'How to Sell', href: '/docs/sell' }, { label: 'Escrow & Buyer Protection', href: '/docs/escrow' }, { label: 'PiyroxCoins & Rewards', href: '/docs/rewards' }]} />
     </DocShell>
   );
 }

@@ -1,4 +1,4 @@
-# Velxo P2P Overhaul — Progress Tracker
+# Piyrox P2P Overhaul — Progress Tracker
 
 ## Scope
 Full overhaul of: Order Tracking · Order Page · Payment Flow · Checkout ·

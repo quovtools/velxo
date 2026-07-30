@@ -55,7 +55,7 @@ export class NotificationsGateway implements OnGatewayInit, OnGatewayConnection,
     try {
       const secret =
         this.configService.get<string>('JWT_SECRET') ||
-        'velxo-fallback-secret-change-in-prod'
+        'piyrox-fallback-secret-change-in-prod'
       const payload = this.jwtService.verify(token, { secret }) as any
       const userId: string = payload.sub || payload.userId
 

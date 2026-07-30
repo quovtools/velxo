@@ -3,13 +3,13 @@ import Navbar from '@/components/Navbar';
 import Footer from '@/components/Footer';
 import BlogPost from '@/components/BlogPost';
 
-const API = process.env.NEXT_PUBLIC_API_URL || 'https://api.velxo.shop/api/v1';
+const API = process.env.NEXT_PUBLIC_API_URL || 'https://api.piyrox.shop/api/v1';
 
 export async function generateMetadata(
   { params }: { params: Promise<{ slug: string }> }
 ): Promise<Metadata> {
   const { slug } = await params;
-  const canonical = `https://velxo.shop/blog/${slug}`;
+  const canonical = `https://piyrox.shop/blog/${slug}`;
   try {
     const res = await fetch(`${API}/blog/${encodeURIComponent(slug)}`, { cache: 'no-store' });
     if (res.ok) {
@@ -19,13 +19,13 @@ export async function generateMetadata(
         return {
           title: post.title,
           description: post.excerpt,
-          keywords: [post.category, 'Velxo', 'gaming marketplace', post.title],
+          keywords: [post.category, 'Piyrox', 'gaming marketplace', post.title],
           alternates: { canonical },
           openGraph: {
             title: post.title,
             description: post.excerpt,
             url: canonical,
-            siteName: 'Velxo',
+            siteName: 'Piyrox',
             type: 'article',
             images: [{ url: post.coverImage || '/og.png', width: 1200, height: 630, alt: post.title }],
           },
@@ -43,21 +43,21 @@ export async function generateMetadata(
   }
   return {
     title: 'Blog Post',
-    description: 'Read the latest from the Velxo blog.',
-    keywords: ['Velxo', 'gaming marketplace', 'blog'],
+    description: 'Read the latest from the Piyrox blog.',
+    keywords: ['Piyrox', 'gaming marketplace', 'blog'],
     alternates: { canonical },
     openGraph: {
-      title: 'Blog Post — Velxo',
-      description: 'Read the latest from the Velxo blog.',
+      title: 'Blog Post — Piyrox',
+      description: 'Read the latest from the Piyrox blog.',
       url: canonical,
-      siteName: 'Velxo',
+      siteName: 'Piyrox',
       type: 'article',
-      images: [{ url: '/og.png', width: 1200, height: 630, alt: 'Velxo' }],
+      images: [{ url: '/og.png', width: 1200, height: 630, alt: 'Piyrox' }],
     },
     twitter: {
       card: 'summary_large_image',
-      title: 'Blog Post — Velxo',
-      description: 'Read the latest from the Velxo blog.',
+      title: 'Blog Post — Piyrox',
+      description: 'Read the latest from the Piyrox blog.',
       images: ['/og.png'],
     },
   };

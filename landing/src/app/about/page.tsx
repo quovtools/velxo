@@ -5,16 +5,16 @@ import Footer from '@/components/Footer';
 import { ShieldCheck, Zap, Users, Globe, Award, TrendingUp, ArrowRight } from 'lucide-react';
 
 export const metadata: Metadata = {
-  title: 'About Velxo',
-  description: 'Velxo is a peer-to-peer, escrow-protected marketplace built for African gamers to safely buy and sell accounts, coins, top-ups, gift cards, and boosting services.',
-  alternates: { canonical: 'https://velxo.shop/about' },
+  title: 'About Piyrox',
+  description: 'Piyrox is a peer-to-peer, escrow-protected marketplace built for African gamers to safely buy and sell accounts, coins, top-ups, gift cards, and boosting services.',
+  alternates: { canonical: 'https://piyrox.shop/about' },
   openGraph: {
-    title: 'About Velxo | Africa’s Escrow-Backed Gaming Marketplace',
+    title: 'About Piyrox | Africa’s Escrow-Backed Gaming Marketplace',
     description: 'The marketplace Africa’s gamers deserve — safe, fast, escrow-protected gaming commerce.',
-    url: 'https://velxo.shop/about',
-    siteName: 'Velxo',
+    url: 'https://piyrox.shop/about',
+    siteName: 'Piyrox',
     type: 'website',
-    images: [{ url: '/og.png', width: 1200, height: 630, alt: 'About Velxo' }],
+    images: [{ url: '/og.png', width: 1200, height: 630, alt: 'About Piyrox' }],
   },
 };
 
@@ -28,7 +28,7 @@ const stats = [
 const values = [
   { icon: <ShieldCheck className="w-6 h-6 text-brand-light" />, title: 'Trust First', desc: 'Every transaction is protected by our escrow system. Funds only move when both parties are satisfied.' },
   { icon: <Zap className="w-6 h-6 text-brand-light" />, title: 'Built for Speed', desc: 'Instant listings, fast payouts, and real-time messaging built for the pace of the gaming world.' },
-  { icon: <Users className="w-6 h-6 text-brand-light" />, title: 'Community Driven', desc: "Velxo is built by gamers for gamers. Our platform evolves with the needs of Africa's gaming community." },
+  { icon: <Users className="w-6 h-6 text-brand-light" />, title: 'Community Driven', desc: "Piyrox is built by gamers for gamers. Our platform evolves with the needs of Africa's gaming community." },
   { icon: <Globe className="w-6 h-6 text-brand-light" />, title: 'Africa-Focused', desc: 'We support local payment methods, regional games, and African currencies — no workarounds needed.' },
   { icon: <Award className="w-6 h-6 text-brand-light" />, title: 'Seller Reputation', desc: 'Our verified seller badges and reputation system ensure you always know who you’re trading with.' },
   { icon: <TrendingUp className="w-6 h-6 text-brand-light" />, title: 'Growing Ecosystem', desc: 'From Free Fire coins to boosting services, we’re constantly expanding to cover more games and asset types.' },
@@ -56,11 +56,11 @@ export default function AboutPage() {
               <span className="text-gradient">Africa&apos;s gamers deserve.</span>
             </h1>
             <p className="text-gray-400 text-base sm:text-lg leading-relaxed">
-              Velxo is a peer-to-peer escrow-backed platform where gamers buy and sell accounts, coins, top-ups, gift cards, and boosting services — safely, instantly, and without the fear of being scammed.
+              Piyrox is a peer-to-peer escrow-backed platform where gamers buy and sell accounts, coins, top-ups, gift cards, and boosting services — safely, instantly, and without the fear of being scammed.
             </p>
             <div className="flex flex-col sm:flex-row gap-3 justify-center">
-              <a href="https://market.velxo.shop/search" className="btn-primary">Browse Marketplace</a>
-              <a href="https://market.velxo.shop/sell" className="btn-secondary">Start Selling</a>
+              <a href="https://market.piyrox.shop/search" className="btn-primary">Browse Marketplace</a>
+              <a href="https://market.piyrox.shop/sell" className="btn-secondary">Start Selling</a>
             </div>
           </div>
 
@@ -77,12 +77,12 @@ export default function AboutPage() {
           {/* Story */}
           <div className="grid grid-cols-1 lg:grid-cols-2 gap-10 lg:gap-12 items-center">
             <div className="space-y-5">
-              <h2 className="text-2xl sm:text-3xl font-extrabold text-white">Why we built Velxo</h2>
+              <h2 className="text-2xl sm:text-3xl font-extrabold text-white">Why we built Piyrox</h2>
               <p className="text-gray-400 leading-relaxed text-sm sm:text-base">
                 African gamers have always been underserved by global platforms. Payment methods don&apos;t work, platforms don&apos;t support local currencies, and scams are rampant on informal trading groups.
               </p>
               <p className="text-gray-400 leading-relaxed text-sm sm:text-base">
-                We built Velxo to fix that. A dedicated marketplace with escrow protection, local payment support, and a reputation system that makes every transaction trustworthy — whether you&apos;re buying a Free Fire account in Lagos or selling Roblox Robux in Nairobi.
+                We built Piyrox to fix that. A dedicated marketplace with escrow protection, local payment support, and a reputation system that makes every transaction trustworthy — whether you&apos;re buying a Free Fire account in Lagos or selling Roblox Robux in Nairobi.
               </p>
               <p className="text-gray-400 leading-relaxed text-sm sm:text-base">
                 Our mission is simple: make gaming commerce safe, fast, and accessible for every gamer on the continent.
@@ -121,7 +121,7 @@ export default function AboutPage() {
           {/* Team */}
           <div className="space-y-8">
             <div className="text-center space-y-2">
-              <h2 className="text-2xl sm:text-3xl font-extrabold text-white">The team behind Velxo</h2>
+              <h2 className="text-2xl sm:text-3xl font-extrabold text-white">The team behind Piyrox</h2>
               <p className="text-gray-400">A small, passionate team of gamers and builders.</p>
             </div>
             <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
@@ -141,11 +141,11 @@ export default function AboutPage() {
           <div className="bg-surface border border-border rounded-3xl p-10 text-center space-y-5">
             <h3 className="text-2xl sm:text-3xl font-extrabold text-white">Join Africa&apos;s gaming economy</h3>
             <p className="text-gray-400 max-w-lg mx-auto text-sm sm:text-base">
-              Whether you&apos;re a buyer looking for deals or a seller building a store, Velxo is your platform.
+              Whether you&apos;re a buyer looking for deals or a seller building a store, Piyrox is your platform.
             </p>
             <div className="flex flex-col sm:flex-row gap-3 justify-center">
-              <a href="https://market.velxo.shop/auth/register" className="btn-primary">Create Account</a>
-              <a href="https://velxo.shop/careers" className="btn-secondary">We&apos;re Hiring <ArrowRight className="w-4 h-4" /></a>
+              <a href="https://market.piyrox.shop/auth/register" className="btn-primary">Create Account</a>
+              <a href="https://piyrox.shop/careers" className="btn-secondary">We&apos;re Hiring <ArrowRight className="w-4 h-4" /></a>
             </div>
           </div>
         </div>

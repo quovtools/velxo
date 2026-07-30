@@ -65,7 +65,7 @@ export default function InstallPrompt() {
           <Smartphone className="w-5 h-5 text-brand" />
         </div>
         <div className="flex-1 min-w-0">
-          <p className="text-sm font-bold text-white">Get the Velxo App</p>
+          <p className="text-sm font-bold text-white">Get the Piyrox App</p>
           {ios ? (
             <p className="text-xs text-gray-400 mt-0.5 leading-relaxed">
               Tap <span className="font-semibold text-gray-200">Share</span> →{' '}
@@ -73,7 +73,7 @@ export default function InstallPrompt() {
             </p>
           ) : (
             <p className="text-xs text-gray-400 mt-0.5 leading-relaxed">
-              Install Velxo for faster access &amp; offline browsing.
+              Install Piyrox for faster access &amp; offline browsing.
             </p>
           )}
           {!ios && (

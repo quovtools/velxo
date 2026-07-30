@@ -1,7 +1,7 @@
 services:
   # NestJS Backend
   - type: web
-    name: velxo
+    name: piyrox
     env: node
     plan: free
     rootDir: backend
@@ -33,7 +33,7 @@ services:
       - key: PAYMENT_IO_API_URL
         value: https://api.paymento.io/v1
       - key: PAYMENT_IO_IPN_URL
-        value: https://api.velxo.shop/api/v1/payments/webhook/paymentio
+        value: https://api.piyrox.shop/api/v1/payments/webhook/paymentio
       - key: PAYMENT_IO_API_KEY
         sync: false
       - key: PAYMENT_IO_SECRET_KEY
@@ -45,9 +45,9 @@ services:
       - key: FLUTTERWAVE_WEBHOOK_SECRET
         sync: false
       - key: FRONTEND_URL
-        value: https://market.velxo.shop
+        value: https://market.piyrox.shop
       - key: CORS_ORIGIN
-        value: https://velxo.shop,https://www.velxo.shop,https://market.velxo.shop
+        value: https://piyrox.shop,https://www.piyrox.shop,https://market.piyrox.shop
       - key: GOOGLE_CLIENT_ID
         sync: false
       - key: GOOGLE_CLIENT_SECRET
@@ -55,25 +55,25 @@ services:
       - key: GOOGLE_REDIRECT_URI
         sync: false
 
-  # Next.js Landing (velxo.shop)
+  # Next.js Landing (piyrox.shop)
   - type: web
-    name: velxo-landing
+    name: piyrox-landing
     env: docker
     plan: free
     rootDir: landing
     envVars:
       - key: NEXT_PUBLIC_API_URL
-        value: https://api.velxo.shop/api/v1
+        value: https://api.piyrox.shop/api/v1
 
-  # Next.js Frontend (market.velxo.shop)
+  # Next.js Frontend (market.piyrox.shop)
   - type: web
-    name: velxo-frontend
+    name: piyrox-frontend
     env: docker
     plan: free
     rootDir: frontend
     envVars:
       - key: NEXT_PUBLIC_API_URL
-        value: https://api.velxo.shop/api/v1
+        value: https://api.piyrox.shop/api/v1
       - key: NEXT_PUBLIC_SUPABASE_URL
         sync: false
       - key: NEXT_PUBLIC_SUPABASE_ANON_KEY

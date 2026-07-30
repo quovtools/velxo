@@ -3,10 +3,10 @@ import { Coins, Gift, TrendingUp, Percent } from 'lucide-react';
 import { DocHeader, DocSection, Steps, Callout, FeatureGrid, RelatedLinks, DocShell } from '../components/doc-ui';
 
 export const metadata: Metadata = {
-  title: 'VelxoCoins & Rewards — Velxo Documentation',
+  title: 'PiyroxCoins & Rewards — piyrox documentation',
   description:
-    'Earn VelxoCoins through activity and redeem them for fee discounts, perks, and rewards on the marketplace.',
-  alternates: { canonical: 'https://market.velxo.shop/docs/rewards' },
+    'Earn PiyroxCoins through activity and redeem them for fee discounts, perks, and rewards on the marketplace.',
+  alternates: { canonical: 'https://market.piyrox.shop/docs/rewards' },
 };
 
 export default function DocsRewards() {
@@ -14,11 +14,11 @@ export default function DocsRewards() {
     <DocShell>
       <DocHeader
         icon={<Coins className="w-6 h-6" />}
-        title="VelxoCoins & Rewards"
-        description="VelxoCoins are our loyalty currency. Earn them by being active on the platform and redeem them for real perks like fee discounts and boosted listings."
+        title="PiyroxCoins & Rewards"
+        description="PiyroxCoins are our loyalty currency. Earn them by being active on the platform and redeem them for real perks like fee discounts and boosted listings."
       />
 
-      <DocSection title="How to earn VelxoCoins">
+      <DocSection title="How to earn PiyroxCoins">
         <FeatureGrid
           items={[
             { icon: <Gift className="w-5 h-5" />, title: 'Daily activity', body: 'Earn coins for logging in and engaging with the marketplace.' },
@@ -43,7 +43,7 @@ export default function DocsRewards() {
 
       <DocSection title="Coin balance & history">
         <p>
-          Your VelxoCoins balance and earning history are available on the{' '}
+          Your PiyroxCoins balance and earning history are available on the{' '}
           <span className="text-white font-semibold">Rewards</span> page. Coins may expire per the
           active rewards terms, so redeem them before they lapse.
         </p>

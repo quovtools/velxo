@@ -13,7 +13,7 @@ import { ConfigModule, ConfigService } from '@nestjs/config'
       imports: [ConfigModule],
       inject: [ConfigService],
       useFactory: (configService: ConfigService) => ({
-        secret: configService.get<string>('JWT_SECRET') || 'velxo-fallback-secret-change-in-prod',
+        secret: configService.get<string>('JWT_SECRET') || 'piyrox-fallback-secret-change-in-prod',
         signOptions: { expiresIn: '7d' },
       }),
     }),

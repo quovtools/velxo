@@ -37,7 +37,7 @@ export default function Navbar() {
     const root = document.documentElement;
     root.classList.add(next);
     root.classList.remove(next === 'dark' ? 'light' : 'dark');
-    try { localStorage.setItem('velxo_theme', next); } catch (e) {}
+    try { localStorage.setItem('piyrox_theme', next); } catch (e) {}
   };
 
   const linkClass = scrolled
@@ -55,12 +55,12 @@ export default function Navbar() {
         }`}
       >
         <div className="container-x flex h-16 items-center justify-between">
-          <Link href="/" className="group flex items-center gap-2" aria-label="Velxo home">
+          <Link href="/" className="group flex items-center gap-2" aria-label="Piyrox home">
             <span className="relative flex h-9 w-9 items-center justify-center rounded-xl overflow-hidden bg-background/10 border border-white/15">
-              <img src="/logo.png" alt="Velxo" className="h-6 w-6 object-contain" />
+              <img src="/logo.png" alt="Piyrox" className="h-6 w-6 object-contain" />
             </span>
             <span className={`text-xl font-black tracking-wider ${scrolled ? 'text-white' : 'text-white'}`}>
-              VELXO
+              PIYROX
             </span>
           </Link>
 
@@ -87,10 +87,10 @@ export default function Navbar() {
             >
               {theme === 'dark' ? <Sun className="h-5 w-5" /> : <Moon className="h-5 w-5" />}
             </button>
-            <a href="https://market.velxo.shop/auth/login" className="btn-ghost">
+            <a href="https://market.piyrox.shop/auth/login" className="btn-ghost">
               Sign In
             </a>
-            <a href="https://market.velxo.shop/auth/register" className="btn-primary">
+            <a href="https://market.piyrox.shop/auth/register" className="btn-primary">
               Get Started Free
             </a>
           </div>
@@ -132,11 +132,11 @@ export default function Navbar() {
               {theme === 'dark' ? 'Light mode' : 'Dark mode'}
             </button>
             <div className="mt-3 grid grid-cols-2 gap-2">
-              <a href="https://market.velxo.shop/auth/login"
+              <a href="https://market.piyrox.shop/auth/login"
                 className="rounded-xl border border-white/10 px-4 py-3 text-center text-sm font-semibold text-gray-200 transition hover:border-brand/40">
                 Sign In
               </a>
-              <a href="https://market.velxo.shop/auth/register"
+              <a href="https://market.piyrox.shop/auth/register"
                 className="btn-primary w-full">
                 Get Started Free
               </a>

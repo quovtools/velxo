@@ -89,7 +89,7 @@ export default function Marquee() {
           </>
         ) : (
           <span className="inline-flex items-center gap-2 px-6 text-sm text-gray-400">
-            <span className="text-brand">●</span> Welcome to Velxo — Africa's escrow-protected gaming marketplace. Buy & sell accounts, top-ups and boosting safely.
+            <span className="text-brand">●</span> Welcome to Piyrox — Africa's escrow-protected gaming marketplace. Buy & sell accounts, top-ups and boosting safely.
           </span>
         )}
       </div>

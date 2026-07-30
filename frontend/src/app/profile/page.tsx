@@ -457,7 +457,7 @@ export default function ProfilePage() {
       {tab === 'notifications' && (
         <div className="bg-cardBg border border-borderBg rounded-2xl p-5 md:p-6 space-y-4">
           <h2 className="text-lg font-bold flex items-center gap-2"><Bell className="w-5 h-5 text-brand" /> Notification Preferences</h2>
-          <p className="text-xs text-gray-500">Manage how you receive notifications from Velxo. Changes are saved automatically via the button below.</p>
+          <p className="text-xs text-gray-500">Manage how you receive notifications from Piyrox. Changes are saved automatically via the button below.</p>
           <div className="space-y-3">
             {[
               { key: 'orderUpdates', label: 'Order Updates', desc: 'When your order status changes' },

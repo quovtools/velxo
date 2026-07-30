@@ -1,6 +1,6 @@
 #!/usr/bin/env node
 /**
- * Velxo Gaming Marketplace — Professional Seed
+ * Piyrox Gaming Marketplace — Professional Seed
  * Creates: 11 sellers, 16 buyers, 70+ listings, gigs, categories with subcategories
  * Games: Free Fire, Bloodstrike, CODM, PUBG Mobile
  */
@@ -27,15 +27,15 @@ const IMG = {
 
 async function main() {
   try {
-    console.log('🚀 Starting Velxo Database Seed...\n')
+    console.log('🚀 Starting Piyrox Database Seed...\n')
 
     // 1. Create Admin
     console.log('📝 Creating admin user...')
     const admin = await prisma.users.create({
       data: {
-        email: 'admin@velxo.shop',
+        email: 'admin@piyrox.shop',
         firstName: 'Admin',
-        lastName: 'Velxo',
+        lastName: 'Piyrox',
         role: Role.SUPER_ADMIN,
         isActive: true,
         emailVerified: true,
@@ -224,17 +224,17 @@ async function main() {
     // 3. Create 11 Sellers
     console.log('🏪 Creating 11 sellers with gamer-type names...')
     const sellersData = [
-      { email: 'noobmaster92@velxo.shop', name: 'NoobMaster92', desc: 'Free Fire legend accounts & boosting. Pro player since 2020. 500+ happy customers!' },
-      { email: 'shadowhunter88@velxo.shop', name: 'ShadowHunter88', desc: 'PUBG & Bloodstrike specialist. Conqueror rank booster. Premium quality guaranteed.' },
-      { email: 'phoenixgamer23@velxo.shop', name: 'PhoenixGamer23', desc: 'CODM accounts & services. 1K+ successful sales. Fast delivery, 24/7 support.' },
-      { email: 'vortexking99@velxo.shop', name: 'VortexKing99', desc: 'Multi-game booster. All ranks covered. Instant delivery. Verified seller.' },
-      { email: 'titanforce55@velxo.shop', name: 'TitanForce55', desc: 'PUBG Conqueror booster. Mythic+ Free Fire. 8 years gaming experience.' },
-      { email: 'ghostrider77@velxo.shop', name: 'GhostRider77', desc: 'Bloodstrike & Free Fire expert. Fast & safe. 400+ positive reviews.' },
-      { email: 'cyberpunk33@velxo.shop', name: 'CyberPunk33', desc: 'CODM & Valorant specialist. Diamond accounts. Professional delivery.' },
-      { email: 'inferno666@velxo.shop', name: 'Inferno666', desc: 'Free Fire mythic accounts. 5 years gaming. 500+ reviews. Trusted seller.' },
-      { email: 'nexus2024@velxo.shop', name: 'Nexus2024', desc: 'All games covered. Premium quality. 24/7 customer support. Verified.' },
-      { email: 'primal_beast@velxo.shop', name: 'PrimalBeast', desc: 'PUBG conqueror booster. Instant delivery. 100% safe method. Pro team.' },
-      { email: 'lunar_eclipse@velxo.shop', name: 'LunarEclipse', desc: 'Bloodstrike & CODM specialist. Elite tier booster. Fast transaction.' },
+      { email: 'noobmaster92@piyrox.shop', name: 'NoobMaster92', desc: 'Free Fire legend accounts & boosting. Pro player since 2020. 500+ happy customers!' },
+      { email: 'shadowhunter88@piyrox.shop', name: 'ShadowHunter88', desc: 'PUBG & Bloodstrike specialist. Conqueror rank booster. Premium quality guaranteed.' },
+      { email: 'phoenixgamer23@piyrox.shop', name: 'PhoenixGamer23', desc: 'CODM accounts & services. 1K+ successful sales. Fast delivery, 24/7 support.' },
+      { email: 'vortexking99@piyrox.shop', name: 'VortexKing99', desc: 'Multi-game booster. All ranks covered. Instant delivery. Verified seller.' },
+      { email: 'titanforce55@piyrox.shop', name: 'TitanForce55', desc: 'PUBG Conqueror booster. Mythic+ Free Fire. 8 years gaming experience.' },
+      { email: 'ghostrider77@piyrox.shop', name: 'GhostRider77', desc: 'Bloodstrike & Free Fire expert. Fast & safe. 400+ positive reviews.' },
+      { email: 'cyberpunk33@piyrox.shop', name: 'CyberPunk33', desc: 'CODM & Valorant specialist. Diamond accounts. Professional delivery.' },
+      { email: 'inferno666@piyrox.shop', name: 'Inferno666', desc: 'Free Fire mythic accounts. 5 years gaming. 500+ reviews. Trusted seller.' },
+      { email: 'nexus2024@piyrox.shop', name: 'Nexus2024', desc: 'All games covered. Premium quality. 24/7 customer support. Verified.' },
+      { email: 'primal_beast@piyrox.shop', name: 'PrimalBeast', desc: 'PUBG conqueror booster. Instant delivery. 100% safe method. Pro team.' },
+      { email: 'lunar_eclipse@piyrox.shop', name: 'LunarEclipse', desc: 'Bloodstrike & CODM specialist. Elite tier booster. Fast transaction.' },
     ]
 
     const sellers = []
@@ -280,7 +280,7 @@ async function main() {
         },
       })
 
-      await prisma.velxoCoins.create({
+      await prisma.piyroxCoins.create({
         data: {
           userId: user.id,
           balance: Math.floor(Math.random() * 5000 + 1000),
@@ -333,7 +333,7 @@ async function main() {
         },
       })
 
-      await prisma.velxoCoins.create({
+      await prisma.piyroxCoins.create({
         data: {
           userId: user.id,
           balance: Math.floor(Math.random() * 2000),
@@ -658,7 +658,7 @@ async function main() {
     // 8. Create Marquee Items
     console.log('📢 Creating marquee items...')
     const marquees = [
-      '🎮 Welcome to Velxo — Africa\'s Premier Gaming Marketplace',
+      '🎮 Welcome to Piyrox — Africa\'s Premier Gaming Marketplace',
       '✨ 100% Secure Escrow Protection on All Sales',
       '⚡ Instant Delivery on Digital Products',
       '🏆 Verified Sellers with Maximum Buyer Protection',
@@ -716,7 +716,7 @@ async function main() {
           excerpt: blog.excerpt,
           content: blog.content,
           category: blog.category,
-          author: 'Velxo Team',
+          author: 'Piyrox Team',
           isPublished: true,
           isFeatured: blog.isFeatured,
           publishedAt: new Date(),
@@ -753,7 +753,7 @@ async function main() {
 
     // Final Summary
     console.log('\n' + '='.repeat(80))
-    console.log('✨ VELXO GAMING MARKETPLACE SEEDING COMPLETE! ✨')
+    console.log('✨ PIYROX GAMING MARKETPLACE SEEDING COMPLETE! ✨')
     console.log('='.repeat(80))
     console.log('\n📊 DATABASE SUMMARY:')
     console.log('  • Admin Users: 1')
@@ -779,8 +779,8 @@ async function main() {
     }
     console.log(`  ... and ${sellers.length - 5} more sellers`)
     console.log('\n🎯 TEST ACCOUNTS:')
-    console.log('  Admin: admin@velxo.shop')
-    console.log('  Sellers: noobmaster92@, shadowhunter88@, phoenixgamer23@velxo.shop')
+    console.log('  Admin: admin@piyrox.shop')
+    console.log('  Sellers: noobmaster92@, shadowhunter88@, phoenixgamer23@piyrox.shop')
     console.log('  Buyers: chidi.okafor@, fatou.ndiaye@, yusuf.mohammed@gmail.com')
     console.log('\n✅ Marketplace ready for testing and production!\n')
   } catch (error) {

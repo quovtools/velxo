@@ -57,7 +57,7 @@ export default function Pricing() {
               </li>
             ))}
           </ul>
-          <a href="https://market.velxo.shop/auth/register" className="btn-secondary mt-8 w-full">
+          <a href="https://market.piyrox.shop/auth/register" className="btn-secondary mt-8 w-full">
             Create Buyer Account
           </a>
         </div>
@@ -79,7 +79,7 @@ export default function Pricing() {
               </li>
             ))}
           </ul>
-          <a href="https://market.velxo.shop/sell" className="btn-primary mt-8 w-full">
+          <a href="https://market.piyrox.shop/sell" className="btn-primary mt-8 w-full">
             Start Selling Today
             <ArrowRight className="h-4 w-4 transition-transform group-hover:translate-x-1" />
           </a>
@@ -93,7 +93,7 @@ export default function Pricing() {
             <thead className="border-b border-white/10">
               <tr className="text-xs font-bold uppercase text-gray-500">
                 <th className="px-6 py-4 text-left">Sale Price</th>
-                <th className="px-6 py-4 text-left">Velxo Fee (10%)</th>
+                <th className="px-6 py-4 text-left">Piyrox Fee (10%)</th>
                 <th className="px-6 py-4 text-left text-accent-emerald">You Receive</th>
               </tr>
             </thead>

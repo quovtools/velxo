@@ -2,7 +2,7 @@
 
 ## Overview
 
-Your Velxo marketplace now supports **automatic currency detection and conversion** based on the user's location. All prices are stored in USD in the database but displayed in the user's local currency with real-time exchange rates.
+Your Piyrox marketplace now supports **automatic currency detection and conversion** based on the user's location. All prices are stored in USD in the database but displayed in the user's local currency with real-time exchange rates.
 
 ---
 
@@ -360,7 +360,7 @@ NG: { ..., rate: 1650, ... }
 ### Clear Cache & Retry
 ```javascript
 // In browser console
-sessionStorage.removeItem('velxo_currency');
+sessionStorage.removeItem('piyrox_currency');
 location.reload();
 ```
 
@@ -410,7 +410,7 @@ npm run build
 **Q: Why is my currency not updating?**  
 A: Clear sessionStorage and reload:
 ```javascript
-sessionStorage.removeItem('velxo_currency');
+sessionStorage.removeItem('piyrox_currency');
 location.reload();
 ```
 

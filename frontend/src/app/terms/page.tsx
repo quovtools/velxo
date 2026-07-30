@@ -3,7 +3,7 @@ import LegalPageContent from '@/components/LegalPageContent';
 
 export const metadata: Metadata = {
   title: 'Terms of Service',
-  description: 'Read the Velxo Market Terms of Service — your rights and responsibilities when using the platform.',
+  description: 'Read the piyrox market Terms of Service — your rights and responsibilities when using the platform.',
 };
 
 export default function TermsPage() {

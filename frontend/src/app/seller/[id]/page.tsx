@@ -2,7 +2,7 @@ import type { Metadata } from 'next';
 import SellerProfileContent from './seller-profile-content';
 
 const API_BASE = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:3001/api/v1';
-const SITE_URL = 'https://market.velxo.shop';
+const SITE_URL = 'https://market.piyrox.shop';
 
 export const dynamic = 'force-dynamic';
 
@@ -41,19 +41,19 @@ export async function generateMetadata({
     };
   }
   return {
-    title: `${seller.storeName} — Verified Seller | Velxo Market`,
+      title: `${seller.storeName} — Verified Seller | Piyrox Market`,
     description:
       seller.storeDescription?.slice(0, 160) ||
-      `Shop ${seller.storeName} on Velxo Market. ${(seller.totalSales || 0)} sales, ${
+      `Shop ${seller.storeName} on Piyrox Market. ${(seller.totalSales || 0)} sales, ${
         (seller.averageRating || 0).toFixed(1)
       }★ rating. Escrow-protected trades.`,
     keywords: [seller.storeName, 'verified seller', 'gaming marketplace', 'escrow'],
     alternates: { canonical: `${SITE_URL}/seller/${id}` },
     openGraph: {
-      title: `${seller.storeName} | Velxo Market`,
+      title: `${seller.storeName} | Piyrox Market`,
       description: `Shop ${seller.storeName} — escrow-protected gaming trades.`,
       url: `${SITE_URL}/seller/${id}`,
-      siteName: 'Velxo Market',
+      siteName: 'Piyrox Market',
       type: 'profile',
     },
   };

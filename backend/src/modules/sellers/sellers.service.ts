@@ -773,7 +773,7 @@ export class SellersService {
 
     const returnUrl =
       callbackUrl ||
-      `${process.env.FRONTEND_URL || 'https://market.velxo.shop'}/seller/pro?checkout=${subscription.id}`
+      `${process.env.FRONTEND_URL || 'https://market.piyrox.shop'}/seller/pro?checkout=${subscription.id}`
 
     const charge = await this.paymentIo.createCharge({
       reference: subscription.id,

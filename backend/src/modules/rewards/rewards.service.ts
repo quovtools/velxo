@@ -9,7 +9,7 @@ export class RewardsService {
   constructor(private prisma: PrismaService) {}
 
   async getCoinBalance(userId: string) {
-    return this.prisma.velxoCoins.upsert({
+    return this.prisma.piyroxCoins.upsert({
       where: { userId },
       create: { userId, balance: 0, currency: 'VXC' },
       update: {},
@@ -17,7 +17,7 @@ export class RewardsService {
   }
 
   async getTransactions(userId: string, limit = 50) {
-    const coins = await this.prisma.velxoCoins.upsert({
+    const coins = await this.prisma.piyroxCoins.upsert({
       where: { userId },
       create: { userId, balance: 0, currency: 'VXC' },
       update: {},
@@ -41,7 +41,7 @@ export class RewardsService {
     this.logger.log(`Crediting ${amount} coins to user ${userId}`)
 
     return await this.prisma.$transaction(async (tx) => {
-      const coins = await tx.velxoCoins.upsert({
+      const coins = await tx.piyroxCoins.upsert({
         where: { userId },
         create: { userId, balance: 0, currency: 'VXC' },
         update: {},
@@ -49,7 +49,7 @@ export class RewardsService {
 
       const newBalance = coins.balance + amount
 
-      await tx.velxoCoins.update({
+      await tx.piyroxCoins.update({
         where: { userId },
         data: { balance: newBalance },
       })
@@ -73,18 +73,18 @@ export class RewardsService {
     this.logger.log(`Debiting ${amount} coins from user ${userId}`)
 
     return await this.prisma.$transaction(async (tx) => {
-      const coins = await tx.velxoCoins.findUnique({ where: { userId } })
+      const coins = await tx.piyroxCoins.findUnique({ where: { userId } })
       if (!coins) {
-        throw new NotFoundException('Velxo Coins wallet')
+        throw new NotFoundException('Piyrox Coins wallet')
       }
 
       if (coins.balance < amount) {
-        throw new BadRequestException('Insufficient Velxo Coins')
+      throw new BadRequestException('Insufficient Piyrox Coins')
       }
 
       const newBalance = coins.balance - amount
 
-      await tx.velxoCoins.update({
+      await tx.piyroxCoins.update({
         where: { userId },
         data: { balance: newBalance },
       })
@@ -110,15 +110,15 @@ export class RewardsService {
       throw new NotFoundException('Reward item')
     }
 
-    const coins = await this.prisma.velxoCoins.findUnique({ where: { userId } })
+    const coins = await this.prisma.piyroxCoins.findUnique({ where: { userId } })
     if (!coins || coins.balance < catalogItem.coinCost) {
-      throw new BadRequestException('Insufficient Velxo Coins')
+      throw new BadRequestException('Insufficient Piyrox Coins')
     }
 
     const redemption = await this.prisma.$transaction(async (tx) => {
       const newBalance = coins.balance - catalogItem.coinCost
 
-      await tx.velxoCoins.update({
+      await tx.piyroxCoins.update({
         where: { userId },
         data: { balance: newBalance },
       })

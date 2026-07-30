@@ -1,8 +1,8 @@
 {
-  "name": "velxo-backend",
+  "name": "piyrox-backend",
   "version": "0.0.1",
-  "description": "Velxo Gaming Marketplace Backend",
-  "author": "Velxo Team",
+  "description": "Piyrox Gaming Marketplace Backend",
+  "author": "Piyrox Team",
   "private": true,
   "license": "UNLICENSED",
   "scripts": {

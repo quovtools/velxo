@@ -14,8 +14,8 @@ import { api } from '@/lib/api';
 
 /* ─── Auth ──────────────────────────────────────────────────────────────── */
 const ADMIN_PASSWORD = 'Fadekemi123@';
-const SESSION_KEY    = 'velxo_admin_auth';
-const PASSWORD_KEY   = 'velxo_admin_password';
+const SESSION_KEY    = 'piyrox_admin_auth';
+const PASSWORD_KEY   = 'piyrox_admin_password';
 
 /* ─── Nav structure ──────────────────────────────────────────────────────── */
 const NAV_GROUPS = [
@@ -109,7 +109,7 @@ function PasswordGate({ onUnlock }: { onUnlock: () => void }) {
           <div className="w-16 h-16 bg-gradient-to-br from-violet-600 to-brand rounded-2xl flex items-center justify-center mx-auto mb-4 shadow-lg shadow-violet-500/30">
             <ShieldCheck className="w-8 h-8 text-white" />
           </div>
-          <h1 className="text-2xl font-black text-white tracking-tight">Velxo Admin</h1>
+          <h1 className="text-2xl font-black text-white tracking-tight">piyrox admin</h1>
           <p className="text-gray-500 text-sm mt-1">Enter your admin password to continue</p>
         </div>
 
@@ -265,7 +265,7 @@ export default function AdminLayout({ children }: { children: React.ReactNode })
             <ShieldCheck className="w-4 h-4 text-white" />
           </div>
           <div>
-            <p className="font-black text-white text-sm leading-none">Velxo</p>
+            <p className="font-black text-white text-sm leading-none">Piyrox</p>
             <p className="text-[10px] text-gray-500 leading-none mt-0.5">Admin Console</p>
           </div>
         </div>

@@ -1,5 +1,5 @@
 -- ============================================================
--- VELXO DATABASE SCHEMA
+-- PIYROX DATABASE SCHEMA
 -- Run this in Supabase SQL Editor
 -- ============================================================
 
@@ -581,7 +581,7 @@ CREATE TABLE blog_posts (
   excerpt     TEXT NOT NULL,
   content     TEXT NOT NULL,
   category    TEXT NOT NULL DEFAULT 'Platform',
-  author      TEXT NOT NULL DEFAULT 'Velxo Team',
+  author      TEXT NOT NULL DEFAULT 'Piyrox Team',
   "coverImage" TEXT,
   "isPublished" BOOLEAN NOT NULL DEFAULT false,
   "isFeatured"  BOOLEAN NOT NULL DEFAULT false,

@@ -29,7 +29,7 @@ export class PaymentsController {
     @Body('currency') currency?: string,
   ) {
     try {
-      const callbackUrl = `${process.env.FRONTEND_URL || 'https://market.velxo.shop'}/orders/${orderId}`
+      const callbackUrl = `${process.env.FRONTEND_URL || 'https://market.piyrox.shop'}/orders/${orderId}`
       const result = await this.paymentsService.initiatePayment(
         orderId,
         new Decimal(amount),

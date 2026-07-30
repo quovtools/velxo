@@ -161,7 +161,7 @@ export class PaymentsService implements OnModuleInit {
         reference: orderId,
         amount: Number(amount),
         currency: order.currency,
-        email: fullOrder?.buyer?.email || 'buyer@velxo.shop',
+        email: fullOrder?.buyer?.email || 'buyer@piyrox.shop',
         callbackUrl,
       })
       return handleCharge(charge)
@@ -242,7 +242,7 @@ export class PaymentsService implements OnModuleInit {
           reference: order.id,
           amount: Number(order.totalAmount),
           currency: order.currency,
-          email: order.buyer?.email || 'buyer@velxo.shop',
+          email: order.buyer?.email || 'buyer@piyrox.shop',
           callbackUrl,
         })
       }
@@ -287,7 +287,7 @@ export class PaymentsService implements OnModuleInit {
       return { url: null, provider: null, configured: true }
     }
 
-    const callbackUrl = `${process.env.FRONTEND_URL || 'https://market.velxo.shop'}/orders/${orderId}`
+    const callbackUrl = `${process.env.FRONTEND_URL || 'https://market.piyrox.shop'}/orders/${orderId}`
 
     this.logger.log(
       `createPaymentLink ${orderId} | orderStatus=${order.status} ` +

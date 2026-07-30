@@ -28,7 +28,7 @@ const RANKS: Record<string, number> = {
   'Radiant': 5.0,
 };
 
-const API = process.env.NEXT_PUBLIC_API_URL || 'https://api.velxo.shop/api/v1';
+const API = process.env.NEXT_PUBLIC_API_URL || 'https://api.piyrox.shop/api/v1';
 
 export default function AccountValueCheck() {
   const [game, setGame] = useState('');
@@ -208,10 +208,10 @@ export default function AccountValueCheck() {
                 </p>
               )}
               <a
-                href="https://market.velxo.shop/auth/register"
+                href="https://market.piyrox.shop/auth/register"
                 className="mt-4 inline-flex items-center gap-2 text-sm font-bold text-brand-light transition hover:text-white"
               >
-                Sell on Velxo <ArrowRight className="h-4 w-4" />
+                Sell on Piyrox <ArrowRight className="h-4 w-4" />
               </a>
             </div>
           )}

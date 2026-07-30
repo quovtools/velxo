@@ -5,7 +5,7 @@ import { NotFoundException } from '@/common/exceptions/custom-exceptions'
 import { NotificationsGateway } from '@/modules/gateways/notifications.gateway'
 import { EmailService } from '@/shared/email.service'
 
-const FRONTEND = process.env.FRONTEND_URL || 'https://market.velxo.shop'
+const FRONTEND = process.env.FRONTEND_URL || 'https://market.piyrox.shop'
 
 /** Shared branded email wrapper used by every order email below. */
 function orderEmailHtml(opts: {
@@ -19,14 +19,14 @@ function orderEmailHtml(opts: {
   const cta = opts.ctaText && opts.ctaUrl
     ? `<a href="${opts.ctaUrl}" style="display:inline-block;margin-top:28px;background-color:#6366f1;color:#fff;text-decoration:none;padding:14px 36px;border-radius:12px;font-size:15px;font-weight:700;">${opts.ctaText}</a>`
     : ''
-  return `<!DOCTYPE html><html><head><meta charset="UTF-8"><title>${opts.title} — Velxo</title></head>
+  return `<!DOCTYPE html><html><head><meta charset="UTF-8"><title>${opts.title} — Piyrox</title></head>
 <body style="margin:0;padding:0;font-family:Inter,sans-serif;background-color:#0f172a;">
 <table role="presentation" width="100%" cellspacing="0" cellpadding="0" border="0">
   <tr><td align="center" style="padding:40px 0;">
     <table role="presentation" width="100%" style="max-width:600px;background-color:#1e293b;border-radius:16px;overflow:hidden;" cellspacing="0" cellpadding="0" border="0">
       <tr><td style="padding:0 0 0 0;">
         <div style="background:linear-gradient(135deg,#6366f1,#8b5cf6);padding:28px 32px;">
-          <p style="margin:0;color:#fff;font-size:22px;font-weight:800;">VELXO</p>
+          <p style="margin:0;color:#fff;font-size:22px;font-weight:800;">PIYROX</p>
           <p style="margin:4px 0 0;color:rgba(255,255,255,0.7);font-size:13px;">Africa's trusted gaming marketplace</p>
         </div>
       </td></tr>
@@ -37,7 +37,7 @@ function orderEmailHtml(opts: {
         ${cta}
       </td></tr>
       <tr><td style="padding:24px 32px;background-color:#0f172a;border-top:1px solid #334155;text-align:center;">
-        <p style="margin:0;color:#64748b;font-size:12px;">${opts.footer || 'You\'re receiving this because you have an active order on Velxo. <a href="' + FRONTEND + '" style="color:#6366f1;">Visit Velxo</a>'}</p>
+        <p style="margin:0;color:#64748b;font-size:12px;">${opts.footer || 'You\'re receiving this because you have an active order on Piyrox. <a href="' + FRONTEND + '" style="color:#6366f1;">Visit Piyrox</a>'}</p>
       </td></tr>
     </table>
   </td></tr>
@@ -185,7 +185,7 @@ export class NotificationsService {
       const html = orderEmailHtml({
         title: '🎉 Order Complete!',
         subtitle: `Order #${order.orderNumber}`,
-        body: `<p>Your order for <strong>${product}</strong> is complete. Funds have been released to the seller.</p><p style="color:#94a3b8;font-size:14px;">Thank you for trading safely on Velxo. Leave a review to help other buyers.</p>`,
+        body: `<p>Your order for <strong>${product}</strong> is complete. Funds have been released to the seller.</p><p style="color:#94a3b8;font-size:14px;">Thank you for trading safely on Piyrox. Leave a review to help other buyers.</p>`,
         ctaText: 'View Order & Leave Review →',
         ctaUrl: orderUrl,
       })
@@ -199,7 +199,7 @@ export class NotificationsService {
       const html = orderEmailHtml({
         title: '💸 Funds Released to Your Wallet',
         subtitle: `Order #${order.orderNumber}`,
-        body: `<p><strong>$${payout}</strong> has been credited to your Velxo wallet for completing order <strong>${order.orderNumber}</strong> (${product}).</p><p style="color:#94a3b8;font-size:14px;">You can withdraw your earnings from the Payouts section of your seller dashboard.</p>`,
+        body: `<p><strong>$${payout}</strong> has been credited to your piyrox wallet for completing order <strong>${order.orderNumber}</strong> (${product}).</p><p style="color:#94a3b8;font-size:14px;">You can withdraw your earnings from the Payouts section of your seller dashboard.</p>`,
         ctaText: 'View Wallet →',
         ctaUrl: `${FRONTEND}/wallet`,
       })

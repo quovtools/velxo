@@ -74,7 +74,7 @@ export default function OrderCheckoutContent({ orderId }: { orderId: string }) {
     );
   }
 
-  const title = order.metadata?.title || (order.metadata?.sourceType === 'TOPUP' ? 'Official Velxo Top-Up' : 'Boosting Service');
+  const title = order.metadata?.title || (order.metadata?.sourceType === 'TOPUP' ? 'Official Piyrox Top-Up' : 'Boosting Service');
   const isTopup = order.metadata?.sourceType === 'TOPUP';
   const isGig = order.metadata?.sourceType === 'GIG';
   const subtotal = Number(order.totalAmount);
@@ -89,7 +89,7 @@ export default function OrderCheckoutContent({ orderId }: { orderId: string }) {
             <div>
               <h1 className="text-2xl sm:text-3xl font-extrabold text-white">Complete Payment</h1>
               <p className="text-gray-400 text-sm mt-1">
-                Finish paying for this order — your funds stay locked in Velxo Escrow until delivery is confirmed.
+                Finish paying for this order — your funds stay locked in Piyrox Escrow until delivery is confirmed.
               </p>
             </div>
 
@@ -110,7 +110,7 @@ export default function OrderCheckoutContent({ orderId }: { orderId: string }) {
               <div className="bg-background border border-borderBg rounded-2xl p-4 flex gap-3 items-start">
                 <ShieldCheck className="w-6 h-6 text-brand flex-shrink-0 mt-0.5" />
                 <div className="text-xs text-gray-400 leading-relaxed">
-                  <p className="text-white font-semibold mb-1">Protected by Velxo Escrow</p>
+                  <p className="text-white font-semibold mb-1">Protected by Piyrox Escrow</p>
                   Your payment is locked in escrow the moment you pay. The seller is only paid after they
                   deliver and you confirm receipt. If something goes wrong, our dispute team steps in to keep
                   you safe.

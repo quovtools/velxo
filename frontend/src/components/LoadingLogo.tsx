@@ -34,7 +34,7 @@ export default function LoadingLogo({
         />
         {/* Logo box */}
         <div className={`relative ${s.box} rounded-2xl bg-cardBg border border-borderBg flex items-center justify-center overflow-hidden shadow-xl`}>
-          <img src="/logo.png" alt="Velxo" className={`${s.logo} rounded-lg animate-[spin_1.6s_linear_infinite]`} />
+          <img src="/logo.png" alt="Piyrox" className={`${s.logo} rounded-lg animate-[spin_1.6s_linear_infinite]`} />
         </div>
       </div>
       {showLabel && (
@@ -54,7 +54,7 @@ export default function LoadingLogo({
   return content;
 }
 
-/* Area loader: centered Velxo logo with a message, fills its container */
+/* Area loader: centered Piyrox logo with a message, fills its container */
 export function LoadingArea({
   label = 'Loading...',
   className = '',

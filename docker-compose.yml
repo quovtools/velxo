@@ -3,9 +3,9 @@ services:
     image: postgres:16-alpine
     restart: always
     environment:
-      POSTGRES_USER: velxo
-      POSTGRES_PASSWORD: velxo_dev
-      POSTGRES_DB: velxo
+      POSTGRES_USER: piyrox
+      POSTGRES_PASSWORD: piyrox_dev
+      POSTGRES_DB: piyrox
     ports:
       - "5432:5432"
     volumes:
@@ -27,7 +27,7 @@ services:
     ports:
       - "3001:3001"
     environment:
-      - DATABASE_URL=postgres://velxo:velxo_dev@postgres:5432/velxo
+      - DATABASE_URL=postgres://piyrox:piyrox_dev@postgres:5432/piyrox
       - REDIS_HOST=redis
       - REDIS_PORT=6379
     depends_on:

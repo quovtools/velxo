@@ -3,10 +3,10 @@ import { ShieldCheck, Lock, HandCoins, FileWarning } from 'lucide-react';
 import { DocHeader, DocSection, Steps, Callout, FeatureGrid, RelatedLinks, DocShell } from '../components/doc-ui';
 
 export const metadata: Metadata = {
-  title: 'Escrow & Buyer Protection — Velxo Documentation',
+  title: 'Escrow & Buyer Protection — piyrox documentation',
   description:
-    'Understand how Velxo Escrow protects buyers and sellers, how funds are held and released, and what happens in a dispute.',
-  alternates: { canonical: 'https://market.velxo.shop/docs/escrow' },
+    'Understand how piyrox escrow protects buyers and sellers, how funds are held and released, and what happens in a dispute.',
+  alternates: { canonical: 'https://market.piyrox.shop/docs/escrow' },
 };
 
 export default function DocsEscrow() {
@@ -15,7 +15,7 @@ export default function DocsEscrow() {
       <DocHeader
         icon={<ShieldCheck className="w-6 h-6" />}
         title="Escrow & Buyer Protection"
-        description="Velxo Escrow is the trust layer that makes trading safe. Your money is held by Velxo until the deal is done right — protecting both sides from scams."
+        description="piyrox escrow is the trust layer that makes trading safe. Your money is held by Piyrox until the deal is done right — protecting both sides from scams."
       />
 
       <DocSection title="How escrow works">
@@ -53,7 +53,7 @@ export default function DocsEscrow() {
 
       <DocSection title="What escrow does NOT cover">
         <p>
-          Escrow protects trades made through Velxo. It does not cover payments sent outside the
+          Escrow protects trades made through Piyrox. It does not cover payments sent outside the
           platform, trades arranged in chat without an order, or chargebacks filed with your bank
           after release.
         </p>

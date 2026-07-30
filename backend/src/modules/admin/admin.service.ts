@@ -229,7 +229,7 @@ export class AdminService {
           update: {},
           create: {
             id: 'admin-console',
-            email: 'admin-console@system.velxo',
+            email: 'admin-console@system.piyrox',
             firstName: 'Admin',
             lastName: 'Console',
             role: 'ADMIN',
@@ -341,7 +341,7 @@ export class AdminService {
       include: {
         sellers: { include: { user: true } },
         wallet: true,
-        velxoCoins: true,
+        piyroxCoins: true,
       },
     })
     if (!user) return null
@@ -1292,7 +1292,7 @@ export class AdminService {
       data: {
         ...dto,
         category: dto.category ?? 'Platform',
-        author: dto.author ?? 'Velxo Team',
+        author: dto.author ?? 'piyrox team',
         isPublished: dto.isPublished ?? false,
         publishedAt: dto.isPublished ? new Date() : null,
       },

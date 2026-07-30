@@ -6,28 +6,28 @@ import { ShieldCheck, MessageSquare, AlertTriangle, HelpCircle, BookOpen, Zap, C
 
 export const metadata: Metadata = {
   title: 'Help Center & Support',
-  description: 'Find answers to common questions about buying, selling, escrow, payments, withdrawals, and disputes on Velxo. Contact our support team 7 days a week.',
-  alternates: { canonical: 'https://velxo.shop/support' },
+  description: 'Find answers to common questions about buying, selling, escrow, payments, withdrawals, and disputes on Piyrox. Contact our support team 7 days a week.',
+  alternates: { canonical: 'https://piyrox.shop/support' },
   openGraph: {
-    title: 'Help Center & Support | Velxo',
-    description: 'Answers about escrow, payments, disputes, and selling on Velxo.',
-    url: 'https://velxo.shop/support',
-    siteName: 'Velxo',
+    title: 'Help Center & Support | Piyrox',
+    description: 'Answers about escrow, payments, disputes, and selling on Piyrox.',
+    url: 'https://piyrox.shop/support',
+    siteName: 'Piyrox',
     type: 'website',
-    images: [{ url: '/og.png', width: 1200, height: 630, alt: 'Velxo Support' }],
+    images: [{ url: '/og.png', width: 1200, height: 630, alt: 'Piyrox Support' }],
   },
 };
 
 const faqs = [
-  { q: 'How does Velxo escrow work?', a: 'When you make a purchase, your payment is held securely in Velxo Escrow — not released to the seller until you confirm you have received exactly what was listed. If something goes wrong, you can open a dispute and our team steps in.' },
+  { q: 'How does piyrox escrow work?', a: 'When you make a purchase, your payment is held securely in piyrox escrow — not released to the seller until you confirm you have received exactly what was listed. If something goes wrong, you can open a dispute and our team steps in.' },
   { q: 'How long does delivery take?', a: 'Delivery time depends on the seller and listing type. Most digital transfers (accounts, top-ups, gift cards) happen within minutes to a few hours. Each listing shows an estimated delivery time set by the seller.' },
   { q: "What happens if I don't receive my item?", a: 'If the seller fails to deliver, simply open a dispute from your Order Tracking page. Our moderation team will review the case and issue a full refund if delivery is not confirmed within the agreed timeframe.' },
-  { q: 'How do I become a seller on Velxo?', a: 'Head to the Sell page on the marketplace and create your seller profile. Once set up, you can list any gaming asset — accounts, coins, boosting services, gift cards — and start receiving orders immediately.' },
+  { q: 'How do I become a seller on Piyrox?', a: 'Head to the Sell page on the marketplace and create your seller profile. Once set up, you can list any gaming asset — accounts, coins, boosting services, gift cards — and start receiving orders immediately.' },
   { q: 'What payment methods are supported?', a: 'We support Paystack (cards & bank transfers), Flutterwave (mobile money & cards), and crypto payments (Bitcoin, USDT, Solana). All transactions are secured and processed through verified payment providers.' },
-  { q: 'What are the seller fees?', a: 'Velxo charges a 10% escrow service fee on each completed transaction. There are no listing fees or monthly charges — you only pay when you make a sale.' },
+  { q: 'What are the seller fees?', a: 'Piyrox charges a 10% escrow service fee on each completed transaction. There are no listing fees or monthly charges — you only pay when you make a sale.' },
   { q: 'How do I withdraw my earnings?', a: 'Go to your Wallet page to request a withdrawal to your bank account or mobile money number. Withdrawals are processed within 1–3 business days.' },
   { q: 'Is my account information safe?', a: 'Yes. All user data is encrypted and stored securely. We use Supabase Auth for authentication, which follows industry-standard security practices including JWT tokens and row-level security.' },
-  { q: 'Can I sell gift cards on Velxo?', a: 'Yes. Gift cards are a supported listing category. Make sure to provide accurate denomination, region, and redemption instructions to avoid disputes.' },
+  { q: 'Can I sell gift cards on Piyrox?', a: 'Yes. Gift cards are a supported listing category. Make sure to provide accurate denomination, region, and redemption instructions to avoid disputes.' },
   { q: 'How does dispute resolution work?', a: 'Open a dispute from the Order page and provide your reason and description. Our moderation team reviews all evidence within 24–48 hours and issues a fair resolution — either releasing funds to the seller or refunding the buyer.' },
 ];
 
@@ -97,14 +97,14 @@ export default function SupportPage() {
               Our support team is available 7 days a week. Reach us via live chat or email and we&apos;ll get back to you within a few hours.
             </p>
             <div className="flex flex-col sm:flex-row gap-3 justify-center">
-              <a href="mailto:support@velxo.shop" className="btn-primary">
+              <a href="mailto:support@piyrox.shop" className="btn-primary">
                 <Mail className="w-4 h-4" /> Email Support
               </a>
-              <a href="https://market.velxo.shop/messages" className="btn-secondary">
+              <a href="https://market.piyrox.shop/messages" className="btn-secondary">
                 Live Chat <ArrowRight className="w-4 h-4" />
               </a>
             </div>
-            <p className="text-xs text-gray-600">support@velxo.shop • Response within 24 hours</p>
+            <p className="text-xs text-gray-600">support@piyrox.shop • Response within 24 hours</p>
           </div>
         </div>
       </main>

@@ -22,7 +22,7 @@ const CATEGORY_COLORS: Record<string, string> = {
   Guides: 'bg-brand-light/10 text-brand-light border-brand-light/20',
 };
 
-const API = process.env.NEXT_PUBLIC_API_URL || 'https://api.velxo.shop/api/v1';
+const API = process.env.NEXT_PUBLIC_API_URL || 'https://api.piyrox.shop/api/v1';
 
 export default function BlogList() {
   const [posts, setPosts] = useState<Post[]>([]);
@@ -61,7 +61,7 @@ export default function BlogList() {
       <div className="container-x space-y-12 py-16">
 
         <div className="mx-auto max-w-2xl space-y-4 text-center">
-          <span className="eyebrow">Velxo Blog</span>
+          <span className="eyebrow">Piyrox Blog</span>
           <h1 className="heading-xl">
             Insights, guides &amp;{' '}
             <span className="text-gradient">gaming news</span>
@@ -190,8 +190,8 @@ export default function BlogList() {
               </button>
             </form>
           )}
-          <a href="mailto:hello@velxo.shop" className="mt-5 inline-flex items-center gap-1.5 text-xs text-gray-500 transition hover:text-brand-light">
-            <Mail className="h-3.5 w-3.5" /> hello@velxo.shop
+          <a href="mailto:hello@piyrox.shop" className="mt-5 inline-flex items-center gap-1.5 text-xs text-gray-500 transition hover:text-brand-light">
+            <Mail className="h-3.5 w-3.5" /> hello@piyrox.shop
           </a>
         </section>
       </div>

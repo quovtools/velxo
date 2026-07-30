@@ -1,7 +1,7 @@
 import { MetadataRoute } from 'next';
 
 export default function robots(): MetadataRoute.Robots {
-  const baseUrl = 'https://market.velxo.shop';
+  const baseUrl = 'https://market.piyrox.shop';
   return {
     rules: [
       {

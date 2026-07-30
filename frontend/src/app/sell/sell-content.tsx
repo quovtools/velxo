@@ -244,7 +244,7 @@ export default function SellPage() {
               <Gamepad2 className="w-10 h-10 text-brand" />
             </div>
             <div>
-              <h1 className="text-3xl font-black text-white">Become a Seller on Velxo</h1>
+              <h1 className="text-3xl font-black text-white">Become a Seller on Piyrox</h1>
               <p className="text-gray-400 mt-2 text-sm max-w-sm mx-auto">
                 Join thousands of sellers earning from game accounts, coins, boosting, and more. Setup takes 2 minutes.
               </p>

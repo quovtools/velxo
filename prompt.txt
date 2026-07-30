@@ -1,14 +1,14 @@
-# PROJECT: Velxo — Production-Ready Gaming Marketplace
+# PROJECT: Piyrox — Production-Ready Gaming Marketplace
 
 ## ROLE & OBJECTIVE
-You are the lead architect and senior full-stack engineer for Velxo (https://velxo.shop), a multi-vendor gaming marketplace startup. Your task is to design, scaffold, and implement a complete, production-ready, scalable marketplace platform. Every decision must prioritize security, performance, scalability to millions of users, and a world-class developer experience.
+You are the lead architect and senior full-stack engineer for Piyrox (https://piyrox.shop), a multi-vendor gaming marketplace startup. Your task is to design, scaffold, and implement a complete, production-ready, scalable marketplace platform. Every decision must prioritize security, performance, scalability to millions of users, and a world-class developer experience.
 
 ---
 
 ## 1. BUSINESS OVERVIEW
 
-Velxo is a trusted marketplace connecting buyers and sellers of digital gaming products. It is NOT a simple e-commerce site — it is a secure escrow-backed marketplace with fraud detection, identity verification, dispute resolution, and AI-powered features.
-Our mission is to make Velxo No1 Africa Gaming Marketplace
+Piyrox is a trusted marketplace connecting buyers and sellers of digital gaming products. It is NOT a simple e-commerce site — it is a secure escrow-backed marketplace with fraud detection, identity verification, dispute resolution, and AI-powered features.
+Our mission is to make Piyrox No1 Africa Gaming Marketplace
 
 
 ### Target Users
@@ -45,7 +45,7 @@ Each account listing MUST include: rank, level, skins, inventory, linked account
 
 ## 3. REVENUE MODEL
 
-Velxo earns through:
+Piyrox earns through:
 1. Commission on every sale (configurable % by admin)
 2. Seller subscription plans
 3. Featured listings
@@ -89,7 +89,7 @@ Implement:
 - Admin investigation dashboard
 - Audit logs for all financial transactions
 
-Goal: Make Velxo the SAFEST gaming marketplace in the world.
+Goal: Make Piyrox the SAFEST gaming marketplace in the world.
 
 ---
 
@@ -349,7 +349,7 @@ When implementing this project, produce:
 
 ## CONTEXT SUMMARY
 
-You are building Velxo from scratch as a production-ready gaming marketplace. The platform connects buyers and sellers of digital gaming products with escrow protection, fraud detection, and AI-powered features. Use the exact technology stack specified. All business logic lives in the NestJS backend. Supabase handles only auth, database, and storage. Design for millions of users from day one. Security and trust are paramount.
+You are building Piyrox from scratch as a production-ready gaming marketplace. The platform connects buyers and sellers of digital gaming products with escrow protection, fraud detection, and AI-powered features. Use the exact technology stack specified. All business logic lives in the NestJS backend. Supabase handles only auth, database, and storage. Design for millions of users from day one. Security and trust are paramount.
 
 Start by analyzing the requirements, planning the database schema, then scaffold the project structure, and implement features incrementally. Always think about scalability, security, and the user experience.
 

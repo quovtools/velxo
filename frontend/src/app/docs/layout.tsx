@@ -4,16 +4,16 @@ import { BookOpen, Home } from 'lucide-react';
 import DocsSidebar from './components/DocsSidebar';
 
 export const metadata: Metadata = {
-  title: 'Velxo Documentation',
+  title: 'piyrox documentation',
   description:
-    'Everything you need to buy, sell, and trade safely on Velxo — escrow protection, payments, wallets, rewards, the affiliate program, disputes, and verification.',
-  alternates: { canonical: 'https://market.velxo.shop/docs' },
+    'Everything you need to buy, sell, and trade safely on Piyrox — escrow protection, payments, wallets, rewards, the affiliate program, disputes, and verification.',
+  alternates: { canonical: 'https://market.piyrox.shop/docs' },
   openGraph: {
-    title: 'Velxo Documentation',
+    title: 'piyrox documentation',
     description:
-      'Guides for buying, selling, escrow, payments, rewards and staying safe on Velxo.',
-    url: 'https://market.velxo.shop/docs',
-    siteName: 'Velxo Market',
+      'Guides for buying, selling, escrow, payments, rewards and staying safe on Piyrox.',
+    url: 'https://market.piyrox.shop/docs',
+    siteName: 'piyrox market',
     type: 'website',
   },
 };

@@ -32,7 +32,7 @@ interface UserDetail {
   createdAt: string;
   sellers?: SellerAccount[];
   wallet?: { balance: number; totalEarnings: number; totalWithdrawn: number; currency?: string };
-  velxoCoins?: { balance: number; totalEarned: number };
+  piyroxCoins?: { balance: number; totalEarned: number };
   stats?: { orders: number; disputes: number; tickets: number };
 }
 
@@ -369,7 +369,7 @@ export default function AdminUsersPage() {
             </Section>
 
             {/* Financials */}
-            {(detail.wallet || detail.velxoCoins) && (
+            {(detail.wallet || detail.piyroxCoins) && (
               <Section title="Wallet & Coins">
                 <div className="grid grid-cols-2 gap-3">
                   {detail.wallet && (
@@ -379,10 +379,10 @@ export default function AdminUsersPage() {
                       <InfoRow label="Total withdrawn" value={formatMoney(detail.wallet.totalWithdrawn, detail.wallet.currency || 'USD')} />
                     </>
                   )}
-                  {detail.velxoCoins && (
+                  {detail.piyroxCoins && (
                     <>
-                      <InfoRow label="Velxo Coins" value={`${Number(detail.velxoCoins.balance).toLocaleString()} VC`} />
-                      <InfoRow label="Total coins earned" value={`${Number(detail.velxoCoins.totalEarned).toLocaleString()} VC`} />
+                      <InfoRow label="piyrox coins" value={`${Number(detail.piyroxCoins.balance).toLocaleString()} VC`} />
+                      <InfoRow label="Total coins earned" value={`${Number(detail.piyroxCoins.totalEarned).toLocaleString()} VC`} />
                     </>
                   )}
                 </div>

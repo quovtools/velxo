@@ -15,15 +15,15 @@ const PAGE_LABELS: Record<string, string> = {
 
 const FALLBACK_CONTENT: Record<string, string> = {
   terms: `<h2>1. Acceptance of Terms</h2>
-<p>By accessing Velxo Market you agree to be bound by these Terms of Service and all applicable laws.</p>
+<p>By accessing piyrox market you agree to be bound by these Terms of Service and all applicable laws.</p>
 <h2>2. Platform Use</h2>
-<p>Velxo Market is a peer-to-peer gaming marketplace. You must be 13 years or older to use this platform.</p>
+<p>piyrox market is a peer-to-peer gaming marketplace. You must be 13 years or older to use this platform.</p>
 <h2>3. Escrow &amp; Payments</h2>
-<p>All transactions are processed through Velxo Escrow. Funds are held securely until both parties confirm successful delivery.</p>
+<p>All transactions are processed through piyrox escrow. Funds are held securely until both parties confirm successful delivery.</p>
 <h2>4. Prohibited Items</h2>
 <p>Accounts obtained via cheating, hacking, or in violation of the originating game's Terms of Service are strictly forbidden.</p>
 <h2>5. Dispute Resolution</h2>
-<p>In the event of a dispute, Velxo Admin will investigate the transaction and make a final binding decision.</p>
+<p>In the event of a dispute, piyrox admin will investigate the transaction and make a final binding decision.</p>
 <h2>6. Termination</h2>
 <p>We reserve the right to suspend or terminate accounts that violate these terms at any time without prior notice.</p>`,
 
@@ -39,7 +39,7 @@ const FALLBACK_CONTENT: Record<string, string> = {
 <p>You may request deletion of your account and associated data at any time by contacting our support team.</p>`,
 
   refund: `<h2>Refund Eligibility</h2>
-<p>Refunds are handled through the Velxo Escrow dispute process. Once a buyer confirms delivery, funds are released to the seller and no refund is possible.</p>
+<p>Refunds are handled through the piyrox escrow dispute process. Once a buyer confirms delivery, funds are released to the seller and no refund is possible.</p>
 <h2>Dispute Window</h2>
 <p>Buyers have 72 hours after delivery to raise a dispute before funds are automatically released to the seller.</p>`,
 

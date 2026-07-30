@@ -94,7 +94,7 @@ export default function PublicStorePage() {
           {error || 'This seller has not enabled a public store yet.'}
         </p>
         <Link href="/" className="inline-flex items-center gap-2 mt-6 bg-brand hover:bg-brand-dark px-5 py-3 rounded-xl text-white font-semibold text-sm">
-          Go to Velxo
+          Go to Piyrox
         </Link>
       </div>
     );
@@ -122,7 +122,7 @@ export default function PublicStorePage() {
                 {store.isVerified && <VerifiedBadge size="md" />}
                 <span className="text-[11px] font-bold px-2 py-0.5 rounded-full bg-brand/15 text-brand border border-brand/30">Seller Pro</span>
               </div>
-              <p className="text-gray-400 text-sm mt-1">{store.storeDescription || 'Welcome to my Velxo store.'}</p>
+              <p className="text-gray-400 text-sm mt-1">{store.storeDescription || 'Welcome to my Piyrox store.'}</p>
               <div className="flex items-center gap-4 mt-2 text-xs text-gray-400">
                 <span className="flex items-center gap-1"><Star className="w-3.5 h-3.5 text-yellow-400 fill-yellow-400" /> {(store.averageRating || 0).toFixed(1)}</span>
                 <span>{store.totalSales} sales</span>
@@ -182,7 +182,7 @@ export default function PublicStorePage() {
         </div>
 
         <p className="text-center text-xs text-gray-600 mt-10 mb-8">
-          Powered by <span className="text-brand font-semibold">Velxo</span> · Secure escrow marketplace
+          Powered by <span className="text-brand font-semibold">Piyrox</span> · Secure escrow marketplace
         </p>
       </div>
     </div>

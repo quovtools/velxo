@@ -595,7 +595,7 @@ CREATE TABLE "blog_posts" (
     "excerpt" TEXT NOT NULL,
     "content" TEXT NOT NULL,
     "category" TEXT NOT NULL DEFAULT 'Platform',
-    "author" TEXT NOT NULL DEFAULT 'Velxo Team',
+    "author" TEXT NOT NULL DEFAULT 'piyrox team',
     "coverImage" TEXT,
     "isPublished" BOOLEAN NOT NULL DEFAULT false,
     "isFeatured" BOOLEAN NOT NULL DEFAULT false,
@@ -627,7 +627,7 @@ CREATE TABLE "affiliate_referrals" (
 );
 
 -- CreateTable
-CREATE TABLE "velxo_coins" (
+CREATE TABLE "piyrox_coins" (
     "id" TEXT NOT NULL,
     "userId" TEXT NOT NULL,
     "balance" INTEGER NOT NULL DEFAULT 0,
@@ -635,7 +635,7 @@ CREATE TABLE "velxo_coins" (
     "createdAt" TIMESTAMP(3) NOT NULL DEFAULT CURRENT_TIMESTAMP,
     "updatedAt" TIMESTAMP(3) NOT NULL,
 
-    CONSTRAINT "velxo_coins_pkey" PRIMARY KEY ("id")
+    CONSTRAINT "piyrox_coins_pkey" PRIMARY KEY ("id")
 );
 
 -- CreateTable
@@ -963,10 +963,10 @@ CREATE INDEX "affiliate_referrals_referralCode_idx" ON "affiliate_referrals"("re
 CREATE INDEX "affiliate_referrals_status_idx" ON "affiliate_referrals"("status");
 
 -- CreateIndex
-CREATE UNIQUE INDEX "velxo_coins_userId_key" ON "velxo_coins"("userId");
+CREATE UNIQUE INDEX "piyrox_coins_userId_key" ON "piyrox_coins"("userId");
 
 -- CreateIndex
-CREATE INDEX "velxo_coins_userId_idx" ON "velxo_coins"("userId");
+CREATE INDEX "piyrox_coins_userId_idx" ON "piyrox_coins"("userId");
 
 -- CreateIndex
 CREATE INDEX "reward_coin_transactions_coinId_idx" ON "reward_coin_transactions"("coinId");
@@ -1098,10 +1098,10 @@ ALTER TABLE "affiliate_referrals" ADD CONSTRAINT "affiliate_referrals_referrerId
 ALTER TABLE "affiliate_referrals" ADD CONSTRAINT "affiliate_referrals_referredUserId_fkey" FOREIGN KEY ("referredUserId") REFERENCES "users"("id") ON DELETE SET NULL ON UPDATE CASCADE;
 
 -- AddForeignKey
-ALTER TABLE "velxo_coins" ADD CONSTRAINT "velxo_coins_userId_fkey" FOREIGN KEY ("userId") REFERENCES "users"("id") ON DELETE CASCADE ON UPDATE CASCADE;
+ALTER TABLE "piyrox_coins" ADD CONSTRAINT "piyrox_coins_userId_fkey" FOREIGN KEY ("userId") REFERENCES "users"("id") ON DELETE CASCADE ON UPDATE CASCADE;
 
 -- AddForeignKey
-ALTER TABLE "reward_coin_transactions" ADD CONSTRAINT "reward_coin_transactions_coinId_fkey" FOREIGN KEY ("coinId") REFERENCES "velxo_coins"("id") ON DELETE CASCADE ON UPDATE CASCADE;
+ALTER TABLE "reward_coin_transactions" ADD CONSTRAINT "reward_coin_transactions_coinId_fkey" FOREIGN KEY ("coinId") REFERENCES "piyrox_coins"("id") ON DELETE CASCADE ON UPDATE CASCADE;
 
 -- AddForeignKey
 ALTER TABLE "reward_redemptions" ADD CONSTRAINT "reward_redemptions_userId_fkey" FOREIGN KEY ("userId") REFERENCES "users"("id") ON DELETE RESTRICT ON UPDATE CASCADE;

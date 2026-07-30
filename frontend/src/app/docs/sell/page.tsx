@@ -3,10 +3,10 @@ import { Tag, BadgeCheck, Package, Wallet, Star } from 'lucide-react';
 import { DocHeader, DocSection, Steps, Callout, FeatureGrid, RelatedLinks, DocShell } from '../components/doc-ui';
 
 export const metadata: Metadata = {
-  title: 'How to Sell — Velxo Documentation',
+  title: 'How to Sell — piyrox documentation',
   description:
-    'How to create a listing, complete KYC/verification, manage orders, and withdraw earnings on Velxo.',
-  alternates: { canonical: 'https://market.velxo.shop/docs/sell' },
+    'How to create a listing, complete KYC/verification, manage orders, and withdraw earnings on Piyrox.',
+  alternates: { canonical: 'https://market.piyrox.shop/docs/sell' },
 };
 
 export default function DocsSell() {
@@ -59,10 +59,10 @@ export default function DocsSell() {
       <DocSection title="3. Manage orders">
         <p>
           When a buyer purchases, you&apos;ll get a notification. Deliver through the order chat only
-          — never share credentials outside Velxo. Keep the buyer updated; good communication leads to
+          — never share credentials outside Piyrox. Keep the buyer updated; good communication leads to
           faster escrow releases and better reviews.
         </p>
-        <Callout type="warning" title="Deliver inside Velxo">
+        <Callout type="warning" title="Deliver inside Piyrox">
           Delivery and proof shared in the order chat is what our dispute team reviews. Off-platform
           delivery leaves you unprotected.
         </Callout>
@@ -70,7 +70,7 @@ export default function DocsSell() {
 
       <DocSection title="4. Withdrawals">
         <p>
-          After the buyer releases escrow, funds land in your Velxo wallet. From there you can withdraw
+          After the buyer releases escrow, funds land in your piyrox wallet. From there you can withdraw
           to your linked bank account or mobile money. Withdrawals are processed in batches and may
           take a few business days depending on your provider.
         </p>

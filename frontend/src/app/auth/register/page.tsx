@@ -93,11 +93,11 @@ export default function RegisterPage() {
         <div className="w-full max-w-lg space-y-6">
           <div className="text-center">
             <Link href="/" className="inline-flex items-center gap-2 mb-5">
-              <img src="/logo.png" alt="Velxo" className="w-8 h-8 rounded-lg" />
-              <span className="text-xl font-black tracking-tighter">VELXO</span>
+              <img src="/logo.png" alt="Piyrox" className="w-8 h-8 rounded-lg" />
+              <span className="text-xl font-black tracking-tighter">PIYROX</span>
             </Link>
-            <h1 className="text-2xl font-bold">Join Velxo</h1>
-            <p className="text-gray-400 text-sm mt-1">How will you be using Velxo?</p>
+            <h1 className="text-2xl font-bold">Join Piyrox</h1>
+            <p className="text-gray-400 text-sm mt-1">How will you be using Piyrox?</p>
           </div>
 
           <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
@@ -170,7 +170,7 @@ export default function RegisterPage() {
           </div>
           <h1 className="text-2xl font-bold text-white">Account Created!</h1>
           <p className="text-gray-400 text-sm">
-            Welcome to Velxo, <strong>{firstName}</strong>!
+            Welcome to Piyrox, <strong>{firstName}</strong>!
             {' '}A verification email was sent to <strong className="text-white">{email}</strong>.
           </p>
           <p className="text-xs text-gray-500">
@@ -208,8 +208,8 @@ export default function RegisterPage() {
         <div className="w-full max-w-md space-y-6">
           <div className="text-center">
             <Link href="/" className="inline-flex items-center gap-2 mb-5">
-              <img src="/logo.png" alt="Velxo" className="w-8 h-8 rounded-lg" />
-              <span className="text-xl font-black tracking-tighter">VELXO</span>
+              <img src="/logo.png" alt="Piyrox" className="w-8 h-8 rounded-lg" />
+              <span className="text-xl font-black tracking-tighter">PIYROX</span>
             </Link>
             <h1 className="text-2xl font-bold">Create your account</h1>
             <p className="text-gray-400 text-sm mt-1">
@@ -263,7 +263,7 @@ export default function RegisterPage() {
                 <label className="block text-xs font-semibold text-gray-400 mb-1.5 uppercase tracking-wide">Email</label>
                 <input type="email" required autoComplete="email"
                   className="w-full bg-background border border-borderBg rounded-xl px-4 py-3 text-sm focus:outline-none focus:border-brand transition"
-                  placeholder="gaming@velxo.shop" value={email} onChange={e => setEmail(e.target.value)} />
+                  placeholder="gaming@piyrox.shop" value={email} onChange={e => setEmail(e.target.value)} />
               </div>
 
               <div>
@@ -314,8 +314,8 @@ export default function RegisterPage() {
       <div className="w-full max-w-lg space-y-6">
         <div className="text-center">
           <Link href="/" className="inline-flex items-center gap-2 mb-5">
-            <img src="/logo.png" alt="Velxo" className="w-8 h-8 rounded-lg" />
-            <span className="text-xl font-black tracking-tighter">VELXO</span>
+            <img src="/logo.png" alt="Piyrox" className="w-8 h-8 rounded-lg" />
+            <span className="text-xl font-black tracking-tighter">PIYROX</span>
           </Link>
           <h1 className="text-2xl font-bold">Tell us about you</h1>
           <p className="text-gray-400 text-sm mt-1">A few quick questions to personalize your experience</p>
@@ -343,7 +343,7 @@ export default function RegisterPage() {
           </div>
 
           <div className="space-y-3">
-            <p className="text-sm font-bold text-white">What brings you to Velxo?</p>
+            <p className="text-sm font-bold text-white">What brings you to Piyrox?</p>
             <div className="flex flex-wrap gap-2">
               {INTEREST_OPTIONS.map((it) => (
                 <button key={it} type="button" onClick={() => toggleInArray(interests, setInterests, it)}

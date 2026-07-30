@@ -21,7 +21,7 @@ export interface CurrencyConfig {
  *  Add / adjust rates here as needed.  These are approximate mid-market rates
  *  and are refreshed from a live exchange-rate API on load when possible.
  */
-/** AFRICAN CURRENCIES ONLY - Velxo serves African market */
+/** AFRICAN CURRENCIES ONLY - Piyrox serves African market */
 export const COUNTRY_CURRENCY_MAP: Record<string, CurrencyConfig> = {
   // West Africa
   NG: { code: 'NGN', symbol: '₦',   name: 'Nigerian Naira',        rate: 1615,  locale: 'en-NG' },
@@ -53,7 +53,7 @@ export const DEFAULT_CURRENCY: CurrencyConfig = {
   code: 'NGN', symbol: '₦', name: 'Nigerian Naira', rate: 1615, locale: 'en-NG',
 };
 
-const SESSION_KEY = 'velxo_currency';
+const SESSION_KEY = 'piyrox_currency';
 
 /** Detect currency from the visitor's IP via a free geo API.
  *  Falls back to USD on any failure. Caches in sessionStorage. */

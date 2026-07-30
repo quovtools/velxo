@@ -146,9 +146,9 @@ export class AffiliateService {
   /**
    * Credit affiliate commission when a referred user completes a trade.
    * - Regular users get standard commission rate from their affiliateReferrals record.
-   * - Approved creators get 20% of Velxo's profit (commissionAmount = Velxo's cut).
+   * - Approved creators get 20% of Piyrox's profit (commissionAmount = Piyrox's cut).
    */
-  async creditCommission(referredUserId: string, velxoProfitAmount: number, orderId: string) {
+  async creditCommission(referredUserId: string, piyroxProfitAmount: number, orderId: string) {
     const referral = await this.prisma.affiliateReferrals.findFirst({
       where: { referredUserId },
       include: { referrer: { include: { creatorProfile: true } } },
@@ -159,11 +159,11 @@ export class AffiliateService {
     let commissionAmount: number
 
     if (creator && creator.status === 'APPROVED') {
-      // Creator gets 20% of Velxo's profit
-      commissionAmount = velxoProfitAmount * Number(creator.creatorCommissionRate)
+      // Creator gets 20% of Piyrox's profit
+      commissionAmount = piyroxProfitAmount * Number(creator.creatorCommissionRate)
     } else {
       // Regular user gets the standard flat rate from their referral record
-      commissionAmount = velxoProfitAmount * Number(referral.commissionRate)
+      commissionAmount = piyroxProfitAmount * Number(referral.commissionRate)
     }
 
     if (commissionAmount <= 0) return null

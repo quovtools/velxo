@@ -20,20 +20,20 @@ export default function About() {
               <span className="text-gradient">for gamers.</span>
             </h2>
             <p className="leading-relaxed text-gray-400">
-              Velxo was founded by{' '}
+              Piyrox was founded by{' '}
               <span className="font-bold text-white">Badeji Precious</span> — a gamer who experienced first-hand how broken and dangerous gaming trade was across Africa. Telegram scams, Discord fraudsters, and no recourse when things went wrong.
             </p>
             <p className="leading-relaxed text-gray-400">
               The vision was simple: build one trusted, Africa-first marketplace where gamers can buy and sell accounts, coins, top-ups, and services — with a real escrow system, real dispute resolution, and real accountability.
             </p>
             <p className="leading-relaxed text-gray-400">
-              Today, thousands of traders across Nigeria, Ghana, Kenya, Uganda, and beyond use Velxo every day. And we&apos;re just getting started.
+              Today, thousands of traders across Nigeria, Ghana, Kenya, Uganda, and beyond use Piyrox every day. And we&apos;re just getting started.
             </p>
             <div className="flex flex-col gap-3 pt-2 sm:flex-row">
-              <a href="https://market.velxo.shop/about" className="btn-primary w-full sm:w-auto">
+              <a href="https://market.piyrox.shop/about" className="btn-primary w-full sm:w-auto">
                 Read Full Story
               </a>
-              <a href="https://market.velxo.shop/careers" className="btn-secondary w-full sm:w-auto">
+              <a href="https://market.piyrox.shop/careers" className="btn-secondary w-full sm:w-auto">
                 Join the Team
               </a>
             </div>
@@ -61,7 +61,7 @@ export default function About() {
               </div>
               <div>
                 <p className="font-black text-white">Badeji Precious</p>
-                <p className="text-xs font-semibold text-brand-light">Founder & CEO, Velxo</p>
+                <p className="text-xs font-semibold text-brand-light">Founder & CEO, Piyrox</p>
                 <p className="mt-1 text-xs text-gray-500">Building Africa&apos;s gaming economy, one safe trade at a time.</p>
               </div>
             </div>

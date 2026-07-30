@@ -6,20 +6,20 @@ import { Download, Mail, ExternalLink } from 'lucide-react';
 
 export const metadata: Metadata = {
   title: "Press & Media",
-  description: "Velxo press releases, media resources, and brand assets for journalists covering Africa's No.1 escrow-backed gaming marketplace.",
-  keywords: ["velxo press", "gaming marketplace news", "velxo media kit", "africa gaming startup"],
-  alternates: { canonical: "https://velxo.shop/press" },
+  description: "Piyrox press releases, media resources, and brand assets for journalists covering Africa's No.1 escrow-backed gaming marketplace.",
+  keywords: ["piyrox press", "gaming marketplace news", "piyrox media kit", "africa gaming startup"],
+  alternates: { canonical: "https://piyrox.shop/press" },
   openGraph: {
-    title: "Press & Media — Velxo",
+    title: "Press & Media — Piyrox",
     description: "Press releases, media resources, and brand assets.",
-    url: "https://velxo.shop/press",
-    siteName: "Velxo",
+    url: "https://piyrox.shop/press",
+    siteName: "Piyrox",
     type: "website",
-    images: [{ url: "/og.png", width: 1200, height: 630, alt: "Velxo Press" }],
+    images: [{ url: "/og.png", width: 1200, height: 630, alt: "Piyrox Press" }],
   },
   twitter: {
     card: "summary_large_image",
-    title: "Press & Media — Velxo",
+    title: "Press & Media — Piyrox",
     description: "Press releases, media resources, and brand assets.",
     images: ["/og.png"],
   },
@@ -28,25 +28,25 @@ export const metadata: Metadata = {
 const PRESS_RELEASES = [
   {
     date: 'July 2025',
-    title: 'Velxo Launches Africa\'s First Escrow-Backed Gaming Marketplace',
-    summary: 'Velxo officially launched its peer-to-peer gaming marketplace serving buyers and sellers across 20+ African countries with built-in escrow protection.',
+    title: 'Piyrox Launches Africa\'s First Escrow-Backed Gaming Marketplace',
+    summary: 'Piyrox officially launched its peer-to-peer gaming marketplace serving buyers and sellers across 20+ African countries with built-in escrow protection.',
   },
   {
     date: 'June 2025',
-    title: 'Velxo Crosses 10,000 Active Traders in First Quarter',
-    summary: 'The platform hit a major milestone, with over 10,000 registered traders and $2M+ in verified transactions processed through Velxo Escrow.',
+    title: 'Piyrox Crosses 10,000 Active Traders in First Quarter',
+    summary: 'The platform hit a major milestone, with over 10,000 registered traders and $2M+ in verified transactions processed through piyrox escrow.',
   },
   {
     date: 'May 2025',
-    title: 'Velxo Adds Crypto Payment Support for African Gamers',
-    summary: 'In response to demand from the crypto-native gaming community, Velxo now supports Bitcoin, USDT (TRC20), and Solana for all marketplace transactions.',
+    title: 'Piyrox Adds Crypto Payment Support for African Gamers',
+    summary: 'In response to demand from the crypto-native gaming community, Piyrox now supports Bitcoin, USDT (TRC20), and Solana for all marketplace transactions.',
   },
 ];
 
 const BRAND_ASSETS = [
-  { name: 'Velxo Logo (SVG)', size: 'Vector', type: 'svg' },
-  { name: 'Velxo Logo (PNG, White)', size: '1024×1024', type: 'png' },
-  { name: 'Velxo Logo (PNG, Dark)', size: '1024×1024', type: 'png' },
+  { name: 'Piyrox Logo (SVG)', size: 'Vector', type: 'svg' },
+  { name: 'Piyrox Logo (PNG, White)', size: '1024×1024', type: 'png' },
+  { name: 'Piyrox Logo (PNG, Dark)', size: '1024×1024', type: 'png' },
   { name: 'Brand Guidelines', size: 'PDF', type: 'pdf' },
 ];
 
@@ -63,11 +63,11 @@ export default function PressPage() {
               Press &amp; Media
             </span>
             <h1 className="text-4xl sm:text-5xl font-black text-white">
-              Velxo in the{' '}
+              Piyrox in the{' '}
               <span className="text-gradient">news</span>
             </h1>
             <p className="text-gray-400 text-lg max-w-xl mx-auto">
-              Press releases, media resources, and brand assets for journalists and publications covering Velxo.
+              Press releases, media resources, and brand assets for journalists and publications covering Piyrox.
             </p>
           </div>
 
@@ -114,9 +114,9 @@ export default function PressPage() {
             <p className="text-gray-400 text-sm max-w-md mx-auto">
               For interviews, partnerships, or press coverage, reach out to our communications team. We aim to respond within 24 hours.
             </p>
-            <a href="mailto:press@velxo.shop"
+            <a href="mailto:press@piyrox.shop"
               className="inline-block bg-brand hover:bg-brand-dark text-white font-bold px-8 py-3 rounded-xl text-sm transition">
-              press@velxo.shop
+              press@piyrox.shop
             </a>
           </div>
         </div>

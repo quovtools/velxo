@@ -161,7 +161,7 @@ export default function PricingPage() {
             <thead className="border-b border-borderBg">
               <tr className="text-xs text-gray-500 uppercase font-bold">
                 <th className="px-6 py-4 text-left">Sale Price</th>
-                <th className="px-6 py-4 text-left">Velxo Fee (10%)</th>
+                <th className="px-6 py-4 text-left">Piyrox Fee (10%)</th>
                 <th className="px-6 py-4 text-left text-emerald-400">You Receive</th>
               </tr>
             </thead>
@@ -215,7 +215,7 @@ export default function PricingPage() {
 
       {/* CTA */}
       <div className="bg-cardBg border border-borderBg rounded-3xl p-10 text-center space-y-4 max-w-2xl mx-auto">
-        <h3 className="text-2xl font-extrabold text-white">Start earning on Velxo today</h3>
+        <h3 className="text-2xl font-extrabold text-white">Start earning on Piyrox today</h3>
         <p className="text-gray-400 text-sm">List your first item in under 5 minutes. No approval required.</p>
         <Link href="/sell" className="inline-block bg-brand hover:bg-brand-dark px-8 py-3.5 rounded-xl font-bold transition text-white">
           Create a Listing

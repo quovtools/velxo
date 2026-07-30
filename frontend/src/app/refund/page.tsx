@@ -3,7 +3,7 @@ import LegalPageContent from '@/components/LegalPageContent';
 
 export const metadata: Metadata = {
   title: 'Refund Policy',
-  description: 'Velxo Market refund and dispute resolution policy.',
+  description: 'piyrox market refund and dispute resolution policy.',
 };
 
 export default function RefundPage() {

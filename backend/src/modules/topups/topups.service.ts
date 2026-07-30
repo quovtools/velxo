@@ -3,12 +3,12 @@ import { PrismaService } from '@/common/services/prisma.service'
 import { OrdersService } from '../orders/orders.service'
 import { BadRequestException, NotFoundException } from '@/common/exceptions/custom-exceptions'
 
-const VELXO_OFFICIAL_EMAIL = 'topup@velxo.shop'
+const PIYROX_OFFICIAL_EMAIL = 'topup@piyrox.shop'
 
 @Injectable()
 export class TopupsService {
   private readonly logger = new Logger(TopupsService.name)
-  private velxoSellerId: string | null = null
+    const piyroxSellerId: string | null = null
 
   constructor(private prisma: PrismaService, private ordersService: OrdersService) {}
 
@@ -49,29 +49,29 @@ export class TopupsService {
   }
 
   /**
-   * Resolves (creating if necessary) the designated "Velxo Official" seller
+   * Resolves (creating if necessary) the designated "Piyrox Official" seller
    * account that owns every official top-up. Top-ups are platform-provided,
    * so all of them settle to this single seller wallet via escrow.
    */
-  private async ensureVelxoSeller(): Promise<string> {
-    if (this.velxoSellerId) return this.velxoSellerId
+  private async ensurePiyroxSeller(): Promise<string> {
+    if (this.piyroxSellerId) return this.piyroxSellerId
 
     const existingSeller = await this.prisma.sellers.findFirst({
-      where: { user: { email: VELXO_OFFICIAL_EMAIL } },
+      where: { user: { email: PIYROX_OFFICIAL_EMAIL } },
       include: { user: true },
     })
     if (existingSeller) {
-      this.velxoSellerId = existingSeller.id
+      this.piyroxSellerId = existingSeller.id
       return existingSeller.id
     }
 
     const seller = await this.prisma.$transaction(async (tx) => {
       const user = await tx.users.upsert({
-        where: { email: VELXO_OFFICIAL_EMAIL },
+        where: { email: PIYROX_OFFICIAL_EMAIL },
         update: {},
         create: {
-          email: VELXO_OFFICIAL_EMAIL,
-          firstName: 'Velxo',
+          email: PIYROX_OFFICIAL_EMAIL,
+          firstName: 'Piyrox',
           lastName: 'Official',
           role: 'SELLER',
           emailVerified: true,
@@ -81,8 +81,8 @@ export class TopupsService {
       const created = await tx.sellers.create({
         data: {
           userId: user.id,
-          storeName: 'Velxo Official Store',
-          storeDescription: 'Official Velxo gaming top-ups and coins.',
+          storeName: 'Piyrox Official Store',
+          storeDescription: 'Official Piyrox gaming top-ups and coins.',
           accountType: 'STANDARD',
           isVerified: true,
         },
@@ -97,7 +97,7 @@ export class TopupsService {
       return created
     })
 
-    this.velxoSellerId = seller.id
+    this.piyroxSellerId = seller.id
     return seller.id
   }
 
@@ -112,7 +112,7 @@ export class TopupsService {
       }
     }
 
-    const sellerId = await this.ensureVelxoSeller()
+    const sellerId = await this.ensurePiyroxSeller()
 
     const order = await this.ordersService.createServiceOrder(buyerId, {
       sellerId,

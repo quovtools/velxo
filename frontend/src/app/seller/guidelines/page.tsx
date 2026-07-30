@@ -4,13 +4,13 @@ import type { Metadata } from 'next';
 import { ShieldCheck, CheckCircle, XCircle, AlertTriangle, Star, Zap } from 'lucide-react';
 
 export const metadata: Metadata = {
-  title: 'Seller Guidelines & Rules | Velxo Market',
-  description: 'Read the rules, requirements, prohibited activities, and penalty structure every Velxo seller agrees to. Build trust and avoid disputes with clear listing practices.',
-  alternates: { canonical: 'https://market.velxo.shop/seller/guidelines' },
+  title: 'Seller Guidelines & Rules | piyrox market',
+  description: 'Read the rules, requirements, prohibited activities, and penalty structure every piyrox seller agrees to. Build trust and avoid disputes with clear listing practices.',
+  alternates: { canonical: 'https://market.piyrox.shop/seller/guidelines' },
   openGraph: {
-    title: 'Seller Guidelines & Rules | Velxo Market',
-    description: 'Rules, prohibited activities, and penalties for Velxo sellers.',
-    url: 'https://market.velxo.shop/seller/guidelines',
+    title: 'Seller Guidelines & Rules | piyrox market',
+    description: 'Rules, prohibited activities, and penalties for piyrox sellers.',
+    url: 'https://market.piyrox.shop/seller/guidelines',
     type: 'website',
   },
 };
@@ -19,7 +19,7 @@ const rules = [
   {
     icon: <CheckCircle className="w-5 h-5 text-emerald-400" />,
     title: 'List only what you own',
-    desc: 'You must have legitimate ownership or rights to sell any item listed on Velxo. Listing stolen, hacked, or fraudulently obtained accounts is strictly prohibited and will result in a permanent ban.',
+    desc: 'You must have legitimate ownership or rights to sell any item listed on Piyrox. Listing stolen, hacked, or fraudulently obtained accounts is strictly prohibited and will result in a permanent ban.',
     type: 'required',
   },
   {
@@ -37,7 +37,7 @@ const rules = [
   {
     icon: <CheckCircle className="w-5 h-5 text-emerald-400" />,
     title: 'Respond to buyers promptly',
-    desc: 'Use the Velxo messaging system to communicate with buyers. Respond to order-related messages within 24 hours. Ignoring buyers or going offline after receiving an order will result in automatic dispute escalation.',
+    desc: 'Use the Piyrox messaging system to communicate with buyers. Respond to order-related messages within 24 hours. Ignoring buyers or going offline after receiving an order will result in automatic dispute escalation.',
     type: 'required',
   },
   {
@@ -49,7 +49,7 @@ const rules = [
   {
     icon: <XCircle className="w-5 h-5 text-red-400" />,
     title: 'No off-platform deals',
-    desc: 'Attempting to move buyers outside Velxo to avoid escrow protection and fees is strictly prohibited. All transactions must be completed on the platform. Violations result in account suspension.',
+    desc: 'Attempting to move buyers outside Piyrox to avoid escrow protection and fees is strictly prohibited. All transactions must be completed on the platform. Violations result in account suspension.',
     type: 'prohibited',
   },
   {
@@ -107,7 +107,7 @@ export default function SellerGuidelinesPage() {
       <div className="space-y-4 border-b border-borderBg pb-8">
         <h1 className="text-4xl font-extrabold text-white">Seller Guidelines</h1>
         <p className="text-gray-400 leading-relaxed">
-          These guidelines exist to protect buyers, maintain trust on the platform, and ensure Velxo remains a safe marketplace for everyone. All sellers agree to these rules when creating an account.
+          These guidelines exist to protect buyers, maintain trust on the platform, and ensure Piyrox remains a safe marketplace for everyone. All sellers agree to these rules when creating an account.
         </p>
         <div className="inline-flex items-center gap-2 bg-emerald-950/30 border border-emerald-500/20 rounded-lg px-4 py-2 text-sm text-emerald-300">
           <ShieldCheck className="w-4 h-4" />

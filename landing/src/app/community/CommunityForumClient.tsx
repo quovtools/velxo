@@ -46,7 +46,7 @@ interface Post {
   };
 }
 
-const API = process.env.NEXT_PUBLIC_API_URL || 'https://api.velxo.shop/api/v1';
+const API = process.env.NEXT_PUBLIC_API_URL || 'https://api.piyrox.shop/api/v1';
 
 export default function CommunityForumClient() {
   const router = useRouter();
@@ -67,7 +67,7 @@ export default function CommunityForumClient() {
   const [user, setUser] = useState<any>(null);
 
   useEffect(() => {
-    const stored = localStorage.getItem('velxo_user');
+    const stored = localStorage.getItem('piyrox_user');
     if (stored) setUser(JSON.parse(stored));
   }, []);
 

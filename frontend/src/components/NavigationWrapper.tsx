@@ -32,8 +32,8 @@ export default function NavigationWrapper() {
           {/* Logo */}
           <div className="flex items-center gap-4 md:gap-8">
             <Link href="/" className="flex items-center gap-2" onClick={() => setMobileOpen(false)}>
-              <img src="/logo-new.png" alt="Velxo" className="w-7 h-7 rounded-lg object-cover" />
-              <span className="text-xl md:text-2xl font-black tracking-wider">VELXO</span>
+              <img src="/logo-new.png" alt="Piyrox" className="w-7 h-7 rounded-lg object-cover" />
+              <span className="text-xl md:text-2xl font-black tracking-wider">PIYROX</span>
             </Link>
             {/* Desktop nav links */}
             <nav className="hidden md:flex items-center gap-6 text-sm font-medium text-gray-300">

@@ -1,6 +1,6 @@
 import { ImageResponse } from 'next/og';
 
-export const alt = 'Velxo — The Safe Marketplace for Gaming Accounts, Items & Top-Ups';
+export const alt = 'Piyrox — The Safe Marketplace for Gaming Accounts, Items & Top-Ups';
 export const size = { width: 1200, height: 630 };
 export const contentType = 'image/png';
 
@@ -43,7 +43,7 @@ export default async function OgImage() {
               V
             </div>
             <div style={{ display: 'flex', fontSize: '44px', fontWeight: 800, letterSpacing: '-1px' }}>
-              Velxo
+              Piyrox
             </div>
           </div>
           <div

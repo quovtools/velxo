@@ -5,26 +5,26 @@ import Footer from '@/components/Footer';
 import { Zap, Globe, Users, Heart, Coffee, Award, MapPin, Mail } from 'lucide-react';
 
 export const metadata: Metadata = {
-  title: 'Careers at Velxo',
+  title: 'Careers at Piyrox',
   description: 'We’re hiring remote engineers, community managers, moderators, and support specialists across Africa. Help build the future of African gaming commerce.',
-  alternates: { canonical: 'https://velxo.shop/careers' },
+  alternates: { canonical: 'https://piyrox.shop/careers' },
   openGraph: {
-    title: 'Careers at Velxo | Join the Team',
+    title: 'Careers at Piyrox | Join the Team',
     description: 'Remote roles across Africa building safe gaming commerce.',
-    url: 'https://velxo.shop/careers',
-    siteName: 'Velxo',
+    url: 'https://piyrox.shop/careers',
+    siteName: 'Piyrox',
     type: 'website',
-    images: [{ url: '/og.png', width: 1200, height: 630, alt: 'Careers at Velxo' }],
+    images: [{ url: '/og.png', width: 1200, height: 630, alt: 'Careers at Piyrox' }],
   },
 };
 
 const openRoles = [
-  { title: 'Frontend Engineer', team: 'Engineering', type: 'Full-time · Remote', location: 'Africa', desc: 'Build and improve the Velxo marketplace UI using Next.js, TypeScript, and Tailwind CSS. You’ll work on everything from listing pages to checkout and real-time messaging.' },
+  { title: 'Frontend Engineer', team: 'Engineering', type: 'Full-time · Remote', location: 'Africa', desc: 'Build and improve the piyrox marketplace UI using Next.js, TypeScript, and Tailwind CSS. You’ll work on everything from listing pages to checkout and real-time messaging.' },
   { title: 'Backend Engineer', team: 'Engineering', type: 'Full-time · Remote', location: 'Africa', desc: 'Design and scale our NestJS API, Prisma database layer, and escrow engine. You’ll own features like order management, payments, and dispute resolution.' },
-  { title: 'Community Manager', team: 'Growth', type: 'Full-time · Remote', location: 'Nigeria / Ghana / Kenya', desc: "Grow and engage Velxo's gamer community across WhatsApp, Discord, Twitter, and TikTok. Organize tournaments, referral campaigns, and seller onboarding drives." },
+  { title: 'Community Manager', team: 'Growth', type: 'Full-time · Remote', location: 'Nigeria / Ghana / Kenya', desc: "Grow and engage Piyrox's gamer community across WhatsApp, Discord, Twitter, and TikTok. Organize tournaments, referral campaigns, and seller onboarding drives." },
   { title: 'Trust & Safety Moderator', team: 'Operations', type: 'Part-time · Remote', location: 'Africa', desc: 'Review disputes, investigate fraud cases, and make fair escrow release decisions. You’ll be the last line of defense protecting buyers and sellers on the platform.' },
-  { title: 'Growth & Partnerships Lead', team: 'Growth', type: 'Full-time · Remote', location: 'Nigeria', desc: "Drive seller acquisition, influencer partnerships, and esports sponsorships. Own Velxo's affiliate and referral program strategy." },
-  { title: 'Customer Support Specialist', team: 'Support', type: 'Part-time · Remote', location: 'Africa', desc: 'Help buyers and sellers resolve issues quickly and professionally. You’ll be the friendly voice of Velxo across email and live chat.' },
+  { title: 'Growth & Partnerships Lead', team: 'Growth', type: 'Full-time · Remote', location: 'Nigeria', desc: "Drive seller acquisition, influencer partnerships, and esports sponsorships. Own Piyrox's affiliate and referral program strategy." },
+  { title: 'Customer Support Specialist', team: 'Support', type: 'Part-time · Remote', location: 'Africa', desc: 'Help buyers and sellers resolve issues quickly and professionally. You’ll be the friendly voice of Piyrox across email and live chat.' },
 ];
 
 const perks = [
@@ -50,7 +50,7 @@ export default function CareersPage() {
               Build the future of <span className="text-gradient">African gaming commerce</span>
             </h1>
             <p className="text-gray-400 text-base sm:text-lg">
-              Velxo is a small team solving a real problem for millions of African gamers. If you love gaming and want to build something that matters, we want to hear from you.
+              Piyrox is a small team solving a real problem for millions of African gamers. If you love gaming and want to build something that matters, we want to hear from you.
             </p>
           </div>
 
@@ -82,7 +82,7 @@ export default function CareersPage() {
                         <span className="text-xs text-gray-500 flex items-center gap-1"><MapPin className="w-3 h-3" /> {role.location}</span>
                       </div>
                     </div>
-                    <a href={`mailto:careers@velxo.shop?subject=Application: ${role.title}`} className="btn-primary flex-shrink-0">Apply Now</a>
+                    <a href={`mailto:careers@piyrox.shop?subject=Application: ${role.title}`} className="btn-primary flex-shrink-0">Apply Now</a>
                   </div>
                   <p className="text-sm text-gray-400 leading-relaxed">{role.desc}</p>
                 </div>
@@ -96,10 +96,10 @@ export default function CareersPage() {
             <p className="text-gray-400 max-w-md mx-auto text-sm">
               We&apos;re always looking for talented people who are passionate about gaming and building great products. Send us your profile and tell us how you&apos;d contribute.
             </p>
-            <a href="mailto:careers@velxo.shop?subject=General Application" className="btn-primary inline-flex">
+            <a href="mailto:careers@piyrox.shop?subject=General Application" className="btn-primary inline-flex">
               <Mail className="w-4 h-4" /> Send Open Application
             </a>
-            <p className="text-xs text-gray-600">careers@velxo.shop</p>
+            <p className="text-xs text-gray-600">careers@piyrox.shop</p>
           </div>
         </div>
       </main>

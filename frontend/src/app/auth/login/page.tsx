@@ -49,8 +49,8 @@ export default function LoginPage() {
         {/* Header */}
         <div className="text-center">
           <Link href="/" className="inline-flex items-center gap-2 mb-5">
-            <img src="/logo.png" alt="Velxo" className="w-8 h-8 rounded-lg" />
-            <span className="text-xl font-black tracking-wider">VELXO</span>
+            <img src="/logo.png" alt="Piyrox" className="w-8 h-8 rounded-lg" />
+            <span className="text-xl font-black tracking-wider">PIYROX</span>
           </Link>
           <h1 className="text-2xl font-bold">Welcome back</h1>
           <p className="text-gray-400 text-sm mt-1">Sign in to your account to continue</p>
@@ -91,7 +91,7 @@ export default function LoginPage() {
               <input
                 type="email" required autoComplete="email"
                 className="w-full bg-background border border-borderBg rounded-xl px-4 py-3 text-sm placeholder-gray-600 focus:outline-none focus:border-brand transition"
-                placeholder="gaming@velxo.shop"
+                placeholder="gaming@piyrox.shop"
                 value={email} onChange={(e) => setEmail(e.target.value)}
               />
             </div>

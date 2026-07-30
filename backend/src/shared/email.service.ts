@@ -55,14 +55,14 @@ export class EmailService {
 
   // Email Templates
   async sendVerificationEmail(email: string, verificationToken: string): Promise<{ success: boolean; error?: string }> {
-    const verificationUrl = `${process.env.FRONTEND_URL || 'https://market.velxo.shop'}/verify-email?token=${verificationToken}`;
+    const verificationUrl = `${process.env.FRONTEND_URL || 'https://market.piyrox.shop'}/verify-email?token=${verificationToken}`;
     
     const html = `
       <!DOCTYPE html>
       <html>
       <head>
         <meta charset="UTF-8">
-        <title>Verify Your Velxo Account</title>
+        <title>Verify Your Piyrox Account</title>
       </head>
       <body style="margin: 0; padding: 0; font-family: 'Inter', sans-serif; background-color: #0f172a;">
         <table role="presentation" width="100%" cellspacing="0" cellpadding="0" border="0">
@@ -71,7 +71,7 @@ export class EmailService {
               <table role="presentation" width="100%" style="max-width: 600px; background-color: #1e293b; border-radius: 16px; overflow: hidden;" cellspacing="0" cellpadding="0" border="0">
                 <tr>
                   <td align="center" style="padding: 40px 30px;">
-                    <h1 style="margin: 0 0 20px 0; color: #ffffff; font-size: 28px; font-weight: 800;">Welcome to Velxo!</h1>
+                     <h1 style="margin: 0 0 20px 0; color: #ffffff; font-size: 28px; font-weight: 800;">Welcome to Piyrox!</h1>
                     <p style="margin: 0 0 30px 0; color: #94a3b8; font-size: 16px; line-height: 1.6;">
                       Thank you for joining Africa's #1 gaming marketplace. Please verify your email address to complete your registration.
                     </p>
@@ -88,7 +88,7 @@ export class EmailService {
                 <tr>
                   <td style="padding: 30px; background-color: #0f172a; text-align: center;">
                     <p style="margin: 0; color: #64748b; font-size: 14px;">
-                      If you didn't create an account with Velxo, you can safely ignore this email.
+                       If you didn't create an account with Piyrox, you can safely ignore this email.
                     </p>
                   </td>
                 </tr>
@@ -100,19 +100,19 @@ export class EmailService {
       </html>
     `;
 
-    const result = await this.sendEmail(email, 'Verify Your Velxo Account', html);
+    const result = await this.sendEmail(email, 'Verify Your Piyrox Account', html);
     return { success: result.success, error: result.error };
   }
 
   async sendPasswordResetEmail(email: string, resetToken: string): Promise<{ success: boolean; error?: string }> {
-    const resetUrl = `${process.env.FRONTEND_URL || 'https://market.velxo.shop'}/auth/reset-password?token=${resetToken}`;
+    const resetUrl = `${process.env.FRONTEND_URL || 'https://market.piyrox.shop'}/auth/reset-password?token=${resetToken}`;
     
     const html = `
       <!DOCTYPE html>
       <html>
       <head>
         <meta charset="UTF-8">
-        <title>Reset Your Velxo Password</title>
+        <title>Reset Your Piyrox Password</title>
       </head>
       <body style="margin: 0; padding: 0; font-family: 'Inter', sans-serif; background-color: #0f172a;">
         <table role="presentation" width="100%" cellspacing="0" cellpadding="0" border="0">
@@ -123,7 +123,7 @@ export class EmailService {
                   <td align="center" style="padding: 40px 30px;">
                     <h1 style="margin: 0 0 20px 0; color: #ffffff; font-size: 28px; font-weight: 800;">Reset Your Password</h1>
                     <p style="margin: 0 0 30px 0; color: #94a3b8; font-size: 16px; line-height: 1.6;">
-                      We received a request to reset your Velxo account password. Click the button below to create a new password.
+                       We received a request to reset your Piyrox account password. Click the button below to create a new password.
                     </p>
                     <a href="${resetUrl}" 
                        style="display: inline-block; background-color: #6366f1; color: #ffffff; text-decoration: none; padding: 14px 32px; border-radius: 12px; font-size: 16px; font-weight: 600; transition: background-color 0.2s;">
@@ -147,7 +147,7 @@ export class EmailService {
       </html>
     `;
 
-    const result = await this.sendEmail(email, 'Reset Your Velxo Password', html);
+    const result = await this.sendEmail(email, 'Reset Your Piyrox Password', html);
     return { success: result.success, error: result.error };
   }
 
@@ -175,7 +175,7 @@ export class EmailService {
       <html>
       <head>
         <meta charset="UTF-8">
-        <title>Order Confirmation - Velxo</title>
+        <title>Order Confirmation - Piyrox</title>
       </head>
       <body style="margin: 0; padding: 0; font-family: 'Inter', sans-serif; background-color: #0f172a;">
         <table role="presentation" width="100%" cellspacing="0" cellpadding="0" border="0">
@@ -211,7 +211,7 @@ export class EmailService {
                       <p style="margin: 0; color: #ffffff; font-size: 24px; font-weight: 800;">$${totalAmount.toFixed(2)}</p>
                     </div>
                     <p style="margin: 30px 0 0 0; color: #64748b; font-size: 14px; line-height: 1.5;">
-                      Your items will be delivered according to the seller's timeline. If you have any questions, please contact the seller through the Velxo app.
+                       Your items will be delivered according to the seller's timeline. If you have any questions, please contact the seller through the Piyrox app.
                     </p>
                   </td>
                 </tr>
@@ -223,7 +223,7 @@ export class EmailService {
       </html>
     `;
 
-    const result = await this.sendEmail(email, `Order ${orderNumber} Confirmed - Velxo`, html);
+    const result = await this.sendEmail(email, `Order ${orderNumber} Confirmed - Piyrox`, html);
     return { success: result.success };
   }
 
@@ -241,7 +241,7 @@ export class EmailService {
       <html>
       <head>
         <meta charset="UTF-8">
-        <title>Wallet Transaction - Velxo</title>
+        <title>Wallet Transaction - Piyrox</title>
       </head>
       <body style="margin: 0; padding: 0; font-family: 'Inter', sans-serif; background-color: #0f172a;">
         <table role="presentation" width="100%" cellspacing="0" cellpadding="0" border="0">
@@ -268,7 +268,7 @@ export class EmailService {
                       <p style="margin: 0; color: #ffffff; font-size: 28px; font-weight: 800;">$${balanceAfter.toFixed(2)}</p>
                     </div>
                     <p style="margin: 0; color: #64748b; font-size: 14px; line-height: 1.5;">
-                      Your wallet balance has been updated. You can view your transaction history in your Velxo wallet.
+                       Your wallet balance has been updated. You can view your transaction history in your Piyrox wallet.
                     </p>
                   </td>
                 </tr>
@@ -280,7 +280,7 @@ export class EmailService {
       </html>
     `;
 
-    const result = await this.sendEmail(email, `Wallet Transaction - Velxo`, html);
+    const result = await this.sendEmail(email, `Wallet Transaction - Piyrox`, html);
     return { success: result.success };
   }
 
@@ -294,7 +294,7 @@ export class EmailService {
       <html>
       <head>
         <meta charset="UTF-8">
-        <title>Notification - Velxo</title>
+        <title>Notification - Piyrox</title>
       </head>
       <body style="margin: 0; padding: 0; font-family: 'Inter', sans-serif; background-color: #0f172a;">
         <table role="presentation" width="100%" cellspacing="0" cellpadding="0" border="0">

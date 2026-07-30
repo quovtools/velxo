@@ -45,7 +45,7 @@ export class FlutterwaveService {
       customer: { email: params.email },
       payment_options: 'card,account,ussd,qr,banktransfer,mobilemoney',
       customizations: {
-        title: 'Velxo Market',
+        title: 'piyrox market',
         description: `Order ${params.reference}`,
       },
     }

@@ -3,7 +3,7 @@ import LegalPageContent from '@/components/LegalPageContent';
 
 export const metadata: Metadata = {
   title: 'Privacy Policy',
-  description: 'Learn how Velxo Market collects, uses and protects your personal information.',
+  description: 'Learn how piyrox market collects, uses and protects your personal information.',
 };
 
 export default function PrivacyPage() {

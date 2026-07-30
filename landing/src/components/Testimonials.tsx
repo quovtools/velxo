@@ -24,7 +24,7 @@ const TESTIMONIALS = [
     name: 'Kwame A.',
     handle: '@kwame_ff',
     location: 'Accra, Ghana',
-    text: 'Spent 2 years getting scammed on Discord. Velxo is the first platform where I actually feel safe trading.',
+    text: 'Spent 2 years getting scammed on Discord. Piyrox is the first platform where I actually feel safe trading.',
     rating: 5,
     initials: 'KA',
     color: '#404040',

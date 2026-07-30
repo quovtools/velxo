@@ -1,4 +1,4 @@
-// Central source of truth for every game supported on the Velxo marketplace.
+// Central source of truth for every game supported on the piyrox marketplace.
 //
 // Each entry encodes how that specific game actually works in the wild:
 //   - the premium in-game currency you top up (and its free currencies)

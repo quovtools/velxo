@@ -202,7 +202,7 @@ export default function BoostingPage() {
           <h1 className="text-2xl sm:text-3xl font-black text-white flex items-center gap-2">
             <Gamepad2 className="w-7 h-7 text-brand" /> Rank Boosting Services
           </h1>
-          <p className="text-sm text-gray-500 mt-1">Hire verified boosters to rank up your account — escrow-protected, delivered by Velxo sellers.</p>
+          <p className="text-sm text-gray-500 mt-1">Hire verified boosters to rank up your account — escrow-protected, delivered by piyrox sellers.</p>
         </div>
         {isSeller && (
           <button onClick={openCreate}
@@ -214,7 +214,7 @@ export default function BoostingPage() {
 
       {!isSeller && user && (
         <div className="bg-purple-500/5 border border-purple-500/20 rounded-2xl p-4 flex items-center justify-between gap-3">
-          <p className="text-xs text-gray-400">Become a Velxo seller to post your own boosting gigs and earn.</p>
+          <p className="text-xs text-gray-400">Become a piyrox seller to post your own boosting gigs and earn.</p>
           <button onClick={() => router.push('/seller/gigs')}
             className="flex-shrink-0 text-xs font-bold text-purple-300 hover:text-white transition">Get started →</button>
         </div>
@@ -293,7 +293,7 @@ export default function BoostingPage() {
                   )}
                   {g.description && <p className="text-[11px] text-gray-400 mt-1 line-clamp-2">{g.description}</p>}
                   <div className="flex items-center gap-2 mt-2 text-[10px] text-gray-500">
-                    <span className="inline-flex items-center gap-1"><ShieldCheck className="w-3 h-3 text-emerald-400" /> {g.seller?.storeName || 'Velxo Seller'}</span>
+                    <span className="inline-flex items-center gap-1"><ShieldCheck className="w-3 h-3 text-emerald-400" /> {g.seller?.storeName || 'piyrox seller'}</span>
                     {g.deliveryTime && <span className="inline-flex items-center gap-1"><Clock className="w-3 h-3" /> {g.deliveryTime}h</span>}
                   </div>
                 </div>
@@ -355,7 +355,7 @@ export default function BoostingPage() {
                   )}
                   {selected.description && <p className="text-sm text-gray-400 mt-2">{selected.description}</p>}
                   <div className="flex items-center gap-3 mt-2 text-[11px] text-gray-500">
-                    <span className="inline-flex items-center gap-1"><ShieldCheck className="w-3 h-3 text-emerald-400" /> {selected.seller?.storeName || 'Velxo Seller'}</span>
+                    <span className="inline-flex items-center gap-1"><ShieldCheck className="w-3 h-3 text-emerald-400" /> {selected.seller?.storeName || 'piyrox seller'}</span>
                     {selected.deliveryTime && <span className="inline-flex items-center gap-1"><Clock className="w-3 h-3" /> {selected.deliveryTime}h</span>}
                     {selected.region && <span>{selected.region}</span>}
                   </div>

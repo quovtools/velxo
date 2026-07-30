@@ -50,7 +50,7 @@ const FEATURES = [
   {
     icon: <CreditCard className="h-6 w-6 text-accent" />,
     title: 'Instant Payouts',
-    desc: 'Sellers receive earnings in their Velxo wallet within seconds of escrow release. Withdraw in 1–3 days.',
+    desc: 'Sellers receive earnings in their piyrox wallet within seconds of escrow release. Withdraw in 1–3 days.',
     highlight: false,
   },
 ];
@@ -65,7 +65,7 @@ export default function Features() {
           <span className="text-gradient">trade safely</span>
         </h2>
         <p className="text-lg text-gray-400">
-          Velxo is built from the ground up for African gamers — with tools that make trading as easy and safe as buying from a real store.
+          Piyrox is built from the ground up for African gamers — with tools that make trading as easy and safe as buying from a real store.
         </p>
       </div>
 

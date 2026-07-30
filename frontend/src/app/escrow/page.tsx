@@ -9,13 +9,13 @@ import OrderTrackingContent from '@/app/orders/[id]/order-tracking-content';
 import { LoadingArea } from '@/components/LoadingLogo';
 
 export const metadata: Metadata = {
-  title: 'How Velxo Escrow Works | Safe P2P Gaming Trades',
-  description: 'Velxo Escrow holds your funds securely until delivery is confirmed. Learn how our P2P escrow system, seller levels, and dispute resolution protect every trade.',
-  alternates: { canonical: 'https://market.velxo.shop/escrow' },
+  title: 'How piyrox escrow Works | Safe P2P Gaming Trades',
+  description: 'piyrox escrow holds your funds securely until delivery is confirmed. Learn how our P2P escrow system, seller levels, and dispute resolution protect every trade.',
+  alternates: { canonical: 'https://market.piyrox.shop/escrow' },
   openGraph: {
-    title: 'How Velxo Escrow Works | Safe P2P Gaming Trades',
+    title: 'How piyrox escrow Works | Safe P2P Gaming Trades',
     description: 'Your money is locked until you confirm delivery. P2P-grade protection on every trade.',
-    url: 'https://market.velxo.shop/escrow',
+    url: 'https://market.piyrox.shop/escrow',
     type: 'website',
   },
 };
@@ -24,7 +24,7 @@ const steps = [
   {
     step: '01', icon: Banknote, color: 'text-brand',
     title: 'Buyer Places Order',
-    desc: 'Buyer pays — funds are immediately locked in Velxo Escrow. The seller receives nothing until you confirm.',
+    desc: 'Buyer pays — funds are immediately locked in piyrox escrow. The seller receives nothing until you confirm.',
   },
   {
     step: '02', icon: Lock, color: 'text-yellow-400',
@@ -108,7 +108,7 @@ const faqs = [
   },
   {
     q: 'What is the platform fee?',
-    a: 'Velxo charges a 10% service fee on completed transactions, deducted from the seller\'s payout. Buyers pay the listed price only. Seller Pro subscribers get a reduced rate (5% for Pro, 3% for Premium).',
+    a: 'Piyrox charges a 10% service fee on completed transactions, deducted from the seller\'s payout. Buyers pay the listed price only. Seller Pro subscribers get a reduced rate (5% for Pro, 3% for Premium).',
   },
   {
     q: 'What is the seller level system?',
@@ -137,10 +137,10 @@ function EscrowInfo() {
           <ShieldCheck className="w-10 h-10 text-brand" />
         </div>
         <h1 className="text-4xl md:text-5xl font-black text-white leading-tight">
-          How Velxo <span className="text-brand">Escrow Works</span>
+          How Piyrox <span className="text-brand">Escrow Works</span>
         </h1>
         <p className="text-gray-400 text-lg leading-relaxed">
-          Every trade on Velxo is backed by escrow. Your money never touches the seller until you confirm delivery — guaranteed.
+          Every trade on Piyrox is backed by escrow. Your money never touches the seller until you confirm delivery — guaranteed.
         </p>
         <div className="flex flex-col sm:flex-row gap-3 justify-center">
           <Link href="/search" className="bg-brand hover:bg-brand-dark px-8 py-3.5 rounded-xl font-bold text-white transition shadow-lg shadow-brand/20">
@@ -228,7 +228,7 @@ function EscrowInfo() {
         </div>
         <div className="bg-red-950/20 border border-red-500/20 rounded-2xl p-5 max-w-2xl mx-auto text-sm text-gray-400 space-y-2">
           <p className="font-bold text-red-300">Important timing rules:</p>
-          <p>Velxo enforces tight <strong className="text-white">60-minute</strong> windows: seller has 60 min to deliver after accepting, buyer has 60 min to confirm after delivery. Missing either window enables the affected party to open a dispute from their order page. Funds are <strong className="text-white">never</strong> released automatically without buyer confirmation or a moderator decision.</p>
+          <p>Piyrox enforces tight <strong className="text-white">60-minute</strong> windows: seller has 60 min to deliver after accepting, buyer has 60 min to confirm after delivery. Missing either window enables the affected party to open a dispute from their order page. Funds are <strong className="text-white">never</strong> released automatically without buyer confirmation or a moderator decision.</p>
         </div>
       </div>
 
@@ -250,7 +250,7 @@ function EscrowInfo() {
       <div className="bg-gradient-to-br from-brand/15 via-cardBg to-purple-900/15 border border-borderBg rounded-3xl p-10 text-center space-y-4">
         <ShieldCheck className="w-12 h-12 text-brand mx-auto" />
         <h3 className="text-2xl font-black text-white">Ready to trade safely?</h3>
-        <p className="text-gray-400 text-sm">Every trade on Velxo is protected by escrow. Start buying or selling with confidence.</p>
+        <p className="text-gray-400 text-sm">Every trade on Piyrox is protected by escrow. Start buying or selling with confidence.</p>
         <div className="flex flex-col sm:flex-row gap-3 justify-center">
           <Link href="/search" className="bg-brand hover:bg-brand-dark px-8 py-3.5 rounded-xl font-bold text-white transition shadow-lg shadow-brand/20">
             Browse Listings

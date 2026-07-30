@@ -3,10 +3,10 @@ import { LifeBuoy, MessageSquareWarning, Scale, Headphones } from 'lucide-react'
 import { DocHeader, DocSection, Steps, Callout, FeatureGrid, RelatedLinks, DocShell } from '../components/doc-ui';
 
 export const metadata: Metadata = {
-  title: 'Disputes & Support — Velxo Documentation',
+  title: 'Disputes & Support — piyrox documentation',
   description:
-    'How to open a dispute, what evidence the team reviews, expected resolution times, and how to contact Velxo Support.',
-  alternates: { canonical: 'https://market.velxo.shop/docs/disputes' },
+    'How to open a dispute, what evidence the team reviews, expected resolution times, and how to contact Piyrox Support.',
+  alternates: { canonical: 'https://market.piyrox.shop/docs/disputes' },
 };
 
 export default function DocsDisputes() {
@@ -37,7 +37,7 @@ export default function DocsDisputes() {
           items={[
             { title: 'Open the dispute', body: 'From the order page, select “Open dispute” and describe the issue.' },
             { title: 'Both sides respond', body: 'Buyer and seller submit statements and evidence.' },
-            { title: 'Team reviews', body: 'Velxo reviews the order chat and proof (screenshots, login attempts).' },
+            { title: 'Team reviews', body: 'Piyrox reviews the order chat and proof (screenshots, login attempts).' },
             { title: 'Decision', body: 'Funds are released to the buyer (refund) or seller based on evidence.' },
           ]}
         />
@@ -46,7 +46,7 @@ export default function DocsDisputes() {
       <DocSection title="Evidence that helps">
         <p>
           The order chat is the single most important source of truth. Keep all communication and
-          delivery inside Velxo. Screenshots of login attempts, mismatched details, or broken promises
+          delivery inside Piyrox. Screenshots of login attempts, mismatched details, or broken promises
           strengthen your case.
         </p>
         <Callout type="info" title="Be honest & prompt">
@@ -59,7 +59,7 @@ export default function DocsDisputes() {
         <p>
           For non-dispute help — account issues, verification, or general questions — visit the{' '}
           <span className="text-white font-semibold">Support</span> page or email{' '}
-          <a href="mailto:support@velxo.shop" className="text-brand underline">support@velxo.shop</a>.
+          <a href="mailto:support@piyrox.shop" className="text-brand underline">support@piyrox.shop</a>.
           We aim to reply within business hours.
         </p>
       </DocSection>

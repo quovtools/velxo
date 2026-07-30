@@ -6,21 +6,21 @@ import { ShieldCheck, AlertTriangle, Phone, Heart, CheckCircle, BookOpen } from 
 
 export const metadata: Metadata = {
   title: "Responsible Gaming",
-  description: "Velxo is a safe, fair, and transparent peer-to-peer gaming marketplace — not a gambling platform. Learn about our safety principles and commitments.",
-  keywords: ["responsible gaming", "safe gaming marketplace", "velxo safety", "anti scam gaming"],
-  alternates: { canonical: "https://velxo.shop/responsible-gaming" },
+  description: "Piyrox is a safe, fair, and transparent peer-to-peer gaming marketplace — not a gambling platform. Learn about our safety principles and commitments.",
+  keywords: ["responsible gaming", "safe gaming marketplace", "piyrox safety", "anti scam gaming"],
+  alternates: { canonical: "https://piyrox.shop/responsible-gaming" },
   openGraph: {
-    title: "Responsible Gaming — Velxo",
-    description: "Safe trading, always. How Velxo protects its community.",
-    url: "https://velxo.shop/responsible-gaming",
-    siteName: "Velxo",
+    title: "Responsible Gaming — Piyrox",
+    description: "Safe trading, always. How Piyrox protects its community.",
+    url: "https://piyrox.shop/responsible-gaming",
+    siteName: "Piyrox",
     type: "website",
-    images: [{ url: "/og.png", width: 1200, height: 630, alt: "Velxo Responsible Gaming" }],
+    images: [{ url: "/og.png", width: 1200, height: 630, alt: "Piyrox Responsible Gaming" }],
   },
   twitter: {
     card: "summary_large_image",
-    title: "Responsible Gaming — Velxo",
-    description: "Safe trading, always. How Velxo protects its community.",
+    title: "Responsible Gaming — Piyrox",
+    description: "Safe trading, always. How Piyrox protects its community.",
     images: ["/og.png"],
   },
 };
@@ -29,7 +29,7 @@ const PRINCIPLES = [
   {
     icon: <ShieldCheck className="w-6 h-6 text-emerald-400" />,
     title: 'Age Verification',
-    desc: 'Velxo requires all users to be at least 16 years old. We actively review accounts and remove underage users from the platform.',
+    desc: 'Piyrox requires all users to be at least 16 years old. We actively review accounts and remove underage users from the platform.',
   },
   {
     icon: <CheckCircle className="w-6 h-6 text-brand" />,
@@ -44,7 +44,7 @@ const PRINCIPLES = [
   {
     icon: <Heart className="w-6 h-6 text-red-400" />,
     title: 'Player Wellbeing',
-    desc: 'We encourage healthy gaming habits. Velxo is a marketplace, not a gambling platform — no loot boxes, no random chance mechanics.',
+    desc: 'We encourage healthy gaming habits. Piyrox is a marketplace, not a gambling platform — no loot boxes, no random chance mechanics.',
   },
   {
     icon: <BookOpen className="w-6 h-6 text-accent" />,
@@ -84,7 +84,7 @@ export default function ResponsibleGamingPage() {
               <span className="text-gradient">always.</span>
             </h1>
             <p className="text-gray-400 text-lg max-w-xl mx-auto">
-              Velxo is committed to providing a safe, fair, and transparent marketplace. Here&apos;s how we protect our community.
+              Piyrox is committed to providing a safe, fair, and transparent marketplace. Here&apos;s how we protect our community.
             </p>
           </div>
 
@@ -92,9 +92,9 @@ export default function ResponsibleGamingPage() {
           <div className="bg-emerald-950/30 border border-emerald-500/20 rounded-2xl p-6 flex items-start gap-4">
             <ShieldCheck className="w-8 h-8 text-emerald-400 flex-shrink-0 mt-0.5" />
             <div>
-              <p className="font-bold text-white mb-1">Velxo is NOT a gambling platform</p>
+              <p className="font-bold text-white mb-1">Piyrox is NOT a gambling platform</p>
               <p className="text-sm text-gray-400 leading-relaxed">
-                Velxo is a peer-to-peer marketplace for gaming digital assets. There are no loot boxes, no random chance mechanics, and no gambling of any kind. All transactions are fixed-price, transparent, and escrow-protected.
+                Piyrox is a peer-to-peer marketplace for gaming digital assets. There are no loot boxes, no random chance mechanics, and no gambling of any kind. All transactions are fixed-price, transparent, and escrow-protected.
               </p>
             </div>
           </div>
@@ -133,8 +133,8 @@ export default function ResponsibleGamingPage() {
             <div className="bg-red-950/20 border border-red-500/20 rounded-2xl p-6 space-y-4">
               <AlertTriangle className="w-8 h-8 text-red-400" />
               <h3 className="font-bold text-white">Report a safety concern</h3>
-              <p className="text-sm text-gray-400">If you encounter a scam, underage user, harassment, or any safety issue on Velxo, report it immediately.</p>
-              <a href="https://market.velxo.shop/support" className="inline-block bg-red-600 hover:bg-red-700 text-white font-bold px-5 py-2.5 rounded-xl text-sm transition">
+              <p className="text-sm text-gray-400">If you encounter a scam, underage user, harassment, or any safety issue on Piyrox, report it immediately.</p>
+              <a href="https://market.piyrox.shop/support" className="inline-block bg-red-600 hover:bg-red-700 text-white font-bold px-5 py-2.5 rounded-xl text-sm transition">
                 Report Now
               </a>
             </div>
@@ -142,8 +142,8 @@ export default function ResponsibleGamingPage() {
               <Phone className="w-8 h-8 text-brand" />
               <h3 className="font-bold text-white">Need help?</h3>
               <p className="text-sm text-gray-400">Our support team is here 7 days a week. Contact us for any platform concern or question.</p>
-              <a href="mailto:safety@velxo.shop" className="inline-block bg-brand hover:bg-brand-dark text-white font-bold px-5 py-2.5 rounded-xl text-sm transition">
-                safety@velxo.shop
+              <a href="mailto:safety@piyrox.shop" className="inline-block bg-brand hover:bg-brand-dark text-white font-bold px-5 py-2.5 rounded-xl text-sm transition">
+                safety@piyrox.shop
               </a>
             </div>
           </div>

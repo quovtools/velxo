@@ -1,7 +1,7 @@
 import type { Metadata } from 'next';
 
 const API_BASE = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:3001/api/v1';
-const SITE_URL = 'https://market.velxo.shop';
+const SITE_URL = 'https://market.piyrox.shop';
 
 export const dynamic = 'force-dynamic';
 
@@ -40,17 +40,17 @@ export async function generateMetadata({
     };
   }
   return {
-    title: `${store.storeName} Store | Velxo Market`,
+    title: `${store.storeName} Store | Piyrox Market`,
     description:
       store.storeDescription?.slice(0, 160) ||
-      `Browse ${store.storeName}'s gaming listings on Velxo — escrow-protected accounts, coins and top-ups.`,
-    keywords: [store.storeName, 'velxo store', 'gaming marketplace', 'escrow'],
+      `Browse ${store.storeName}'s gaming listings on Piyrox — escrow-protected accounts, coins and top-ups.`,
+      keywords: [store.storeName, 'piyrox store', 'gaming marketplace', 'escrow'],
     alternates: { canonical: `${SITE_URL}/store/${id}` },
     openGraph: {
-      title: `${store.storeName} Store | Velxo Market`,
+      title: `${store.storeName} Store | Piyrox Market`,
       description: `Browse ${store.storeName}'s verified gaming listings.`,
       url: `${SITE_URL}/store/${id}`,
-      siteName: 'Velxo Market',
+      siteName: 'Piyrox Market',
       type: 'website',
     },
   };

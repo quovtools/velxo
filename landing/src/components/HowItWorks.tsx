@@ -13,7 +13,7 @@ const STEPS = [
     step: '02',
     icon: <Lock className="h-7 w-7 text-accent" />,
     title: 'Pay Into Escrow',
-    desc: 'Your payment is instantly locked in Velxo Escrow. The seller cannot touch it until you confirm successful delivery.',
+    desc: 'Your payment is instantly locked in piyrox escrow. The seller cannot touch it until you confirm successful delivery.',
     color: 'from-accent/30 to-transparent',
   },
   {

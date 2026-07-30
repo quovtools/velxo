@@ -1,5 +1,5 @@
 -- =============================================================================
--- Velxo Project — Database schema (PostgreSQL)
+-- Piyrox Project — Database schema (PostgreSQL)
 -- -----------------------------------------------------------------------------
 -- This file mirrors backend/prisma/schema.prisma. Use it to bootstrap a fresh
 -- database or as a reference for hand-written migrations.
@@ -18,7 +18,7 @@
 -- always builds a consistent schema. WARNING: this wipes all data in these
 -- tables. Safe to run repeatedly. Remove this block if you want to preserve data.
 DROP TABLE IF EXISTS
-  "reward_redemptions", "reward_catalog", "reward_coin_transactions", "velxo_coins",
+  "reward_redemptions", "reward_catalog", "reward_coin_transactions", "piyrox_coins",
   "affiliate_referrals", "blog_posts", "game_slides", "commissions", "withdrawal_requests",
   "payments", "payment_methods", "fraud_flags", "admin_audit_logs", "support_tickets",
   "dispute_messages", "disputes", "notifications", "messages", "conversations", "reviews",
@@ -694,7 +694,7 @@ CREATE TABLE IF NOT EXISTS "blog_posts" (
   "excerpt"     TEXT NOT NULL,
   "content"     TEXT NOT NULL,
   "category"    TEXT NOT NULL DEFAULT 'Platform',
-  "author"      TEXT NOT NULL DEFAULT 'Velxo Team',
+  "author"      TEXT NOT NULL DEFAULT 'piyrox team',
   "coverImage"  TEXT,
   "isPublished" BOOLEAN NOT NULL DEFAULT false,
   "isFeatured"  BOOLEAN NOT NULL DEFAULT false,
@@ -732,17 +732,17 @@ CREATE INDEX IF NOT EXISTS "affiliate_referrals_referrerId_idx" ON "affiliate_re
 CREATE INDEX IF NOT EXISTS "affiliate_referrals_referralCode_idx" ON "affiliate_referrals" ("referralCode");
 CREATE INDEX IF NOT EXISTS "affiliate_referrals_status_idx" ON "affiliate_referrals" ("status");
 
-CREATE TABLE IF NOT EXISTS "velxo_coins" (
+CREATE TABLE IF NOT EXISTS "piyrox_coins" (
   "id"        TEXT PRIMARY KEY,
   "userId"    TEXT NOT NULL,
   "balance"   INTEGER NOT NULL DEFAULT 0,
   "currency"  TEXT NOT NULL DEFAULT 'VXC',
   "createdAt" TIMESTAMP(3) NOT NULL DEFAULT CURRENT_TIMESTAMP,
   "updatedAt" TIMESTAMP(3) NOT NULL DEFAULT CURRENT_TIMESTAMP,
-  CONSTRAINT "velxo_coins_userId_key" UNIQUE ("userId"),
-  CONSTRAINT "velxo_coins_userId_fkey" FOREIGN KEY ("userId") REFERENCES "users" ("id") ON DELETE CASCADE ON UPDATE CASCADE
+  CONSTRAINT "piyrox_coins_userId_key" UNIQUE ("userId"),
+  CONSTRAINT "piyrox_coins_userId_fkey" FOREIGN KEY ("userId") REFERENCES "users" ("id") ON DELETE CASCADE ON UPDATE CASCADE
 );
-CREATE INDEX IF NOT EXISTS "velxo_coins_userId_idx" ON "velxo_coins" ("userId");
+CREATE INDEX IF NOT EXISTS "piyrox_coins_userId_idx" ON "piyrox_coins" ("userId");
 
 CREATE TABLE IF NOT EXISTS "reward_coin_transactions" (
   "id"           TEXT PRIMARY KEY,
@@ -754,7 +754,7 @@ CREATE TABLE IF NOT EXISTS "reward_coin_transactions" (
   "relatedId"    TEXT,
   "metadata"     JSONB,
   "createdAt"    TIMESTAMP(3) NOT NULL DEFAULT CURRENT_TIMESTAMP,
-  CONSTRAINT "reward_coin_transactions_coinId_fkey" FOREIGN KEY ("coinId") REFERENCES "velxo_coins" ("id") ON DELETE CASCADE ON UPDATE CASCADE
+  CONSTRAINT "reward_coin_transactions_coinId_fkey" FOREIGN KEY ("coinId") REFERENCES "piyrox_coins" ("id") ON DELETE CASCADE ON UPDATE CASCADE
 );
 CREATE INDEX IF NOT EXISTS "reward_coin_transactions_coinId_idx" ON "reward_coin_transactions" ("coinId");
 CREATE INDEX IF NOT EXISTS "reward_coin_transactions_createdAt_idx" ON "reward_coin_transactions" ("createdAt");
@@ -819,7 +819,7 @@ BEGIN
       'wallet_transactions','reviews','conversations','messages','notifications',
       'disputes','dispute_messages','support_tickets','admin_audit_logs','fraud_flags',
       'payment_methods','payments','withdrawal_requests','commissions','game_slides',
-      'blog_posts','affiliate_referrals','velxo_coins','reward_coin_transactions',
+      'blog_posts','affiliate_referrals','piyrox_coins','reward_coin_transactions',
       'reward_catalog','reward_redemptions'
     )
   LOOP

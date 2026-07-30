@@ -79,8 +79,8 @@ async function cleanDatabase() {
     console.log('🗑️  Deleting wallets...')
     await prisma.wallet.deleteMany({})
 
-    console.log('🗑️  Deleting velxo coins...')
-    await prisma.velxoCoins.deleteMany({})
+    console.log('🗑️  Deleting piyrox coins...')
+    await prisma.piyroxCoins.deleteMany({})
 
     console.log('🗑️  Deleting escrow transactions...')
     await prisma.escrowTransactions.deleteMany({})

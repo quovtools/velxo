@@ -7,20 +7,20 @@ import { TrendingUp, Users, DollarSign, ArrowRight, CheckCircle, Share2 } from '
 export const metadata: Metadata = {
   title: "Affiliate Program",
   description: "Earn commission by referring traders to Africa's No.1 gaming marketplace. Tiered commissions up to 5% per trade, no cap, no expiry.",
-  keywords: ["gaming affiliate", "earn money gaming", "velxo affiliate", "referral program africa"],
-  alternates: { canonical: "https://velxo.shop/affiliate" },
+  keywords: ["gaming affiliate", "earn money gaming", "piyrox affiliate", "referral program africa"],
+  alternates: { canonical: "https://piyrox.shop/affiliate" },
   openGraph: {
-    title: "Affiliate Program — Velxo",
-    description: "Earn by sharing Velxo. Up to 5% commission per trade.",
-    url: "https://velxo.shop/affiliate",
-    siteName: "Velxo",
+    title: "Affiliate Program — Piyrox",
+    description: "Earn by sharing Piyrox. Up to 5% commission per trade.",
+    url: "https://piyrox.shop/affiliate",
+    siteName: "Piyrox",
     type: "website",
-    images: [{ url: "/og.png", width: 1200, height: 630, alt: "Velxo Affiliate Program" }],
+    images: [{ url: "/og.png", width: 1200, height: 630, alt: "Piyrox Affiliate Program" }],
   },
   twitter: {
     card: "summary_large_image",
-    title: "Affiliate Program — Velxo",
-    description: "Earn by sharing Velxo. Up to 5% commission per trade.",
+    title: "Affiliate Program — Piyrox",
+    description: "Earn by sharing Piyrox. Up to 5% commission per trade.",
     images: ["/og.png"],
   },
 };
@@ -28,7 +28,7 @@ export const metadata: Metadata = {
 const HOW_IT_WORKS = [
   { step: '01', icon: <Share2 className="w-5 h-5 text-brand" />, title: 'Get Your Link', desc: 'Sign up and get a unique referral link tied to your account.' },
   { step: '02', icon: <Users className="w-5 h-5 text-accent" />, title: 'Share It', desc: 'Share your link on WhatsApp, TikTok, YouTube, Discord — anywhere your audience is.' },
-  { step: '03', icon: <DollarSign className="w-5 h-5 text-emerald-400" />, title: 'Earn Commission', desc: 'Earn a commission on every completed trade your referrals make on Velxo.' },
+  { step: '03', icon: <DollarSign className="w-5 h-5 text-emerald-400" />, title: 'Earn Commission', desc: 'Earn a commission on every completed trade your referrals make on Piyrox.' },
   { step: '04', icon: <TrendingUp className="w-5 h-5 text-brand" />, title: 'Track & Withdraw', desc: 'Monitor clicks, signups, and earnings in your affiliate dashboard. Withdraw anytime.' },
 ];
 
@@ -51,7 +51,7 @@ const TIERS = [
     name: 'Elite',
     referrals: '51+ active users',
     commission: '5% per trade',
-    perks: ['Everything in Growth', 'Dedicated account manager', 'Weekly payouts', 'Custom promo materials', 'Featured in Velxo promotions'],
+    perks: ['Everything in Growth', 'Dedicated account manager', 'Weekly payouts', 'Custom promo materials', 'Featured in Piyrox promotions'],
     highlighted: false,
   },
 ];
@@ -81,13 +81,13 @@ export default function AffiliatePage() {
             </span>
             <h1 className="text-4xl sm:text-6xl font-black text-white leading-tight">
               Earn by sharing{' '}
-              <span className="text-gradient">Velxo</span>
+              <span className="text-gradient">Piyrox</span>
             </h1>
             <p className="text-gray-400 text-xl max-w-2xl mx-auto">
               Refer traders to Africa&apos;s No.1 gaming marketplace and earn commission on every trade they make. No cap. No expiry.
             </p>
             <div className="flex flex-col sm:flex-row gap-3 justify-center">
-              <a href="https://market.velxo.shop/auth/register"
+              <a href="https://market.piyrox.shop/auth/register"
                 className="group flex items-center gap-2 bg-brand hover:bg-brand-dark text-white font-bold px-8 py-4 rounded-2xl transition shadow-xl shadow-brand/25 text-base">
                 Join the Program <ArrowRight className="w-4 h-4 group-hover:translate-x-1 transition-transform" />
               </a>
@@ -157,13 +157,13 @@ export default function AffiliatePage() {
             <h3 className="text-3xl font-black text-white">Ready to start earning?</h3>
             <p className="text-gray-400 max-w-md mx-auto">Create an account, get your link, and start referring today. No approval process needed.</p>
             <div className="flex flex-col sm:flex-row gap-3 justify-center">
-              <a href="https://market.velxo.shop/auth/register"
+              <a href="https://market.piyrox.shop/auth/register"
                 className="bg-brand hover:bg-brand-dark text-white font-bold px-8 py-3.5 rounded-xl text-sm transition shadow-lg shadow-brand/25">
                 Join Affiliate Program
               </a>
-              <a href="mailto:affiliates@velxo.shop"
+              <a href="mailto:affiliates@piyrox.shop"
                 className="border border-border hover:border-brand/40 text-gray-300 hover:text-white font-semibold px-8 py-3.5 rounded-xl text-sm transition">
-                affiliates@velxo.shop
+                affiliates@piyrox.shop
               </a>
             </div>
           </div>

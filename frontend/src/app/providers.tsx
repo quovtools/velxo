@@ -37,7 +37,7 @@ export function Providers({ children }: { children: React.ReactNode }) {
 
   // Apply theme class to <html> immediately on mount
   useEffect(() => {
-    const saved = (localStorage.getItem('velxo_theme') as 'dark' | 'light') || 'dark';
+    const saved = (localStorage.getItem('piyrox_theme') as 'dark' | 'light') || 'dark';
     setTheme(saved);
     applyTheme(saved);
   }, []);
@@ -56,7 +56,7 @@ export function Providers({ children }: { children: React.ReactNode }) {
   const toggleTheme = () => {
     const next = theme === 'dark' ? 'light' : 'dark';
     setTheme(next);
-    localStorage.setItem('velxo_theme', next);
+    localStorage.setItem('piyrox_theme', next);
     applyTheme(next);
   };
 
@@ -89,18 +89,18 @@ export function Providers({ children }: { children: React.ReactNode }) {
     const checkBackendConnection = async () => {
       const apiUrl = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:3001/api/v1';
       try {
-        console.log('[Velxo] Checking backend connection...');
+        console.log('[Piyrox] Checking backend connection...');
         const response = await fetch(apiUrl, { 
           method: 'GET',
           signal: AbortSignal.timeout(5000)
         });
         if (response.ok) {
-          console.log(`[Velxo] ✓ Backend connected: ${apiUrl}`);
+          console.log(`[Piyrox] ✓ Backend connected: ${apiUrl}`);
         } else {
-          console.warn(`[Velxo] ⚠ Backend responded with status ${response.status}: ${apiUrl}`);
+          console.warn(`[Piyrox] ⚠ Backend responded with status ${response.status}: ${apiUrl}`);
         }
       } catch (error: any) {
-        console.error(`[Velxo] ✗ Cannot reach backend: ${apiUrl}`, error.message);
+        console.error(`[Piyrox] ✗ Cannot reach backend: ${apiUrl}`, error.message);
       }
     };
     
