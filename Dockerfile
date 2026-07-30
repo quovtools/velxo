@@ -45,10 +45,10 @@ RUN cp -r backend/public/images frontend/public/images || true
 COPY start.sh ./start.sh
 RUN chmod +x ./start.sh
 
-EXPOSE 3000
+EXPOSE 8080
 
 ENV NODE_ENV=production
-ENV PORT=3000
+ENV PORT=8080
 ENV NEXT_TELEMETRY_DISABLED 1
 
 CMD ["/app/start.sh"]
