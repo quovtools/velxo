@@ -8,7 +8,7 @@ const PIYROX_OFFICIAL_EMAIL = 'topup@piyrox.shop'
 @Injectable()
 export class TopupsService {
   private readonly logger = new Logger(TopupsService.name)
-    const piyroxSellerId: string | null = null
+  private piyroxSellerId: string | null = null
 
   constructor(private prisma: PrismaService, private ordersService: OrdersService) {}
 
