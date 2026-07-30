@@ -1,4 +1,12 @@
 {
+  "name": "velxo-monorepo",
+  "private": true,
+  "scripts": {
+    "build": "npm run build:backend && npm run build:frontend",
+    "build:backend": "cd backend && npx prisma generate && npm run build",
+    "build:frontend": "cd frontend && npm run build",
+    "start": "sh start.sh"
+  },
   "dependencies": {
     "prisma": "^5.22.0"
   },
