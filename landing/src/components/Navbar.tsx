@@ -87,10 +87,10 @@ export default function Navbar() {
             >
               {theme === 'dark' ? <Sun className="h-5 w-5" /> : <Moon className="h-5 w-5" />}
             </button>
-            <a href="https://market.piyrox.shop/auth/login" className="btn-ghost">
+            <a href="https://app.piyrox.shop/auth/login" className="btn-ghost">
               Sign In
             </a>
-            <a href="https://market.piyrox.shop/auth/register" className="btn-primary">
+            <a href="https://app.piyrox.shop/auth/register" className="btn-primary">
               Get Started Free
             </a>
           </div>
@@ -132,11 +132,11 @@ export default function Navbar() {
               {theme === 'dark' ? 'Light mode' : 'Dark mode'}
             </button>
             <div className="mt-3 grid grid-cols-2 gap-2">
-              <a href="https://market.piyrox.shop/auth/login"
+              <a href="https://app.piyrox.shop/auth/login"
                 className="rounded-xl border border-white/10 px-4 py-3 text-center text-sm font-semibold text-gray-200 transition hover:border-brand/40">
                 Sign In
               </a>
-              <a href="https://market.piyrox.shop/auth/register"
+              <a href="https://app.piyrox.shop/auth/register"
                 className="btn-primary w-full">
                 Get Started Free
               </a>

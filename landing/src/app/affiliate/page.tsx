@@ -87,7 +87,7 @@ export default function AffiliatePage() {
               Refer traders to Africa&apos;s No.1 gaming marketplace and earn commission on every trade they make. No cap. No expiry.
             </p>
             <div className="flex flex-col sm:flex-row gap-3 justify-center">
-              <a href="https://market.piyrox.shop/auth/register"
+              <a href="https://app.piyrox.shop/auth/register"
                 className="group flex items-center gap-2 bg-brand hover:bg-brand-dark text-white font-bold px-8 py-4 rounded-2xl transition shadow-xl shadow-brand/25 text-base">
                 Join the Program <ArrowRight className="w-4 h-4 group-hover:translate-x-1 transition-transform" />
               </a>
@@ -157,7 +157,7 @@ export default function AffiliatePage() {
             <h3 className="text-3xl font-black text-white">Ready to start earning?</h3>
             <p className="text-gray-400 max-w-md mx-auto">Create an account, get your link, and start referring today. No approval process needed.</p>
             <div className="flex flex-col sm:flex-row gap-3 justify-center">
-              <a href="https://market.piyrox.shop/auth/register"
+              <a href="https://app.piyrox.shop/auth/register"
                 className="bg-brand hover:bg-brand-dark text-white font-bold px-8 py-3.5 rounded-xl text-sm transition shadow-lg shadow-brand/25">
                 Join Affiliate Program
               </a>

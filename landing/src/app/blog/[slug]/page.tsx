@@ -3,7 +3,7 @@ import Navbar from '@/components/Navbar';
 import Footer from '@/components/Footer';
 import BlogPost from '@/components/BlogPost';
 
-const API = process.env.NEXT_PUBLIC_API_URL || 'https://api.piyrox.shop/api/v1';
+const API = process.env.NEXT_PUBLIC_API_URL || 'https://app.piyrox.shop/api/v1';
 
 export async function generateMetadata(
   { params }: { params: Promise<{ slug: string }> }

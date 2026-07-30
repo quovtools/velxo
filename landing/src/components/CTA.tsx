@@ -30,11 +30,11 @@ export default function CTA() {
           </p>
 
           <div className="flex flex-col items-center justify-center gap-4 sm:flex-row">
-            <a href="https://market.piyrox.shop/auth/register" className="btn-primary text-base">
+            <a href="https://app.piyrox.shop/auth/register" className="btn-primary text-base">
               Create Free Account
               <ArrowRight className="h-4 w-4 transition-transform group-hover:translate-x-1" />
             </a>
-            <a href="https://market.piyrox.shop" className="btn-secondary text-base">
+            <a href="https://app.piyrox.shop" className="btn-secondary text-base">
               Browse Marketplace
             </a>
           </div>

@@ -18,7 +18,7 @@ interface Post {
   publishedAt?: string;
 }
 
-const API = process.env.NEXT_PUBLIC_API_URL || 'https://api.piyrox.shop/api/v1';
+const API = process.env.NEXT_PUBLIC_API_URL || 'https://app.piyrox.shop/api/v1';
 
 export default function BlogPost() {
   const params = useParams();

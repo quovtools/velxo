@@ -134,7 +134,7 @@ export default function ResponsibleGamingPage() {
               <AlertTriangle className="w-8 h-8 text-red-400" />
               <h3 className="font-bold text-white">Report a safety concern</h3>
               <p className="text-sm text-gray-400">If you encounter a scam, underage user, harassment, or any safety issue on Piyrox, report it immediately.</p>
-              <a href="https://market.piyrox.shop/support" className="inline-block bg-red-600 hover:bg-red-700 text-white font-bold px-5 py-2.5 rounded-xl text-sm transition">
+              <a href="https://app.piyrox.shop/support" className="inline-block bg-red-600 hover:bg-red-700 text-white font-bold px-5 py-2.5 rounded-xl text-sm transition">
                 Report Now
               </a>
             </div>

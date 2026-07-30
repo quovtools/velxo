@@ -22,7 +22,7 @@ const CATEGORY_COLORS: Record<string, string> = {
   Guides: 'bg-brand-light/10 text-brand-light border-brand-light/20',
 };
 
-const API = process.env.NEXT_PUBLIC_API_URL || 'https://api.piyrox.shop/api/v1';
+const API = process.env.NEXT_PUBLIC_API_URL || 'https://app.piyrox.shop/api/v1';
 
 export default function BlogList() {
   const [posts, setPosts] = useState<Post[]>([]);

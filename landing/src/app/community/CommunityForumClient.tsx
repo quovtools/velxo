@@ -46,7 +46,7 @@ interface Post {
   };
 }
 
-const API = process.env.NEXT_PUBLIC_API_URL || 'https://api.piyrox.shop/api/v1';
+const API = process.env.NEXT_PUBLIC_API_URL || 'https://app.piyrox.shop/api/v1';
 
 export default function CommunityForumClient() {
   const router = useRouter();

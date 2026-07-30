@@ -38,8 +38,8 @@ const CONTACT_OPTIONS = [
     icon: <MessageCircle className="w-6 h-6 text-[#5865F2]" />,
     title: 'Live Chat Support',
     desc: 'For marketplace support, order issues, and dispute help — fastest response.',
-    value: 'market.piyrox.shop/support',
-    href: 'https://market.piyrox.shop/support',
+    value: 'app.piyrox.shop/support',
+    href: 'https://app.piyrox.shop/support',
     cta: 'Open Chat',
   },
   {

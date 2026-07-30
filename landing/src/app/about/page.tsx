@@ -59,8 +59,8 @@ export default function AboutPage() {
               Piyrox is a peer-to-peer escrow-backed platform where gamers buy and sell accounts, coins, top-ups, gift cards, and boosting services — safely, instantly, and without the fear of being scammed.
             </p>
             <div className="flex flex-col sm:flex-row gap-3 justify-center">
-              <a href="https://market.piyrox.shop/search" className="btn-primary">Browse Marketplace</a>
-              <a href="https://market.piyrox.shop/sell" className="btn-secondary">Start Selling</a>
+              <a href="https://app.piyrox.shop/search" className="btn-primary">Browse Marketplace</a>
+              <a href="https://app.piyrox.shop/sell" className="btn-secondary">Start Selling</a>
             </div>
           </div>
 
@@ -144,7 +144,7 @@ export default function AboutPage() {
               Whether you&apos;re a buyer looking for deals or a seller building a store, Piyrox is your platform.
             </p>
             <div className="flex flex-col sm:flex-row gap-3 justify-center">
-              <a href="https://market.piyrox.shop/auth/register" className="btn-primary">Create Account</a>
+              <a href="https://app.piyrox.shop/auth/register" className="btn-primary">Create Account</a>
               <a href="https://piyrox.shop/careers" className="btn-secondary">We&apos;re Hiring <ArrowRight className="w-4 h-4" /></a>
             </div>
           </div>

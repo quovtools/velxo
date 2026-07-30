@@ -57,7 +57,7 @@ export default function Pricing() {
               </li>
             ))}
           </ul>
-          <a href="https://market.piyrox.shop/auth/register" className="btn-secondary mt-8 w-full">
+          <a href="https://app.piyrox.shop/auth/register" className="btn-secondary mt-8 w-full">
             Create Buyer Account
           </a>
         </div>
@@ -79,7 +79,7 @@ export default function Pricing() {
               </li>
             ))}
           </ul>
-          <a href="https://market.piyrox.shop/sell" className="btn-primary mt-8 w-full">
+          <a href="https://app.piyrox.shop/sell" className="btn-primary mt-8 w-full">
             Start Selling Today
             <ArrowRight className="h-4 w-4 transition-transform group-hover:translate-x-1" />
           </a>

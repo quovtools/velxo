@@ -100,7 +100,7 @@ export default function SupportPage() {
               <a href="mailto:support@piyrox.shop" className="btn-primary">
                 <Mail className="w-4 h-4" /> Email Support
               </a>
-              <a href="https://market.piyrox.shop/messages" className="btn-secondary">
+              <a href="https://app.piyrox.shop/messages" className="btn-secondary">
                 Live Chat <ArrowRight className="w-4 h-4" />
               </a>
             </div>

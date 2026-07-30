@@ -30,10 +30,10 @@ export default function About() {
               Today, thousands of traders across Nigeria, Ghana, Kenya, Uganda, and beyond use Piyrox every day. And we&apos;re just getting started.
             </p>
             <div className="flex flex-col gap-3 pt-2 sm:flex-row">
-              <a href="https://market.piyrox.shop/about" className="btn-primary w-full sm:w-auto">
+              <a href="https://app.piyrox.shop/about" className="btn-primary w-full sm:w-auto">
                 Read Full Story
               </a>
-              <a href="https://market.piyrox.shop/careers" className="btn-secondary w-full sm:w-auto">
+              <a href="https://app.piyrox.shop/careers" className="btn-secondary w-full sm:w-auto">
                 Join the Team
               </a>
             </div>

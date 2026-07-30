@@ -7,17 +7,17 @@ const isInternal = (href: string) => href.startsWith('/');
 
 const LINKS = {
   Marketplace: [
-    { label: 'Browse All Listings', href: 'https://market.piyrox.shop' },
-    { label: 'Game Accounts', href: 'https://market.piyrox.shop/?category=accounts' },
-    { label: 'Top-Ups & Coins', href: 'https://market.piyrox.shop/?category=topups' },
-    { label: 'Gift Cards', href: 'https://market.piyrox.shop/?category=giftcards' },
-    { label: 'Boosting Services', href: 'https://market.piyrox.shop/?category=boosting' },
+    { label: 'Browse All Listings', href: 'https://app.piyrox.shop' },
+    { label: 'Game Accounts', href: 'https://app.piyrox.shop/?category=accounts' },
+    { label: 'Top-Ups & Coins', href: 'https://app.piyrox.shop/?category=topups' },
+    { label: 'Gift Cards', href: 'https://app.piyrox.shop/?category=giftcards' },
+    { label: 'Boosting Services', href: 'https://app.piyrox.shop/?category=boosting' },
   ],
   Sellers: [
-    { label: 'Start Selling', href: 'https://market.piyrox.shop/sell' },
-    { label: 'Seller Dashboard', href: 'https://market.piyrox.shop/seller/dashboard' },
-    { label: 'Seller Guidelines', href: 'https://market.piyrox.shop/seller/guidelines' },
-    { label: 'Pricing & Fees', href: 'https://market.piyrox.shop/pricing' },
+    { label: 'Start Selling', href: 'https://app.piyrox.shop/sell' },
+    { label: 'Seller Dashboard', href: 'https://app.piyrox.shop/seller/dashboard' },
+    { label: 'Seller Guidelines', href: 'https://app.piyrox.shop/seller/guidelines' },
+    { label: 'Pricing & Fees', href: 'https://app.piyrox.shop/pricing' },
     { label: 'Affiliate Program', href: '/affiliate' },
   ],
   Support: [

@@ -133,7 +133,7 @@ export default function EscrowPage() {
             <h3 className="text-2xl font-extrabold text-white">Ready to trade safely?</h3>
             <p className="text-gray-400 text-sm">Every trade on Piyrox is protected. Start buying or selling with confidence.</p>
             <div className="flex flex-col sm:flex-row gap-3 justify-center">
-              <a href="https://market.piyrox.shop/search" className="btn-primary">Browse Listings</a>
+              <a href="https://app.piyrox.shop/search" className="btn-primary">Browse Listings</a>
               <a href="https://piyrox.shop/support" className="btn-secondary">Get Help</a>
             </div>
           </div>

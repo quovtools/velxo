@@ -25,7 +25,7 @@ export default function Games() {
             <span className="text-gradient">all in one place</span>
           </h2>
         </div>
-        <a href="https://market.piyrox.shop" className="group inline-flex shrink-0 items-center gap-2 whitespace-nowrap text-sm font-semibold text-brand-light transition hover:text-white">
+        <a href="https://app.piyrox.shop" className="group inline-flex shrink-0 items-center gap-2 whitespace-nowrap text-sm font-semibold text-brand-light transition hover:text-white">
           Browse all games
           <ArrowRight className="h-4 w-4 transition-transform group-hover:translate-x-1" />
         </a>
@@ -35,7 +35,7 @@ export default function Games() {
         {GAMES.map((game) => (
           <li key={game.slug}>
             <a
-              href={`https://market.piyrox.shop/games/${game.slug}`}
+              href={`https://app.piyrox.shop/games/${game.slug}`}
               className="card-surface group block h-full"
             >
               <div
