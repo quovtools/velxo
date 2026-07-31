@@ -3,6 +3,7 @@ import { ConfigModule } from '@nestjs/config'
 import { JwtModule } from '@nestjs/jwt'
 import { APP_FILTER, APP_PIPE } from '@nestjs/core'
 import { PrismaModule } from './common/services/prisma.module'
+import { StartupHealthService } from './common/services/startup-health.service'
 import { AppController } from './app.controller'
 import { AuthModule } from './modules/auth/auth.module'
 import { UsersModule } from './modules/users/users.module'
@@ -78,6 +79,7 @@ import { AllExceptionsFilter } from './common/filters/all-exceptions.filter'
       provide: APP_FILTER,
       useClass: AllExceptionsFilter,
     },
+    StartupHealthService,
   ],
 })
 export class AppModule {}
