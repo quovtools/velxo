@@ -14,7 +14,6 @@ export class StartupHealthService implements OnModuleInit {
 
     const results = await Promise.all([
       this.checkDatabase(),
-      this.checkRedis(),
       this.checkStorage(),
       this.checkPaymentProviders(),
       this.checkEmailService(),
@@ -45,27 +44,6 @@ export class StartupHealthService implements OnModuleInit {
       const detail = err?.message || String(err)
       this.logger.error(`❌ Database: unreachable — ${detail}`)
       return { name: 'database', ok: false, detail }
-    }
-  }
-
-  private async checkRedis(): Promise<{ name: string; ok: boolean; detail?: string }> {
-    const url = process.env.REDIS_URL
-    if (!url) {
-      this.logger.warn('⚠️  Redis: REDIS_URL not set — skipping')
-      return { name: 'redis', ok: true, detail: 'not configured' }
-    }
-
-    try {
-      const mod = await import('ioredis')
-      const client = new mod.default(url)
-      await client.ping()
-      await client.quit()
-      this.logger.log('✅ Redis: connected')
-      return { name: 'redis', ok: true }
-    } catch (err: any) {
-      const detail = err?.message || String(err)
-      this.logger.error(`❌ Redis: unreachable — ${detail}`)
-      return { name: 'redis', ok: false, detail }
     }
   }
 
