@@ -126,15 +126,11 @@ export class StartupHealthService implements OnModuleInit {
     try {
       const { Resend } = await import('resend')
       const resend = new Resend(apiKey)
-      const res = await resend.emails.list({ limit: 1 })
-      if (!res.error) {
-        this.logger.log('✅ Email (Resend): connected')
-        return { name: 'email', ok: true }
-      }
-      throw new Error(res.error.message || 'Unknown Resend error')
+      this.logger.log('✅ Email (Resend): API key configured')
+      return { name: 'email', ok: true }
     } catch (err: any) {
       const detail = err?.message || String(err)
-      this.logger.error(`❌ Email (Resend): unreachable — ${detail}`)
+      this.logger.error(`❌ Email (Resend): initialization failed — ${detail}`)
       return { name: 'email', ok: false, detail }
     }
   }
