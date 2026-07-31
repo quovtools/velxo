@@ -4,6 +4,7 @@ import { NotificationType } from '@prisma/client'
 import { NotFoundException } from '@/common/exceptions/custom-exceptions'
 import { NotificationsGateway } from '@/modules/gateways/notifications.gateway'
 import { EmailService } from '@/shared/email.service'
+import { PushService } from './push.service'
 
 const FRONTEND = process.env.FRONTEND_URL || 'https://market.piyrox.shop'
 
@@ -53,6 +54,7 @@ export class NotificationsService {
     private prisma: PrismaService,
     private gateway: NotificationsGateway,
     private email: EmailService,
+    private push: PushService,
   ) {}
 
   async createNotification(
@@ -62,6 +64,11 @@ export class NotificationsService {
     body: string,
     data?: Record<string, any>,
   ) {
+    const prefs = await this.push.getUserPreferences(userId)
+    if (prefs[type] === false && type !== NotificationType.SYSTEM) {
+      return null
+    }
+
     const notification = await this.prisma.notifications.create({
       data: { userId, type, title, body, data },
     })
@@ -70,6 +77,10 @@ export class NotificationsService {
       this.gateway?.emitToUser(userId, 'newNotification', notification)
     } catch (err) {
       this.logger.warn(`Failed to push real-time notification: ${err}`)
+    }
+
+    if (prefs[type] !== false) {
+      await this.push.sendPushToUser(userId, { title, body, data }).catch(() => {})
     }
 
     return notification
@@ -485,11 +496,39 @@ export class NotificationsService {
     await this.createNotification(sellerId, 'LISTING_REJECTED', 'Listing Rejected', `Your listing was rejected: ${reason}`, { listingId, reason })
   }
 
-  async notifyKycApproved(sellerId: string, storeName: string) {
-    await this.createNotification(sellerId, 'KYC_APPROVED', 'Identity Verified', `Congratulations! Your seller identity for ${storeName} has been verified. You now have a verified badge.`, { storeName })
+  async notifyKycApproved(sellerId: string, storeName: string, tier?: string) {
+    const msg = tier
+      ? `Congratulations! Your ${tier} verification for ${storeName} has been approved.`
+      : `Congratulations! Your seller identity for ${storeName} has been verified. You now have a verified badge.`
+    await this.createNotification(sellerId, 'KYC_APPROVED', 'Identity Verified', msg, { storeName, tier })
   }
 
   async notifyKycRejected(sellerId: string, storeName: string, reason: string) {
     await this.createNotification(sellerId, 'KYC_REJECTED', 'Verification Rejected', `Your identity verification for ${storeName} was rejected: ${reason}`, { storeName, reason })
+  }
+
+  async subscribePush(userId: string, body: { endpoint: string; keys: { p256dh: string; auth: string }; userAgent?: string }) {
+    await this.prisma.pushSubscriptions.upsert({
+      where: { endpoint: body.endpoint },
+      update: { userId, p256dh: body.keys.p256dh, auth: body.keys.auth, userAgent: body.userAgent || null, updatedAt: new Date() },
+      create: { userId, endpoint: body.endpoint, p256dh: body.keys.p256dh, auth: body.keys.auth, userAgent: body.userAgent || null },
+    })
+  }
+
+  async unsubscribePush(userId: string, endpoint: string) {
+    await this.prisma.pushSubscriptions.deleteMany({ where: { userId, endpoint } })
+  }
+
+  async getPreferences(userId: string) {
+    const user = await this.prisma.users.findUnique({ where: { id: userId }, select: { notificationPreferences: true } })
+    const defaults: Record<string, boolean> = { ORDER_STATUS: true, MESSAGE: true, DISPUTE: true, WITHDRAWAL: true, LISTING_APPROVED: true, LISTING_REJECTED: true, KYC_APPROVED: true, KYC_REJECTED: true, FRAUD_ALERT: true, SYSTEM: false }
+    return { ...defaults, ...(user?.notificationPreferences as Record<string, boolean> || {}) }
+  }
+
+  async updatePreferences(userId: string, prefs: Record<string, boolean>) {
+    const current = await this.getPreferences(userId)
+    const merged = { ...current, ...prefs }
+    await this.prisma.users.update({ where: { id: userId }, data: { notificationPreferences: merged } })
+    return merged
   }
 }

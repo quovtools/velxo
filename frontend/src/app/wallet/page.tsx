@@ -7,6 +7,7 @@ import { useAuth } from '@/app/providers';
 import {
   Wallet, ArrowDownLeft, ArrowUpRight, Clock, Plus,
   TrendingUp, Lock, DollarSign, X, Loader2, AlertCircle,
+  CreditCard,
 } from 'lucide-react';
 import { useCurrency } from '@/lib/useCurrency';
 
@@ -29,7 +30,8 @@ interface Transaction {
 const TYPE_CONFIG: Record<string, { color: string; bg: string; label: string; sign: string }> = {
   CREDIT:  { color: 'text-emerald-400', bg: 'bg-emerald-900/20 border-emerald-500/20', label: 'Credit',  sign: '+' },
   RELEASE: { color: 'text-emerald-400', bg: 'bg-emerald-900/20 border-emerald-500/20', label: 'Released', sign: '+' },
-  REFUND:  { color: 'text-violet-400',    bg: 'bg-violet-900/20 border-violet-500/20',        label: 'Refund',  sign: '+' },
+  REFUND:  { color: 'text-violet-400',  bg: 'bg-violet-900/20 border-violet-500/20',   label: 'Refund',  sign: '+' },
+  TOPUP:   { color: 'text-sky-400',     bg: 'bg-sky-900/20 border-sky-500/20',         label: 'Deposit', sign: '+' },
   DEBIT:   { color: 'text-red-400',     bg: 'bg-red-900/20 border-red-500/20',          label: 'Debit',   sign: '-' },
   HOLD:    { color: 'text-yellow-400',  bg: 'bg-yellow-900/20 border-yellow-500/20',    label: 'Held',    sign: '-' },
   FEE:     { color: 'text-gray-400',    bg: 'bg-gray-800/40 border-gray-600/20',        label: 'Fee',     sign: '-' },
@@ -59,7 +61,11 @@ export default function WalletPage() {
   const [wallet, setWallet]           = useState<WalletData | null>(null);
   const [transactions, setTxns]       = useState<Transaction[]>([]);
   const [loading, setLoading]         = useState(true);
-  const [showModal, setShowModal]     = useState(false);
+  const [showModal, setShowModal]       = useState(false);
+  const [showTopupModal, setTopupModal] = useState(false);
+  const [topupAmount, setTopupAmount]   = useState('');
+  const [topupProvider, setTopupProvider] = useState<'FLUTTERWAVE' | 'PAYMENT_IO'>('FLUTTERWAVE');
+  const [topupPending, setTopupPending] = useState(false);
   const [withdrawAmount, setAmount]   = useState('');
   const [method, setMethod]           = useState('bank');
   const [destination, setDest]        = useState('');
@@ -85,6 +91,29 @@ export default function WalletPage() {
   const showToast = (msg: string, ok: boolean) => {
     setToast({ msg, ok });
     setTimeout(() => setToast(null), 4000);
+  };
+
+  const handleTopup = async (e: React.FormEvent) => {
+    e.preventDefault();
+    const amount = parseFloat(topupAmount);
+    if (!amount || amount < 1) { showToast('Minimum top-up is $1', false); return; }
+    if (amount > 500) { showToast('Maximum top-up is $500 per transaction', false); return; }
+    setTopupPending(true);
+    try {
+      const res = await api.post<{ data: { transactionId: string; paymentUrl?: string } }>(
+        '/wallet/topup/initiate',
+        { amount, currency: 'USD', provider: topupProvider },
+      );
+      setTopupModal(false); setTopupAmount('');
+      if (res.data?.paymentUrl) {
+        // Redirect to hosted payment page
+        window.location.href = res.data.paymentUrl;
+      } else {
+        showToast('Top-up initiated — redirecting to payment…', true);
+      }
+    } catch (err: any) {
+      showToast(err.message || 'Top-up failed', false);
+    } finally { setTopupPending(false); }
   };
 
   const handleWithdraw = async (e: React.FormEvent) => {
@@ -136,10 +165,16 @@ export default function WalletPage() {
           </h1>
           <p className="text-gray-500 text-sm mt-0.5">Manage earnings and withdrawals</p>
         </div>
-        <button onClick={() => setShowModal(true)}
-          className="flex items-center gap-2 bg-brand hover:bg-brand-dark px-4 py-2.5 rounded-xl text-sm font-bold transition text-white shadow-lg shadow-brand/20">
-          <ArrowUpRight className="w-4 h-4" /> Withdraw
-        </button>
+        <div className="flex items-center gap-2">
+          <button onClick={() => setTopupModal(true)}
+            className="flex items-center gap-2 bg-emerald-600 hover:bg-emerald-700 px-4 py-2.5 rounded-xl text-sm font-bold transition text-white shadow-lg shadow-emerald-900/30">
+            <Plus className="w-4 h-4" /> Add Funds
+          </button>
+          <button onClick={() => setShowModal(true)}
+            className="flex items-center gap-2 bg-brand hover:bg-brand-dark px-4 py-2.5 rounded-xl text-sm font-bold transition text-white shadow-lg shadow-brand/20">
+            <ArrowUpRight className="w-4 h-4" /> Withdraw
+          </button>
+        </div>
       </div>
 
       {/* Stats */}
@@ -195,6 +230,73 @@ export default function WalletPage() {
           </div>
         )}
       </div>
+
+      {/* Topup Modal */}
+      {showTopupModal && (
+        <div className="fixed inset-0 bg-black/70 backdrop-blur-sm flex items-center justify-center z-50 p-4">
+          <div className="bg-cardBg border border-borderBg rounded-2xl w-full max-w-md p-6 space-y-5 shadow-2xl fade-in">
+            <div className="flex items-center justify-between">
+              <h3 className="text-lg font-bold flex items-center gap-2">
+                <CreditCard className="w-5 h-5 text-emerald-400" /> Add Funds
+              </h3>
+              <button onClick={() => setTopupModal(false)} className="p-2 hover:bg-hoverBg rounded-lg transition">
+                <X className="w-4 h-4" />
+              </button>
+            </div>
+
+            {/* Quick amounts */}
+            <div>
+              <p className="text-xs font-semibold text-gray-400 uppercase tracking-wide mb-2">Quick Select</p>
+              <div className="grid grid-cols-5 gap-2">
+                {['5','10','25','50','100'].map(v => (
+                  <button key={v} onClick={() => setTopupAmount(v)}
+                    className={`py-2 rounded-xl text-sm font-bold border transition ${topupAmount === v ? 'bg-brand border-brand text-white' : 'bg-background border-borderBg text-gray-300 hover:border-brand/40'}`}>
+                    ${v}
+                  </button>
+                ))}
+              </div>
+            </div>
+
+            <form onSubmit={handleTopup} className="space-y-4">
+              <div>
+                <label className="block text-xs font-semibold text-gray-400 mb-1.5 uppercase tracking-wide">Custom Amount (USD)</label>
+                <input type="number" required min="1" max="500" step="0.01"
+                  value={topupAmount} onChange={e => setTopupAmount(e.target.value)}
+                  className="w-full bg-background border border-borderBg rounded-xl px-4 py-3 text-sm focus:outline-none focus:border-brand"
+                  placeholder="Enter amount ($1 – $500)" />
+              </div>
+              <div>
+                <label className="block text-xs font-semibold text-gray-400 mb-1.5 uppercase tracking-wide">Payment Method</label>
+                <div className="space-y-2">
+                  {([['FLUTTERWAVE', 'Card / Mobile Money', 'Via Flutterwave'], ['PAYMENT_IO', 'Crypto (USDT)', 'Via Paymento']] as const).map(([val, label, sub]) => (
+                    <button key={val} type="button" onClick={() => setTopupProvider(val)}
+                      className={`w-full flex items-center gap-3 p-3 rounded-xl border transition ${topupProvider === val ? 'border-brand bg-brand/5' : 'border-borderBg bg-background hover:border-brand/30'}`}>
+                      <div className={`w-4 h-4 rounded-full border-2 flex items-center justify-center flex-shrink-0 ${topupProvider === val ? 'border-brand' : 'border-gray-600'}`}>
+                        {topupProvider === val && <div className="w-2 h-2 rounded-full bg-brand" />}
+                      </div>
+                      <div className="text-left">
+                        <p className="text-sm font-semibold text-white">{label}</p>
+                        <p className="text-xs text-gray-500">{sub}</p>
+                      </div>
+                    </button>
+                  ))}
+                </div>
+              </div>
+
+              <div className="flex gap-3 pt-1">
+                <button type="button" onClick={() => setTopupModal(false)}
+                  className="flex-1 border border-borderBg py-3 rounded-xl text-sm font-semibold hover:bg-hoverBg transition">
+                  Cancel
+                </button>
+                <button type="submit" disabled={topupPending || !topupAmount}
+                  className="flex-1 flex items-center justify-center gap-2 bg-emerald-600 hover:bg-emerald-700 py-3 rounded-xl text-sm font-bold transition text-white disabled:opacity-50">
+                  {topupPending ? <><Loader2 className="w-4 h-4 animate-spin" /> Processing…</> : `Add $${topupAmount || '0'}`}
+                </button>
+              </div>
+            </form>
+          </div>
+        </div>
+      )}
 
       {/* Withdrawal Modal */}
       {showModal && (

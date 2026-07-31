@@ -45,6 +45,12 @@ export class AuthController {
     }
   }
 
+  @Get('validate')
+  @UseGuards(SupabaseJwtGuard)
+  validate(@CurrentUserId() userId: string) {
+    return ApiResponseDto.ok({ valid: true, userId }, 'Token is valid')
+  }
+
   @Get('me')
   @UseGuards(SupabaseJwtGuard)
   async getCurrentUser(@CurrentUserId() userId: string) {

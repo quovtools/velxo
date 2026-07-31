@@ -16,6 +16,9 @@ import { SupabaseJwtGuard } from '@/common/guards/supabase-jwt.guard'
 import { CurrentUserId } from '@/common/decorators/current-user.decorator'
 import { ApiResponseDto } from '@/common/dto/api-response.dto'
 import { CreateConversationDto } from './dto/create-conversation.dto'
+import { UseInterceptors, UploadedFile, FileInterceptor } from '@nestjs/platform-express'
+import { memoryStorage } from 'multer'
+import { BadRequestException } from '@/common/exceptions/custom-exceptions'
 
 @Controller('messages')
 export class MessagesController {
@@ -87,21 +90,49 @@ export class MessagesController {
   async sendMessage(
     @Param('conversationId') conversationId: string,
     @CurrentUserId() senderId: string,
-    @Body('content') content: string,
-    @Body('attachments') attachments?: string[],
+    @Body() body: { content?: string; attachmentUrl?: string; attachmentType?: string; attachmentName?: string },
   ) {
     try {
       const message = await this.messagesService.sendMessage(
         conversationId,
         senderId,
-        content,
-        attachments,
+        body.content || '',
+        [],
+        body.attachmentUrl,
+        body.attachmentType,
+        body.attachmentName,
       )
       return ApiResponseDto.ok(message, 'Message sent successfully')
     } catch (error) {
       this.logger.error('Error sending message:', error)
       throw error
     }
+  }
+
+  @Post('conversation/:conversationId/upload')
+  @UseGuards(SupabaseJwtGuard)
+  @UseInterceptors(
+    FileInterceptor('file', {
+      storage: memoryStorage(),
+      limits: { fileSize: 5 * 1024 * 1024 },
+      fileFilter: (_req, file, cb) => {
+        const allowed = ['image/jpeg', 'image/png', 'image/webp', 'video/mp4', 'application/pdf']
+        if (allowed.includes(file.mimetype)) {
+          cb(null, true)
+        } else {
+          cb(new BadRequestException(`File type ${file.mimetype} is not allowed`), false)
+        }
+      },
+    }),
+  )
+  async uploadAttachment(
+    @Param('conversationId') conversationId: string,
+    @CurrentUserId() userId: string,
+    @UploadedFile() file: Express.Multer.File,
+  ) {
+    if (!file) throw new BadRequestException('No file provided')
+    const result = await this.messagesService.uploadAttachment(conversationId, userId, file)
+    return ApiResponseDto.ok(result, 'File uploaded')
   }
 
   @Patch('conversation/:conversationId/mark-read')

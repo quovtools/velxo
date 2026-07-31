@@ -27,6 +27,7 @@ export class RegisterDto {
   @IsOptional() @IsEnum(Role) role?: Role
   @IsOptional() @IsObject() preferences?: Record<string, any>
   @IsOptional() @IsString() referralCode?: string
+  @IsOptional() @IsString() phone?: string
 }
 
 export class ResetPasswordDto {

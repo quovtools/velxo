@@ -69,12 +69,23 @@ export class ListingsController {
   }
 
   @Post('estimate-value')
-  async estimateValue(@Body() dto: { gameId: string; rank: string; level: number; skins: number; platform: string }) {
+  async estimateValue(@Body() dto: { gameId: string; rank: string; level: number; skins: number | any[]; platform: string; hasElitePass?: boolean; hasBattlePass?: boolean }) {
     try {
       const result = await this.listingsService.estimateAccountValue(dto)
       return ApiResponseDto.ok(result, 'Value estimated successfully')
     } catch (error) {
       this.logger.error('Error estimating value:', error)
+      throw error
+    }
+  }
+
+  @Get('market-stats')
+  async getMarketStats(@Query('gameId') gameId: string, @Query('rank') rank?: string, @Query('platform') platform?: string) {
+    try {
+      const result = await this.listingsService.getMarketStats(gameId, rank, platform)
+      return ApiResponseDto.ok(result, 'Market stats retrieved')
+    } catch (error) {
+      this.logger.error('Error fetching market stats:', error)
       throw error
     }
   }

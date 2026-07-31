@@ -54,12 +54,20 @@ export class DisputesService {
           dto.evidence || dto.description
             ? { evidence: dto.evidence ?? null, description: dto.description ?? null }
             : undefined,
+        evidenceUrls: dto.evidenceUrls || [],
+        evidenceText: dto.evidenceText || null,
         status: DisputeStatus.OPEN,
       },
       include: {
         order: { include: { buyer: true, seller: true } },
         initiator: true,
       },
+    })
+
+    // Clear buyer confirm deadline so escrow auto-release timer stops while disputed.
+    await this.prisma.orders.update({
+      where: { id: dto.orderId },
+      data: { buyerConfirmDeadline: null },
     })
 
     // Update order status
@@ -131,6 +139,43 @@ export class DisputesService {
       orderBy: { createdAt: 'asc' },
       take: limit,
     })
+  }
+
+  async addDisputeEvidence(disputeId: string, userId: string, dto: { evidenceUrls?: string[]; evidenceText?: string }) {
+    const dispute = await this.prisma.disputes.findUnique({ where: { id: disputeId } })
+    if (!dispute) throw new NotFoundException('Dispute')
+    if (dispute.initiatedById !== userId) throw new ForbiddenException('Only the initiator can add evidence')
+    if (dispute.status === DisputeStatus.CLOSED) throw new InvalidEscrowStateException('Dispute is closed')
+    const updated = await this.prisma.disputes.update({
+      where: { id: disputeId },
+      data: {
+        evidenceUrls: { set: [...(dispute.evidenceUrls as string[] || []), ...(dto.evidenceUrls || [])] },
+        evidenceText: dto.evidenceText ? (dispute.evidenceText ? dispute.evidenceText + '\n' + dto.evidenceText : dto.evidenceText) : dispute.evidenceText,
+      },
+    })
+    return updated
+  }
+
+  async requestRelease(orderId: string, sellerId: string) {
+    const order = await this.prisma.orders.findUnique({ where: { id: orderId }, include: { seller: true } })
+    if (!order) throw new NotFoundException('Order')
+    if (order.seller?.userId !== sellerId) throw new ForbiddenException('Only the seller can request release')
+    if (order.status !== OrderStatus.IN_PROGRESS) throw new BadRequestException('Order must be in progress')
+    await this.prisma.orders.update({
+      where: { id: orderId },
+      data: { metadata: { ...((order.metadata as Record<string, any>) || {}), releaseRequest: { requestedAt: new Date(), requestedBy: sellerId } } },
+    })
+    return { success: true, message: 'Release request sent to buyer' }
+  }
+
+  async confirmRelease(orderId: string, buyerId: string) {
+    const order = await this.prisma.orders.findUnique({ where: { id: orderId } })
+    if (!order) throw new NotFoundException('Order')
+    if (order.buyerId !== buyerId) throw new ForbiddenException('Only the buyer can confirm release')
+    const metadata = (order.metadata as Record<string, any>) || {}
+    if (!metadata.releaseRequest) throw new BadRequestException('No release request pending for this order')
+    // Return order for caller to process escrow release.
+    return { eligible: true, orderId }
   }
 
   async resolveDispute(disputeId: string, resolverId: string, dto: ResolveDisputeDto) {

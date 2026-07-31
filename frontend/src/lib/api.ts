@@ -75,6 +75,18 @@ async function request<T>(endpoint: string, options: RequestOptions = {}): Promi
 
   const response = await fetchWithRetry(1);
 
+  // Global 401 handler — redirect to login with callbackUrl when a valid session token was present
+  if (response.status === 401 && typeof window !== 'undefined') {
+    const hadToken = Boolean(localStorage.getItem('piyrox_token'));
+    if (hadToken) {
+      localStorage.removeItem('piyrox_token');
+      localStorage.removeItem('piyrox_user');
+      const returnUrl = encodeURIComponent(window.location.pathname + window.location.search);
+      window.location.href = `/auth/login?callbackUrl=${returnUrl}`;
+      throw new Error('Session expired. Please sign in again.');
+    }
+  }
+
   let responseData: any;
   const contentType = response.headers.get('content-type');
   if (contentType?.includes('application/json')) {

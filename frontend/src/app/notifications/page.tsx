@@ -7,6 +7,7 @@ import { api } from '@/lib/api';
 import {
   Bell, CheckCheck, Trash2, ShoppingBag, MessageSquare,
   ShieldAlert, Wallet, Info, Loader2, Package, ChevronRight,
+  BadgeCheck,
 } from 'lucide-react';
 
 interface Notification {
@@ -26,6 +27,8 @@ const TYPE_ICON: Record<string, React.ReactNode> = {
   WITHDRAWAL:        <Wallet className="w-4 h-4 text-emerald-400" />,
   LISTING_APPROVED:  <Package className="w-4 h-4 text-emerald-400" />,
   LISTING_REJECTED:  <Package className="w-4 h-4 text-red-400" />,
+  KYC_APPROVED:      <BadgeCheck className="w-4 h-4 text-emerald-400" />,
+  KYC_REJECTED:      <BadgeCheck className="w-4 h-4 text-red-400" />,
   FRAUD_ALERT:       <ShieldAlert className="w-4 h-4 text-orange-400" />,
   SYSTEM:            <Info className="w-4 h-4 text-gray-400" />,
 };
@@ -37,6 +40,8 @@ const TYPE_BG: Record<string, string> = {
   WITHDRAWAL:       'bg-emerald-900/20 border-emerald-500/20',
   LISTING_APPROVED: 'bg-emerald-900/20 border-emerald-500/20',
   LISTING_REJECTED: 'bg-red-900/20 border-red-500/20',
+  KYC_APPROVED:     'bg-emerald-900/20 border-emerald-500/20',
+  KYC_REJECTED:     'bg-red-900/20 border-red-500/20',
   FRAUD_ALERT:      'bg-orange-900/20 border-orange-500/20',
   SYSTEM:           'bg-hoverBg border-borderBg',
 };

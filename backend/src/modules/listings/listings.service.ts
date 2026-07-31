@@ -300,9 +300,13 @@ export class ListingsService {
     gameId: string
     rank: string
     level: number
-    skins: number
+    skins: number | any[]
     platform: string
+    hasElitePass?: boolean
+    hasBattlePass?: boolean
   }) {
+    const skinCount = Array.isArray(dto.skins) ? dto.skins.length : Number(dto.skins) || 0
+    const skinValueBonus = Math.min(50, skinCount * 2)
     const GAME_BASE: Record<string, number> = {
       'free-fire': 25,
       'cod-mobile': 30,
@@ -338,17 +342,54 @@ export class ListingsService {
     const base = GAME_BASE[dto.gameId] || 20
     const rankMult = RANK_MULTIPLIER[dto.rank] || 1.0
     const platformMult = PLATFORM_MULTIPLIER[dto.platform] || 1.0
-    const levelBonus = Math.max(0, (dto.level - 1)) * 0.1
-    const skinBonus = dto.skins * 1.5
+    const levelBonus = Math.max(0, (dto.level - 1)) * 0.5
+    const eliteBonus = dto.hasElitePass ? 12 : dto.hasBattlePass ? 10 : 0
 
-    const estimated = base * rankMult * platformMult + levelBonus + skinBonus
-    const variance = estimated * 0.2
-    const low = Math.max(0, estimated - variance)
-    const high = estimated + variance
+    const comparable = await this.prisma.listings.findMany({
+      where: { gameId: dto.gameId, rank: dto.rank, platform: dto.platform, status: 'ACTIVE' },
+      select: { price: true },
+    })
+    const prices = comparable.map(l => Number(l.price)).sort((a, b) => a - b)
+    const sampleSize = prices.length
+    let marketMin = base
+    let marketMax = base * 2
+    if (sampleSize >= 3) {
+      marketMin = prices[Math.floor(sampleSize * 0.25)]
+      marketMax = prices[Math.floor(sampleSize * 0.75)]
+      base = prices[Math.floor(sampleSize * 0.5)]
+    }
+    const estimated = base * rankMult * platformMult + levelBonus + skinValueBonus + eliteBonus
+    const low = Math.max(0, estimated - (estimated * 0.2))
+    const high = estimated + (estimated * 0.2)
+    const confidence = sampleSize >= 10 ? 'high' : sampleSize >= 3 ? 'medium' : 'low'
+    const reasoning = [
+      `Base value: $${base.toFixed(2)}`,
+      `${dto.rank} rank multiplier: x${rankMult}`,
+      `${skinCount} skins: +$${skinValueBonus}`,
+      eliteBonus > 0 ? `Battle/Elite Pass: +$${eliteBonus}` : null,
+      `Level bonus: +$${levelBonus.toFixed(2)}`,
+      sampleSize > 0 ? `Based on ${sampleSize} active listings` : 'No comparable listings found — estimate based on platform averages only.',
+    ].filter(Boolean) as string[]
 
     return {
-      estimated: Math.round(estimated * 100) / 100,
-      range: [Math.round(low * 100) / 100, Math.round(high * 100) / 100],
+      suggestedMin: Math.round(low * 100) / 100,
+      suggested: Math.round(estimated * 100) / 100,
+      suggestedMax: Math.round(high * 100) / 100,
+      confidence,
+      marketSampleSize: sampleSize,
+      reasoning,
     }
+  }
+
+  async getMarketStats(gameId: string, rank?: string, platform?: string) {
+    const where: any = { gameId, status: 'ACTIVE' }
+    if (rank) where.rank = rank
+    if (platform) where.platform = platform
+    const prices = (await this.prisma.listings.findMany({ where, select: { price: true } })).map(l => Number(l.price)).sort((a, b) => a - b)
+    const count = prices.length
+    const p25 = count > 0 ? prices[Math.floor(count * 0.25)] : null
+    const median = count > 0 ? prices[Math.floor(count * 0.5)] : null
+    const p75 = count > 0 ? prices[Math.floor(count * 0.75)] : null
+    return { p25, median, p75, count }
   }
 }

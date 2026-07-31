@@ -4,6 +4,7 @@ import {
   Post,
   Body,
   Param,
+  Query,
   UseGuards,
   Logger,
   Patch,
@@ -14,6 +15,15 @@ import { SupabaseJwtGuard } from '@/common/guards/supabase-jwt.guard'
 import { CurrentUserId } from '@/common/decorators/current-user.decorator'
 import { ApiResponseDto } from '@/common/dto/api-response.dto'
 import { ForbiddenException } from '@/common/exceptions/custom-exceptions'
+
+export interface OrderFilterQuery {
+  status?: string
+  gameName?: string
+  from?: string
+  to?: string
+  page?: string
+  limit?: string
+}
 
 @Controller('orders')
 export class OrdersController {
@@ -35,9 +45,9 @@ export class OrdersController {
 
   @Get('me')
   @UseGuards(SupabaseJwtGuard)
-  async getMyOrders(@CurrentUserId() buyerId: string) {
+  async getMyOrders(@CurrentUserId() buyerId: string, @Query() query: OrderFilterQuery) {
     try {
-      const orders = await this.ordersService.getBuyerOrders(buyerId)
+      const orders = await this.ordersService.getBuyerOrders(buyerId, query)
       return ApiResponseDto.ok(orders, 'Orders retrieved successfully')
     } catch (error) {
       this.logger.error('Error fetching orders:', error)
@@ -47,13 +57,24 @@ export class OrdersController {
 
   @Get('seller')
   @UseGuards(SupabaseJwtGuard)
-  async getSellerOrders(@CurrentUserId() userId: string) {
+  async getSellerOrders(@CurrentUserId() userId: string, @Query() query: OrderFilterQuery) {
     try {
-      // orders.sellerId stores sellers.id, not users.id — resolve the seller record first.
-      const orders = await this.ordersService.getSellerOrdersByUserId(userId)
+      const orders = await this.ordersService.getSellerOrdersByUserId(userId, query)
       return ApiResponseDto.ok(orders, 'Orders retrieved successfully')
     } catch (error) {
-      this.logger.error('Error fetching orders:', error)
+      this.logger.error('Error fetching seller orders:', error)
+      throw error
+    }
+  }
+
+  @Get(':id/receipt')
+  @UseGuards(SupabaseJwtGuard)
+  async getOrderReceipt(@Param('id') orderId: string, @CurrentUserId() userId: string) {
+    try {
+      const receipt = await this.ordersService.getOrderReceipt(orderId, userId)
+      return ApiResponseDto.ok(receipt, 'Receipt retrieved successfully')
+    } catch (error) {
+      this.logger.error('Error fetching receipt:', error)
       throw error
     }
   }
@@ -103,7 +124,18 @@ export class OrdersController {
   async markDelivered(
     @Param('id') orderId: string,
     @CurrentUserId() sellerId: string,
-    @Body() body: Record<string, any>,
+    @Body() body: {
+      deliveryData?: {
+        credentials?: {
+          username?: string
+          password?: string
+          email?: string
+          loginMethod?: string
+        }
+        notes?: string
+        screenshotUrls?: string[]
+      }
+    },
   ) {
     try {
       const order = await this.ordersService.markDelivered(orderId, sellerId, body?.deliveryData)
@@ -116,15 +148,36 @@ export class OrdersController {
 
   @Patch(':id/accept')
   @UseGuards(SupabaseJwtGuard)
-  async acceptOrder(
-    @Param('id') orderId: string,
-    @CurrentUserId() sellerId: string,
-  ) {
+  async acceptOrder(@Param('id') orderId: string, @CurrentUserId() sellerId: string) {
     try {
       const order = await this.ordersService.acceptOrder(orderId, sellerId)
       return ApiResponseDto.ok(order, 'Order accepted — delivery timer started')
     } catch (error) {
       this.logger.error('Error accepting order:', error)
+      throw error
+    }
+  }
+
+  @Post(':id/request-release')
+  @UseGuards(SupabaseJwtGuard)
+  async requestRelease(@Param('id') orderId: string, @CurrentUserId() sellerId: string) {
+    try {
+      const result = await this.ordersService.requestRelease(orderId, sellerId)
+      return ApiResponseDto.ok(result, 'Release requested')
+    } catch (error) {
+      this.logger.error('Error requesting release:', error)
+      throw error
+    }
+  }
+
+  @Post(':id/confirm-release')
+  @UseGuards(SupabaseJwtGuard)
+  async confirmRelease(@Param('id') orderId: string, @CurrentUserId() buyerId: string) {
+    try {
+      const order = await this.ordersService.confirmRelease(orderId, buyerId)
+      return ApiResponseDto.ok(order, 'Release confirmed — funds sent to seller')
+    } catch (error) {
+      this.logger.error('Error confirming release:', error)
       throw error
     }
   }

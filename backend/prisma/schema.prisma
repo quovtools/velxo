@@ -198,6 +198,8 @@ model users {
   rewardRedemptions   rewardRedemptions[]
   forumThreads        forumThreads[]
   forumPosts          forumPosts[]
+  pushSubscriptions   pushSubscriptions[]
+  savedSearches       savedSearches[]
   buyerRequests       buyerRequests[]
 
   @@index([email])
@@ -563,10 +565,25 @@ model escrowTransactions {
   updatedAt       DateTime @updatedAt
 
   order           orders       @relation(fields: [orderId], references: [id], onDelete: Cascade)
+  milestones      escrowMilestones[]
 
   @@index([status])
   @@index([createdAt])
   @@map("escrow_transactions")
+}
+
+model escrowMilestones {
+  id          String   @id @default(cuid())
+  escrowId    String
+  label       String
+  amount      Decimal  @db.Decimal(12, 2)
+  status      String   @default("HELD") // HELD | RELEASED | REFUNDED
+  releasedAt  DateTime?
+  createdAt   DateTime @default(now())
+
+  escrow      escrowTransactions @relation(fields: [escrowId], references: [id], onDelete: Cascade)
+
+  @@map("escrow_milestones")
 }
 
 model wallet {
@@ -657,6 +674,9 @@ model messages {
   senderType      MessageSenderType    @default(BUYER)
   content         String
   attachments     String[]
+  attachmentUrl   String?
+  attachmentType  String?  // image | video | file
+  attachmentName  String?
   isRead          Boolean              @default(false)
   readAt          DateTime?
   isDeleted       Boolean              @default(false)
@@ -692,6 +712,35 @@ model notifications {
   @@map("notifications")
 }
 
+model pushSubscriptions {
+  id          String   @id @default(cuid())
+  userId      String
+  endpoint    String   @unique
+  p256dh      String
+  auth        String
+  userAgent   String?
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+
+  user        users    @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@index([userId])
+  @@map("push_subscriptions")
+}
+
+model savedSearches {
+  id        String   @id @default(cuid())
+  userId    String
+  name      String
+  params    Json
+  createdAt DateTime @default(now())
+
+  user      users    @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@index([userId])
+  @@map("saved_searches")
+}
+
 model disputes {
   id              String           @id @default(cuid())
   orderId         String
@@ -699,6 +748,8 @@ model disputes {
   status          DisputeStatus    @default(OPEN)
   reason          String
   evidence        Json?
+  evidenceUrls    String[]   @default([])
+  evidenceText    String?
   resolutionType  DisputeResolutionType?
   resolutionNotes String?
   refundAmount    Decimal?         @db.Decimal(12, 2)

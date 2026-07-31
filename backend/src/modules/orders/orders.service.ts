@@ -22,17 +22,12 @@ import { RewardsService } from '../rewards/rewards.service'
 import { NotificationsService } from '../notifications/notifications.service'
 import { AffiliateService } from '../affiliate/affiliate.service'
 import { CurrencyService } from '@/common/services/currency.service'
+import { computeKycTier, ORDER_CAP, commissionRateForTier as computeCommissionRate } from '../sellers/sellers.service'
+import { WalletService } from '../wallet/wallet.service'
 
-/** Escrow commission rate by seller subscription tier (Seller Pro = lower). */
-function commissionRateForTier(tier?: string | null): number {
-  switch (tier) {
-    case 'PRO':
-      return 0.05
-    case 'PREMIUM':
-      return 0.03
-    default:
-      return 0.1
-  }
+/** Escrow commission rate — delegates to shared implementation that considers KYC tier. */
+function commissionRateForTier(tier?: string | null, kycStatus?: string): number {
+  return computeCommissionRate(tier, kycStatus)
 }
 
 @Injectable()
@@ -45,6 +40,7 @@ export class OrdersService {
     private notifications: NotificationsService,
     private affiliateService: AffiliateService,
     private currencyService: CurrencyService,
+    private walletService: WalletService,
     @Optional() @Inject(REQUEST) private request?: Request,
   ) {}
 
@@ -84,8 +80,18 @@ export class OrdersService {
     }
 
     // Calculate amounts — Seller Pro / Premium sellers pay a reduced commission.
-    const commissionRate = commissionRateForTier(listing.seller?.subscriptionTier)
+    const commissionRate = commissionRateForTier(listing.seller?.subscriptionTier, listing.seller?.kycStatus)
     const subtotal = new Decimal(listing.price).times(dto.quantity)
+
+    // Enforce order cap per seller KYC tier.
+    const sellerTier = computeKycTier(listing.seller)
+    const cap = ORDER_CAP[sellerTier] ?? 50
+    if (subtotal.toNumber() > cap) {
+      throw new BadRequestException(
+        `This seller's verification tier only allows orders up to $${cap}. The seller must upgrade their verification to accept this order.`,
+      )
+    }
+
     const commissionAmount = subtotal.times(commissionRate)
     const sellerPayout = subtotal.minus(commissionAmount)
 
@@ -226,8 +232,18 @@ export class OrdersService {
       throw new ForbiddenException('Cannot purchase your own service')
     }
 
-    const commissionRate = commissionRateForTier(seller.subscriptionTier)
+    const commissionRate = commissionRateForTier(seller.subscriptionTier, seller.kycStatus)
     const subtotal = new Decimal(dto.price).times(quantity)
+
+    // Enforce order cap per seller KYC tier.
+    const sellerTier = computeKycTier(seller)
+    const cap = ORDER_CAP[sellerTier] ?? 50
+    if (subtotal.toNumber() > cap) {
+      throw new BadRequestException(
+        `This seller's verification tier only allows orders up to $${cap}. The seller must upgrade their verification to accept this order.`,
+      )
+    }
+
     const commissionAmount = subtotal.times(commissionRate)
     const sellerPayout = subtotal.minus(commissionAmount)
 
@@ -633,45 +649,87 @@ export class OrdersService {
     return updatedOrder
   }
 
-  async getBuyerOrders(buyerId: string) {
-    return this.prisma.orders.findMany({
-      where: { buyerId },
-      include: {
-        seller: {
-          select: {
-            id: true,
-            userId: true,
-            storeName: true,
-            isVerified: true,
-            averageRating: true,
-            sellerLevel: true,
-          } as any,
+  async getBuyerOrders(buyerId: string, query?: { status?: string; gameName?: string; from?: string; to?: string; page?: number; limit?: number }) {
+    const where: any = { buyerId }
+    if (query?.status) {
+      try { where.status = OrderStatus[query.status as keyof typeof OrderStatus] } catch {}
+    }
+    if (query?.gameName) {
+      where.orderItems = { some: { listing: { gameName: { contains: query.gameName, mode: 'insensitive' } } } }
+    }
+    if (query?.from || query?.to) {
+      where.createdAt = {}
+      if (query?.from) where.createdAt.gte = new Date(query.from)
+      if (query?.to) where.createdAt.lte = new Date(query.to)
+    }
+    const page = query?.page ?? 1
+    const limit = query?.limit ?? 20
+    const skip = (page - 1) * limit
+    const [orders, total] = await Promise.all([
+      this.prisma.orders.findMany({
+        where,
+        include: {
+          seller: {
+            select: {
+              id: true,
+              userId: true,
+              storeName: true,
+              isVerified: true,
+              averageRating: true,
+              sellerLevel: true,
+            } as any,
+          },
+          orderItems: { include: { listing: true } },
         },
-        orderItems: { include: { listing: true } },
-      },
-      orderBy: { createdAt: 'desc' },
-    })
+        orderBy: { createdAt: 'desc' },
+        skip,
+        take: limit,
+      }),
+      this.prisma.orders.count({ where }),
+    ])
+    return { orders, total, page, limit, hasMore: skip + limit < total }
   }
 
-  async getSellerOrders(sellerId: string) {
-    return this.prisma.orders.findMany({
-      where: { sellerId },
-      include: {
-        buyer: true,
-        orderItems: { include: { listing: true } },
-      },
-      orderBy: { createdAt: 'desc' },
-    })
+  async getSellerOrders(sellerId: string, query?: { status?: string; gameName?: string; from?: string; to?: string; page?: number; limit?: number }) {
+    const where: any = { sellerId }
+    if (query?.status) {
+      try { where.status = OrderStatus[query.status as keyof typeof OrderStatus] } catch {}
+    }
+    if (query?.gameName) {
+      where.orderItems = { some: { listing: { gameName: { contains: query.gameName, mode: 'insensitive' } } } }
+    }
+    if (query?.from || query?.to) {
+      where.createdAt = {}
+      if (query?.from) where.createdAt.gte = new Date(query.from)
+      if (query?.to) where.createdAt.lte = new Date(query.to)
+    }
+    const page = query?.page ?? 1
+    const limit = query?.limit ?? 20
+    const skip = (page - 1) * limit
+    const [orders, total] = await Promise.all([
+      this.prisma.orders.findMany({
+        where,
+        include: {
+          buyer: true,
+          orderItems: { include: { listing: true } },
+        },
+        orderBy: { createdAt: 'desc' },
+        skip,
+        take: limit,
+      }),
+      this.prisma.orders.count({ where }),
+    ])
+    return { orders, total, page, limit, hasMore: skip + limit < total }
   }
 
   /**
    * Resolves the seller record for a userId then returns that seller's orders.
    * The orders table stores sellers.id (not users.id) in the sellerId column.
    */
-  async getSellerOrdersByUserId(userId: string) {
+  async getSellerOrdersByUserId(userId: string, query?: { status?: string; gameName?: string; from?: string; to?: string; page?: number; limit?: number }) {
     const seller = await this.prisma.sellers.findUnique({ where: { userId } })
-    if (!seller) return []
-    return this.getSellerOrders(seller.id)
+    if (!seller) return { orders: [], total: 0, page: query?.page ?? 1, limit: query?.limit ?? 20, hasMore: false }
+    return this.getSellerOrders(seller.id, query)
   }
 
   async markDelivered(orderId: string, sellerId: string, deliveryData?: any) {
@@ -742,4 +800,141 @@ export class OrdersService {
 
     return updated
   }
+
+  async requestRelease(orderId: string, sellerId: string) {
+    const order = await this.prisma.orders.findUnique({ where: { id: orderId }, include: { seller: true } })
+    if (!order) throw new NotFoundException('Order')
+    if (order.seller?.userId !== sellerId) throw new ForbiddenException('Only the seller can request release')
+    if (order.status !== OrderStatus.IN_PROGRESS) throw new BadRequestException('Order must be in progress')
+    await this.prisma.orders.update({
+      where: { id: orderId },
+      data: { metadata: { ...((order.metadata as Record<string, any>) || {}), releaseRequest: { requestedAt: new Date(), requestedBy: sellerId } } },
+    })
+    return { success: true, message: 'Release request sent to buyer' }
+  }
+
+  async confirmRelease(orderId: string, buyerId: string) {
+    const order = await this.prisma.orders.findUnique({
+      where: { id: orderId },
+      include: { escrow: true, seller: true },
+    })
+    if (!order) throw new NotFoundException('Order')
+    if (order.buyerId !== buyerId) throw new ForbiddenException('Only the buyer can confirm release')
+    if (order.status !== OrderStatus.IN_PROGRESS) throw new InvalidEscrowStateException('Order is not in progress')
+    if (!order.escrow || order.escrow.status !== EscrowStatus.HELD) throw new InvalidEscrowStateException('Escrow is not held')
+    const metadata = (order.metadata as Record<string, any>) || {}
+    if (!metadata.releaseRequest) throw new BadRequestException('No release request pending for this order')
+    const completedPayment = await this.prisma.payments.findFirst({ where: { orderId, status: PaymentStatus.COMPLETED } })
+    if (!completedPayment) throw new InvalidEscrowStateException('Cannot release funds — no completed payment exists')
+    const updatedOrder = await this.releaseOrderEscrow(order)
+    await this.creditOrderBonuses(order, updatedOrder)
+    await this.notifications.notifyCompleted(updatedOrder).catch(() => {})
+    return updatedOrder
+  }
+
+  private async releaseOrderEscrow(order: any) {
+    const orderId = order.id
+    const updatedOrder = await this.prisma.$transaction(async (tx) => {
+      await tx.escrowTransactions.update({ where: { id: order.escrow!.id }, data: { status: EscrowStatus.RELEASED, releasedAt: new Date() } })
+      const updatedOrder = await tx.orders.update({ where: { id: orderId }, data: { status: OrderStatus.COMPLETED, completedAt: new Date() }, include: { buyer: true, seller: true, orderItems: { include: { listing: true } } } })
+      const wallet = await tx.wallet.findUnique({ where: { userId: order.seller?.userId ?? '' } })
+      if (wallet) {
+        const newBalance = wallet.balance.plus(order.sellerPayout)
+        await tx.wallet.update({ where: { id: wallet.id }, data: { balance: newBalance, totalEarnings: wallet.totalEarnings.plus(order.sellerPayout) } })
+        await tx.walletTransactions.create({ data: { walletId: wallet.id, type: 'CREDIT', amount: order.sellerPayout, currency: order.currency, balanceAfter: newBalance, description: `Payment for order ${order.orderNumber}`, relatedId: orderId } })
+      }
+      await tx.commissions.updateMany({ where: { orderId }, data: { status: 'PAID', paidAt: new Date() } })
+      return updatedOrder
+    })
+    const seller = order.seller
+    if (seller && ((seller.metadata as any)?.instantPayoutEnabled)) {
+      await this.walletService.withdraw(seller.userId, order.sellerPayout, 'instant', JSON.stringify({ orderId, instant: true })).catch(() => {})
+    }
+    return updatedOrder
+  }
+
+  private async creditOrderBonuses(order: any, updatedOrder: any) {
+    const buyerCoinAmount = Math.floor(Number(order.totalAmount))
+    const sellerCoinAmount = Math.floor(Number(order.sellerPayout)) * 2
+    try {
+      await this.rewardsService.creditCoins(order.buyerId, buyerCoinAmount, 'PURCHASE', `Earned ${buyerCoinAmount} coins from order ${order.orderNumber}`, updatedOrder.id)
+    } catch (e) {
+      this.logger.error('Buyer coin credit failed (non-fatal):', e)
+    }
+    const sellerUserId = order.seller?.userId
+    if (sellerUserId) {
+      try {
+        await this.rewardsService.creditCoins(sellerUserId, sellerCoinAmount, 'SALE', `Earned ${sellerCoinAmount} coins from order ${updatedOrder.orderNumber}`, updatedOrder.id)
+      } catch (e) {
+        this.logger.error('Seller coin credit failed (non-fatal):', e)
+      }
+    }
+    try {
+      const piyroxProfit = Number(updatedOrder.commissionAmount)
+      await this.affiliateService.creditCommission(updatedOrder.buyerId, piyroxProfit, updatedOrder.id)
+    } catch (e) {
+      this.logger.error('Affiliate commission credit failed (non-fatal):', e)
+    }
+    try {
+      const referral = await this.prisma.affiliateReferrals.findFirst({ where: { referredUserId: updatedOrder.buyerId }, select: { referrerId: true, commissionRate: true } })
+      if (referral) {
+        const affiliateCommission = Number(updatedOrder.totalAmount) * Number(referral.commissionRate)
+        const referrerCoins = Math.floor(affiliateCommission * 10)
+        if (referrerCoins > 0) {
+          await this.rewardsService.creditCoins(referral.referrerId, referrerCoins, 'REFERRAL', `Earned ${referrerCoins} coins from referral trade ${updatedOrder.orderNumber}`, updatedOrder.id)
+        }
+      }
+    } catch (e) {
+      this.logger.error('Referrer coin bonus failed (non-fatal):', e)
+    }
+  }
 }
+          } catch (err) {
+            this.logger.warn(`Buyer near-deadline nudge failed: ${err}`)
+          }
+        }, delay)
+      }
+    } catch (err) {
+      this.logger.warn(`Failed to schedule buyer near-deadline nudge: ${err}`)
+    }
+
+    return updated
+  }
+
+  async getOrderReceipt(orderId: string, userId: string) {
+    const order = await this.prisma.orders.findUnique({
+      where: { id: orderId },
+      include: {
+        buyer: { select: { id: true, email: true, firstName: true, lastName: true } },
+        seller: { include: { user: { select: { id: true, email: true, firstName: true, lastName: true } } } },
+        orderItems: { include: { listing: true } },
+        escrow: true,
+        commissions: true,
+      },
+    })
+    if (!order) throw new NotFoundException('Order')
+    if (order.buyerId !== userId && order.seller?.userId !== userId) {
+      throw new ForbiddenException('You do not have access to this order')
+    }
+    return {
+      orderNumber: order.orderNumber,
+      status: order.status,
+      currency: order.currency,
+      subtotal: order.subtotal,
+      commissionRate: order.commissionRate,
+      commissionAmount: order.commissionAmount,
+      sellerPayout: order.sellerPayout,
+      totalAmount: order.totalAmount,
+      createdAt: order.createdAt,
+      paidAt: order.paidAt,
+      completedAt: order.completedAt,
+      buyer: order.buyer,
+      seller: order.seller,
+      items: order.orderItems,
+      escrow: order.escrow,
+      commissions: order.commissions,
+    }
+  }
+}
+
+export { commissionRateForTier, computeKycTier, ORDER_CAP } from '../sellers/sellers.service'

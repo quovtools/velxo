@@ -83,6 +83,18 @@ export class DisputesController {
     }
   }
 
+  @Post(':id/evidence')
+  @UseGuards(SupabaseJwtGuard)
+  async addEvidence(@Param('id') disputeId: string, @CurrentUserId() userId: string, @Body() dto: { evidenceUrls?: string[]; evidenceText?: string }) {
+    try {
+      const dispute = await this.disputesService.addDisputeEvidence(disputeId, userId, dto)
+      return ApiResponseDto.ok(dispute, 'Evidence added')
+    } catch (error) {
+      this.logger.error('Error adding evidence:', error)
+      throw error
+    }
+  }
+
   @Patch(':id/resolve')
   @UseGuards(SupabaseJwtGuard)
   async resolveDispute(

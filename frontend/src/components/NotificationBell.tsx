@@ -3,18 +3,20 @@
 import { useState, type ReactNode } from 'react';
 import Link from 'next/link';
 import { useRouter } from 'next/navigation';
-import { Bell, CheckCheck, Loader2, Package, MessageSquare, ShoppingBag, ShieldAlert, Wallet, Info } from 'lucide-react';
+import { Bell, CheckCheck, Loader2, Package, MessageSquare, ShoppingBag, ShieldAlert, Wallet, Info, BadgeCheck, Settings } from 'lucide-react';
 import { useNotifications, AppNotification } from './NotificationProvider';
 
 const TYPE_ICON: Record<string, ReactNode> = {
-  ORDER_STATUS: <ShoppingBag className="w-4 h-4 text-violet-400" />,
-  MESSAGE: <MessageSquare className="w-4 h-4 text-brand-light" />,
-  DISPUTE: <ShieldAlert className="w-4 h-4 text-red-400" />,
-  WITHDRAWAL: <Wallet className="w-4 h-4 text-emerald-400" />,
+  ORDER_STATUS:     <ShoppingBag className="w-4 h-4 text-violet-400" />,
+  MESSAGE:          <MessageSquare className="w-4 h-4 text-brand-light" />,
+  DISPUTE:          <ShieldAlert className="w-4 h-4 text-red-400" />,
+  WITHDRAWAL:       <Wallet className="w-4 h-4 text-emerald-400" />,
   LISTING_APPROVED: <Package className="w-4 h-4 text-emerald-400" />,
   LISTING_REJECTED: <Package className="w-4 h-4 text-red-400" />,
-  FRAUD_ALERT: <ShieldAlert className="w-4 h-4 text-orange-400" />,
-  SYSTEM: <Info className="w-4 h-4 text-gray-400" />,
+  KYC_APPROVED:     <BadgeCheck className="w-4 h-4 text-emerald-400" />,
+  KYC_REJECTED:     <BadgeCheck className="w-4 h-4 text-red-400" />,
+  FRAUD_ALERT:      <ShieldAlert className="w-4 h-4 text-orange-400" />,
+  SYSTEM:           <Info className="w-4 h-4 text-gray-400" />,
 };
 
 function timeAgo(date: string) {
@@ -111,13 +113,24 @@ export default function NotificationBell() {
               )}
             </div>
 
-            <Link
-              href="/notifications"
-              onClick={() => setOpen(false)}
-              className="block text-center text-xs font-semibold text-brand py-3 border-t border-borderBg hover:bg-hoverBg/40 transition"
-            >
-              View all notifications
-            </Link>
+            <div className="flex items-center border-t border-borderBg">
+              <Link
+                href="/notifications"
+                onClick={() => setOpen(false)}
+                className="flex-1 block text-center text-xs font-semibold text-brand py-3 hover:bg-hoverBg/40 transition"
+              >
+                View all notifications
+              </Link>
+              <Link
+                href="/notifications/preferences"
+                onClick={() => setOpen(false)}
+                title="Notification settings"
+                className="p-3 border-l border-borderBg text-gray-500 hover:text-brand hover:bg-hoverBg/40 transition"
+                aria-label="Notification settings"
+              >
+                <Settings className="w-4 h-4" />
+              </Link>
+            </div>
           </div>
         </>
       )}

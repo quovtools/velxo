@@ -4,11 +4,12 @@ import { MessagesService } from './messages.service'
 import { PrismaService } from '@/common/services/prisma.service'
 import { GatewayModule } from '@/modules/gateways'
 import { NotificationsModule } from '@/modules/notifications/notifications.module'
+import { StorageService } from '@/modules/upload/storage.service'
 
 @Module({
   imports: [GatewayModule, NotificationsModule],
   controllers: [MessagesController],
-  providers: [MessagesService, PrismaService],
+  providers: [MessagesService, PrismaService, StorageService],
   exports: [MessagesService],
 })
 export class MessagesModule {}

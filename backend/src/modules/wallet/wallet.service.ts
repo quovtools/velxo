@@ -128,6 +128,44 @@ export class WalletService {
     })
   }
 
+  async topupInitiate(userId: string, amount: number, currency: string, provider: string) {
+    const wallet = await this.getOrCreateWallet(userId)
+    const txn = await this.prisma.walletTransactions.create({
+      data: {
+        walletId: wallet.id,
+        type: 'HOLD',
+        amount: new Decimal(amount),
+        currency,
+        balanceAfter: wallet.balance,
+        description: 'Wallet top-up pending',
+        relatedId: userId,
+      },
+    })
+    return { transactionId: txn.id, amount, currency, status: 'PENDING' }
+  }
+
+  async topupStatus(txnId: string, userId: string) {
+    const txn = await this.prisma.walletTransactions.findUnique({ where: { id: txnId } })
+    if (!txn || txn.relatedId !== userId) return { status: 'UNKNOWN', balance: new Decimal(0) }
+    const wallet = await this.prisma.wallet.findUnique({ where: { id: txn.walletId } })
+    const status = txn.type === 'CREDIT' ? 'COMPLETED' : txn.type === 'HOLD' ? 'PENDING' : 'FAILED'
+    return { status, balance: wallet?.balance ?? new Decimal(0), amount: txn.amount, currency: txn.currency }
+  }
+
+  async topupComplete(txnId: string, userId?: string) {
+    const txn = await this.prisma.walletTransactions.findUnique({ where: { id: txnId } })
+    if (!txn || txn.type !== 'HOLD') return false
+    if (userId && txn.relatedId !== userId) return false
+    const wallet = await this.prisma.wallet.findUnique({ where: { id: txn.walletId } })
+    if (!wallet) return false
+    const newBalance = wallet.balance.plus(txn.amount)
+    await this.prisma.$transaction([
+      this.prisma.wallet.update({ where: { id: wallet.id }, data: { balance: newBalance } }),
+      this.prisma.walletTransactions.update({ where: { id: txnId }, data: { type: 'CREDIT', balanceAfter: newBalance } }),
+    ])
+    return true
+  }
+
   async withdraw(
     userId: string,
     amount: Decimal,

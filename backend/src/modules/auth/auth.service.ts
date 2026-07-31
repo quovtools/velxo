@@ -73,6 +73,7 @@ export class AuthService {
               ? dto.role
               : Role.BUYER,
           preferences: dto.preferences ?? undefined,
+          phone: dto.phone || undefined,
         },
       })
     } catch (prismaError: any) {

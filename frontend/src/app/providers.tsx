@@ -84,7 +84,27 @@ export function Providers({ children }: { children: React.ReactNode }) {
 
   useEffect(() => {
     refreshSession();
-    
+
+    // Silently validate token against server — clear stale session without redirecting
+    const validateStoredToken = async () => {
+      const token = getToken();
+      if (!token) return;
+      try {
+        const apiUrl = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:3001/api/v1';
+        const res = await fetch(`${apiUrl}/auth/validate`, {
+          headers: { Authorization: `Bearer ${token}` },
+          signal: AbortSignal.timeout(5000),
+        });
+        if (res.status === 401) {
+          clearSession();
+          setUser(null);
+        }
+      } catch {
+        // Network error — don't clear session, user might be offline
+      }
+    };
+    validateStoredToken();
+
     // Check backend connection on app load
     const checkBackendConnection = async () => {
       const apiUrl = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:3001/api/v1';

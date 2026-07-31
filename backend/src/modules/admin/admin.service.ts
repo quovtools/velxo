@@ -280,14 +280,21 @@ export class AdminService {
     })
   }
 
-  async approveKyc(sellerId: string, moderatorId: string) {
-    this.logger.log(`Admin approving KYC for seller ${sellerId}`)
-    return this.sellersService.approveKyc(sellerId, moderatorId)
+  async approveKyc(sellerId: string, moderatorId: string, tier: string = 'VERIFIED') {
+    this.logger.log(`Admin approving KYC for seller ${sellerId} as ${tier}`)
+    const allowed = ['VERIFIED', 'PRO', 'PREMIUM']
+    if (!allowed.includes(tier)) tier = 'VERIFIED'
+    return this.sellersService.approveKycAdmin(sellerId, moderatorId, tier as any)
   }
 
   async rejectKyc(sellerId: string, moderatorId: string, reason: string) {
     this.logger.log(`Admin rejecting KYC for seller ${sellerId}`)
-    return this.sellersService.rejectKyc(sellerId, moderatorId, reason)
+    return this.sellersService.rejectKycAdmin(sellerId, moderatorId, reason)
+  }
+
+  async scheduleVideoCall(sellerId: string, moderatorId: string, meetingLink: string) {
+    this.logger.log(`Admin scheduling video call for seller ${sellerId}`)
+    return this.sellersService.scheduleVideoCall(sellerId, moderatorId, meetingLink)
   }
 
   // ---------------------------------------------------------------------------

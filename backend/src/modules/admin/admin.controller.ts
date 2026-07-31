@@ -150,9 +150,10 @@ export class AdminController {
   async approveKyc(
     @Param('sellerId') sellerId: string,
     @CurrentUserId() moderatorId: string,
+    @Body('tier') tier: string = 'VERIFIED',
   ) {
     try {
-      const seller = await this.adminService.approveKyc(sellerId, moderatorId)
+      const seller = await this.adminService.approveKyc(sellerId, moderatorId, tier)
       return ApiResponseDto.ok(seller, 'KYC approved successfully')
     } catch (error) {
       this.logger.error('Error approving KYC:', error)
@@ -172,6 +173,22 @@ export class AdminController {
       return ApiResponseDto.ok(seller, 'KYC rejected')
     } catch (error) {
       this.logger.error('Error rejecting KYC:', error)
+      throw error
+    }
+  }
+
+  @Patch('kyc/:sellerId/schedule-video')
+  @UseGuards(AdminPasswordGuard)
+  async scheduleVideoCall(
+    @Param('sellerId') sellerId: string,
+    @CurrentUserId() moderatorId: string,
+    @Body('meetingLink') meetingLink: string,
+  ) {
+    try {
+      const seller = await this.adminService.scheduleVideoCall(sellerId, moderatorId, meetingLink)
+      return ApiResponseDto.ok(seller, 'Video call scheduled')
+    } catch (error) {
+      this.logger.error('Error scheduling video call:', error)
       throw error
     }
   }

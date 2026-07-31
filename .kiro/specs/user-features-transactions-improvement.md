@@ -35,88 +35,233 @@ This spec covers 11 improvement areas across the user-facing and transaction lay
 
 ### Current State
 
-The `sellers` table has KYC fields (`kycStatus`, `kycIdType`, `kycIdImageUrl`, `kycSelfieImageUrl`, `kycDocumentNumber`, `kycFullName`, `kycSubmittedAt`, `kycReviewedAt`, `kycRejectionReason`). The backend has `submitKyc`, `approveKyc`, and `rejectKyc` endpoints in `sellers.service.ts`. There is no dedicated frontend KYC wizard — users have no guided flow to complete verification, and the existing form (if any) is buried inside the seller dashboard without clear steps or status feedback.
+The `sellers` table has KYC fields (`kycStatus`, `kycIdType`, `kycIdImageUrl`, `kycSelfieImageUrl`, `kycDocumentNumber`, `kycFullName`, `kycSubmittedAt`, `kycReviewedAt`, `kycRejectionReason`). The backend has `submitKyc`, `approveKyc`, and `rejectKyc` endpoints in `sellers.service.ts`. The existing `kycStatus` is a single string (`NOT_SUBMITTED | SUBMITTED | APPROVED | REJECTED`) and `subscriptionTier` is `FREE | PRO | PREMIUM`. These two concepts are currently separate and not expressed as a unified tiered system.
 
-KYC is only enforced for sellers. Buyers can transact without any identity verification, which creates fraud risk on high-value orders.
+There is no dedicated frontend KYC wizard — users have no guided flow, no per-tier requirements, and no per-tier capability gate.
+
+### Tiered Verification System
+
+The new system replaces the flat `APPROVED/NOT_APPROVED` model with four explicit tiers that combine identity verification and subscription level:
+
+| Tier | Requirements | Capabilities | Fee |
+|------|-------------|--------------|-----|
+| **Unverified** | Email + phone number | Can list, max $50/order | 10% |
+| **Verified** | Gov ID + selfie | Full listing rights, max $500/order | 9% |
+| **Pro** | Gov ID + bank verify + 10 sales | Public store, max $2,000/order | 5% |
+| **Premium** | Video call + address proof + 50 sales | Featured listings, max $10,000/order, instant payouts | 3% |
+
+This maps to the existing schema fields as follows:
+
+| Tier | `kycStatus` | `subscriptionTier` | `isVerified` |
+|------|------------|-------------------|-------------|
+| Unverified | `NOT_SUBMITTED` | `FREE` | `false` |
+| Verified | `APPROVED` | `FREE` | `true` |
+| Pro | `APPROVED` | `PRO` | `true` |
+| Premium | `APPROVED` (video_verified) | `PREMIUM` | `true` |
 
 ### Goals
 
-- Multi-step guided KYC wizard for sellers (and optionally buyers above a spend threshold).
-- In-browser document capture with camera support (existing `CameraCapture.tsx` component can be reused).
-- Admin review queue with approve/reject actions and rejection reason messaging.
-- KYC status clearly communicated to the user at every stage (submitted, under review, approved, rejected + reason).
-- KYC gate for listing creation — a seller cannot publish listings until KYC is `APPROVED`.
+- Replace the flat KYC flow with a tier-aware upgrade path.
+- Each tier has distinct document requirements and unlocks specific capabilities.
+- Order value caps are enforced at the backend per seller tier.
+- Commission rates already differ per tier (`sellers.service.ts` `SUBSCRIPTION_PLANS`) — update them to match the table above.
+- KYC wizard guides the seller through exactly the documents required for their target tier.
+- Admin review queue handles Gov ID, bank verification, and video call verification at different tiers.
 
 ### Backend Requirements
 
-**Schema — no changes required.** All required fields exist on `sellers`.
+**Schema additions:**
 
-**New/modified endpoints:**
+The existing `kycStatus` string field needs two new values to represent the Premium video-call requirement:
+
+```
+kycStatus: NOT_SUBMITTED | SUBMITTED | APPROVED | REJECTED | VIDEO_PENDING | VIDEO_APPROVED
+```
+
+Add `kycTier` computed field to the seller profile response (derived, not stored):
+
+```ts
+function computeKycTier(seller: sellers): 'UNVERIFIED' | 'VERIFIED' | 'PRO' | 'PREMIUM' {
+  if (seller.subscriptionTier === 'PREMIUM' && seller.kycStatus === 'APPROVED') return 'PREMIUM'
+  if (seller.subscriptionTier === 'PRO'     && seller.kycStatus === 'APPROVED') return 'PRO'
+  if (seller.kycStatus === 'APPROVED')                                          return 'VERIFIED'
+  return 'UNVERIFIED'
+}
+```
+
+**Order value cap enforcement:**
+
+Add to `OrdersService.createOrder()` a tier cap check after resolving the seller:
+
+```ts
+const ORDER_CAP: Record<string, number> = {
+  UNVERIFIED: 50,
+  VERIFIED:   500,
+  PRO:        2000,
+  PREMIUM:    10000,
+}
+
+const sellerTier = computeKycTier(listing.seller)
+const cap = ORDER_CAP[sellerTier]
+if (subtotal.toNumber() > cap) {
+  throw new BadRequestException(
+    `This seller's verification tier only allows orders up to $${cap}. The seller must upgrade their verification to accept this order.`
+  )
+}
+```
+
+**Commission rates — update `SUBSCRIPTION_PLANS` in `sellers.service.ts`:**
+
+```ts
+FREE:    { commissionRate: 0.10 }  // Unverified (unchanged)
+// Verified (KYC approved, FREE tier): 0.09  ← new — add a VERIFIED tier constant
+PRO:     { commissionRate: 0.05 }  // unchanged
+PREMIUM: { commissionRate: 0.03 }  // unchanged
+```
+
+Since `VERIFIED` is `kycStatus === APPROVED` + `subscriptionTier === FREE`, update `commissionRateForTier()` to also accept `kycStatus`:
+
+```ts
+function commissionRateForTier(tier?: string | null, kycStatus?: string): number {
+  if (tier === 'PREMIUM') return 0.03
+  if (tier === 'PRO')     return 0.05
+  if (kycStatus === 'APPROVED') return 0.09   // Verified (no subscription)
+  return 0.10                                  // Unverified
+}
+```
+
+**KYC submission endpoints — tier-aware:**
 
 | Method | Path | Description |
 |--------|------|-------------|
-| `POST` | `/sellers/kyc/submit` | Submit KYC. Accepts multipart form data: `idType`, `fullName`, `documentNumber`, `idImage` (file), `selfieImage` (file). Validates file type (JPEG/PNG/PDF, max 5 MB each). Stores files to object storage (Supabase Storage or existing provider). Updates `kycStatus → SUBMITTED`. |
-| `GET` | `/sellers/kyc/status` | Returns current `kycStatus`, `kycSubmittedAt`, `kycRejectionReason`, `isVerified` for the authenticated seller. |
-| `PATCH` | `/admin/sellers/:id/kyc/approve` | Admin: sets `kycStatus → APPROVED`, `isVerified → true`, `verifiedAt → now()`. Sends `KYC_APPROVED` notification. |
-| `PATCH` | `/admin/sellers/:id/kyc/reject` | Admin: sets `kycStatus → REJECTED`, `kycRejectionReason`. Sends `KYC_REJECTED` notification with reason. |
+| `POST` | `/sellers/kyc/submit` | Tier 2 (Verified): multipart — `idType`, `fullName`, `documentNumber`, `idImage`, `selfieImage`. Updates `kycStatus → SUBMITTED`. |
+| `POST` | `/sellers/kyc/submit-pro` | Tier 3 (Pro): additionally requires `bankStatementImage` or `bankVerificationRef`. Also checks `seller.totalSales >= 10`. |
+| `POST` | `/sellers/kyc/submit-premium` | Tier 4 (Premium): requires `addressProofImage`. Checks `seller.totalSales >= 50`. Sets `kycStatus → VIDEO_PENDING` — admin schedules video call. |
+| `GET`  | `/sellers/kyc/status` | Returns `{ kycStatus, kycTier, kycSubmittedAt, kycRejectionReason, isVerified, orderCap, commissionRate }`. |
+| `PATCH` | `/admin/sellers/:id/kyc/approve` | Admin: approves current KYC submission. Sets `kycStatus → APPROVED`, `isVerified → true`. For Premium video call: sets `kycStatus → VIDEO_APPROVED` first, then a separate `approve` call completes it. Sends `KYC_APPROVED` notification with tier name. |
+| `PATCH` | `/admin/sellers/:id/kyc/reject` | Admin: sets `kycStatus → REJECTED`, `kycRejectionReason`. Sends `KYC_REJECTED` notification. |
+| `PATCH` | `/admin/sellers/:id/kyc/schedule-video` | Admin: sends a calendar link / meeting link to the seller for the Premium video call. Stores link in `seller.metadata.videoCallLink`. |
 
-**Guards:**  
-- `ListingsController.createListing` must check `seller.kycStatus === 'APPROVED'` before allowing listing creation. Return `403 Forbidden` with message `"Complete KYC verification before listing items"` if not approved.
+**Listing creation guard — tier-aware:**
 
-**File upload:**  
-Use `@nestjs/platform-express` `multer` for file handling. Store files to the existing Supabase Storage bucket (path: `kyc/{sellerId}/{timestamp}_{field}.jpg`). Return the public URL and persist it to `kycIdImageUrl` / `kycSelfieImageUrl`.
+```ts
+// Unverified sellers can list, but with $50 order cap already enforced at purchase time.
+// No hard listing block for Unverified — they can list but buyers will see the cap.
+// However, featured listings require PRO or PREMIUM (already enforced).
+```
+
+**Instant payout (Premium tier):**
+
+For Premium sellers, when `escrow.releaseFunds()` is called, immediately process the withdrawal to their saved payout method instead of requiring a manual withdrawal request. Flag this via `seller.metadata.instantPayoutEnabled = true` set when Premium is confirmed.
+
+**File upload:**
+
+Use `multer` + Supabase Storage. Bucket paths:
+- `kyc/verified/{sellerId}/id-{ts}.jpg`
+- `kyc/verified/{sellerId}/selfie-{ts}.jpg`
+- `kyc/pro/{sellerId}/bank-{ts}.pdf`
+- `kyc/premium/{sellerId}/address-{ts}.pdf`
+
+Max file size: 10 MB. Accepted types: `image/jpeg`, `image/png`, `application/pdf`.
 
 ### Frontend Requirements
 
-**New page:** `frontend/src/app/seller/kyc/page.tsx`
+**New page: `frontend/src/app/seller/kyc/page.tsx`**
 
-**Step flow (wizard):**
+This page serves as the central KYC and tier upgrade hub. It shows the seller's current tier and the path to the next tier.
+
+**Tier overview card (top of page):**
 
 ```
-Step 1: Identity Type Selection
-  → Choose: National ID | Passport | Driver's License | BVN (Nigeria)
-
-Step 2: Personal Details
-  → Full legal name, document number
-  → Validation against backend schema
-
-Step 3: Document Upload
-  → Front of ID (file picker + camera via CameraCapture.tsx)
-  → Preview with re-take option
-
-Step 4: Selfie / Liveness
-  → Selfie holding the ID document
-  → Camera capture preferred, file upload fallback
-
-Step 5: Review & Submit
-  → Show all entered data and image previews
-  → Submit button → POST /sellers/kyc/submit
-
-Step 6: Status Page
-  → Pending: "Under review — usually 24 hours"
-  → Approved: green checkmark, link to start listing
-  → Rejected: red banner with rejection reason + re-submit button
+┌──────────────────────────────────────────────────────┐
+│  Your Current Tier: UNVERIFIED                       │
+│  Order cap: $50 · Commission: 10% · No public store  │
+│                                                       │
+│  [Verify Identity →]  Upgrade to VERIFIED            │
+│  Unlock: $500 orders, 9% fee, Verified badge          │
+└──────────────────────────────────────────────────────┘
 ```
 
-**KYC status banner** — add to seller dashboard header and listing creation page when `kycStatus !== 'APPROVED'`:
-- `NOT_SUBMITTED` → amber banner: "Verify your identity to start selling → [Start KYC]"
-- `SUBMITTED` → blue banner: "KYC under review — we'll notify you within 24 hours"
-- `REJECTED` → red banner: "KYC rejected: {reason} → [Re-submit]"
+Four tier cards laid out horizontally (or stacked on mobile), current tier highlighted:
 
-**Admin KYC queue** — add to `frontend/src/app/admin/` a new page `kyc-review/page.tsx`:
-- Table of `SUBMITTED` KYC applications with seller name, date, document type.
-- Click to open modal: shows uploaded ID image, selfie, personal details.
-- Approve / Reject (with required reason) buttons.
+| Unverified | Verified | Pro | Premium |
+|---|---|---|---|
+| 🔓 | ✅ | ⚡ | 👑 |
+| Email + phone | Gov ID + selfie | Gov ID + bank + 10 sales | Video + address + 50 sales |
+| $50 cap | $500 cap | $2,000 cap | $10,000 cap |
+| 10% fee | 9% fee | 5% fee | 3% fee |
+
+**KYC wizard — per tier:**
+
+**Tier 2 (Verified) wizard steps:**
+
+```
+Step 1: ID Type → National ID | Passport | Driver's License
+Step 2: Personal Details → Full name, document number
+Step 3: Upload ID → front of document (camera or file)
+Step 4: Selfie → holding the ID document (CameraCapture.tsx)
+Step 5: Review & Submit → POST /sellers/kyc/submit
+Step 6: Status → "Under review (24 hrs)" | Approved | Rejected + reason
+```
+
+**Tier 3 (Pro) wizard steps** (only shown after Verified, and `totalSales >= 10`):
+
+```
+Step 1: Bank Verification
+  → Bank name, account number
+  → Upload bank statement (last 3 months) or enter bank verification code
+Step 2: Review & Submit → POST /sellers/kyc/submit-pro
+Step 3: Status
+```
+
+If `totalSales < 10`: show a locked state: `"Complete 10 sales to unlock Pro verification. You have {n}/10."`
+
+**Tier 4 (Premium) wizard steps** (only shown after Pro, and `totalSales >= 50`):
+
+```
+Step 1: Address Proof
+  → Upload utility bill or bank statement with address (last 6 months)
+Step 2: Book Video Call
+  → Description of what happens during the call
+  → Submit → POST /sellers/kyc/submit-premium
+  → Admin schedules call; seller receives calendar link via email + notification
+Step 3: Attend Video Call
+  → Status shows "Video call scheduled: {date}" or "Awaiting scheduling"
+Step 4: Approved / Rejected
+```
+
+**KYC status banner** — add to seller dashboard and listing creation page:
+
+| State | Banner |
+|-------|--------|
+| Unverified, no submission | Amber: `"Verify your identity to raise your order limit → [Start Verification]"` |
+| SUBMITTED | Blue: `"KYC under review — usually within 24 hours"` |
+| APPROVED | Green: `"✅ Verified Seller · Upgrade to Pro for lower fees → [Upgrade]"` |
+| VIDEO_PENDING | Purple: `"⚡ Premium verification: video call scheduled. Check your email for the link."` |
+| REJECTED | Red: `"KYC rejected: {reason} → [Re-submit]"` |
+
+**Admin KYC review page** (`frontend/src/app/admin/kyc-review/page.tsx`):
+
+Three tabs: **ID Submissions** | **Pro Bank Verifications** | **Premium Video Calls**
+
+Each tab shows a table with: seller name, submission date, tier target, status. Clicking a row opens a side panel with:
+- Document images (zoomable)
+- Personal details entered
+- Approve / Reject buttons (reject requires reason input)
+- For Premium: `Schedule Video Call` button that sends a calendar link to the seller
 
 ### Acceptance Criteria
 
-- [ ] Seller can complete a 5-step KYC wizard, upload documents, and submit.
-- [ ] `kycStatus` transitions correctly: `NOT_SUBMITTED → SUBMITTED → APPROVED | REJECTED`.
-- [ ] Seller with `kycStatus !== 'APPROVED'` receives a 403 when trying to create a listing.
-- [ ] Approved seller receives an in-app notification and their `VerifiedBadge` appears on their store.
-- [ ] Rejected seller sees the rejection reason and can re-submit.
-- [ ] Admin can view a queue of pending KYC applications and approve or reject each with a reason.
-- [ ] File uploads are validated (type, size) before sending and stored securely with no public listing of all KYC files.
+- [ ] Four tiers (Unverified/Verified/Pro/Premium) with correct order caps, commission rates, and capabilities are enforced at the backend.
+- [ ] `createOrder` rejects orders exceeding the seller's tier cap with a clear error message.
+- [ ] Commission rate is 10% / 9% / 5% / 3% per tier correctly.
+- [ ] Tier 2 wizard (Gov ID + selfie) submits documents and transitions `kycStatus` correctly.
+- [ ] Tier 3 wizard is locked until `totalSales >= 10` with a progress indicator.
+- [ ] Tier 4 wizard is locked until `totalSales >= 50` and `kycTier === 'PRO'`.
+- [ ] Premium sellers have `instantPayoutEnabled` set after approval; payout triggers on escrow release.
+- [ ] Admin can approve, reject (with reason), and schedule video calls from the review panel.
+- [ ] KYC status banner on the seller dashboard reflects the correct tier state.
+- [ ] All document uploads are validated for type and size; stored in separate tier-specific bucket paths.
 
 ---
 
@@ -325,10 +470,14 @@ Extend `GET /orders/:id` response to include the full `disputes` array with `sta
 - **Dispute tracker:** When a dispute exists, render a timeline within the order showing `Opened → Under Review → Resolved`. Show admin notes when available.
 - **Message shortcut:** A `Message Seller/Buyer` button that navigates to `/messages?conversationId=...` if a conversation exists, or creates one if not.
 
-**Seller dashboard (`/seller/dashboard`):**
+**`SUBSCRIPTION_PLANS` in `sellers.service.ts`** — update to match the tier table:
 
-- Add an `Orders` tab showing `GET /orders/seller` results with the same filters.
-- Summary stats card: total orders this month, revenue this month, pending deliveries count.
+```ts
+FREE:    { commissionRate: 0.10, name: 'Unverified',       orderCap: 50    }
+// Verified = kycApproved + FREE tier: 0.09, orderCap: 500 (enforced in commissionRateForTier)
+PRO:     { commissionRate: 0.05, name: 'Pro Seller',        orderCap: 2000  }
+PREMIUM: { commissionRate: 0.03, name: 'Premium Seller',    orderCap: 10000 }
+```
 
 ### Acceptance Criteria
 
@@ -857,20 +1006,23 @@ Add badge computation to `SellersService.getSellerProfile()` and `getPublicStore
 ```ts
 function computeBadges(seller: sellers): SellerBadge[] {
   const badges: SellerBadge[] = [];
-  if (seller.kycStatus === 'APPROVED')
-    badges.push({ type: 'KYC_VERIFIED', label: 'ID Verified', ... });
-  if (seller.subscriptionTier === 'PREMIUM')
-    badges.push({ type: 'SELLER_PREMIUM', label: 'Seller Premium', ... });
-  else if (seller.subscriptionTier === 'PRO')
-    badges.push({ type: 'SELLER_PRO', label: 'Seller Pro', ... });
+  const tier = computeKycTier(seller) // from KYC section
+
+  if (tier === 'PREMIUM')
+    badges.push({ type: 'SELLER_PREMIUM', label: 'Premium Seller', description: 'Video-verified seller with 50+ sales. Max $10,000/order.', ... });
+  else if (tier === 'PRO')
+    badges.push({ type: 'SELLER_PRO', label: 'Pro Seller', description: 'Bank-verified seller with 10+ sales. Max $2,000/order.', ... });
+  else if (tier === 'VERIFIED')
+    badges.push({ type: 'KYC_VERIFIED', label: 'ID Verified', description: 'Government ID verified. Max $500/order.', ... });
+
   if (seller.totalSales >= 50 && seller.averageRating >= 4.5)
-    badges.push({ type: 'TOP_SELLER', label: 'Top Seller', ... });
+    badges.push({ type: 'TOP_SELLER', label: 'Top Seller', description: '50+ sales with 4.5★ average rating.', ... });
   if (seller.avgResponseTimeHours < 1 && seller.totalSales >= 5)
-    badges.push({ type: 'FAST_RESPONDER', label: 'Fast Responder', ... });
+    badges.push({ type: 'FAST_RESPONDER', label: 'Fast Responder', description: 'Responds to buyers in under 1 hour.', ... });
   if (seller.deliverySuccessRate >= 98 && seller.totalSales >= 10)
-    badges.push({ type: 'RELIABLE_DELIVERY', label: 'Reliable Delivery', ... });
+    badges.push({ type: 'RELIABLE_DELIVERY', label: 'Reliable Delivery', description: '98%+ delivery success rate.', ... });
   if (Date.now() - seller.createdAt.getTime() < 30 * 86400000 && seller.totalSales === 0)
-    badges.push({ type: 'NEW_SELLER', label: 'New Seller', ... });
+    badges.push({ type: 'NEW_SELLER', label: 'New Seller', description: 'Joined recently. Be their first customer!', ... });
   return badges;
 }
 ```
@@ -893,15 +1045,15 @@ interface TrustBadgeProps {
 
 Badge designs:
 
-| Badge | Icon | Color | Label |
-|-------|------|-------|-------|
-| `KYC_VERIFIED` | ✅ | Emerald | ID Verified |
-| `SELLER_PRO` | ⚡ | Violet | Seller Pro |
-| `SELLER_PREMIUM` | 👑 | Amber | Seller Premium |
-| `TOP_SELLER` | 🏆 | Gold gradient | Top Seller |
-| `FAST_RESPONDER` | ⚡ | Sky | Fast Responder |
-| `RELIABLE_DELIVERY` | 📦 | Green | Reliable Delivery |
-| `NEW_SELLER` | 🌱 | Teal | New Seller |
+| Badge | Icon | Color | Label | Earned by |
+|-------|------|-------|-------|-----------|
+| `KYC_VERIFIED` | ✅ | Emerald | ID Verified | Gov ID + selfie approved (Tier 2+) |
+| `SELLER_PRO` | ⚡ | Violet | Pro Seller | Gov ID + bank verify + 10 sales (Tier 3) |
+| `SELLER_PREMIUM` | 👑 | Amber | Premium Seller | Video call + address proof + 50 sales (Tier 4) |
+| `TOP_SELLER` | 🏆 | Gold gradient | Top Seller | 50+ sales · 4.5★ avg (auto-computed) |
+| `FAST_RESPONDER` | ⚡ | Sky | Fast Responder | Avg response < 1 hr + 5 sales |
+| `RELIABLE_DELIVERY` | 📦 | Green | Reliable Delivery | 98%+ delivery rate + 10 sales |
+| `NEW_SELLER` | 🌱 | Teal | New Seller | Account < 30 days old, 0 sales |
 
 Each badge renders as a small pill with icon + optional label. On hover (or click on mobile), shows a tooltip with the `description` explaining how it is earned.
 

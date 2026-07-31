@@ -23,9 +23,6 @@ export class SellersController {
 
   constructor(private sellersService: SellersService) {}
 
-  /**
-   * Create a new seller account
-   */
   @Post()
   @UseGuards(JwtAuthGuard)
   @HttpCode(HttpStatus.CREATED)
@@ -46,18 +43,11 @@ export class SellersController {
     }
   }
 
-  /**
-   * Get current user's seller profile — aliased to /sellers/me (frontend uses
-   * this path) AND /sellers/me/profile for backward compatibility.
-   * MUST be declared BEFORE the :id param route to avoid "me" being treated as
-   * a seller ID.
-   */
   @Get('me')
   @UseGuards(JwtAuthGuard)
   async getMySellerProfileShort(@CurrentUserId() userId: string) {
     try {
       const seller = await this.sellersService.getSellerByUserId(userId)
-      // Also compute/refresh level on every fetch (lazy recompute)
       await this.sellersService.updateSellerStats(seller.id).catch(() => {})
       const profile = await this.sellersService.getSellerProfile(seller.id)
       return ApiResponseDto.ok(profile, 'Seller profile retrieved')
@@ -67,9 +57,6 @@ export class SellersController {
     }
   }
 
-  /**
-   * Get current user's seller profile (legacy path)
-   */
   @Get('me/profile')
   @UseGuards(JwtAuthGuard)
   async getMySellerProfile(@CurrentUserId() userId: string) {
@@ -82,9 +69,6 @@ export class SellersController {
     }
   }
 
-  /**
-   * Get seller profile — param route must come AFTER all static routes above.
-   */
   @Get(':id')
   async getSeller(@Param('id') sellerId: string) {
     try {
@@ -96,9 +80,6 @@ export class SellersController {
     }
   }
 
-  /**
-   * Update seller profile — only the owner may update their own profile.
-   */
   @Patch(':id')
   @UseGuards(JwtAuthGuard)
   async updateSeller(
@@ -107,7 +88,6 @@ export class SellersController {
     @Body() updates: any,
   ) {
     try {
-      // Fetch the seller first to verify ownership
       const existing = await this.sellersService.getSellerProfile(sellerId)
       const existingUserId = (existing as any).user?.id
       if (existingUserId !== userId) {
@@ -121,9 +101,6 @@ export class SellersController {
     }
   }
 
-  /**
-   * Get seller statistics
-   */
   @Get(':id/stats')
   async getSellerStats(@Param('id') sellerId: string) {
     try {
@@ -135,9 +112,6 @@ export class SellersController {
     }
   }
 
-  /**
-   * List all sellers (with pagination)
-   */
   @Get()
   async listSellers(
     @Query('page') page?: number,
@@ -159,9 +133,6 @@ export class SellersController {
     }
   }
 
-  /**
-   * Submit KYC documents
-   */
   @Post(':id/kyc')
   @UseGuards(JwtAuthGuard)
   async submitKyc(
@@ -177,4 +148,57 @@ export class SellersController {
       throw error
     }
   }
+
+  @Post('kyc/submit')
+  @UseGuards(JwtAuthGuard)
+  async submitKycVerified(@CurrentUserId() userId: string, @Body() dto: { idType: string; fullName: string; documentNumber?: string; idImageUrl: string; selfieImageUrl: string }) {
+    try {
+      const seller = await this.sellersService.getSellerByUserId(userId)
+      const result = await this.sellersService.submitKycVerified(seller.id, dto)
+      return ApiResponseDto.ok(result, 'KYC Tier 2 submitted')
+    } catch (error) {
+      this.logger.error('Error submitting KYC Tier 2:', error)
+      throw error
+    }
+  }
+
+  @Post('kyc/submit-pro')
+  @UseGuards(JwtAuthGuard)
+  async submitKycPro(@CurrentUserId() userId: string, @Body() dto: { bankVerificationRef?: string; bankStatementImageUrl?: string }) {
+    try {
+      const seller = await this.sellersService.getSellerByUserId(userId)
+      const result = await this.sellersService.submitKycPro(seller.id, dto)
+      return ApiResponseDto.ok(result, 'KYC Tier 3 (Pro) submitted')
+    } catch (error) {
+      this.logger.error('Error submitting KYC Tier 3:', error)
+      throw error
+    }
+  }
+
+  @Post('kyc/submit-premium')
+  @UseGuards(JwtAuthGuard)
+  async submitKycPremium(@CurrentUserId() userId: string, @Body() dto: { addressProofImageUrl: string }) {
+    try {
+      const seller = await this.sellersService.getSellerByUserId(userId)
+      const result = await this.sellersService.submitKycPremium(seller.id, dto)
+      return ApiResponseDto.ok(result, 'KYC Tier 4 (Premium) submitted')
+    } catch (error) {
+      this.logger.error('Error submitting KYC Tier 4:', error)
+      throw error
+    }
+  }
+
+  @Get('kyc/status')
+  @UseGuards(JwtAuthGuard)
+  async getKycStatus(@CurrentUserId() userId: string) {
+    try {
+      const seller = await this.sellersService.getSellerByUserId(userId)
+      const status = await this.sellersService.getKycStatus(seller.id)
+      return ApiResponseDto.ok(status, 'KYC status retrieved')
+    } catch (error) {
+      this.logger.error('Error fetching KYC status:', error)
+      throw error
+    }
+  }
 }
+

@@ -56,6 +56,9 @@ export default function OrdersPage() {
   const [orders, setOrders] = useState<Order[]>([]);
   const [loading, setLoading] = useState(true);
   const [tab, setTab] = useState<'active' | 'all'>('active');
+  const [viewMode, setViewMode] = useState<'buyer' | 'seller'>('buyer');
+  const [statusFilter, setStatusFilter] = useState('');
+  const [gameFilter, setGameFilter] = useState('');
   const [search, setSearch] = useState('');
   const [now, setNow] = useState(Date.now());
 
@@ -67,11 +70,15 @@ export default function OrdersPage() {
   useEffect(() => {
     if (authLoading) return;
     if (!user) { router.push('/auth/login'); return; }
-    api.get<{ success: boolean; data: Order[] }>('/orders/me')
+    const endpoint = viewMode === 'seller' ? '/orders/seller' : '/orders/me';
+    const params: Record<string, string> = {};
+    if (statusFilter) params.status = statusFilter;
+    if (gameFilter)   params.gameName = gameFilter;
+    api.get<{ success: boolean; data: Order[] }>(endpoint, { params })
       .then(res => { if (res.success) setOrders(res.data || []); })
       .catch(console.error)
       .finally(() => setLoading(false));
-  }, [user, authLoading, router]);
+  }, [user, authLoading, router, viewMode, statusFilter, gameFilter]);
 
   if (loading) return <LoadingArea label="Loading your orders..." />;
 
@@ -105,22 +112,65 @@ export default function OrdersPage() {
         )}
       </div>
 
-      {/* Tabs + Search */}
-      <div className="flex flex-col sm:flex-row gap-3 items-start sm:items-center justify-between">
-        <div className="flex gap-2">
-          {(['active', 'all'] as const).map(t => (
-            <button key={t} onClick={() => setTab(t)}
-              className={`px-4 py-2 rounded-xl text-sm font-bold transition capitalize ${tab === t ? 'bg-brand text-white shadow-lg shadow-brand/20' : 'bg-cardBg border border-borderBg text-gray-400 hover:text-white'}`}>
-              {t === 'active' ? 'Active' : 'All Orders'}
-              {t === 'active' && active.length > 0 && <span className="ml-1.5 bg-white/20 px-1.5 py-0.5 rounded-full text-xs">{active.length}</span>}
-              {t === 'all' && orders.length > 0 && <span className="ml-1.5 bg-white/20 px-1.5 py-0.5 rounded-full text-xs">{orders.length}</span>}
-            </button>
-          ))}
+      {/* View mode toggle + status filters + search */}
+      <div className="space-y-3">
+        {/* Buyer/Seller toggle (only show if user has seller account) */}
+        {user?.role === 'SELLER' && (
+          <div className="flex gap-2">
+            {(['buyer', 'seller'] as const).map(mode => (
+              <button key={mode} onClick={() => setViewMode(mode)}
+                className={`px-4 py-2 rounded-xl text-sm font-bold transition capitalize ${viewMode === mode ? 'bg-brand text-white shadow-lg shadow-brand/20' : 'bg-cardBg border border-borderBg text-gray-400 hover:text-white'}`}>
+                {mode === 'buyer' ? '🛒 My Purchases' : '💰 My Sales'}
+              </button>
+            ))}
+          </div>
+        )}
+
+        {/* Status filter row */}
+        <div className="flex flex-wrap items-center gap-2">
+          {['All', 'PENDING', 'PAID', 'IN_PROGRESS', 'COMPLETED', 'CANCELLED', 'DISPUTED'].map(s => {
+            const isActive = s === 'All' ? !statusFilter : statusFilter === s;
+            const count = s === 'All' ? orders.length : orders.filter(o => o.status === s).length;
+            return (
+              <button key={s} onClick={() => setStatusFilter(s === 'All' ? '' : s)}
+                className={`px-3 py-1.5 rounded-lg text-xs font-bold border transition ${
+                  isActive ? 'bg-brand border-brand text-white' : 'bg-cardBg border-borderBg text-gray-400 hover:border-brand/40'
+                }`}>
+                {s === 'All' ? 'All' : s.replace('_', ' ')}
+                {count > 0 && <span className={`ml-1.5 px-1.5 py-0.5 rounded text-[10px] ${isActive ? 'bg-white/20' : 'bg-hoverBg'}`}>{count}</span>}
+              </button>
+            );
+          })}
         </div>
-        <div className="relative w-full sm:w-64">
-          <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-3.5 h-3.5 text-gray-500" />
-          <input value={search} onChange={e => setSearch(e.target.value)} placeholder="Search orders..."
-            className="w-full bg-cardBg border border-borderBg rounded-xl pl-9 pr-4 py-2 text-sm focus:outline-none focus:border-brand transition" />
+
+        {/* Search + game filter */}
+        <div className="flex gap-2">
+          <div className="relative flex-1">
+            <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-3.5 h-3.5 text-gray-500" />
+            <input value={search} onChange={e => setSearch(e.target.value)} placeholder="Search orders..."
+              className="w-full bg-cardBg border border-borderBg rounded-xl pl-9 pr-4 py-2 text-sm focus:outline-none focus:border-brand transition" />
+          </div>
+          <select value={gameFilter} onChange={e => setGameFilter(e.target.value)}
+            className="bg-cardBg border border-borderBg rounded-xl px-3 py-2 text-sm text-white focus:outline-none focus:border-brand">
+            <option value="">All Games</option>
+            {['Free Fire', 'PUBG Mobile', 'COD Mobile', 'Mobile Legends', 'Blood Strike'].map(g => (
+              <option key={g} value={g}>{g}</option>
+            ))}
+          </select>
+        </div>
+      </div>
+
+      {/* Active/All tabs kept for convenience */}
+      <div className="flex gap-2">
+        {(['active', 'all'] as const).map(t => (
+          <button key={t} onClick={() => setTab(t)}
+            className={`px-4 py-2 rounded-xl text-sm font-bold transition capitalize ${tab === t ? 'bg-brand/10 border border-brand/30 text-brand-light' : 'text-gray-500 hover:text-white'}`}>
+            {t === 'active' ? 'Active' : 'All'}
+            {t === 'active' && active.length > 0 && <span className="ml-1.5 bg-brand/20 px-1.5 py-0.5 rounded-full text-xs">{active.length}</span>}
+          </button>
+        ))}
+        <div className="ml-auto text-sm text-gray-500">
+          <span className="text-white font-bold">{filtered.length}</span> {filtered.length === 1 ? 'order' : 'orders'}
         </div>
       </div>
 
@@ -128,8 +178,8 @@ export default function OrdersPage() {
       {filtered.length === 0 ? (
         <div className="text-center py-20 bg-cardBg border border-borderBg rounded-3xl">
           <Package className="w-12 h-12 text-gray-700 mx-auto mb-3" />
-          <p className="text-gray-400 font-semibold">{tab === 'active' ? 'No active orders' : search ? 'No results found' : "You haven't placed any orders yet."}</p>
-          {!search && tab !== 'active' && (
+          <p className="text-gray-400 font-semibold">{search ? 'No results found' : tab === 'active' ? 'No active orders' : "You haven't placed any orders yet."}</p>
+          {!search && tab !== 'active' && viewMode === 'buyer' && (
             <Link href="/search" className="mt-4 inline-block bg-brand hover:bg-brand-dark px-6 py-3 rounded-xl font-bold text-white transition shadow-lg shadow-brand/20">
               Browse Marketplace
             </Link>

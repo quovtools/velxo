@@ -1,5 +1,6 @@
-import { IsString, IsNumber, IsOptional, IsArray, IsEnum, Min, MaxLength } from 'class-validator'
+import { IsString, IsNumber, IsOptional, IsArray, IsEnum, Min, MaxLength, ValidateIf } from 'class-validator'
 import { ListingStatus } from '@prisma/client'
+import { getGameRules } from './game-rules'
 
 export enum ListingTypeEnum {
   ACCOUNT = 'account',
@@ -28,7 +29,7 @@ export class CreateListingDto {
 
   @IsString()
   @IsOptional()
-  gameId?: string
+  gameSlug?: string
 
   @IsString()
   categoryId: string
@@ -52,10 +53,6 @@ export class CreateListingDto {
   @IsNumber()
   @IsOptional()
   level?: number
-
-  // FIX #25: Removed stale `skins` and `characters` fields — they were typed
-  // as @IsNumber() but the DB column is Json? (array of objects). They were
-  // never mapped in createListing() so they were unreachable dead code.
 
   @IsString()
   @IsOptional()
@@ -87,4 +84,11 @@ export class CreateListingDto {
 
   @IsOptional()
   isFeatured?: boolean
+
+  @ValidateIf(o => {
+    const rules = getGameRules(o.gameSlug || '')
+    return rules.requiresPlayerId
+  })
+  @IsString()
+  playerId?: string
 }

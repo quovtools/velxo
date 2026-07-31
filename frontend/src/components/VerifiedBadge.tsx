@@ -1,7 +1,7 @@
 'use client';
 
 import React from 'react';
-import { BadgeCheck, ShieldCheck, CheckCircle2 } from 'lucide-react';
+import TrustBadge from './TrustBadge';
 
 type BadgeSize = 'sm' | 'md' | 'lg';
 
@@ -19,10 +19,6 @@ const SIZES: Record<BadgeSize, { icon: number; text: string; pad: string }> = {
   lg: { icon: 18, text: 'text-sm', pad: 'px-3 py-1.5' },
 };
 
-/**
- * Blue verification badge shown on verified sellers.
- * Driven by the seller's `isVerified` flag (set after KYC approval).
- */
 export default function VerifiedBadge({
   size = 'md',
   className = '',
@@ -39,7 +35,7 @@ export default function VerifiedBadge({
         className={`inline-flex items-center justify-center rounded-full bg-violet-500 text-white shadow-[0_0_0_3px_rgba(59,130,246,0.25)] ${className}`}
         style={{ width: s.icon + 10, height: s.icon + 10 }}
       >
-        <BadgeCheck style={{ width: s.icon, height: s.icon }} />
+        <TrustBadge type="KYC_VERIFIED" size={size === 'lg' ? 'md' : 'sm'} showLabel={false} />
       </span>
     );
   }
@@ -50,7 +46,7 @@ export default function VerifiedBadge({
         title="Verified Seller"
         className={`inline-flex items-center gap-1.5 rounded-lg bg-violet-500 ${s.pad} ${s.text} font-bold text-white shadow-sm shadow-violet-500/30 ${className}`}
       >
-        <ShieldCheck style={{ width: s.icon, height: s.icon }} />
+        <TrustBadge type="KYC_VERIFIED" size={size === 'lg' ? 'md' : 'sm'} showLabel={false} />
         {showLabel && label}
       </span>
     );
@@ -61,10 +57,10 @@ export default function VerifiedBadge({
       title="Verified Seller"
       className={`inline-flex items-center gap-1 rounded-full bg-violet-500/10 text-violet-400 border border-violet-500/30 ${s.pad} ${s.text} font-bold ${className}`}
     >
-      <ShieldCheck style={{ width: s.icon, height: s.icon }} />
+      <TrustBadge type="KYC_VERIFIED" size={size === 'lg' ? 'md' : 'sm'} showLabel={false} />
       {showLabel && label}
     </span>
   );
 }
 
-export { CheckCircle2 };
+export { CheckCircle2 } from 'lucide-react';

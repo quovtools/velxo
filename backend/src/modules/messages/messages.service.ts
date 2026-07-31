@@ -5,6 +5,7 @@ import { MessageSenderType } from '@prisma/client'
 import { MessagesGateway } from '@/modules/gateways/messages.gateway'
 import { NotificationsService } from '@/modules/notifications/notifications.service'
 import { CreateConversationDto } from './dto/create-conversation.dto'
+import { StorageService } from '@/modules/upload/storage.service'
 
 @Injectable()
 export class MessagesService {
@@ -14,6 +15,7 @@ export class MessagesService {
     private prisma: PrismaService,
     private gateway: MessagesGateway,
     private notifications: NotificationsService,
+    private storage: StorageService,
   ) {}
 
   async getOrCreateConversation(buyerId: string, sellerId: string, orderId?: string) {
@@ -41,14 +43,6 @@ export class MessagesService {
     return conversation
   }
 
-  /**
-   * Resolve the real buyer/seller pair for a new conversation so the
-   * Conversation row is always role-correct, regardless of who initiates the
-   * chat (buyer or seller). Preference order:
-   *   1. explicit buyerId + sellerId on the DTO
-   *   2. an orderId (read buyerId/sellerId from the order)
-   *   3. a recipientId, inferring roles from seller profiles
-   */
   async resolveParticipants(userId: string, dto: CreateConversationDto): Promise<{ buyerId: string; sellerId: string; orderId?: string }> {
     if (dto.buyerId && dto.sellerId) {
       return { buyerId: dto.buyerId, sellerId: dto.sellerId, orderId: dto.orderId }
@@ -73,7 +67,6 @@ export class MessagesService {
       ])
       if (meSeller && !themSeller) return { buyerId: dto.recipientId, sellerId: userId }
       if (themSeller && !meSeller) return { buyerId: userId, sellerId: dto.recipientId }
-      // Ambiguous (both or neither are sellers): default recipient as seller.
       return { buyerId: userId, sellerId: dto.recipientId }
     }
 
@@ -101,7 +94,7 @@ export class MessagesService {
         const [buyerUser, sellerProfile] = await Promise.all([
           this.prisma.users.findUnique({
             where: { id: c.buyerId },
-            select: { id: true, firstName: true, lastName: true, avatarUrl: true },
+            select: { id: true, firstName: true, lastName: true, avatarUrl: true, lastSeenAt: true },
           }),
           this.prisma.sellers.findUnique({
             where: { userId: c.sellerId },
@@ -149,11 +142,26 @@ export class MessagesService {
     })
   }
 
+  async uploadAttachment(conversationId: string, userId: string, file: Express.Multer.File) {
+    const conversation = await this.prisma.conversations.findUnique({ where: { id: conversationId } })
+    if (!conversation) throw new NotFoundException('Conversation')
+    if (conversation.buyerId !== userId && conversation.sellerId !== userId) {
+      throw new ForbiddenException('You are not part of this conversation')
+    }
+    const key = `messages/${conversationId}/${Date.now()}-${file.originalname}`
+    await this.storage.upload(file.buffer, key, file.mimetype)
+    const url = await this.storage.getPresignedUrl(key)
+    return { url, mimeType: file.mimetype, fileName: file.originalname, key }
+  }
+
   async sendMessage(
     conversationId: string,
     senderId: string,
     content: string,
-    attachments?: string[],
+    _attachments?: string[],
+    attachmentUrl?: string,
+    attachmentType?: string,
+    attachmentName?: string,
   ) {
     this.logger.log(`Sending message in conversation ${conversationId}`)
 
@@ -165,7 +173,6 @@ export class MessagesService {
       throw new NotFoundException('Conversation')
     }
 
-    // Verify sender is part of conversation
     if (
       senderId !== conversation.buyerId &&
       senderId !== conversation.sellerId
@@ -174,19 +181,20 @@ export class MessagesService {
     }
 
     const message = await this.prisma.$transaction(async (tx) => {
-      // Create message
       const newMessage = await tx.messages.create({
         data: {
           conversationId,
           senderId,
           senderType: senderId === conversation.buyerId ? 'BUYER' : 'SELLER',
           content,
-          attachments: attachments || [],
+          attachments: _attachments || (attachmentUrl ? [attachmentUrl] : []),
+          attachmentUrl: attachmentUrl || null,
+          attachmentType: attachmentType || null,
+          attachmentName: attachmentName || null,
         },
         include: { sender: true },
       })
 
-      // Update conversation last message time
       await tx.conversations.update({
         where: { id: conversationId },
         data: { lastMessageAt: new Date() },
@@ -195,14 +203,12 @@ export class MessagesService {
       return newMessage
     })
 
-    // Emit the new message over the real-time gateway (best effort).
     try {
       this.gateway?.emitToConversation(conversationId, 'newMessage', message)
     } catch (err) {
       this.logger.warn(`Failed to emit real-time message: ${err}`)
     }
 
-    // Notify the recipient (the other participant) of the new message.
     try {
       const recipientId =
         senderId === conversation.buyerId ? conversation.sellerId : conversation.buyerId
@@ -224,13 +230,8 @@ export class MessagesService {
       this.logger.warn(`Failed to notify message recipient: ${err}`)
     }
 
-    // Track seller response time: when a seller replies to the buyer's last
-    // message, compute the gap and update the seller's responseTime field.
-    // This is non-fatal and runs after the message is already returned.
     this.updateSellerResponseTime(conversation, senderId, message.createdAt).catch(() => {})
 
-    // Notify the buyer when a seller sends the FIRST message in a brand-new
-    // order conversation. Non-fatal.
     try {
       if (senderId === conversation.sellerId && conversation.orderId) {
         const priorSellerMsgs = await this.prisma.messages.count({

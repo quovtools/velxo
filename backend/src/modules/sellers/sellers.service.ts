@@ -87,10 +87,28 @@ export type PlanId = keyof typeof SUBSCRIPTION_PLANS
 /** Tiers that are allowed to operate a public, shareable storefront. */
 export const STORE_ENABLED_TIERS = ['PRO', 'PREMIUM'] as const
 
-/** Map a subscription tier to its escrow commission rate. */
-export function commissionRateForTier(tier?: string | null): number {
-  const plan = (tier as PlanId) || 'FREE'
-  return SUBSCRIPTION_PLANS[plan]?.commissionRate ?? SUBSCRIPTION_PLANS.FREE.commissionRate
+/** Map a subscription tier + kycStatus to its escrow commission rate. */
+export function commissionRateForTier(tier?: string | null, kycStatus?: string): number {
+  if (tier === 'PREMIUM') return 0.03
+  if (tier === 'PRO') return 0.05
+  if (kycStatus === 'APPROVED') return 0.09
+  return 0.10
+}
+
+export function computeKycTier(
+  seller: { subscriptionTier?: string | null; kycStatus?: string | null },
+): 'UNVERIFIED' | 'VERIFIED' | 'PRO' | 'PREMIUM' {
+  if (seller.subscriptionTier === 'PREMIUM' && seller.kycStatus === 'APPROVED') return 'PREMIUM'
+  if (seller.subscriptionTier === 'PRO' && seller.kycStatus === 'APPROVED') return 'PRO'
+  if (seller.kycStatus === 'APPROVED') return 'VERIFIED'
+  return 'UNVERIFIED'
+}
+
+export const ORDER_CAP: Record<string, number> = {
+  UNVERIFIED: 50,
+  VERIFIED: 500,
+  PRO: 2000,
+  PREMIUM: 10000,
 }
 
 @Injectable()
@@ -193,6 +211,9 @@ export class SellersService {
       responseRate: seller.responseRate,
       reputationScore: seller.reputationScore,
       subscriptionTier: seller.subscriptionTier,
+      kycStatus: seller.kycStatus,
+      kycTier: computeKycTier(seller),
+      kycRejectionReason: seller.kycRejectionReason,
       sellerLevel: (seller as any).sellerLevel || 'BRONZE',
       avgResponseTimeHours: (seller as any).avgResponseTimeHours || 0,
       deliverySuccessRate: (seller as any).deliverySuccessRate || 100,
@@ -655,6 +676,9 @@ export class SellersService {
     const plan = SUBSCRIPTION_PLANS[(seller.subscriptionTier as PlanId) || 'FREE']
     return {
       ...seller,
+      kycStatus: seller.kycStatus,
+      kycTier: computeKycTier(seller),
+      kycRejectionReason: seller.kycRejectionReason,
       planName: plan.name,
       commissionRate: plan.commissionRate,
       storeUrl: `/store/${seller.storeSlug || seller.id}`,
@@ -959,5 +983,205 @@ export class SellersService {
     })
 
     return updated
+  }
+
+  async submitKycVerified(sellerId: string, dto: { idType: string; fullName: string; documentNumber?: string; idImageUrl: string; selfieImageUrl: string }) {
+    const seller = await this.prisma.sellers.findUnique({ where: { id: sellerId } })
+    if (!seller) throw new NotFoundException('Seller')
+    if (seller.kycStatus === 'APPROVED' || seller.kycStatus === 'VIDEO_APPROVED') {
+      throw new ConflictException('KYC is already approved')
+    }
+    return this.prisma.sellers.update({
+      where: { id: sellerId },
+      data: {
+        kycStatus: 'SUBMITTED',
+        kycIdType: dto.idType,
+        kycFullName: dto.fullName,
+        kycDocumentNumber: dto.documentNumber || null,
+        kycIdImageUrl: dto.idImageUrl,
+        kycSelfieImageUrl: dto.selfieImageUrl,
+        kycSubmittedAt: new Date(),
+        kycRejectionReason: null,
+      },
+    })
+  }
+
+  async submitKycPro(sellerId: string, dto: { bankVerificationRef?: string; bankStatementImageUrl?: string }) {
+    const seller = await this.prisma.sellers.findUnique({ where: { id: sellerId } })
+    if (!seller) throw new NotFoundException('Seller')
+    if (seller.totalSales < 10) {
+      throw new BadRequestException(`Pro verification requires at least 10 completed sales. You have ${seller.totalSales}.`)
+    }
+    const kycTier = computeKycTier(seller)
+    if (kycTier !== 'VERIFIED') {
+      throw new BadRequestException('You must be Verified (Tier 2) before applying for Pro.')
+    }
+    return this.prisma.sellers.update({
+      where: { id: sellerId },
+      data: {
+        kycStatus: 'SUBMITTED',
+        kycSubmittedAt: new Date(),
+        kycRejectionReason: null,
+        verificationDocuments: {
+          ...(seller.verificationDocuments as any || {}),
+          bankVerificationRef: dto.bankVerificationRef || null,
+          bankStatementImageUrl: dto.bankStatementImageUrl || null,
+        },
+      },
+    })
+  }
+
+  async submitKycPremium(sellerId: string, dto: { addressProofImageUrl: string }) {
+    const seller = await this.prisma.sellers.findUnique({ where: { id: sellerId } })
+    if (!seller) throw new NotFoundException('Seller')
+    if (seller.totalSales < 50) {
+      throw new BadRequestException(`Premium verification requires at least 50 completed sales. You have ${seller.totalSales}.`)
+    }
+    const kycTier = computeKycTier(seller)
+    if (kycTier !== 'PRO') {
+      throw new BadRequestException('You must be Pro (Tier 3) before applying for Premium.')
+    }
+    return this.prisma.sellers.update({
+      where: { id: sellerId },
+      data: {
+        kycStatus: 'VIDEO_PENDING',
+        kycSubmittedAt: new Date(),
+        kycRejectionReason: null,
+        verificationDocuments: {
+          ...(seller.verificationDocuments as any || {}),
+          addressProofImageUrl: dto.addressProofImageUrl,
+        },
+      },
+    })
+  }
+
+  async getKycStatus(sellerId: string) {
+    const seller = await this.prisma.sellers.findUnique({ where: { id: sellerId } })
+    if (!seller) throw new NotFoundException('Seller')
+    const tier = computeKycTier(seller)
+    const commissionRate = commissionRateForTier(seller.subscriptionTier, seller.kycStatus)
+    return {
+      kycStatus: seller.kycStatus,
+      kycTier: tier,
+      kycSubmittedAt: seller.kycSubmittedAt,
+      kycReviewedAt: seller.kycReviewedAt,
+      kycRejectionReason: seller.kycRejectionReason,
+      isVerified: seller.isVerified,
+      orderCap: ORDER_CAP[tier] ?? 50,
+      commissionRate,
+    }
+  }
+
+  async approveKycAdmin(sellerId: string, moderatorId: string, tier: 'VERIFIED' | 'PRO' | 'PREMIUM') {
+    const seller = await this.prisma.sellers.findUnique({ where: { id: sellerId }, include: { user: true } })
+    if (!seller) throw new NotFoundException('Seller')
+
+    let newStatus: string = 'APPROVED'
+    let isVerified = true
+    if (tier === 'PREMIUM') {
+      newStatus = 'VIDEO_APPROVED'
+    }
+
+    const updated = await this.prisma.sellers.update({
+      where: { id: sellerId },
+      data: {
+        kycStatus: newStatus,
+        isVerified,
+        verifiedAt: new Date(),
+        kycReviewedAt: new Date(),
+        kycRejectionReason: null,
+        ...(tier === 'PREMIUM' ? { metadata: { ...(seller.metadata as any || {}), instantPayoutEnabled: true } } : {}),
+      },
+    })
+
+    await this.prisma.adminAuditLogs.create({
+      data: {
+        actorId: moderatorId,
+        action: 'VERIFICATION_CHANGE',
+        entityType: 'seller',
+        entityId: sellerId,
+        newValue: { kycStatus: newStatus, tier },
+      },
+    })
+
+    if (seller.userId) {
+      await this.notifications.notifyKycApproved(seller.userId, seller.storeName, tier).catch(() => {})
+    }
+
+    return updated
+  }
+
+  async rejectKycAdmin(sellerId: string, moderatorId: string, reason: string) {
+    const seller = await this.prisma.sellers.findUnique({ where: { id: sellerId }, include: { user: true } })
+    if (!seller) throw new NotFoundException('Seller')
+
+    const updated = await this.prisma.sellers.update({
+      where: { id: sellerId },
+      data: {
+        kycStatus: 'REJECTED',
+        isVerified: false,
+        kycReviewedAt: new Date(),
+        kycRejectionReason: reason,
+      },
+    })
+
+    await this.prisma.adminAuditLogs.create({
+      data: {
+        actorId: moderatorId,
+        action: 'VERIFICATION_CHANGE',
+        entityType: 'seller',
+        entityId: sellerId,
+        newValue: { kycStatus: 'REJECTED', reason },
+      },
+    })
+
+    if (seller.userId) {
+      await this.notifications.notifyKycRejected(seller.userId, seller.storeName, reason).catch(() => {})
+    }
+
+    return updated
+  }
+
+  async scheduleVideoCall(sellerId: string, moderatorId: string, meetingLink: string) {
+    const seller = await this.prisma.sellers.findUnique({ where: { id: sellerId }, include: { user: true } })
+    if (!seller) throw new NotFoundException('Seller')
+
+    const updated = await this.prisma.sellers.update({
+      where: { id: sellerId },
+      data: {
+        metadata: { ...(seller.metadata as any || {}), videoCallLink: meetingLink },
+      },
+    })
+
+    await this.prisma.adminAuditLogs.create({
+      data: {
+        actorId: moderatorId,
+        action: 'UPDATE',
+        entityType: 'seller',
+        entityId: sellerId,
+        newValue: { videoCallLink: meetingLink },
+      },
+    })
+
+    if (seller.userId) {
+      await this.notifications
+        .createNotification(seller.userId, 'SYSTEM', 'Premium Video Call Scheduled', `Your Premium verification video call has been scheduled. ${meetingLink}`)
+        .catch(() => {})
+    }
+
+    return updated
+  }
+
+  computeBadges(seller: { subscriptionTier?: string | null; kycStatus?: string | null; totalSales?: number; averageRating?: number; avgResponseTimeHours?: number; deliverySuccessRate?: number; createdAt?: Date }) {
+    const badges: any[] = []
+    const tier = computeKycTier(seller)
+    if (tier === 'PREMIUM') badges.push({ type: 'SELLER_PREMIUM', label: 'Premium Seller', description: 'Video-verified seller with 50+ sales. Max $10,000/order.', icon: '👑', color: 'text-amber-400 bg-amber-950/40 border-amber-500/20' })
+    else if (tier === 'PRO') badges.push({ type: 'SELLER_PRO', label: 'Pro Seller', description: 'Bank-verified seller with 10+ sales. Max $2,000/order.', icon: '⚡', color: 'text-violet-400 bg-violet-950/40 border-violet-500/20' })
+    else if (tier === 'VERIFIED') badges.push({ type: 'KYC_VERIFIED', label: 'ID Verified', description: 'Government ID verified. Max $500/order.', icon: '✅', color: 'text-emerald-400 bg-emerald-950/40 border-emerald-500/20' })
+    if ((seller.totalSales ?? 0) >= 50 && (seller.averageRating ?? 0) >= 4.5) badges.push({ type: 'TOP_SELLER', label: 'Top Seller', description: '50+ sales with 4.5 average rating.', icon: '🏆', color: 'text-yellow-400 bg-yellow-950/40 border-yellow-500/20' })
+    if ((seller.avgResponseTimeHours ?? 0) < 1 && (seller.totalSales ?? 0) >= 5) badges.push({ type: 'FAST_RESPONDER', label: 'Fast Responder', description: 'Responds to buyers in under 1 hour.', icon: '⚡', color: 'text-sky-400 bg-sky-950/40 border-sky-500/20' })
+    if ((seller.deliverySuccessRate ?? 100) >= 98 && (seller.totalSales ?? 0) >= 10) badges.push({ type: 'RELIABLE_DELIVERY', label: 'Reliable Delivery', description: '98%+ delivery success rate.', icon: '📦', color: 'text-green-400 bg-green-950/40 border-green-500/20' })
+    if (seller.createdAt && Date.now() - new Date(seller.createdAt).getTime() < 30 * 86400000 && (seller.totalSales ?? 0) === 0) badges.push({ type: 'NEW_SELLER', label: 'New Seller', description: 'Joined recently. Be their first customer!', icon: '🌱', color: 'text-teal-400 bg-teal-950/40 border-teal-500/20' })
+    return badges
   }
 }

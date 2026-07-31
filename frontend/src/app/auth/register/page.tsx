@@ -19,13 +19,13 @@ const ACCOUNT_TYPES = [
     value: 'BUYER',
     icon: ShoppingCart,
     title: 'Buyer',
-    desc: 'Browse and buy game accounts, coins, and services',
+    desc: 'Browse 5,000+ verified listings. Every trade protected by Trust-Trade.',
   },
   {
     value: 'SELLER',
     icon: Gamepad2,
     title: 'Seller',
-    desc: 'Sell your game accounts, coins, and gaming items',
+    desc: 'Sell your accounts in minutes. Get paid instantly after delivery.',
   },
 ];
 
@@ -43,8 +43,10 @@ export default function RegisterPage() {
   const [firstName, setFirstName] = useState('');
   const [lastName, setLastName] = useState('');
   const [email, setEmail] = useState('');
+  const [phone, setPhone] = useState('');
   const [password, setPassword] = useState('');
   const [showPw, setShowPw] = useState(false);
+  const [termsAccepted, setTermsAccepted] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [loading, setLoading] = useState(false);
   const [games, setGames] = useState<string[]>([]);
@@ -58,6 +60,7 @@ export default function RegisterPage() {
   const handleDetailsContinue = (e: React.FormEvent) => {
     e.preventDefault();
     if (password.length < 8) { setError('Password must be at least 8 characters'); return; }
+    if (!termsAccepted) { setError('Please accept the Terms of Service and Privacy Policy to continue'); return; }
     setError(null);
     setStep(2);
   };
@@ -72,6 +75,7 @@ export default function RegisterPage() {
         '/auth/register', {
           email, password, firstName, lastName,
           role: accountType,
+          phone: phone || undefined,
           preferences: { games, interests, region },
           referralCode: getStoredReferralCode() || undefined,
         },
@@ -160,44 +164,72 @@ export default function RegisterPage() {
     );
   }
 
-  // Step 3: Verification sent
+  // Step 3: Account created — with confetti
   if (step === 3) {
+    // Confetti rendered as absolutely positioned colored squares via CSS animation
     return (
-      <div className="min-h-[80vh] flex items-center justify-center py-12 px-4 fade-in">
-        <div className="w-full max-w-md text-center space-y-5">
-          <div className="w-20 h-20 bg-emerald-500/20 rounded-full flex items-center justify-center mx-auto">
-            <ShieldCheck className="w-10 h-10 text-emerald-400" />
-          </div>
-          <h1 className="text-2xl font-bold text-white">Account Created!</h1>
-          <p className="text-gray-400 text-sm">
-            Welcome to Piyrox, <strong>{firstName}</strong>!
-            {' '}A verification email was sent to <strong className="text-white">{email}</strong>.
-          </p>
-          <p className="text-xs text-gray-500">
-            Check your inbox (or spam folder) and click the link to verify your email.
-          </p>
-          {accountType === 'SELLER' ? (
-            <div className="space-y-3">
+      <>
+        <style>{`
+          @keyframes confettiFall {
+            0% { transform: translateY(-20px) rotate(0deg); opacity: 1; }
+            100% { transform: translateY(100vh) rotate(720deg); opacity: 0; }
+          }
+          .confetti-piece {
+            position: fixed;
+            width: 10px;
+            height: 10px;
+            animation: confettiFall 2.5s ease-in forwards;
+            z-index: 9999;
+            pointer-events: none;
+          }
+        `}</style>
+        {[...Array(20)].map((_, i) => (
+          <div key={i} className="confetti-piece" style={{
+            left: `${Math.random() * 100}%`,
+            top: '-10px',
+            backgroundColor: ['#8b5cf6','#10b981','#f59e0b','#ef4444','#3b82f6'][i % 5],
+            animationDelay: `${Math.random() * 0.5}s`,
+            animationDuration: `${2 + Math.random()}s`,
+            borderRadius: Math.random() > 0.5 ? '50%' : '0',
+          }} />
+        ))}
+        {/* existing step 3 content */}
+        <div className="min-h-[80vh] flex items-center justify-center py-12 px-4 fade-in">
+          <div className="w-full max-w-md text-center space-y-5">
+            <div className="w-20 h-20 bg-emerald-500/20 rounded-full flex items-center justify-center mx-auto">
+              <ShieldCheck className="w-10 h-10 text-emerald-400" />
+            </div>
+            <h1 className="text-2xl font-bold text-white">Account Created!</h1>
+            <p className="text-gray-400 text-sm">
+              Welcome to Piyrox, <strong>{firstName}</strong>!
+              {' '}A verification email was sent to <strong className="text-white">{email}</strong>.
+            </p>
+            <p className="text-xs text-gray-500">
+              Check your inbox (or spam folder) and click the link to verify your email.
+            </p>
+            {accountType === 'SELLER' ? (
+              <div className="space-y-3">
+                <Link
+                  href="/sell"
+                  className="w-full flex items-center justify-center gap-2 bg-brand hover:bg-brand-dark px-6 py-3.5 rounded-xl font-bold text-white transition shadow-lg shadow-brand/20"
+                >
+                  <Gamepad2 className="w-4 h-4" /> Set Up My Store
+                </Link>
+                <Link href="/" className="block text-sm text-gray-400 hover:text-white transition">
+                  Skip for now
+                </Link>
+              </div>
+            ) : (
               <Link
-                href="/sell"
+                href="/"
                 className="w-full flex items-center justify-center gap-2 bg-brand hover:bg-brand-dark px-6 py-3.5 rounded-xl font-bold text-white transition shadow-lg shadow-brand/20"
               >
-                <Gamepad2 className="w-4 h-4" /> Set Up My Store
+                Start Browsing
               </Link>
-              <Link href="/" className="block text-sm text-gray-400 hover:text-white transition">
-                Skip for now
-              </Link>
-            </div>
-          ) : (
-            <Link
-              href="/"
-              className="w-full flex items-center justify-center gap-2 bg-brand hover:bg-brand-dark px-6 py-3.5 rounded-xl font-bold text-white transition shadow-lg shadow-brand/20"
-            >
-              Start Browsing
-            </Link>
-          )}
+            )}
+          </div>
         </div>
-      </div>
+      </>
     );
   }
 
@@ -222,6 +254,7 @@ export default function RegisterPage() {
             <button
               type="button"
               onClick={() => { window.location.href = `${API_BASE}/auth/google`; }}
+              aria-label="Continue with Google"
               className="w-full flex items-center justify-center gap-3 border border-borderBg hover:border-brand/40 bg-hoverBg/40 hover:bg-hoverBg py-3 rounded-xl text-sm font-semibold transition"
             >
               <svg className="w-4 h-4" viewBox="0 0 24 24">
@@ -246,33 +279,49 @@ export default function RegisterPage() {
             <form onSubmit={handleDetailsContinue} className="space-y-4">
               <div className="grid grid-cols-2 gap-3">
                 <div>
-                  <label className="block text-xs font-semibold text-gray-400 mb-1.5 uppercase tracking-wide">First Name</label>
-                  <input type="text" required autoComplete="given-name"
+                  <label htmlFor="reg-first-name" className="block text-xs font-semibold text-gray-400 mb-1.5 uppercase tracking-wide">First Name</label>
+                  <input id="reg-first-name" type="text" required autoComplete="given-name"
+                    aria-label="First name"
                     className="w-full bg-background border border-borderBg rounded-xl px-4 py-3 text-sm focus:outline-none focus:border-brand transition"
                     placeholder="John" value={firstName} onChange={e => setFirstName(e.target.value)} />
                 </div>
                 <div>
-                  <label className="block text-xs font-semibold text-gray-400 mb-1.5 uppercase tracking-wide">Last Name</label>
-                  <input type="text" required autoComplete="family-name"
+                  <label htmlFor="reg-last-name" className="block text-xs font-semibold text-gray-400 mb-1.5 uppercase tracking-wide">Last Name</label>
+                  <input id="reg-last-name" type="text" required autoComplete="family-name"
+                    aria-label="Last name"
                     className="w-full bg-background border border-borderBg rounded-xl px-4 py-3 text-sm focus:outline-none focus:border-brand transition"
                     placeholder="Doe" value={lastName} onChange={e => setLastName(e.target.value)} />
                 </div>
               </div>
 
               <div>
-                <label className="block text-xs font-semibold text-gray-400 mb-1.5 uppercase tracking-wide">Email</label>
-                <input type="email" required autoComplete="email"
+                <label htmlFor="reg-email" className="block text-xs font-semibold text-gray-400 mb-1.5 uppercase tracking-wide">Email</label>
+                <input id="reg-email" type="email" required autoComplete="email"
+                  aria-label="Email address"
                   className="w-full bg-background border border-borderBg rounded-xl px-4 py-3 text-sm focus:outline-none focus:border-brand transition"
                   placeholder="gaming@piyrox.shop" value={email} onChange={e => setEmail(e.target.value)} />
               </div>
 
               <div>
-                <label className="block text-xs font-semibold text-gray-400 mb-1.5 uppercase tracking-wide">Password</label>
+                <label htmlFor="reg-phone" className="block text-xs font-semibold text-gray-400 mb-1.5 uppercase tracking-wide">
+                  Phone Number <span className="text-gray-600 font-normal">(optional)</span>
+                </label>
+                <input id="reg-phone" type="tel" autoComplete="tel"
+                  aria-label="Phone number (optional)"
+                  className="w-full bg-background border border-borderBg rounded-xl px-4 py-3 text-sm placeholder-gray-600 focus:outline-none focus:border-brand transition"
+                  placeholder="+234 800 000 0000"
+                  value={phone} onChange={(e) => setPhone(e.target.value)} />
+              </div>
+
+              <div>
+                <label htmlFor="reg-password" className="block text-xs font-semibold text-gray-400 mb-1.5 uppercase tracking-wide">Password</label>
                 <div className="relative">
-                  <input type={showPw ? 'text' : 'password'} required minLength={8} autoComplete="new-password"
+                  <input id="reg-password" type={showPw ? 'text' : 'password'} required minLength={8} autoComplete="new-password"
+                    aria-label="Password"
                     className="w-full bg-background border border-borderBg rounded-xl px-4 py-3 pr-11 text-sm focus:outline-none focus:border-brand transition"
                     placeholder="Min. 8 characters" value={password} onChange={e => setPassword(e.target.value)} />
                   <button type="button" onClick={() => setShowPw(!showPw)}
+                    aria-label={showPw ? 'Hide password' : 'Show password'}
                     className="absolute right-3 top-1/2 -translate-y-1/2 text-gray-500">
                     {showPw ? <EyeOff className="w-4 h-4" /> : <Eye className="w-4 h-4" />}
                   </button>
@@ -286,6 +335,15 @@ export default function RegisterPage() {
                     }`} />
                   ))}
                 </div>
+              </div>
+
+              {/* Terms acceptance */}
+              <div className="flex items-start gap-3">
+                <input type="checkbox" id="terms" required checked={termsAccepted} onChange={e => setTermsAccepted(e.target.checked)}
+                  className="mt-0.5 w-4 h-4 rounded border-borderBg text-brand focus:ring-brand" />
+                <label htmlFor="terms" className="text-xs text-gray-400">
+                  I agree to the <Link href="/terms" className="text-brand hover:underline">Terms of Service</Link> and <Link href="/privacy" className="text-brand hover:underline">Privacy Policy</Link>
+                </label>
               </div>
 
               <button type="submit"
