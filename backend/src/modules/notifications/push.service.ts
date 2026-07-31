@@ -4,7 +4,8 @@ import { NotificationType } from '@prisma/client'
 
 // web-push is optional — only loaded when VAPID keys are configured.
 // This keeps the app bootable without the dependency installed.
-let webpush: typeof import('web-push') | null = null
+// @ts-ignore
+let webpush: any = null
 try {
   // eslint-disable-next-line @typescript-eslint/no-require-imports
   webpush = require('web-push')

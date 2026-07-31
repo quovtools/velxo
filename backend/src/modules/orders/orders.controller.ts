@@ -21,8 +21,8 @@ export interface OrderFilterQuery {
   gameName?: string
   from?: string
   to?: string
-  page?: string
-  limit?: string
+  page?: number
+  limit?: number
 }
 
 @Controller('orders')
@@ -47,7 +47,12 @@ export class OrdersController {
   @UseGuards(SupabaseJwtGuard)
   async getMyOrders(@CurrentUserId() buyerId: string, @Query() query: OrderFilterQuery) {
     try {
-      const orders = await this.ordersService.getBuyerOrders(buyerId, query)
+      const parsed = {
+        ...query,
+        page: query.page ? parseInt(query.page as any) : undefined,
+        limit: query.limit ? parseInt(query.limit as any) : undefined,
+      }
+      const orders = await this.ordersService.getBuyerOrders(buyerId, parsed)
       return ApiResponseDto.ok(orders, 'Orders retrieved successfully')
     } catch (error) {
       this.logger.error('Error fetching orders:', error)
@@ -59,7 +64,12 @@ export class OrdersController {
   @UseGuards(SupabaseJwtGuard)
   async getSellerOrders(@CurrentUserId() userId: string, @Query() query: OrderFilterQuery) {
     try {
-      const orders = await this.ordersService.getSellerOrdersByUserId(userId, query)
+      const parsed = {
+        ...query,
+        page: query.page ? parseInt(query.page as any) : undefined,
+        limit: query.limit ? parseInt(query.limit as any) : undefined,
+      }
+      const orders = await this.ordersService.getSellerOrdersByUserId(userId, parsed)
       return ApiResponseDto.ok(orders, 'Orders retrieved successfully')
     } catch (error) {
       this.logger.error('Error fetching seller orders:', error)

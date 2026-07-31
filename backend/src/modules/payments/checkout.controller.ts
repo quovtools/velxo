@@ -111,7 +111,6 @@ export class CheckoutController {
       return ApiResponseDto.ok({
         order,
         paymentUrl: payment.paymentUrl,
-        provider: payment.provider,
         configured: payment.configured,
       }, 'Checkout initiated')
     } catch (error) {

@@ -888,18 +888,6 @@ export class OrdersService {
       this.logger.error('Referrer coin bonus failed (non-fatal):', e)
     }
   }
-}
-          } catch (err) {
-            this.logger.warn(`Buyer near-deadline nudge failed: ${err}`)
-          }
-        }, delay)
-      }
-    } catch (err) {
-      this.logger.warn(`Failed to schedule buyer near-deadline nudge: ${err}`)
-    }
-
-    return updated
-  }
 
   async getOrderReceipt(orderId: string, userId: string) {
     const order = await this.prisma.orders.findUnique({

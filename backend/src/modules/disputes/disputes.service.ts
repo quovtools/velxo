@@ -6,6 +6,7 @@ import {
   NotFoundException,
   ForbiddenException,
   InvalidEscrowStateException,
+  BadRequestException,
 } from '@/common/exceptions/custom-exceptions'
 import { DisputeStatus, EscrowStatus, OrderStatus } from '@prisma/client'
 import { Decimal } from '@prisma/client/runtime/library'
@@ -54,8 +55,6 @@ export class DisputesService {
           dto.evidence || dto.description
             ? { evidence: dto.evidence ?? null, description: dto.description ?? null }
             : undefined,
-        evidenceUrls: dto.evidenceUrls || [],
-        evidenceText: dto.evidenceText || null,
         status: DisputeStatus.OPEN,
       },
       include: {

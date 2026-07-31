@@ -56,10 +56,6 @@ export class CreateListingDto {
 
   @IsString()
   @IsOptional()
-  playerId?: string
-
-  @IsString()
-  @IsOptional()
   playerUid?: string
 
   @IsString()

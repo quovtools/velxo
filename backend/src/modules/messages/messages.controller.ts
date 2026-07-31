@@ -10,13 +10,14 @@ import {
   UseGuards,
   Logger,
   ForbiddenException,
+  UseInterceptors,
+  UploadedFile,
+  FileInterceptor,
 } from '@nestjs/common'
 import { MessagesService } from './messages.service'
 import { SupabaseJwtGuard } from '@/common/guards/supabase-jwt.guard'
 import { CurrentUserId } from '@/common/decorators/current-user.decorator'
 import { ApiResponseDto } from '@/common/dto/api-response.dto'
-import { CreateConversationDto } from './dto/create-conversation.dto'
-import { UseInterceptors, UploadedFile, FileInterceptor } from '@nestjs/platform-express'
 import { memoryStorage } from 'multer'
 import { BadRequestException } from '@/common/exceptions/custom-exceptions'
 

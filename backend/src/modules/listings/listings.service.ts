@@ -52,7 +52,7 @@ export class ListingsService {
         description: dto.description,
         price: dto.price,
         gameName: dto.gameName,
-        gameId: dto.gameId,
+        gameId: dto.gameSlug || dto.gameName,
         categoryId,
         subcategoryId: dto.subcategoryId,
         sellerId: seller.id,
@@ -339,7 +339,7 @@ export class ListingsService {
       console: 1.2,
     }
 
-    const base = GAME_BASE[dto.gameId] || 20
+    let base = GAME_BASE[dto.gameSlug] || 20
     const rankMult = RANK_MULTIPLIER[dto.rank] || 1.0
     const platformMult = PLATFORM_MULTIPLIER[dto.platform] || 1.0
     const levelBonus = Math.max(0, (dto.level - 1)) * 0.5

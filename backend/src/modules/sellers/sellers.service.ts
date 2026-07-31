@@ -1090,7 +1090,7 @@ export class SellersService {
         verifiedAt: new Date(),
         kycReviewedAt: new Date(),
         kycRejectionReason: null,
-        ...(tier === 'PREMIUM' ? { metadata: { ...(seller.metadata as any || {}), instantPayoutEnabled: true } } : {}),
+        ...(tier === 'PREMIUM' ? { metadata: { ...((seller as any).metadata || {}), instantPayoutEnabled: true } } : {}),
       },
     })
 
@@ -1149,7 +1149,7 @@ export class SellersService {
     const updated = await this.prisma.sellers.update({
       where: { id: sellerId },
       data: {
-        metadata: { ...(seller.metadata as any || {}), videoCallLink: meetingLink },
+        metadata: { ...((seller as any).metadata || {}), videoCallLink: meetingLink },
       },
     })
 
