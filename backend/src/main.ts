@@ -139,7 +139,7 @@ async function bootstrap() {
     logger.error('Schema migration failed (app will still try to start):', schemaErr)
   }
 
-  const port = process.env.PORT || 3001
+  const port = process.env.BACKEND_PORT || process.env.PORT || 3001
   const nodeEnv = process.env.NODE_ENV || 'development'
   const apiUrl =
     nodeEnv === 'production'
