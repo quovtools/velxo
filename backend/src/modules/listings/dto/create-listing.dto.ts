@@ -1,6 +1,6 @@
 import { IsString, IsNumber, IsOptional, IsArray, IsEnum, Min, MaxLength, ValidateIf } from 'class-validator'
 import { ListingStatus } from '@prisma/client'
-import { getGameRules } from './game-rules'
+import { getGameRules } from '../game-rules'
 
 export enum ListingTypeEnum {
   ACCOUNT = 'account',

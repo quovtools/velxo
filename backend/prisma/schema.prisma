@@ -241,6 +241,7 @@ model sellers {
   kycRejectionReason String?
   sellerLevel     SellerLevel @default(BRONZE)
   reputationScore Float    @default(0.0)
+  metadata        Json?
   totalSales      Int      @default(0)
   totalRevenue    Decimal  @default(0) @db.Decimal(12, 2)
   averageRating   Float    @default(0.0)

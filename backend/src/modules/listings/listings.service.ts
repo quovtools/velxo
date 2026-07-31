@@ -298,6 +298,7 @@ export class ListingsService {
 
   async estimateAccountValue(dto: {
     gameId: string
+    gameSlug?: string
     rank: string
     level: number
     skins: number | any[]
