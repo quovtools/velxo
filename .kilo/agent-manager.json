@@ -1,11 +1,27 @@
 {
-  "worktrees": {},
-  "sessions": {},
+  "worktrees": {
+    "wt-1785420780520-1": {
+      "branch": "scarce-border",
+      "path": "c:\\Users\\CODE\\Desktop\\velxo\\.kilo\\worktrees\\scarce-border",
+      "parentBranch": "main",
+      "createdAt": "2026-07-30T14:13:00.520Z",
+      "remote": "origin",
+      "branchOwned": true
+    }
+  },
+  "sessions": {
+    "ses_04ca0debfffeLjNzpZjs08U2OX": {
+      "worktreeId": "wt-1785420780520-1",
+      "createdAt": "2026-07-30T14:13:31.832Z"
+    }
+  },
   "tabOrder": {
     "local": [
-      "pending:1",
-      "ses_084b73c5effeho3034N3CLWRP3"
+      "pending:54dd2dd7-fc78-4a13-800a-2b5d91419fa6"
     ]
   },
+  "worktreeOrder": [
+    "wt-1785420780520-1"
+  ],
   "sessionsCollapsed": false
 }
