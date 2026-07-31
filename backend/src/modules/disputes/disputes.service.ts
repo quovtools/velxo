@@ -1,4 +1,4 @@
-import { Injectable, Logger } from '@nestjs/common'
+import { Injectable, Logger, BadRequestException } from '@nestjs/common'
 import { PrismaService } from '@/common/services/prisma.service'
 import { CreateDisputeDto } from './dto/create-dispute.dto'
 import { ResolveDisputeDto } from './dto/resolve-dispute.dto'
