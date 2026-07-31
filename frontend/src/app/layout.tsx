@@ -1,4 +1,5 @@
 import type { Metadata, Viewport } from "next";
+import { Suspense } from "react";
 import "./globals.css";
 import { Providers } from "./providers";
 import NavigationWrapper from "@/components/NavigationWrapper";
@@ -133,16 +134,18 @@ export default function RootLayout({
         <link rel="sitemap" type="application/xml" href="/sitemap.xml" />
       </head>
       <body className="antialiased min-h-screen flex flex-col">
-        <Providers>
-          <AppLoader />
-          <NavigationWrapper />
-          <ActiveOrderBanner />
-          <main className="flex-1 w-full max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-6 pb-24 sm:pb-6">
-            {children}
-          </main>
-          <InstallPrompt />
-          <LiveChatWidget />
-        </Providers>
+        <Suspense fallback={null}>
+          <Providers>
+            <AppLoader />
+            <NavigationWrapper />
+            <ActiveOrderBanner />
+            <main className="flex-1 w-full max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-6 pb-24 sm:pb-6">
+              {children}
+            </main>
+            <InstallPrompt />
+            <LiveChatWidget />
+          </Providers>
+        </Suspense>
       </body>
     </html>
   );
