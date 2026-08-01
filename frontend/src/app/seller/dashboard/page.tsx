@@ -174,12 +174,12 @@ export default function SellerDashboard() {
     try {
       const [sRes, oRes, lRes, wRes] = await Promise.all([
         api.get<{ success: boolean; data: Seller }>('/sellers/me'),
-        api.get<{ success: boolean; data: SellerOrder[] }>('/orders/seller'),
+        api.get<{ success: boolean; data: { orders: SellerOrder[]; total: number } }>('/orders/seller'),
         api.get<{ success: boolean; data: { listings: SellerListing[] } }>('/listings', { params: { sellerId: user!.id, status: 'ALL', limit: 100 } }),
         api.get<{ success: boolean; data: Wallet }>('/wallet').catch(() => ({ success: false, data: null })),
       ]);
       if (sRes.success) setSeller(sRes.data);
-      if (oRes.success) setOrders(oRes.data || []);
+      if (oRes.success) setOrders(oRes.data?.orders || []);
       if (lRes.success) setListings(lRes.data?.listings || []);
       if (wRes.success) setWallet(wRes.data);
       if (sRes.success) {
