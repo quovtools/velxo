@@ -175,7 +175,8 @@ export default function SellerProfileContent({ id }: { id: string }) {
       const rRes = await fetch(`${API_BASE}/reviews/seller/${p.id}`);
       if (rRes.ok) {
         const rData = await rRes.json();
-        setReviews(rData.data || []);
+        const raw = rData.data;
+        setReviews(Array.isArray(raw) ? raw : []);
       }
     } catch (err: any) {
       setError(err.message || 'Failed to load seller');

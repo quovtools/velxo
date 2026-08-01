@@ -83,7 +83,7 @@ export class ReviewsService {
       where: { listingId, isHidden: false },
       include: { buyer: true },
       orderBy: { createdAt: 'desc' },
-      take: limit,
+      take: Number(limit) || 10,
     })
   }
 
@@ -92,7 +92,7 @@ export class ReviewsService {
       where: { sellerId, isHidden: false },
       include: { buyer: true, listing: true },
       orderBy: { createdAt: 'desc' },
-      take: limit,
+      take: Number(limit) || 50,
     })
   }
 

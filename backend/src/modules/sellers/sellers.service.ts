@@ -1172,6 +1172,23 @@ export class SellersService {
     return updated
   }
 
+  async getTopSellers(limit: number = 20) {
+    const sellers = await this.prisma.sellers.findMany({
+      where: { isSuspended: false },
+      orderBy: [
+        { totalSales: 'desc' },
+        { averageRating: 'desc' },
+      ],
+      take: Number(limit) || 20,
+      include: {
+        user: {
+          select: { id: true, username: true, avatarUrl: true },
+        },
+      },
+    })
+    return sellers
+  }
+
   computeBadges(seller: { subscriptionTier?: string | null; kycStatus?: string | null; totalSales?: number; averageRating?: number; avgResponseTimeHours?: number; deliverySuccessRate?: number; createdAt?: Date }) {
     const badges: any[] = []
     const tier = computeKycTier(seller)

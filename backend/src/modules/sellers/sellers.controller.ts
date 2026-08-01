@@ -69,6 +69,17 @@ export class SellersController {
     }
   }
 
+  @Get('top-sellers')
+  async getTopSellers(@Query('limit') limit?: number) {
+    try {
+      const sellers = await this.sellersService.getTopSellers(limit ? Number(limit) : 20)
+      return ApiResponseDto.ok(sellers, 'Top sellers retrieved')
+    } catch (error) {
+      this.logger.error('Error fetching top sellers:', error)
+      throw error
+    }
+  }
+
   @Get(':id')
   async getSeller(@Param('id') sellerId: string) {
     try {
