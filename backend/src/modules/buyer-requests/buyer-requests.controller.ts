@@ -10,7 +10,7 @@ import {
   Logger,
 } from '@nestjs/common'
 import { BuyerRequestsService } from './buyer-requests.service'
-import { SupabaseJwtGuard } from '@/common/guards/supabase-jwt.guard'
+import { SupabaseJwtGuard } from '@/common/guards/jwt.guard'
 import { CurrentUserId } from '@/common/decorators/current-user.decorator'
 import { ApiResponseDto } from '@/common/dto/api-response.dto'
 

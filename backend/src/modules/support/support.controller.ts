@@ -10,7 +10,7 @@ import {
   Logger,
 } from '@nestjs/common'
 import { SupportService } from './support.service'
-import { SupabaseJwtGuard } from '@/common/guards/supabase-jwt.guard'
+import { SupabaseJwtGuard } from '@/common/guards/jwt.guard'
 import { CurrentUserId } from '@/common/decorators/current-user.decorator'
 import { ApiResponseDto } from '@/common/dto/api-response.dto'
 import { SupportTicketCategory } from '@prisma/client'

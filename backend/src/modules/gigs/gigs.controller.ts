@@ -14,7 +14,7 @@ import {
 import { GigsService } from './gigs.service'
 import { CreateGigDto, UpdateGigDto, AdminReviewGigDto } from './dto/create-gig.dto'
 import { AdminPasswordGuard } from '@/common/guards/admin-password.guard'
-import { SupabaseJwtGuard } from '@/common/guards/supabase-jwt.guard'
+import { SupabaseJwtGuard } from '@/common/guards/jwt.guard'
 import { CurrentUserId } from '@/common/decorators/current-user.decorator'
 import { ApiResponseDto } from '@/common/dto/api-response.dto'
 

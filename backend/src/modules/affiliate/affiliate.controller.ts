@@ -1,6 +1,6 @@
 import { Controller, Get, Post, Patch, Param, Query, Body, UseGuards } from '@nestjs/common'
 import { AffiliateService } from './affiliate.service'
-import { SupabaseJwtGuard } from '@/common/guards/supabase-jwt.guard'
+import { SupabaseJwtGuard } from '@/common/guards/jwt.guard'
 import { RolesGuard } from '@/common/guards/roles.guard'
 import { RequireRoles } from '@/common/decorators/roles.decorator'
 import { CurrentUserId } from '@/common/decorators/current-user.decorator'

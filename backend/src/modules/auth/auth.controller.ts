@@ -13,7 +13,7 @@ import {
 import { Response, Request } from 'express'
 import { AuthService } from './auth.service'
 import { LoginDto, RegisterDto } from './dto/login.dto'
-import { SupabaseJwtGuard } from '@/common/guards/supabase-jwt.guard'
+import { SupabaseJwtGuard } from '@/common/guards/jwt.guard'
 import { CurrentUserId } from '@/common/decorators/current-user.decorator'
 import { ApiResponseDto } from '@/common/dto/api-response.dto'
 
@@ -150,7 +150,7 @@ export class AuthController {
   async googleCallback(@Req() req: Request, @Query('code') code: string, @Res() res: Response) {
     try {
       const result = await this.authService.handleGoogleCallback(code, req)
-      const frontendUrl = process.env.FRONTEND_URL || 'https://market.piyrox.shop'
+      const frontendUrl = process.env.FRONTEND_URL || 'https://app.piyrox.shop'
       const u = result.user
       const hash = [
         `token=${result.accessToken}`,
@@ -164,7 +164,7 @@ export class AuthController {
       res.redirect(`${frontendUrl}/auth/callback#${hash}`)
     } catch (error) {
       this.logger.error('Google OAuth callback error:', error)
-      const frontendUrl = process.env.FRONTEND_URL || 'https://market.piyrox.shop'
+      const frontendUrl = process.env.FRONTEND_URL || 'https://app.piyrox.shop'
       res.redirect(`${frontendUrl}/auth/login?error=google_failed`)
     }
   }

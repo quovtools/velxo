@@ -13,7 +13,7 @@ import {
 import { TopupsService } from './topups.service'
 import { CreateTopupDto, UpdateTopupDto } from './dto/create-topup.dto'
 import { AdminPasswordGuard } from '@/common/guards/admin-password.guard'
-import { SupabaseJwtGuard } from '@/common/guards/supabase-jwt.guard'
+import { SupabaseJwtGuard } from '@/common/guards/jwt.guard'
 import { CurrentUserId } from '@/common/decorators/current-user.decorator'
 import { ApiResponseDto } from '@/common/dto/api-response.dto'
 

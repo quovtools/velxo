@@ -117,37 +117,63 @@ export class StartupHealthService implements OnModuleInit {
   }
 
   private async checkEmailService(): Promise<{ name: string; ok: boolean; detail?: string }> {
-    const apiKey = process.env.RESEND_API_KEY
-    if (!apiKey) {
+    const results: { name: string; ok: boolean; detail?: string }[] = []
+
+    // ── Resend ───────────────────────────────────────────────────────────────
+    const resendKey = process.env.RESEND_API_KEY
+    if (resendKey) {
+      try {
+        const { Resend } = await import('resend')
+        new Resend(resendKey)
+        this.logger.log('✅ Email (Resend): API key configured [primary]')
+        results.push({ name: 'resend', ok: true })
+      } catch (err: any) {
+        this.logger.error(`❌ Email (Resend): initialization failed — ${err?.message}`)
+        results.push({ name: 'resend', ok: false, detail: err?.message })
+      }
+    } else {
       this.logger.warn('⚠️  Email (Resend): RESEND_API_KEY missing')
-      return { name: 'email', ok: false, detail: 'missing RESEND_API_KEY' }
+      results.push({ name: 'resend', ok: false, detail: 'missing RESEND_API_KEY' })
     }
 
-    try {
-      const { Resend } = await import('resend')
-      const resend = new Resend(apiKey)
-      this.logger.log('✅ Email (Resend): API key configured')
-      return { name: 'email', ok: true }
-    } catch (err: any) {
-      const detail = err?.message || String(err)
-      this.logger.error(`❌ Email (Resend): initialization failed — ${detail}`)
-      return { name: 'email', ok: false, detail }
+    // ── Bavimail (fallback) ──────────────────────────────────────────────────
+    const bavimailKey   = process.env.BAVIMAIL_API_KEY
+    const bavimailAlias = process.env.BAVIMAIL_ALIAS_ID
+    if (bavimailKey && bavimailAlias) {
+      try {
+        const { Bavimail } = await import('bavimail')
+        new Bavimail({ apiKey: bavimailKey })
+        this.logger.log('✅ Email (Bavimail): API key + alias configured [fallback]')
+        results.push({ name: 'bavimail', ok: true })
+      } catch (err: any) {
+        this.logger.error(`❌ Email (Bavimail): initialization failed — ${err?.message}`)
+        results.push({ name: 'bavimail', ok: false, detail: err?.message })
+      }
+    } else {
+      const missing = [bavimailKey ? null : 'BAVIMAIL_API_KEY', bavimailAlias ? null : 'BAVIMAIL_ALIAS_ID'].filter(Boolean).join(', ')
+      this.logger.warn(`⚠️  Email (Bavimail): ${missing} missing [fallback disabled]`)
+      results.push({ name: 'bavimail', ok: false, detail: `missing ${missing}` })
+    }
+
+    // Email is OK as long as at least one provider works
+    const anyOk = results.some((r) => r.ok)
+    return {
+      name: 'email',
+      ok: anyOk,
+      detail: results.map((r) => `${r.name}:${r.ok ? 'ok' : 'fail'}`).join(', '),
     }
   }
 
   private async checkAuthProviders(): Promise<{ name: string; ok: boolean; detail?: string }> {
-    const parts: string[] = []
     const results: { name: string; ok: boolean; detail?: string }[] = []
 
-    const supabaseUrl = process.env.SUPABASE_URL
-    const supabaseKey = process.env.SUPABASE_ANON_KEY
-    if (supabaseUrl && supabaseKey) {
-      this.logger.log(`✅ Auth (Supabase): configured — ${supabaseUrl}`)
-      results.push({ name: 'supabase', ok: true })
+    const jwtSecret = process.env.JWT_SECRET
+    if (jwtSecret) {
+      this.logger.log('✅ Auth (JWT): JWT_SECRET configured')
+      results.push({ name: 'jwt', ok: true })
     } else {
-      const missing = [supabaseUrl ? null : 'SUPABASE_URL', supabaseKey ? null : 'SUPABASE_ANON_KEY'].filter(Boolean).join(', ')
-      this.logger.warn(`⚠️  Auth (Supabase): missing — ${missing}`)
-      results.push({ name: 'supabase', ok: false, detail: missing })
+      this.logger.warn('⚠️  Auth (JWT): JWT_SECRET missing')
+      results.push({ name: 'jwt', ok: false, detail: 'missing JWT_SECRET' })
     }
 
     const googleClientId = process.env.GOOGLE_CLIENT_ID

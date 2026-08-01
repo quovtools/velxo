@@ -13,7 +13,7 @@ import {
 import { FileInterceptor } from '@nestjs/platform-express'
 import { memoryStorage } from 'multer'
 import { StorageService } from './storage.service'
-import { SupabaseJwtGuard } from '@/common/guards/supabase-jwt.guard'
+import { SupabaseJwtGuard } from '@/common/guards/jwt.guard'
 import { ApiResponseDto } from '@/common/dto/api-response.dto'
 import { CurrentUserId } from '@/common/decorators/current-user.decorator'
 

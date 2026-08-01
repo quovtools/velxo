@@ -1,6 +1,6 @@
 import { Controller, Get, Post, Body, Param, Logger, UseGuards, Query, Ip } from '@nestjs/common'
 import { WalletService } from './wallet.service'
-import { SupabaseJwtGuard } from '@/common/guards/supabase-jwt.guard'
+import { SupabaseJwtGuard } from '@/common/guards/jwt.guard'
 import { CurrentUserId } from '@/common/decorators/current-user.decorator'
 import { ApiResponseDto } from '@/common/dto/api-response.dto'
 import { WithdrawDto } from './dto/withdraw.dto'

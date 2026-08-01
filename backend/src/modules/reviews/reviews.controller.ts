@@ -11,7 +11,7 @@ import {
 } from '@nestjs/common'
 import { ReviewsService } from './reviews.service'
 import { CreateReviewDto } from './dto/create-review.dto'
-import { SupabaseJwtGuard } from '@/common/guards/supabase-jwt.guard'
+import { SupabaseJwtGuard } from '@/common/guards/jwt.guard'
 import { CurrentUserId } from '@/common/decorators/current-user.decorator'
 import { ApiResponseDto } from '@/common/dto/api-response.dto'
 

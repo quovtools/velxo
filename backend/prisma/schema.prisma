@@ -4,6 +4,8 @@ generator client {
 
 datasource db {
   provider  = "postgresql"
+  // DATABASE_URL  — runtime connection string (Fly.io internal: postgres://...flycast...)
+  // DIRECT_URL    — used by Prisma migrations to bypass pgBouncer if present
   url       = env("DATABASE_URL")
   directUrl = env("DIRECT_URL")
 }

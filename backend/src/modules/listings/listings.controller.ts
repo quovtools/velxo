@@ -13,7 +13,7 @@ import {
 import { ListingsService } from './listings.service'
 import { CreateListingDto } from './dto/create-listing.dto'
 import { SearchListingDto } from './dto/search-listing.dto'
-import { SupabaseJwtGuard } from '@/common/guards/supabase-jwt.guard'
+import { SupabaseJwtGuard } from '@/common/guards/jwt.guard'
 import { CurrentUserId } from '@/common/decorators/current-user.decorator'
 import { ApiResponseDto } from '@/common/dto/api-response.dto'
 

@@ -11,7 +11,7 @@ import {
 } from '@nestjs/common'
 import { Request } from 'express'
 import { EscrowService } from './escrow.service'
-import { SupabaseJwtGuard } from '@/common/guards/supabase-jwt.guard'
+import { SupabaseJwtGuard } from '@/common/guards/jwt.guard'
 import { CurrentUserId } from '@/common/decorators/current-user.decorator'
 import { ApiResponseDto } from '@/common/dto/api-response.dto'
 import { PrismaService } from '@/common/services/prisma.service'

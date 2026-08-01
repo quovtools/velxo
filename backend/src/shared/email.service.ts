@@ -1,61 +1,98 @@
 import { Injectable, Logger } from '@nestjs/common';
 import { Resend } from 'resend';
+import { Bavimail } from 'bavimail';
 
 @Injectable()
 export class EmailService {
   private readonly resend: Resend | null;
+  private readonly bavimail: Bavimail | null;
+  private readonly bavimailAliasId: string | null;
   private readonly fromEmail: string;
   private readonly logger = new Logger(EmailService.name);
 
   constructor() {
-    const apiKey = process.env.RESEND_API_KEY;
-    if (!apiKey) {
-      this.logger.error(
-        'RESEND_API_KEY is NOT set. Emails will NOT be sent. Set RESEND_API_KEY in your environment.',
-      );
+    // ── Resend (primary) ────────────────────────────────────────────────────
+    const resendKey = process.env.RESEND_API_KEY;
+    if (!resendKey) {
+      this.logger.warn('RESEND_API_KEY not set — Resend disabled, will use Bavimail fallback if configured.');
     }
-    this.resend = apiKey ? new Resend(apiKey) : null;
-    // Resend only allows sending from a verified domain. Until the sender domain
-    // is verified in the Resend dashboard, use the built-in test sender.
-    this.fromEmail = process.env.EMAIL_FROM || 'onboarding@resend.dev';
+    this.resend = resendKey ? new Resend(resendKey) : null;
+
+    // ── Bavimail (fallback) ──────────────────────────────────────────────────
+    // Required env vars:
+    //   BAVIMAIL_API_KEY   — API key from Bavimail dashboard
+    //   BAVIMAIL_ALIAS_ID  — sending alias ID (the alias for noreply@piyrox.shop)
+    const bavimailKey     = process.env.BAVIMAIL_API_KEY;
+    const bavimailAlias   = process.env.BAVIMAIL_ALIAS_ID;
+    if (bavimailKey && bavimailAlias) {
+      this.bavimail = new Bavimail({ apiKey: bavimailKey });
+      this.bavimailAliasId = bavimailAlias;
+      this.logger.log('Bavimail fallback configured.');
+    } else {
+      this.bavimail = null;
+      this.bavimailAliasId = null;
+      this.logger.warn('BAVIMAIL_API_KEY / BAVIMAIL_ALIAS_ID not set — Bavimail fallback disabled.');
+    }
+
+    const emailAddr = process.env.EMAIL_FROM || 'noreply@piyrox.shop';
+    const senderName = process.env.EMAIL_SENDER_NAME || 'Piyrox';
+    this.fromEmail = `${senderName} <${emailAddr}>`;
   }
 
   isConfigured(): boolean {
-    return this.resend !== null;
+    return this.resend !== null || this.bavimail !== null;
   }
 
-  async sendEmail(to: string, subject: string, html: string): Promise<{ success: boolean; messageId?: string; error?: string }> {
-    if (!this.resend) {
-      this.logger.error(
-        `[EMAIL NOT SENT] RESEND_API_KEY missing. Would have sent "${subject}" to ${to}`,
-      );
-      return { success: false, error: 'Email service is not configured (missing RESEND_API_KEY).' };
-    }
+  // ── Core send — tries Resend first, falls back to Bavimail on any failure ─
+  async sendEmail(to: string, subject: string, html: string): Promise<{ success: boolean; messageId?: string; provider?: string; error?: string }> {
+    // 1. Try Resend
+    if (this.resend) {
+      try {
+        const { data, error } = await this.resend.emails.send({
+          from: this.fromEmail,
+          to,
+          subject,
+          html,
+        });
 
-    try {
-      const { data, error } = await this.resend.emails.send({
-        from: this.fromEmail,
-        to,
-        subject,
-        html,
-      });
+        if (!error) {
+          this.logger.log(`[Resend] Email sent to ${to}: "${subject}" (ID: ${data?.id})`);
+          return { success: true, messageId: data?.id, provider: 'resend' };
+        }
 
-      if (error) {
-        this.logger.error(`Email error to ${to}:`, error.message);
-        return { success: false, error: error.message };
+        // Resend returned an API-level error — fall through to Bavimail
+        this.logger.warn(`[Resend] API error for "${subject}" to ${to}: ${error.message} — trying Bavimail fallback`);
+      } catch (err: any) {
+        // Network / rate-limit / unexpected error — fall through to Bavimail
+        this.logger.warn(`[Resend] Exception for "${subject}" to ${to}: ${err?.message} — trying Bavimail fallback`);
       }
-
-      this.logger.log(`Email sent to ${to}: ${subject} (ID: ${data?.id})`);
-      return { success: true, messageId: data?.id };
-    } catch (err: any) {
-      this.logger.error(`Email sending failed to ${to}:`, err);
-      return { success: false, error: err?.message || 'Unknown email error' };
     }
+
+    // 2. Fall back to Bavimail
+    if (this.bavimail && this.bavimailAliasId) {
+      try {
+        const result = await this.bavimail.emails.send({
+          aliasId: this.bavimailAliasId,
+          toEmail: to,
+          subject,
+          body: html,
+        });
+        this.logger.log(`[Bavimail] Email sent to ${to}: "${subject}"`);
+        return { success: true, provider: 'bavimail' };
+      } catch (err: any) {
+        this.logger.error(`[Bavimail] Failed to send "${subject}" to ${to}: ${err?.message}`);
+        return { success: false, provider: 'bavimail', error: err?.message || 'Bavimail send failed' };
+      }
+    }
+
+    // Neither provider configured
+    this.logger.error(`[EMAIL NOT SENT] No provider available. Would have sent "${subject}" to ${to}`);
+    return { success: false, error: 'No email provider configured (set RESEND_API_KEY and/or BAVIMAIL_API_KEY + BAVIMAIL_ALIAS_ID).' };
   }
 
   // Email Templates
   async sendVerificationEmail(email: string, verificationToken: string): Promise<{ success: boolean; error?: string }> {
-    const verificationUrl = `${process.env.FRONTEND_URL || 'https://market.piyrox.shop'}/verify-email?token=${verificationToken}`;
+    const verificationUrl = `${process.env.FRONTEND_URL || 'https://app.piyrox.shop'}/verify-email?token=${verificationToken}`;
     
     const html = `
       <!DOCTYPE html>
@@ -105,7 +142,7 @@ export class EmailService {
   }
 
   async sendPasswordResetEmail(email: string, resetToken: string): Promise<{ success: boolean; error?: string }> {
-    const resetUrl = `${process.env.FRONTEND_URL || 'https://market.piyrox.shop'}/auth/reset-password?token=${resetToken}`;
+    const resetUrl = `${process.env.FRONTEND_URL || 'https://app.piyrox.shop'}/auth/reset-password?token=${resetToken}`;
     
     const html = `
       <!DOCTYPE html>
