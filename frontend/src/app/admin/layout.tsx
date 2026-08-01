@@ -13,7 +13,6 @@ import {
 import { api } from '@/lib/api';
 
 /* ─── Auth ──────────────────────────────────────────────────────────────── */
-const ADMIN_PASSWORD = 'Fadekemi123@';
 const SESSION_KEY    = 'piyrox_admin_auth';
 const PASSWORD_KEY   = 'piyrox_admin_password';
 
@@ -85,20 +84,31 @@ function PasswordGate({ onUnlock }: { onUnlock: () => void }) {
   const [error, setError]       = useState('');
   const [loading, setLoading]   = useState(false);
 
-  const handleSubmit = (e: React.FormEvent) => {
+  const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     setLoading(true);
-    setTimeout(() => {
-      if (password === ADMIN_PASSWORD) {
-        sessionStorage.setItem(SESSION_KEY,   'true');
-        sessionStorage.setItem(PASSWORD_KEY,  password);
+    setError('');
+    try {
+      // Verify against the real backend by pinging a lightweight admin endpoint
+      // with the typed password as the x-admin-password header.
+      // We use a raw fetch here to bypass the api client's global 401 redirect.
+      const res = await fetch(
+        `${process.env.NEXT_PUBLIC_API_URL || 'http://localhost:3001/api/v1'}/admin/dashboard`,
+        { headers: { 'x-admin-password': password } },
+      );
+      if (res.ok) {
+        sessionStorage.setItem(SESSION_KEY,  'true');
+        sessionStorage.setItem(PASSWORD_KEY, password);
         onUnlock();
       } else {
         setError('Incorrect password. Access denied.');
         setPassword('');
       }
+    } catch {
+      setError('Could not reach the server. Please try again.');
+    } finally {
       setLoading(false);
-    }, 600);
+    }
   };
 
   return (
