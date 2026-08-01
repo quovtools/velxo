@@ -6,7 +6,6 @@ import helmet from 'helmet'
 import rateLimit from 'express-rate-limit'
 import express from 'express'
 import { AllExceptionsFilter } from './common/filters/all-exceptions.filter'
-import { execSync } from 'child_process'
 
 async function bootstrap() {
   const logger = new Logger('Bootstrap')
@@ -123,23 +122,6 @@ async function bootstrap() {
       { path: '/', method: RequestMethod.HEAD },
     ],
   })
-
-  // Self-healing schema migration: apply the full Prisma schema to the
-  // production database at startup. Uses --skip-generate to avoid regenerating
-  // the Prisma client (already done at build time). The --accept-data-loss flag
-  // is intentionally OMITTED — if the schema change is destructive, the push
-  // will fail and the error will surface in logs rather than silently dropping
-  // data. For destructive changes, run a proper migration separately.
-  try {
-    logger.log('Running schema migration (prisma db push)...')
-    execSync('npx prisma db push --skip-generate', {
-      stdio: 'inherit',
-      env: process.env,
-    })
-    logger.log('Schema migration complete')
-  } catch (schemaErr) {
-    logger.error('Schema migration failed (app will still try to start):', schemaErr)
-  }
 
   const port = process.env.BACKEND_PORT || process.env.PORT || 3001
   const nodeEnv = process.env.NODE_ENV || 'development'
