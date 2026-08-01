@@ -57,7 +57,7 @@ export default function Navbar() {
         <div className="container-x flex h-16 items-center justify-between">
           <Link href="/" className="group flex items-center gap-2" aria-label="Piyrox home">
             <span className="relative flex h-9 w-9 items-center justify-center rounded-xl overflow-hidden bg-background/10 border border-white/15">
-              <img src="/logo.png" alt="Piyrox" className="h-6 w-6 object-contain" />
+              <img src="/logo.png" alt="Piyrox" className="h-7 w-7 object-contain" />
             </span>
             <span className={`text-xl font-black tracking-wider ${scrolled ? 'text-white' : 'text-white'}`}>
               PIYROX

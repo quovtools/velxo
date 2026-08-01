@@ -54,7 +54,7 @@ function LoginForm() {
         {/* Logo + tagline */}
         <div>
           <Link href="/" className="inline-flex items-center gap-2 mb-10">
-            <img src="/logo.png" alt="Piyrox" className="w-9 h-9 rounded-lg" />
+            <img src="/logo.png" alt="Piyrox" className="w-10 h-10 rounded-xl object-contain" />
             <span className="text-2xl font-black tracking-wider">PIYROX</span>
           </Link>
           <h2 className="text-3xl font-extrabold leading-snug text-white mb-2">
@@ -118,7 +118,7 @@ function LoginForm() {
           {/* Mobile-only header */}
           <div className="text-center lg:hidden">
             <Link href="/" className="inline-flex items-center gap-2 mb-5">
-              <img src="/logo.png" alt="Piyrox" className="w-8 h-8 rounded-lg" />
+              <img src="/logo.png" alt="Piyrox" className="w-9 h-9 rounded-xl object-contain" />
               <span className="text-xl font-black tracking-wider">PIYROX</span>
             </Link>
             <h1 className="text-2xl font-bold">Welcome back</h1>

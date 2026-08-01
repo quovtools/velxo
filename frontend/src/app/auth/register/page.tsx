@@ -97,7 +97,7 @@ export default function RegisterPage() {
         <div className="w-full max-w-lg space-y-6">
           <div className="text-center">
             <Link href="/" className="inline-flex items-center gap-2 mb-5">
-              <img src="/logo.png" alt="Piyrox" className="w-8 h-8 rounded-lg" />
+              <img src="/logo.png" alt="Piyrox" className="w-9 h-9 rounded-xl object-contain" />
               <span className="text-xl font-black tracking-tighter">PIYROX</span>
             </Link>
             <h1 className="text-2xl font-bold">Join Piyrox</h1>
@@ -240,7 +240,7 @@ export default function RegisterPage() {
         <div className="w-full max-w-md space-y-6">
           <div className="text-center">
             <Link href="/" className="inline-flex items-center gap-2 mb-5">
-              <img src="/logo.png" alt="Piyrox" className="w-8 h-8 rounded-lg" />
+              <img src="/logo.png" alt="Piyrox" className="w-9 h-9 rounded-xl object-contain" />
               <span className="text-xl font-black tracking-tighter">PIYROX</span>
             </Link>
             <h1 className="text-2xl font-bold">Create your account</h1>
@@ -372,7 +372,7 @@ export default function RegisterPage() {
       <div className="w-full max-w-lg space-y-6">
         <div className="text-center">
           <Link href="/" className="inline-flex items-center gap-2 mb-5">
-            <img src="/logo.png" alt="Piyrox" className="w-8 h-8 rounded-lg" />
+            <img src="/logo.png" alt="Piyrox" className="w-9 h-9 rounded-xl object-contain" />
             <span className="text-xl font-black tracking-tighter">PIYROX</span>
           </Link>
           <h1 className="text-2xl font-bold">Tell us about you</h1>

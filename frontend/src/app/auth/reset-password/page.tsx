@@ -76,7 +76,7 @@ function ResetPasswordContent() {
         <div className="w-full max-w-md space-y-6">
           <div className="text-center">
             <Link href="/" className="inline-flex items-center gap-2 mb-5">
-              <img src="/logo.png" alt="Piyrox" className="w-8 h-8 rounded-lg" />
+              <img src="/logo.png" alt="Piyrox" className="w-9 h-9 rounded-xl object-contain" />
               <span className="text-xl font-black tracking-wider">PIYROX</span>
             </Link>
             <h1 className="text-2xl font-bold">Set New Password</h1>
@@ -130,7 +130,7 @@ function ResetPasswordContent() {
       <div className="w-full max-w-md space-y-6">
         <div className="text-center">
           <Link href="/" className="inline-flex items-center gap-2 mb-5">
-            <img src="/logo.png" alt="Piyrox" className="w-8 h-8 rounded-lg" />
+            <img src="/logo.png" alt="Piyrox" className="w-9 h-9 rounded-xl object-contain" />
             <span className="text-xl font-black tracking-wider">PIYROX</span>
           </Link>
           <h1 className="text-2xl font-bold">Forgot Password</h1>
