@@ -177,12 +177,17 @@ export class StartupHealthService implements OnModuleInit {
 
     const t = Date.now()
     try {
-      const res = await fetch('https://api.flutterwave.com/v3/banks/NG', {
-        headers: { Authorization: `Bearer ${secretKey}` },
+      // /v3/transactions?page=1&per_page=1 is a lightweight authenticated endpoint
+      const res = await fetch('https://api.flutterwave.com/v3/transactions?page=1&per_page=1', {
+        headers: { Authorization: `Bearer ${secretKey}`, 'Content-Type': 'application/json' },
         signal: AbortSignal.timeout(6000),
       })
-      if (res.ok || res.status === 200) {
-        return { name: 'flutterwave', label: 'Flutterwave (Payments)', ok: true, detail: 'API reachable', ms: Date.now() - t }
+      // 200 = valid key, 401 = invalid key, anything else = network/server issue
+      if (res.status === 200) {
+        return { name: 'flutterwave', label: 'Flutterwave (Payments)', ok: true, detail: 'API key valid', ms: Date.now() - t }
+      }
+      if (res.status === 401) {
+        return { name: 'flutterwave', label: 'Flutterwave (Payments)', ok: false, detail: 'Invalid API key (HTTP 401)', ms: Date.now() - t }
       }
       return { name: 'flutterwave', label: 'Flutterwave (Payments)', ok: false, detail: `HTTP ${res.status}`, ms: Date.now() - t }
     } catch (err: any) {
@@ -247,37 +252,24 @@ export class StartupHealthService implements OnModuleInit {
     return { name: 'jwt', label: 'JWT Auth', ok: true, detail: `${secret.length} char secret, expires=${process.env.JWT_EXPIRES_IN || '7d'}` }
   }
 
-  // ── 10. Frontend URL — set + live ping ───────────────────────────────────
+  // ── 10. Frontend URL — just verify it's set ─────────────────────────────
+  // (Frontend runs in the same Fly container — pinging it at startup is a
+  //  race condition. We just confirm the env var is configured.)
   private async checkFrontendUrl(): Promise<CheckResult> {
     const url = process.env.FRONTEND_URL
     if (!url) {
       return { name: 'frontend-url', label: 'Frontend URL', ok: false, detail: 'FRONTEND_URL not set' }
     }
-
-    const t = Date.now()
-    try {
-      const res = await fetch(url, { method: 'HEAD', signal: AbortSignal.timeout(6000) })
-      return { name: 'frontend-url', label: 'Frontend URL', ok: res.ok || res.status < 500, detail: `${url} → HTTP ${res.status}`, ms: Date.now() - t }
-    } catch (err: any) {
-      // Not a blocker — frontend might just not be up yet at startup
-      return { name: 'frontend-url', label: 'Frontend URL', ok: false, detail: `${url} unreachable: ${err?.message}`, ms: Date.now() - t }
-    }
+    return { name: 'frontend-url', label: 'Frontend URL', ok: true, detail: url }
   }
 
-  // ── 11. API URL — set + self-ping ────────────────────────────────────────
+  // ── 11. API URL — just verify it's set ───────────────────────────────────
+  // (Same container — self-ping during startup is a race condition.)
   private async checkApiUrl(): Promise<CheckResult> {
     const url = process.env.API_URL
     if (!url) {
       return { name: 'api-url', label: 'API URL', ok: false, detail: 'API_URL not set' }
     }
-
-    const t = Date.now()
-    try {
-      const pingUrl = `${url.replace(/\/$/, '')}/api/v1`
-      const res = await fetch(pingUrl, { method: 'GET', signal: AbortSignal.timeout(4000) })
-      return { name: 'api-url', label: 'API URL', ok: res.ok, detail: `${pingUrl} → HTTP ${res.status}`, ms: Date.now() - t }
-    } catch (err: any) {
-      return { name: 'api-url', label: 'API URL', ok: false, detail: `${url} unreachable: ${err?.message}`, ms: Date.now() - t }
-    }
+    return { name: 'api-url', label: 'API URL', ok: true, detail: url }
   }
 }
