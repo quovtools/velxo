@@ -43,6 +43,28 @@ export class SellersController {
     }
   }
 
+  /**
+   * Self-service settings update — authenticated seller updates their own profile
+   * without needing to know their seller ID. Replaces the broken /sellers/settings
+   * that the frontend was incorrectly calling.
+   */
+  @Patch('me/settings')
+  @UseGuards(JwtAuthGuard)
+  async updateMySettings(
+    @CurrentUserId() userId: string,
+    @Body() updates: { storeName?: string; storeDescription?: string; responseTime?: number },
+  ) {
+    try {
+      const seller = await this.sellersService.getSellerByUserId(userId)
+      const updated = await this.sellersService.updateSeller(seller.id, updates)
+      const profile = await this.sellersService.getSellerProfile(seller.id)
+      return ApiResponseDto.ok(profile, 'Store settings saved')
+    } catch (error) {
+      this.logger.error('Error updating seller settings:', error)
+      throw error
+    }
+  }
+
   @Get('me')
   @UseGuards(JwtAuthGuard)
   async getMySellerProfileShort(@CurrentUserId() userId: string) {
