@@ -1,6 +1,14 @@
 import { Injectable, Logger, OnModuleInit } from '@nestjs/common'
 import { PrismaService } from './prisma.service'
 
+interface CheckResult {
+  name: string
+  label: string
+  ok: boolean
+  detail?: string
+  ms?: number
+}
+
 @Injectable()
 export class StartupHealthService implements OnModuleInit {
   private readonly logger = new Logger(StartupHealthService.name)
@@ -8,210 +16,268 @@ export class StartupHealthService implements OnModuleInit {
   constructor(private prisma: PrismaService) {}
 
   async onModuleInit() {
-    this.logger.log('═══════════════════════════════════════════════════════════')
-    this.logger.log('  Piyrox Startup Health Check')
-    this.logger.log('═══════════════════════════════════════════════════════════')
+    const start = Date.now()
+
+    this.logger.log('╔══════════════════════════════════════════════════════════╗')
+    this.logger.log('║           PIYROX  —  STARTUP CONNECTIVITY CHECK          ║')
+    this.logger.log('╚══════════════════════════════════════════════════════════╝')
 
     const results = await Promise.all([
       this.checkDatabase(),
-      this.checkStorage(),
-      this.checkPaymentProviders(),
-      this.checkEmailService(),
-      this.checkAuthProviders(),
-      this.checkAppUrls(),
+      this.checkNeonDB(),
+      this.checkCloudinary(),
+      this.checkResend(),
+      this.checkBavimail(),
+      this.checkFlutterwave(),
+      this.checkPaymentIo(),
+      this.checkGoogleOAuth(),
+      this.checkJwt(),
+      this.checkFrontendUrl(),
+      this.checkApiUrl(),
     ])
 
-    const summary = results.filter((r) => r.ok).length
-    const total = results.length
+    // ── Print individual results ─────────────────────────────────────────────
+    this.logger.log('┌──────────────────────────────────────────────────────────┐')
+    this.logger.log('│  Service                    Status     Detail            │')
+    this.logger.log('├──────────────────────────────────────────────────────────┤')
 
-    this.logger.log('═══════════════════════════════════════════════════════════')
-    this.logger.log(`  Startup checks complete: ${summary}/${total} features connected`)
-    this.logger.log('═══════════════════════════════════════════════════════════')
-
-    if (summary < total) {
-      this.logger.warn(
-        'Some features are NOT connected. Review the checks above before going live.',
-      )
+    for (const r of results) {
+      const icon   = r.ok ? '✅' : '❌'
+      const status = r.ok ? 'CONNECTED' : 'FAILED   '
+      const label  = r.label.padEnd(28)
+      const ms     = r.ms !== undefined ? ` (${r.ms}ms)` : ''
+      const detail = r.detail ? ` — ${r.detail}` : ''
+      const line   = `${icon}  ${label} ${status}${ms}${detail}`
+      if (r.ok) {
+        this.logger.log(line)
+      } else {
+        this.logger.warn(line)
+      }
     }
+
+    this.logger.log('└──────────────────────────────────────────────────────────┘')
+
+    const passed = results.filter((r) => r.ok).length
+    const failed = results.filter((r) => !r.ok).length
+    const elapsed = Date.now() - start
+
+    this.logger.log(`  ✔ ${passed} connected   ✖ ${failed} failed   — checked in ${elapsed}ms`)
+
+    if (failed > 0) {
+      const failedNames = results.filter((r) => !r.ok).map((r) => r.label).join(', ')
+      this.logger.warn(`  ⚠  Not connected: ${failedNames}`)
+      this.logger.warn('  Review missing env vars or unreachable services before going live.')
+    } else {
+      this.logger.log('  🚀 All systems connected — piyrox is ready!')
+    }
+
+    this.logger.log('══════════════════════════════════════════════════════════')
   }
 
-  private async checkDatabase(): Promise<{ name: string; ok: boolean; detail?: string }> {
+  // ── 1. Database — Prisma query ping ─────────────────────────────────────
+  private async checkDatabase(): Promise<CheckResult> {
+    const t = Date.now()
     try {
       await this.prisma.$queryRaw`SELECT 1`
-      this.logger.log('✅ Database: connected')
-      return { name: 'database', ok: true }
+      return { name: 'database', label: 'Database (Prisma)', ok: true, ms: Date.now() - t }
     } catch (err: any) {
-      const detail = err?.message || String(err)
-      this.logger.error(`❌ Database: unreachable — ${detail}`)
-      return { name: 'database', ok: false, detail }
+      return { name: 'database', label: 'Database (Prisma)', ok: false, detail: err?.message, ms: Date.now() - t }
     }
   }
 
-  private async checkStorage(): Promise<{ name: string; ok: boolean; detail?: string }> {
-    const endpoint = process.env.B2_ENDPOINT
-    const bucket = process.env.B2_BUCKET
-    const keyId = process.env.B2_KEY_ID
-    const appKey = process.env.B2_APP_KEY
+  // ── 2. NeonDB — verify connection string is set ──────────────────────────
+  private async checkNeonDB(): Promise<CheckResult> {
+    const url = process.env.DATABASE_URL || ''
+    const isNeon = url.includes('neon.tech')
+    if (!url) {
+      return { name: 'neondb', label: 'NeonDB', ok: false, detail: 'DATABASE_URL not set' }
+    }
+    if (!isNeon) {
+      return { name: 'neondb', label: 'NeonDB', ok: false, detail: 'DATABASE_URL does not point to neon.tech' }
+    }
+    // Extract host for display only — never log credentials
+    let host = 'configured'
+    try { host = new URL(url).hostname } catch {}
+    return { name: 'neondb', label: 'NeonDB', ok: true, detail: host }
+  }
 
-    if (!endpoint || !bucket || !keyId || !appKey) {
-      const missing = [endpoint ? null : 'B2_ENDPOINT', bucket ? null : 'B2_BUCKET', keyId ? null : 'B2_KEY_ID', appKey ? null : 'B2_APP_KEY'].filter(Boolean).join(', ')
-      this.logger.warn(`⚠️  Storage (B2): missing — ${missing}`)
-      return { name: 'storage', ok: false, detail: `missing: ${missing}` }
+  // ── 3. Cloudinary — live API ping ────────────────────────────────────────
+  private async checkCloudinary(): Promise<CheckResult> {
+    const cloudName  = process.env.CLOUDINARY_CLOUD_NAME
+    const apiKey     = process.env.CLOUDINARY_API_KEY
+    const apiSecret  = process.env.CLOUDINARY_API_SECRET
+
+    if (!cloudName || !apiKey || !apiSecret) {
+      const missing = [
+        cloudName  ? null : 'CLOUDINARY_CLOUD_NAME',
+        apiKey     ? null : 'CLOUDINARY_API_KEY',
+        apiSecret  ? null : 'CLOUDINARY_API_SECRET',
+      ].filter(Boolean).join(', ')
+      return { name: 'cloudinary', label: 'Cloudinary (Storage)', ok: false, detail: `missing: ${missing}` }
     }
 
+    const t = Date.now()
     try {
-      const { S3Client, HeadBucketCommand } = await import('@aws-sdk/client-s3')
-      const client = new S3Client({
-        endpoint,
-        region: process.env.B2_REGION || 'us-east-005',
-        credentials: { accessKeyId: keyId, secretAccessKey: appKey },
-        forcePathStyle: true,
-      })
-      await client.send(new HeadBucketCommand({ Bucket: bucket }))
-      this.logger.log(`✅ Storage (B2): connected — bucket="${bucket}"`)
-      return { name: 'storage', ok: true }
+      const { v2: cloudinary } = await import('cloudinary')
+      cloudinary.config({ cloud_name: cloudName, api_key: apiKey, api_secret: apiSecret })
+      await cloudinary.api.ping()
+      return { name: 'cloudinary', label: 'Cloudinary (Storage)', ok: true, detail: `cloud=${cloudName}`, ms: Date.now() - t }
     } catch (err: any) {
-      const detail = err?.message || String(err)
-      this.logger.error(`❌ Storage (B2): unreachable — ${detail}`)
-      return { name: 'storage', ok: false, detail }
+      return { name: 'cloudinary', label: 'Cloudinary (Storage)', ok: false, detail: err?.message, ms: Date.now() - t }
     }
   }
 
-  private async checkPaymentProviders(): Promise<{ name: string; ok: boolean; detail?: string }> {
-    const paymentIoUrl = process.env.PAYMENT_IO_API_URL
-    const paymentIoKey = process.env.PAYMENT_IO_API_KEY
-    const flutterwaveKey = process.env.FLUTTERWAVE_SECRET_KEY
-
-    const parts: string[] = []
-    const results: { name: string; ok: boolean; detail?: string }[] = []
-
-    if (paymentIoUrl && paymentIoKey) {
-      try {
-        const res = await fetch(paymentIoUrl, { method: 'HEAD', signal: AbortSignal.timeout(5000) })
-        if (res.ok || res.status < 500) {
-          this.logger.log('✅ Payment.io: configured')
-          results.push({ name: 'payment-io', ok: true })
-        } else {
-          throw new Error(`HTTP ${res.status}`)
-        }
-      } catch (err: any) {
-        const detail = err?.message || String(err)
-        this.logger.error(`❌ Payment.io: unreachable — ${detail}`)
-        results.push({ name: 'payment-io', ok: false, detail })
-      }
-    } else {
-      this.logger.warn('⚠️  Payment.io: missing API_URL or API_KEY')
-      results.push({ name: 'payment-io', ok: false, detail: 'missing credentials' })
+  // ── 4. Resend — verify API key + live domains list ───────────────────────
+  private async checkResend(): Promise<CheckResult> {
+    const apiKey = process.env.RESEND_API_KEY
+    if (!apiKey) {
+      return { name: 'resend', label: 'Resend (Email Primary)', ok: false, detail: 'RESEND_API_KEY not set' }
     }
 
-    if (flutterwaveKey) {
-      this.logger.log('✅ Flutterwave: secret key configured')
-      results.push({ name: 'flutterwave', ok: true })
-    } else {
-      this.logger.warn('⚠️  Flutterwave: FLUTTERWAVE_SECRET_KEY missing')
-      results.push({ name: 'flutterwave', ok: false, detail: 'missing FLUTTERWAVE_SECRET_KEY' })
+    const t = Date.now()
+    try {
+      const { Resend } = await import('resend')
+      const resend = new Resend(apiKey)
+      // Lightweight authenticated call — list domains
+      const { data, error } = await resend.domains.list()
+      if (error) throw new Error(error.message)
+      const count = (data as any)?.data?.length ?? 0
+      return { name: 'resend', label: 'Resend (Email Primary)', ok: true, detail: `${count} domain(s) verified`, ms: Date.now() - t }
+    } catch (err: any) {
+      return { name: 'resend', label: 'Resend (Email Primary)', ok: false, detail: err?.message, ms: Date.now() - t }
     }
-
-    const allOk = results.every((r) => r.ok)
-    return { name: 'payments', ok: allOk, detail: results.map((r) => `${r.name}:${r.ok ? 'ok' : 'fail'}`).join(', ') }
   }
 
-  private async checkEmailService(): Promise<{ name: string; ok: boolean; detail?: string }> {
-    const results: { name: string; ok: boolean; detail?: string }[] = []
+  // ── 5. Bavimail — verify key + alias are set ─────────────────────────────
+  private async checkBavimail(): Promise<CheckResult> {
+    const apiKey  = process.env.BAVIMAIL_API_KEY
+    const aliasId = process.env.BAVIMAIL_ALIAS_ID
 
-    // ── Resend ───────────────────────────────────────────────────────────────
-    const resendKey = process.env.RESEND_API_KEY
-    if (resendKey) {
-      try {
-        const { Resend } = await import('resend')
-        new Resend(resendKey)
-        this.logger.log('✅ Email (Resend): API key configured [primary]')
-        results.push({ name: 'resend', ok: true })
-      } catch (err: any) {
-        this.logger.error(`❌ Email (Resend): initialization failed — ${err?.message}`)
-        results.push({ name: 'resend', ok: false, detail: err?.message })
-      }
-    } else {
-      this.logger.warn('⚠️  Email (Resend): RESEND_API_KEY missing')
-      results.push({ name: 'resend', ok: false, detail: 'missing RESEND_API_KEY' })
+    if (!apiKey || !aliasId) {
+      const missing = [apiKey ? null : 'BAVIMAIL_API_KEY', aliasId ? null : 'BAVIMAIL_ALIAS_ID'].filter(Boolean).join(', ')
+      return { name: 'bavimail', label: 'Bavimail (Email Fallback)', ok: false, detail: `missing: ${missing}` }
     }
 
-    // ── Bavimail (fallback) ──────────────────────────────────────────────────
-    const bavimailKey   = process.env.BAVIMAIL_API_KEY
-    const bavimailAlias = process.env.BAVIMAIL_ALIAS_ID
-    if (bavimailKey && bavimailAlias) {
-      try {
-        const { Bavimail } = await import('bavimail')
-        new Bavimail({ apiKey: bavimailKey })
-        this.logger.log('✅ Email (Bavimail): API key + alias configured [fallback]')
-        results.push({ name: 'bavimail', ok: true })
-      } catch (err: any) {
-        this.logger.error(`❌ Email (Bavimail): initialization failed — ${err?.message}`)
-        results.push({ name: 'bavimail', ok: false, detail: err?.message })
-      }
-    } else {
-      const missing = [bavimailKey ? null : 'BAVIMAIL_API_KEY', bavimailAlias ? null : 'BAVIMAIL_ALIAS_ID'].filter(Boolean).join(', ')
-      this.logger.warn(`⚠️  Email (Bavimail): ${missing} missing [fallback disabled]`)
-      results.push({ name: 'bavimail', ok: false, detail: `missing ${missing}` })
+    const t = Date.now()
+    try {
+      const { Bavimail } = await import('bavimail')
+      new Bavimail({ apiKey })
+      return { name: 'bavimail', label: 'Bavimail (Email Fallback)', ok: true, detail: `alias=${aliasId}`, ms: Date.now() - t }
+    } catch (err: any) {
+      return { name: 'bavimail', label: 'Bavimail (Email Fallback)', ok: false, detail: err?.message, ms: Date.now() - t }
+    }
+  }
+
+  // ── 6. Flutterwave — verify key + live API ping ──────────────────────────
+  private async checkFlutterwave(): Promise<CheckResult> {
+    const secretKey = process.env.FLUTTERWAVE_SECRET_KEY
+    if (!secretKey) {
+      return { name: 'flutterwave', label: 'Flutterwave (Payments)', ok: false, detail: 'FLUTTERWAVE_SECRET_KEY not set' }
     }
 
-    // Email is OK as long as at least one provider works
-    const anyOk = results.some((r) => r.ok)
+    const t = Date.now()
+    try {
+      const res = await fetch('https://api.flutterwave.com/v3/banks/NG', {
+        headers: { Authorization: `Bearer ${secretKey}` },
+        signal: AbortSignal.timeout(6000),
+      })
+      if (res.ok || res.status === 200) {
+        return { name: 'flutterwave', label: 'Flutterwave (Payments)', ok: true, detail: 'API reachable', ms: Date.now() - t }
+      }
+      return { name: 'flutterwave', label: 'Flutterwave (Payments)', ok: false, detail: `HTTP ${res.status}`, ms: Date.now() - t }
+    } catch (err: any) {
+      return { name: 'flutterwave', label: 'Flutterwave (Payments)', ok: false, detail: err?.message, ms: Date.now() - t }
+    }
+  }
+
+  // ── 7. Payment.io — verify key + live API ping ───────────────────────────
+  private async checkPaymentIo(): Promise<CheckResult> {
+    const apiUrl = process.env.PAYMENT_IO_API_URL
+    const apiKey = process.env.PAYMENT_IO_API_KEY
+
+    if (!apiUrl || !apiKey) {
+      const missing = [apiUrl ? null : 'PAYMENT_IO_API_URL', apiKey ? null : 'PAYMENT_IO_API_KEY'].filter(Boolean).join(', ')
+      return { name: 'payment-io', label: 'Payment.io (Crypto)', ok: false, detail: `missing: ${missing}` }
+    }
+
+    const t = Date.now()
+    try {
+      const res = await fetch(apiUrl, {
+        method: 'HEAD',
+        signal: AbortSignal.timeout(6000),
+      })
+      if (res.ok || res.status < 500) {
+        return { name: 'payment-io', label: 'Payment.io (Crypto)', ok: true, detail: 'API reachable', ms: Date.now() - t }
+      }
+      return { name: 'payment-io', label: 'Payment.io (Crypto)', ok: false, detail: `HTTP ${res.status}`, ms: Date.now() - t }
+    } catch (err: any) {
+      return { name: 'payment-io', label: 'Payment.io (Crypto)', ok: false, detail: err?.message, ms: Date.now() - t }
+    }
+  }
+
+  // ── 8. Google OAuth — verify credentials are set ─────────────────────────
+  private async checkGoogleOAuth(): Promise<CheckResult> {
+    const clientId     = process.env.GOOGLE_CLIENT_ID
+    const clientSecret = process.env.GOOGLE_CLIENT_SECRET
+    const redirectUri  = process.env.GOOGLE_REDIRECT_URI
+
+    if (!clientId || !clientSecret) {
+      const missing = [clientId ? null : 'GOOGLE_CLIENT_ID', clientSecret ? null : 'GOOGLE_CLIENT_SECRET'].filter(Boolean).join(', ')
+      return { name: 'google-oauth', label: 'Google OAuth', ok: false, detail: `missing: ${missing}` }
+    }
+
+    const hasRedirect = !!redirectUri
     return {
-      name: 'email',
-      ok: anyOk,
-      detail: results.map((r) => `${r.name}:${r.ok ? 'ok' : 'fail'}`).join(', '),
+      name: 'google-oauth',
+      label: 'Google OAuth',
+      ok: true,
+      detail: hasRedirect ? `redirect=${redirectUri}` : 'redirect URI not set (optional)',
     }
   }
 
-  private async checkAuthProviders(): Promise<{ name: string; ok: boolean; detail?: string }> {
-    const results: { name: string; ok: boolean; detail?: string }[] = []
-
-    const jwtSecret = process.env.JWT_SECRET
-    if (jwtSecret) {
-      this.logger.log('✅ Auth (JWT): JWT_SECRET configured')
-      results.push({ name: 'jwt', ok: true })
-    } else {
-      this.logger.warn('⚠️  Auth (JWT): JWT_SECRET missing')
-      results.push({ name: 'jwt', ok: false, detail: 'missing JWT_SECRET' })
+  // ── 9. JWT — verify secret is set and not the insecure fallback ──────────
+  private async checkJwt(): Promise<CheckResult> {
+    const secret = process.env.JWT_SECRET
+    if (!secret) {
+      return { name: 'jwt', label: 'JWT Auth', ok: false, detail: 'JWT_SECRET not set — using insecure fallback!' }
     }
-
-    const googleClientId = process.env.GOOGLE_CLIENT_ID
-    if (googleClientId) {
-      this.logger.log('✅ Auth (Google OAuth): client ID configured')
-      results.push({ name: 'google-oauth', ok: true })
-    } else {
-      this.logger.warn('⚠️  Auth (Google OAuth): GOOGLE_CLIENT_ID missing')
-      results.push({ name: 'google-oauth', ok: false, detail: 'missing GOOGLE_CLIENT_ID' })
+    if (secret === 'piyrox-fallback-secret-change-in-prod') {
+      return { name: 'jwt', label: 'JWT Auth', ok: false, detail: 'Using default fallback secret — change JWT_SECRET in production!' }
     }
-
-    const allOk = results.every((r) => r.ok)
-    return { name: 'auth', ok: allOk, detail: results.map((r) => `${r.name}:${r.ok ? 'ok' : 'fail'}`).join(', ') }
+    return { name: 'jwt', label: 'JWT Auth', ok: true, detail: `${secret.length} char secret, expires=${process.env.JWT_EXPIRES_IN || '7d'}` }
   }
 
-  private async checkAppUrls(): Promise<{ name: string; ok: boolean; detail?: string }> {
-    const frontendUrl = process.env.FRONTEND_URL
-    const apiUrl = process.env.API_URL
-
-    const results: { name: string; ok: boolean; detail?: string }[] = []
-
-    if (frontendUrl) {
-      this.logger.log(`✅ Frontend URL: ${frontendUrl}`)
-      results.push({ name: 'frontend-url', ok: true })
-    } else {
-      this.logger.warn('⚠️  Frontend URL: FRONTEND_URL missing')
-      results.push({ name: 'frontend-url', ok: false, detail: 'missing FRONTEND_URL' })
+  // ── 10. Frontend URL — set + live ping ───────────────────────────────────
+  private async checkFrontendUrl(): Promise<CheckResult> {
+    const url = process.env.FRONTEND_URL
+    if (!url) {
+      return { name: 'frontend-url', label: 'Frontend URL', ok: false, detail: 'FRONTEND_URL not set' }
     }
 
-    if (apiUrl) {
-      this.logger.log(`✅ API URL: ${apiUrl}`)
-      results.push({ name: 'api-url', ok: true })
-    } else {
-      this.logger.warn('⚠️  API URL: API_URL missing')
-      results.push({ name: 'api-url', ok: false, detail: 'missing API_URL' })
+    const t = Date.now()
+    try {
+      const res = await fetch(url, { method: 'HEAD', signal: AbortSignal.timeout(6000) })
+      return { name: 'frontend-url', label: 'Frontend URL', ok: res.ok || res.status < 500, detail: `${url} → HTTP ${res.status}`, ms: Date.now() - t }
+    } catch (err: any) {
+      // Not a blocker — frontend might just not be up yet at startup
+      return { name: 'frontend-url', label: 'Frontend URL', ok: false, detail: `${url} unreachable: ${err?.message}`, ms: Date.now() - t }
+    }
+  }
+
+  // ── 11. API URL — set + self-ping ────────────────────────────────────────
+  private async checkApiUrl(): Promise<CheckResult> {
+    const url = process.env.API_URL
+    if (!url) {
+      return { name: 'api-url', label: 'API URL', ok: false, detail: 'API_URL not set' }
     }
 
-    const allOk = results.every((r) => r.ok)
-    return { name: 'urls', ok: allOk, detail: results.map((r) => `${r.name}:${r.ok ? 'ok' : 'fail'}`).join(', ') }
+    const t = Date.now()
+    try {
+      const pingUrl = `${url.replace(/\/$/, '')}/api/v1`
+      const res = await fetch(pingUrl, { method: 'GET', signal: AbortSignal.timeout(4000) })
+      return { name: 'api-url', label: 'API URL', ok: res.ok, detail: `${pingUrl} → HTTP ${res.status}`, ms: Date.now() - t }
+    } catch (err: any) {
+      return { name: 'api-url', label: 'API URL', ok: false, detail: `${url} unreachable: ${err?.message}`, ms: Date.now() - t }
+    }
   }
 }
