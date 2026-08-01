@@ -78,21 +78,23 @@ export class ReviewsService {
     return review
   }
 
-  async getListingReviews(listingId: string, limit: number = 10) {
+  async getListingReviews(listingId: string, limit?: number) {
+    const take = Number(limit) > 0 ? Number(limit) : 10;
     return this.prisma.reviews.findMany({
       where: { listingId, isHidden: false },
       include: { buyer: true },
       orderBy: { createdAt: 'desc' },
-      take: Number(limit) || 10,
+      take,
     })
   }
 
-  async getSellerReviews(sellerId: string, limit: number = 50) {
+  async getSellerReviews(sellerId: string, limit?: number) {
+    const take = Number(limit) > 0 ? Number(limit) : 50;
     return this.prisma.reviews.findMany({
       where: { sellerId, isHidden: false },
       include: { buyer: true, listing: true },
       orderBy: { createdAt: 'desc' },
-      take: Number(limit) || 50,
+      take,
     })
   }
 
