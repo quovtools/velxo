@@ -1,119 +1,128 @@
 import { Injectable, Logger } from '@nestjs/common'
-import {
-  S3Client,
-  PutObjectCommand,
-  DeleteObjectCommand,
-  GetObjectCommand,
-} from '@aws-sdk/client-s3'
-import { getSignedUrl } from '@aws-sdk/s3-request-presigner'
+import { v2 as cloudinary, UploadApiResponse } from 'cloudinary'
 
 /**
- * StorageService — uploads files to Backblaze B2 via the S3-compatible API.
- * Bucket is PRIVATE — all reads use presigned URLs (default 1-hour expiry).
+ * StorageService — uploads files to Cloudinary.
+ * Images are stored publicly; no presigned URLs needed.
  *
  * Required environment variables:
- *   B2_ENDPOINT      e.g. https://s3.us-east-005.backblazeb2.com
- *   B2_REGION        e.g. us-east-005
- *   B2_BUCKET        e.g. piyrox-assets
- *   B2_KEY_ID        your B2 applicationKeyId
- *   B2_APP_KEY       your B2 applicationKey
+ *   CLOUDINARY_CLOUD_NAME   e.g. piyrox
+ *   CLOUDINARY_API_KEY      from Cloudinary dashboard
+ *   CLOUDINARY_API_SECRET   from Cloudinary dashboard
  *
  * Optional:
- *   B2_URL_TTL_SECONDS  how long presigned URLs stay valid (default: 3600 = 1 h)
+ *   CLOUDINARY_FOLDER       root folder prefix (default: "piyrox")
  */
 @Injectable()
 export class StorageService {
   private readonly logger = new Logger(StorageService.name)
-  private readonly client: S3Client
-  private readonly bucket: string
-  private readonly urlTtl: number
+  private readonly rootFolder: string
+  private readonly configured: boolean
 
   constructor() {
-    const endpoint = process.env.B2_ENDPOINT
-    const region = process.env.B2_REGION || 'us-east-005'
-    const bucket = process.env.B2_BUCKET
-    const keyId = process.env.B2_KEY_ID
-    const appKey = process.env.B2_APP_KEY
+    const cloudName = process.env.CLOUDINARY_CLOUD_NAME
+    const apiKey = process.env.CLOUDINARY_API_KEY
+    const apiSecret = process.env.CLOUDINARY_API_SECRET
 
-    if (!endpoint || !bucket || !keyId || !appKey) {
+    this.rootFolder = process.env.CLOUDINARY_FOLDER || 'piyrox'
+
+    if (!cloudName || !apiKey || !apiSecret) {
       this.logger.warn(
-        'B2 storage not fully configured — uploads will fail. ' +
-          'Set B2_ENDPOINT, B2_REGION, B2_BUCKET, B2_KEY_ID, B2_APP_KEY.',
+        'Cloudinary not fully configured — uploads will fail. ' +
+          'Set CLOUDINARY_CLOUD_NAME, CLOUDINARY_API_KEY, CLOUDINARY_API_SECRET.',
       )
+      this.configured = false
+    } else {
+      cloudinary.config({ cloud_name: cloudName, api_key: apiKey, api_secret: apiSecret })
+      this.configured = true
     }
-
-    this.bucket = bucket || ''
-    this.urlTtl = parseInt(process.env.B2_URL_TTL_SECONDS || '3600', 10)
-
-    this.client = new S3Client({
-      endpoint: endpoint || '',
-      region,
-      credentials: {
-        accessKeyId: keyId || '',
-        secretAccessKey: appKey || '',
-      },
-      // B2 requires path-style URLs (not virtual-hosted)
-      forcePathStyle: true,
-    })
   }
 
   /**
-   * Upload a buffer to B2 (private bucket — no ACL header).
-   * Returns the object key, NOT a public URL.
-   * Use getPresignedUrl() to generate a readable link.
+   * Upload a buffer to Cloudinary.
+   * Returns the secure HTTPS URL of the uploaded asset.
    *
-   * @param buffer   File contents
-   * @param key      Object key inside the bucket, e.g. "listings/abc123.jpg"
-   * @param mimeType e.g. "image/jpeg"
+   * @param buffer    File contents
+   * @param key       Logical path used as the public_id, e.g. "listings/abc123"
+   * @param mimeType  e.g. "image/jpeg"
    */
   async upload(buffer: Buffer, key: string, mimeType: string): Promise<string> {
-    this.logger.log(`Uploading ${key} (${mimeType}) to private B2 bucket ${this.bucket}`)
+    this.logger.log(`Uploading ${key} (${mimeType}) to Cloudinary`)
 
-    await this.client.send(
-      new PutObjectCommand({
-        Bucket: this.bucket,
-        Key: key,
-        Body: buffer,
-        ContentType: mimeType,
-        // No ACL — bucket is private
-      }),
-    )
+    // Strip extension from key — Cloudinary manages format itself
+    const publicId = `${this.rootFolder}/${key.replace(/\.[^/.]+$/, '')}`
 
-    this.logger.log(`Uploaded → key: ${key}`)
-    return key
+    const result = await new Promise<UploadApiResponse>((resolve, reject) => {
+      const stream = cloudinary.uploader.upload_stream(
+        {
+          public_id: publicId,
+          resource_type: 'image',
+          overwrite: true,
+          // Auto-quality and auto-format for optimized delivery
+          transformation: [{ quality: 'auto', fetch_format: 'auto' }],
+        },
+        (error, result) => {
+          if (error || !result) return reject(error ?? new Error('No result from Cloudinary'))
+          resolve(result)
+        },
+      )
+      stream.end(buffer)
+    })
+
+    this.logger.log(`Uploaded → ${result.secure_url}`)
+    return result.secure_url
   }
 
   /**
-   * Generate a presigned GET URL for a private object.
-   * The URL is valid for `ttlSeconds` seconds (default: B2_URL_TTL_SECONDS or 3600).
+   * Returns the Cloudinary URL for a given key.
+   * Since assets are public, this just constructs the URL — no signing needed.
+   * Pass the full URL returned by upload() directly, or reconstruct from key.
+   *
+   * @param keyOrUrl  The secure_url returned by upload(), or the logical key
    */
-  async getPresignedUrl(key: string, ttlSeconds?: number): Promise<string> {
-    const url = await getSignedUrl(
-      this.client,
-      new GetObjectCommand({ Bucket: this.bucket, Key: key }),
-      { expiresIn: ttlSeconds ?? this.urlTtl },
-    )
-    return url
+  getUrl(keyOrUrl: string): string {
+    // If it's already a full URL, return as-is
+    if (keyOrUrl.startsWith('http')) return keyOrUrl
+
+    // Reconstruct from key (strip extension, build Cloudinary URL)
+    const publicId = `${this.rootFolder}/${keyOrUrl.replace(/\.[^/.]+$/, '')}`
+    return cloudinary.url(publicId, { secure: true, fetch_format: 'auto', quality: 'auto' })
   }
 
   /**
-   * Delete an object from B2 by its key.
+   * Kept for backwards-compatibility — delegates to getUrl().
+   * Previously returned a time-limited presigned URL; now returns a permanent public URL.
    */
-  async delete(key: string): Promise<void> {
-    this.logger.log(`Deleting ${key} from B2`)
-    await this.client.send(
-      new DeleteObjectCommand({ Bucket: this.bucket, Key: key }),
-    )
+  async getPresignedUrl(keyOrUrl: string, _ttlSeconds?: number): Promise<string> {
+    return this.getUrl(keyOrUrl)
   }
 
   /**
-   * Extract the object key from a stored key/path string.
-   * Keys are stored directly (e.g. "listings/abc.jpg"), so this is a passthrough.
+   * Delete an asset from Cloudinary by its key or public_id.
+   */
+  async delete(keyOrUrl: string): Promise<void> {
+    // Derive public_id from key or URL
+    let publicId: string
+    if (keyOrUrl.startsWith('http')) {
+      // Extract public_id from URL: everything between /upload/ and the extension
+      const match = keyOrUrl.match(/\/upload\/(?:v\d+\/)?(.+?)(?:\.[a-z]+)?$/)
+      publicId = match ? match[1] : keyOrUrl
+    } else {
+      publicId = `${this.rootFolder}/${keyOrUrl.replace(/\.[^/.]+$/, '')}`
+    }
+
+    this.logger.log(`Deleting Cloudinary asset: ${publicId}`)
+    await cloudinary.uploader.destroy(publicId, { resource_type: 'image' })
+  }
+
+  /**
+   * Extract the key from a stored URL or key string (passthrough for Cloudinary).
    */
   keyFromUrl(keyOrUrl: string): string {
-    // If someone accidentally stored a full URL, strip the bucket prefix
-    const marker = `/file/${this.bucket}/`
-    const idx = keyOrUrl.indexOf(marker)
-    return idx !== -1 ? keyOrUrl.slice(idx + marker.length) : keyOrUrl
+    return keyOrUrl
+  }
+
+  isConfigured(): boolean {
+    return this.configured
   }
 }

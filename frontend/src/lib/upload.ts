@@ -1,15 +1,13 @@
 /**
  * upload.ts — File upload helpers for Piyrox.
  *
- * Bucket is PRIVATE on Backblaze B2.
+ * Storage is Cloudinary — all uploaded assets get a permanent public HTTPS URL.
  * - Uploads always require auth (POST /upload?folder=...).
- * - Public images (listings, avatars, gigs, slides) are signed with long-lived
- *   presigned URLs. Visitors can view them without logging in via GET /upload/sign.
- * - KYC documents are signed with short-lived URLs and require auth via
- *   GET /upload/sign/private.
+ * - The returned `url` is a permanent Cloudinary CDN URL; store it directly in the DB.
+ * - No presigned URLs or signing steps needed.
  *
- * What you store in the DB: the `key` (e.g. "listings/abc123.jpg").
- * What you display in <img src>: a presigned `url` from signUrl(key).
+ * What you store in the DB: the `url` (permanent Cloudinary URL) or the `key` for reference.
+ * What you display in <img src>: the `url` directly — no need to call signUrl().
  */
 
 const API_BASE = (process.env.NEXT_PUBLIC_API_URL || 'http://localhost:3001/api/v1').replace(/\/$/, '')
@@ -19,8 +17,8 @@ function getToken(): string | null {
 }
 
 export interface UploadResult {
-  key: string  // store this in the DB
-  url: string  // presigned URL — valid until B2_URL_TTL_SECONDS (default 24 h)
+  key: string  // logical key, e.g. "listings/abc123.jpg"
+  url: string  // permanent Cloudinary CDN URL — use directly in <img src>
 }
 
 // ─── Core upload ─────────────────────────────────────────────────────────────
@@ -47,42 +45,7 @@ async function uploadFile(file: File, folder: string): Promise<UploadResult> {
   return { key, url }
 }
 
-// ─── URL signing ─────────────────────────────────────────────────────────────
-
-/**
- * Get a fresh presigned URL for a public-folder key (listings, avatars, gigs, slides).
- * No login required — safe to call for visitor-facing image display.
- *
- * @param key  e.g. "listings/abc123.jpg"
- */
-export async function signUrl(key: string): Promise<string> {
-  if (!key) return ''
-  const res = await fetch(`${API_BASE}/upload/sign?key=${encodeURIComponent(key)}`)
-  if (!res.ok) throw new Error(`Failed to sign URL for key: ${key}`)
-  const json = await res.json()
-  return json?.data?.url || ''
-}
-
-/**
- * Get a fresh presigned URL for a KYC document key.
- * Requires the user to be logged in.
- *
- * @param key  e.g. "kyc/abc123.jpg"
- */
-export async function signPrivateUrl(key: string): Promise<string> {
-  if (!key) return ''
-  const token = getToken()
-  const res = await fetch(`${API_BASE}/upload/sign/private?key=${encodeURIComponent(key)}`, {
-    headers: token ? { Authorization: `Bearer ${token}` } : {},
-  })
-  if (!res.ok) throw new Error(`Failed to sign private URL for key: ${key}`)
-  const json = await res.json()
-  return json?.data?.url || ''
-}
-
 // ─── Typed upload helpers ─────────────────────────────────────────────────────
-// Each returns the presigned URL directly so you can put it in <img src> straight away.
-// Persist the `key` in the DB so you can call signUrl(key) when the URL expires.
 
 /** Upload a listing product image */
 export async function uploadListingImage(file: File, _path?: string): Promise<string> {
@@ -108,7 +71,23 @@ export async function uploadGigImage(file: File): Promise<string> {
   return url
 }
 
-/** Full upload — returns both key and presigned URL */
+/** Full upload — returns both key and URL */
 export async function uploadFileWithKey(file: File, folder: string): Promise<UploadResult> {
   return uploadFile(file, folder)
+}
+
+/**
+ * @deprecated Cloudinary URLs are permanent — no signing needed.
+ * Returns the URL as-is. Kept for backwards compatibility.
+ */
+export async function signUrl(key: string): Promise<string> {
+  return key
+}
+
+/**
+ * @deprecated Cloudinary URLs are permanent — no signing needed.
+ * Returns the URL as-is. Kept for backwards compatibility.
+ */
+export async function signPrivateUrl(key: string): Promise<string> {
+  return key
 }

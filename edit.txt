@@ -1,0 +1,46 @@
+LANDING PAGE
+- Remove fake stats on landing page done 
+- Landing page improvement not quite done 
+- Blog posting and management (landing page) done but backend issue
+- Account value check (landing) ( needs it page)
+- community forum backend not connected
+
+MARKET/FRONTEND PAGE
+- Redesign the market page
+- seller onboarding wizard
+- image optimization 
+- Buyer account request posting
+- Remove game image upload from market page; replace with game banners (each game has its own banner uploaded from admin panel, displayed on listings; buyer can request account image via personal messaging)
+
+GAMES & SERVICES
+- Remove all other games; keep only Free Fire, CODM, Blood Strike, eFootball, PUBG
+- Remove services: gift card, in-game currency, skin, topup service
+- Change logo
+- game specific landing page 
+- buyer protection badge 
+- Ai powered dispute resolution
+- game specific listing template 
+
+ADMIN PANEL
+- Redesign admin panel (frontend and backend)
+- Terms of service upgrade
+- Game banner upload per game (admin panel management)
+- Live chat feature connecting to admin panel
+
+USER FEATURES & TRANSACTIONS
+- Full stack KYC upgrade
+- Topup wallet, messaging UI and flow
+- Order management
+- improved escrow system \[our escrow system is called trust-trade ]
+- auto pricing suggestion (ai)
+- push notification 
+- improved trust badge system 
+- advance search /fliter 
+- 
+
+SEO & MARKETING
+- SEO and marketing
+- AI placement
+
+PERFORMANCE
+- Improve site loading speed
