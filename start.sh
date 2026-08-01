@@ -1,10 +1,19 @@
 #!/bin/sh
-set -e
+# Do NOT use set -e here — if the backend crashes we want Next.js to stay up
+# so the frontend remains accessible and the backend can be restarted.
 trap 'kill $(jobs -p) 2>/dev/null || true' EXIT INT TERM
 
-# Start the backend in the background
-cd /app/backend && node dist/main &
-BACKEND_PID=$!
+# Start the backend in the background. If it crashes, restart it automatically.
+start_backend() {
+  while true; do
+    echo "[start.sh] Starting backend..."
+    cd /app/backend && node dist/main
+    EXIT_CODE=$?
+    echo "[start.sh] ⚠ Backend exited with code ${EXIT_CODE}. Restarting in 5s..."
+    sleep 5
+  done
+}
+start_backend &
 
 # Wait for the backend to be ready before starting Next.js.
 # The backend runs prisma db push at startup which can take 10-30s.
@@ -23,4 +32,3 @@ echo "[start.sh] ✓ Backend ready after ${WAITED}s"
 
 # Start the Next.js frontend (this blocks until the container exits)
 cd /app/frontend && npx next start -p 8080
-wait

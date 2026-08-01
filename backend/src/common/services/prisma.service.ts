@@ -23,14 +23,31 @@ export class PrismaService extends PrismaClient implements OnModuleInit, OnModul
   }
 
   async onModuleInit() {
-    try {
-      await this.$connect()
-      this.logger.log('✅ Database connected')
-    } catch (err) {
-      this.logger.error('❌ Database connection failed:', err)
-      throw err
+    // Retry connecting up to 5 times with exponential back-off.
+    // This handles Fly Postgres cold-starts and brief network blips without
+    // crashing the whole container (which would also kill Next.js).
+    const MAX_RETRIES = 5
+    let lastErr: unknown
+    for (let attempt = 1; attempt <= MAX_RETRIES; attempt++) {
+      try {
+        await this.$connect()
+        this.logger.log('✅ Database connected')
+        await this.ensureSystemUser()
+        return
+      } catch (err) {
+        lastErr = err
+        this.logger.error(`❌ Database connection failed (attempt ${attempt}/${MAX_RETRIES}):`, err)
+        if (attempt < MAX_RETRIES) {
+          const delayMs = attempt * 3000 // 3s, 6s, 9s, 12s
+          this.logger.log(`Retrying in ${delayMs / 1000}s...`)
+          await new Promise((r) => setTimeout(r, delayMs))
+        }
+      }
     }
-    await this.ensureSystemUser()
+    // After all retries, log the error but do NOT throw — this keeps NestJS
+    // alive so Next.js can still serve non-API pages and the backend can
+    // recover on the next request once the DB comes back.
+    this.logger.error('❌ Database connection failed after all retries. API calls will fail until DB recovers.', lastErr)
   }
 
   /**
