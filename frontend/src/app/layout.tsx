@@ -6,7 +6,6 @@ import NavigationWrapper from "@/components/NavigationWrapper";
 import AppLoader from "@/components/AppLoader";
 import InstallPrompt from "@/components/InstallPrompt";
 import ActiveOrderBanner from "@/components/ActiveOrderBanner";
-import LiveChatWidget from "@/components/LiveChatWidget";
 
 const SITE_URL = "https://market.piyrox.shop";
 
@@ -143,7 +142,6 @@ export default function RootLayout({
               {children}
             </main>
             <InstallPrompt />
-            <LiveChatWidget />
           </Providers>
         </Suspense>
       </body>
