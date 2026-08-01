@@ -19,11 +19,23 @@ export interface FlutterwaveChargeResult {
 export class FlutterwaveService {
   private readonly logger = new Logger(FlutterwaveService.name)
 
-  private readonly apiUrl = process.env.FLUTTERWAVE_API_URL || 'https://api.flutterwave.com/v3'
-  private readonly secretKey = process.env.FLUTTERWAVE_SECRET_KEY || ''
+  private readonly apiUrl          = process.env.FLUTTERWAVE_API_URL      || 'https://api.flutterwave.com/v3'
+  private readonly secretKey       = process.env.FLUTTERWAVE_SECRET_KEY   || ''
+  private readonly publicKey       = process.env.FLUTTERWAVE_PUBLIC_KEY   || ''
+  private readonly encryptionKey   = process.env.FLUTTERWAVE_ENCRYPTION_KEY || ''
 
   get isConfigured(): boolean {
     return Boolean(this.apiUrl && this.secretKey)
+  }
+
+  /** Expose public key for client-side use (e.g. inline payment widget) */
+  get clientPublicKey(): string {
+    return this.publicKey
+  }
+
+  /** Expose encryption key for direct charge payload encryption */
+  get encKey(): string {
+    return this.encryptionKey
   }
 
   /**

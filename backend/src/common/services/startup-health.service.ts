@@ -170,24 +170,36 @@ export class StartupHealthService implements OnModuleInit {
 
   // ── 6. Flutterwave — verify key + live API ping ──────────────────────────
   private async checkFlutterwave(): Promise<CheckResult> {
-    const secretKey = process.env.FLUTTERWAVE_SECRET_KEY
+    const secretKey     = process.env.FLUTTERWAVE_SECRET_KEY
+    const publicKey     = process.env.FLUTTERWAVE_PUBLIC_KEY
+    const encryptionKey = process.env.FLUTTERWAVE_ENCRYPTION_KEY
+
+    const missing = [
+      secretKey     ? null : 'FLUTTERWAVE_SECRET_KEY',
+      publicKey     ? null : 'FLUTTERWAVE_PUBLIC_KEY',
+      encryptionKey ? null : 'FLUTTERWAVE_ENCRYPTION_KEY',
+    ].filter(Boolean)
+
     if (!secretKey) {
-      return { name: 'flutterwave', label: 'Flutterwave (Payments)', ok: false, detail: 'FLUTTERWAVE_SECRET_KEY not set' }
+      return { name: 'flutterwave', label: 'Flutterwave (Payments)', ok: false, detail: `missing: ${missing.join(', ')}` }
     }
 
     const t = Date.now()
     try {
-      // /v3/transactions?page=1&per_page=1 is a lightweight authenticated endpoint
       const res = await fetch('https://api.flutterwave.com/v3/transactions?page=1&per_page=1', {
         headers: { Authorization: `Bearer ${secretKey}`, 'Content-Type': 'application/json' },
         signal: AbortSignal.timeout(6000),
       })
-      // 200 = valid key, 401 = invalid key, anything else = network/server issue
       if (res.status === 200) {
-        return { name: 'flutterwave', label: 'Flutterwave (Payments)', ok: true, detail: 'API key valid', ms: Date.now() - t }
+        const keys = [
+          'secret ✓',
+          publicKey     ? 'public ✓' : 'public ✗',
+          encryptionKey ? 'encryption ✓' : 'encryption ✗',
+        ].join(', ')
+        return { name: 'flutterwave', label: 'Flutterwave (Payments)', ok: true, detail: keys, ms: Date.now() - t }
       }
       if (res.status === 401) {
-        return { name: 'flutterwave', label: 'Flutterwave (Payments)', ok: false, detail: 'Invalid API key (HTTP 401)', ms: Date.now() - t }
+        return { name: 'flutterwave', label: 'Flutterwave (Payments)', ok: false, detail: 'Invalid secret key (HTTP 401)', ms: Date.now() - t }
       }
       return { name: 'flutterwave', label: 'Flutterwave (Payments)', ok: false, detail: `HTTP ${res.status}`, ms: Date.now() - t }
     } catch (err: any) {
