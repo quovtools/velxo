@@ -18,6 +18,12 @@ const nextConfig: NextConfig = {
   },
   async rewrites() {
     return [
+      // Proxy bare /api/v1 health-check (no trailing path segment)
+      {
+        source: '/api/v1',
+        destination: 'http://localhost:3001/api/v1',
+      },
+      // Proxy all other /api/v1/* requests to the backend
       {
         source: '/api/v1/:path*',
         destination: 'http://localhost:3001/api/v1/:path*',

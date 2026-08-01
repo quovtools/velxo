@@ -41,9 +41,6 @@ export default function LiveChatWidget() {
   const inputRef   = useRef<HTMLInputElement>(null);
   const visitorId  = useRef(getVisitorId());
 
-  // Don't render on pages that aren't in the allowed list
-  if (!visible) return null;
-
   /* ── Auto-scroll ── */
   useEffect(() => {
     bottomRef.current?.scrollIntoView({ behavior: 'smooth' });
@@ -134,6 +131,10 @@ export default function LiveChatWidget() {
 
   /* ── Dismiss / minimise ── */
   const closeWidget = () => { setStep('idle'); setUnread(0); };
+
+  // Don't render on pages that aren't in the allowed list.
+  // Guard placed here — after all hooks — to comply with the Rules of Hooks.
+  if (!visible) return null;
 
   /* ────────────────────────────────────────────────── RENDER ─────── */
   return (

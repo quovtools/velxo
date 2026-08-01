@@ -23,6 +23,22 @@ async function bootstrap() {
   const expressApp = app.getHttpAdapter().getInstance()
   expressApp.set('trust proxy', 1)
 
+  // Register /api/v1 health check on the raw Express layer BEFORE NestJS
+  // mounts its router. This ensures the route is matched by Express first
+  // so it never reaches NestJS's 404 → exception-filter pipeline.
+  const healthPayload = JSON.stringify({
+    status: 'ok',
+    service: 'piyrox api',
+    version: '1.0.0',
+  })
+  expressApp.get('/api/v1', (_req: any, res: any) => {
+    res.setHeader('Content-Type', 'application/json')
+    res.status(200).send(healthPayload)
+  })
+  expressApp.head('/api/v1', (_req: any, res: any) => {
+    res.status(200).end()
+  })
+
   // Register global exception filter — catches ALL errors and logs them to Render
   app.useGlobalFilters(new AllExceptionsFilter())
 
@@ -106,20 +122,6 @@ async function bootstrap() {
       { path: '/', method: RequestMethod.GET },
       { path: '/', method: RequestMethod.HEAD },
     ],
-  })
-
-  // Handle health checks at /api/v1 (Render pings this path)
-  const healthPayload = JSON.stringify({
-    status: 'ok',
-    service: 'piyrox api',
-    version: '1.0.0',
-  })
-  expressApp.get('/api/v1', (_req, res) => {
-    res.setHeader('Content-Type', 'application/json')
-    res.status(200).send(healthPayload)
-  })
-  expressApp.head('/api/v1', (_req, res) => {
-    res.status(200).end()
   })
 
   // Self-healing schema migration: apply the full Prisma schema to the
