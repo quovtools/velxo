@@ -518,19 +518,6 @@ export class SellersService {
     return seller
   }
 
-  async getTopSellers(limit: number = 10) {
-    return this.prisma.sellers.findMany({
-      where: { isVerified: true, isSuspended: false },
-      orderBy: { reputationScore: 'desc' },
-      take: limit,
-      include: {
-        user: {
-          select: { email: true, firstName: true, avatarUrl: true },
-        },
-      },
-    })
-  }
-
   async listSellers(params: { page?: number; limit?: number; search?: string; verified?: boolean }) {
     const { page = 1, limit = 20, search, verified } = params
     const skip = (page - 1) * limit
@@ -1182,7 +1169,7 @@ export class SellersService {
       take: Number(limit) || 20,
       include: {
         user: {
-          select: { id: true, username: true, avatarUrl: true },
+          select: { id: true, firstName: true, lastName: true, avatarUrl: true },
         },
       },
     })
