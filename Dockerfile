@@ -3,7 +3,7 @@ FROM node:20-alpine AS backend-builder
 WORKDIR /app/backend
 RUN apk add --no-cache openssl
 COPY backend/package.json ./
-RUN npm config set legacy-peer-deps=true && npm config set force=true && npm install --legacy-peer-deps
+RUN npm install --legacy-peer-deps --prefer-offline=false
 COPY backend/prisma ./prisma/
 RUN npx prisma generate
 COPY backend/ .
