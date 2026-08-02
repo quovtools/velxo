@@ -191,4 +191,21 @@ export class OrdersController {
       throw error
     }
   }
+
+  /**
+   * Cancel an unpaid (PENDING) order.
+   * Buyer: can cancel any time before payment.
+   * Seller: can only cancel after ≥ 3 hours of no payment (non-payment timeout).
+   */
+  @Patch(':id/cancel')
+  @UseGuards(SupabaseJwtGuard)
+  async cancelOrder(@Param('id') orderId: string, @CurrentUserId() userId: string) {
+    try {
+      const order = await this.ordersService.cancelOrder(orderId, userId)
+      return ApiResponseDto.ok(order, 'Order cancelled successfully')
+    } catch (error) {
+      this.logger.error('Error cancelling order:', error)
+      throw error
+    }
+  }
 }

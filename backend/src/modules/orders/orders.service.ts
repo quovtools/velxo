@@ -399,7 +399,93 @@ export class OrdersService {
       } : null,
     }
 
-    return enrichedOrder
+    // Task #2: expose paidAt explicitly so the frontend can calculate the
+    // 3-hour unpaid-order countdown without having to guess.
+    return {
+      ...enrichedOrder,
+      paidAt: (order as any).paidAt ?? null,
+      cancelledAt: (order as any).cancelledAt ?? null,
+      completedAt: (order as any).completedAt ?? null,
+    }
+  }
+
+  /**
+   * Cancels an order that has never been paid.
+   *
+   * Rules:
+   *   - Only a PENDING (unpaid) order can be cancelled this way.
+   *   - The buyer can cancel at any time while status is PENDING.
+   *   - The seller can cancel only after the order has been PENDING for ≥ 3 hours
+   *     with no payment (buyer non-payment timeout). This prevents sellers from
+   *     cancelling orders the moment they are placed.
+   *   - Once cancelled, the reserved listing is freed so other buyers can purchase.
+   */
+  async cancelOrder(orderId: string, userId: string) {
+    this.logger.log(`Cancel request for order ${orderId} by user ${userId}`)
+
+    const order = await this.prisma.orders.findUnique({
+      where: { id: orderId },
+      include: { seller: true, orderItems: true },
+    })
+
+    if (!order) throw new NotFoundException('Order')
+
+    if (order.status !== OrderStatus.PENDING) {
+      throw new BadRequestException(
+        `Only unpaid (PENDING) orders can be cancelled. Current status: ${order.status}`,
+      )
+    }
+
+    const isBuyer  = order.buyerId === userId
+    const isSeller = order.seller?.userId === userId
+
+    if (!isBuyer && !isSeller) {
+      throw new ForbiddenException('Only the buyer or seller can cancel this order')
+    }
+
+    // Seller must wait ≥ 3 hours from order creation before cancelling.
+    const THREE_HOURS_MS = 3 * 60 * 60 * 1000
+    const ageMs = Date.now() - new Date(order.createdAt).getTime()
+    if (isSeller && !isBuyer && ageMs < THREE_HOURS_MS) {
+      const remaining = Math.ceil((THREE_HOURS_MS - ageMs) / 60000)
+      throw new BadRequestException(
+        `You can only close an unpaid order after 3 hours have passed. Please wait ${remaining} more minute(s).`,
+      )
+    }
+
+    const cancelled = await this.prisma.$transaction(async (tx) => {
+      const updated = await tx.orders.update({
+        where: { id: orderId },
+        data: {
+          status: OrderStatus.CANCELLED,
+          cancelledAt: new Date(),
+        },
+        include: { buyer: true, seller: true },
+      })
+
+      // Free the listing so it becomes purchasable again.
+      const listingId = order.orderItems?.[0]?.listingId
+      if (listingId) {
+        await tx.listings.update({
+          where: { id: listingId },
+          data: { isSold: false },
+        }).catch(() => {}) // non-fatal if listing no longer exists
+      }
+
+      // Remove the dangling escrow row so it does not block future orders.
+      await tx.escrowTransactions.deleteMany({ where: { orderId } }).catch(() => {})
+
+      return updated
+    })
+
+    // Notify both parties of the cancellation (non-fatal).
+    await this.notifications.send?.(order.buyerId, {
+      type: 'SYSTEM',
+      title: 'Order Cancelled',
+      body: `Order #${order.orderNumber} was cancelled — no payment was made.`,
+    }).catch(() => {})
+
+    return cancelled
   }
 
   /**
