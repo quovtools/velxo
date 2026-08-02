@@ -4,8 +4,9 @@ generator client {
 
 datasource db {
   provider  = "postgresql"
-  // DATABASE_URL  — runtime connection string (Fly.io internal: postgres://...flycast...)
-  // DIRECT_URL    — used by Prisma migrations to bypass pgBouncer if present
+  // DATABASE_URL  — use the NeonDB POOLED connection string (pgBouncer) for runtime
+  //                 to avoid waking compute on every query.
+  // DIRECT_URL    — use the NeonDB DIRECT (non-pooled) URL for Prisma migrations only.
   url       = env("DATABASE_URL")
   directUrl = env("DIRECT_URL")
 }

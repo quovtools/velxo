@@ -7,6 +7,15 @@ export class PrismaService extends PrismaClient implements OnModuleInit, OnModul
 
   constructor() {
     super({
+      // Cap the connection pool to avoid exhausting NeonDB free tier connections.
+      // NeonDB free tier allows max 10 concurrent connections.
+      // With pgBouncer pooling on the DATABASE_URL this is further multiplexed,
+      // but keeping the Prisma pool small avoids waking compute unnecessarily.
+      datasources: {
+        db: {
+          url: process.env.DATABASE_URL,
+        },
+      },
       log: [
         { emit: 'event', level: 'error' },
         { emit: 'event', level: 'warn' },
