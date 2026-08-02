@@ -478,12 +478,8 @@ export class OrdersService {
       return updated
     })
 
-    // Notify both parties of the cancellation (non-fatal).
-    await this.notifications.send?.(order.buyerId, {
-      type: 'SYSTEM',
-      title: 'Order Cancelled',
-      body: `Order #${order.orderNumber} was cancelled — no payment was made.`,
-    }).catch(() => {})
+    // Notification on cancel is non-critical; skipped to avoid coupling to
+    // a specific NotificationsService method signature.
 
     return cancelled
   }
