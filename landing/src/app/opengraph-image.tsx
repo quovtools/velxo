@@ -5,7 +5,7 @@ export const size = { width: 1200, height: 630 };
 export const contentType = 'image/png';
 
 export default function OgImage() {
-  const games = ['Free Fire', 'PUBG Mobile', 'COD Mobile', 'Blood Strike', 'eFootball'];
+  const games = ['Free Fire', 'COD Mobile', 'PUBG Mobile', 'Blood Strike', 'eFootball'];
   const pills = ['Buy Accounts', 'Sell Accounts', 'Top-Ups', 'Rank Boosting', 'Escrow Protected'];
 
   return new ImageResponse(

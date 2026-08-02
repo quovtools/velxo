@@ -7,10 +7,6 @@ const GAMES = [
   { name: 'COD Mobile', slug: 'cod-mobile', tag: 'FPS Shooter', color: '#00CC66', listings: '1,800+' },
   { name: 'PUBG Mobile', slug: 'pubg-mobile', tag: 'Battle Royale', color: '#F5A623', listings: '3,100+' },
   { name: 'Blood Strike', slug: 'blood-strike', tag: 'FPS Shooter', color: '#CC0000', listings: '900+' },
-  { name: 'Delta Force', slug: 'delta-force', tag: 'Tactical', color: '#4A9EFF', listings: '600+' },
-  { name: 'Valorant', slug: 'valorant', tag: 'Tactical FPS', color: '#FF4655', listings: '1,200+' },
-  { name: 'Roblox', slug: 'roblox', tag: 'Sandbox', color: '#CC0000', listings: '2,000+' },
-  { name: 'Mobile Legends', slug: 'mobile-legends', tag: 'MOBA', color: '#9B59B6', listings: '1,600+' },
   { name: 'eFootball', slug: 'efootball', tag: 'Sports', color: '#00C8FF', listings: '500+' },
 ];
 

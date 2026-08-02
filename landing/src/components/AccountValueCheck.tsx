@@ -7,10 +7,6 @@ const GAMES = [
   { id: 'cod-mobile', name: 'COD Mobile', tag: 'FPS Shooter', baseValue: 30 },
   { id: 'pubg-mobile', name: 'PUBG Mobile', tag: 'Battle Royale', baseValue: 35 },
   { id: 'blood-strike', name: 'Blood Strike', tag: 'FPS Shooter', baseValue: 20 },
-  { id: 'delta-force', name: 'Delta Force', tag: 'Tactical', baseValue: 25 },
-  { id: 'valorant', name: 'Valorant', tag: 'Tactical FPS', baseValue: 40 },
-  { id: 'roblox', name: 'Roblox', tag: 'Sandbox', baseValue: 15 },
-  { id: 'mobile-legends', name: 'Mobile Legends', tag: 'MOBA', baseValue: 20 },
   { id: 'efootball', name: 'eFootball', tag: 'Sports', baseValue: 20 },
 ];
 

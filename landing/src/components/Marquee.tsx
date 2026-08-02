@@ -2,9 +2,8 @@ import React from 'react';
 import { ShieldCheck } from 'lucide-react';
 
 const ITEMS = [
-  'Free Fire', 'COD Mobile', 'PUBG Mobile', 'Blood Strike', 'Delta Force',
-  'Valorant', 'Roblox', 'Mobile Legends', 'Fortnite', 'Clash of Clans',
-  'Genshin Impact', 'FIFA Mobile', 'Brawl Stars', 'League of Legends',
+  'Free Fire', 'COD Mobile', 'PUBG Mobile', 'Blood Strike', 'eFootball',
+  'Free Fire', 'COD Mobile', 'PUBG Mobile', 'Blood Strike', 'eFootball',
 ];
 
 export default function Marquee() {
