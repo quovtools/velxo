@@ -718,7 +718,7 @@ export default function OrderTrackingContent({ id }: { id: string }) {
                         credFields.length > 0 ? (
                           credFields.map(([k, v]) => <CopyRow key={k} label={k} value={String(v)} />)
                         ) : rawFull ? (
-                          rawFull.split('\n').map((line, i) => {
+                          rawFull.split('\n').map((line: string, i: number) => {
                             const ci = line.indexOf(':');
                             if (ci > 0 && ci < 35) return <CopyRow key={i} label={line.slice(0, ci).trim()} value={line.slice(ci + 1).trim()} />;
                             return <p key={i} className="text-sm text-white font-mono py-1">{line}</p>;
