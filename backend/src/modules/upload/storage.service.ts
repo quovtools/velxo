@@ -116,6 +116,54 @@ export class StorageService {
   }
 
   /**
+   * Upload a video buffer to Cloudinary.
+   * Returns the secure HTTPS URL and the video duration in seconds.
+   *
+   * @param buffer  File contents
+   * @param key     Logical path, e.g. "videos/abc123.mp4"
+   */
+  async uploadVideo(buffer: Buffer, key: string): Promise<{ url: string; duration: number }> {
+    this.logger.log(`Uploading video ${key} to Cloudinary`)
+
+    const publicId = `${this.rootFolder}/${key.replace(/\.[^/.]+$/, '')}`
+
+    const result = await new Promise<UploadApiResponse>((resolve, reject) => {
+      const stream = cloudinary.uploader.upload_stream(
+        {
+          public_id: publicId,
+          resource_type: 'video',
+          overwrite: true,
+        },
+        (error, result) => {
+          if (error || !result) return reject(error ?? new Error('No result from Cloudinary'))
+          resolve(result)
+        },
+      )
+      stream.end(buffer)
+    })
+
+    const duration: number = (result as any).duration ?? 0
+    this.logger.log(`Video uploaded → ${result.secure_url} (${duration}s)`)
+    return { url: result.secure_url, duration }
+  }
+
+  /**
+   * Delete a video asset from Cloudinary.
+   */
+  async deleteVideo(keyOrUrl: string): Promise<void> {
+    let publicId: string
+    if (keyOrUrl.startsWith('http')) {
+      const match = keyOrUrl.match(/\/upload\/(?:v\d+\/)?(.+?)(?:\.[a-z]+)?$/)
+      publicId = match ? match[1] : keyOrUrl
+    } else {
+      publicId = `${this.rootFolder}/${keyOrUrl.replace(/\.[^/.]+$/, '')}`
+    }
+
+    this.logger.log(`Deleting Cloudinary video: ${publicId}`)
+    await cloudinary.uploader.destroy(publicId, { resource_type: 'video' })
+  }
+
+  /**
    * Extract the key from a stored URL or key string (passthrough for Cloudinary).
    */
   keyFromUrl(keyOrUrl: string): string {

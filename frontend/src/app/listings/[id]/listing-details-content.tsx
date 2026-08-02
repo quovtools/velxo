@@ -6,6 +6,7 @@ import {
   Shield, Sparkles, UserCheck, MessageSquare, Star,
   ChevronLeft, ChevronRight, Clock, MapPin, Monitor,
   Award, ShoppingCart, Loader2, Flag, Store, Zap, CheckCircle,
+  Video, Image,
 } from 'lucide-react';
 import { useAuth } from '@/app/providers';
 import SellerReportModal from '@/components/SellerReportModal';
@@ -27,6 +28,7 @@ interface Listing {
   loginMethod: string;
   deliveryTime: number;
   images: string[];
+  videos?: string[];
   status: string;
   isSold: boolean;
   seller: {
@@ -69,6 +71,7 @@ export default function ListingDetailsContent({ id, initialData }: { id: string;
   const [loading, setLoading]   = useState(!initialData);
   const [error, setError]       = useState<string | null>(null);
   const [imgIdx, setImgIdx]     = useState(0);
+  const [mediaTab, setMediaTab] = useState<'images' | 'video'>('images');
   const [reportOpen, setReportOpen] = useState(false);
 
   useEffect(() => {
@@ -109,6 +112,8 @@ export default function ListingDetailsContent({ id, initialData }: { id: string;
   );
 
   const images = listing.images?.length ? listing.images : [];
+  const videos = listing.videos?.length ? listing.videos : [];
+  const hasVideo = videos.length > 0;
   const avgRating = listing.seller?.averageRating || 0;
 
   return (
@@ -127,54 +132,98 @@ export default function ListingDetailsContent({ id, initialData }: { id: string;
         {/* ── Left: Images + Details ── */}
         <div className="lg:col-span-2 space-y-5">
 
-          {/* Image gallery */}
+          {/* Image / Video gallery */}
           <div className="bg-cardBg border border-borderBg rounded-2xl overflow-hidden">
-            <div className="relative aspect-video sm:aspect-[16/10] lg:aspect-[4/3] bg-background flex items-center justify-center">
-              {images.length > 0 ? (
-                <>
-                  {/* eslint-disable-next-line @next/next/no-img-element */}
-                  <img src={images[imgIdx]} alt={listing.title}
-                    loading="lazy"
-                    referrerPolicy="no-referrer"
-                    className="w-full h-full object-cover" />
-                  {images.length > 1 && (
-                    <>
-                      <button onClick={() => setImgIdx(i => (i - 1 + images.length) % images.length)}
-                        className="absolute left-3 top-1/2 -translate-y-1/2 w-8 h-8 bg-black/50 hover:bg-black/70 rounded-full flex items-center justify-center transition">
-                        <ChevronLeft className="w-4 h-4 text-white" />
-                      </button>
-                      <button onClick={() => setImgIdx(i => (i + 1) % images.length)}
-                        className="absolute right-3 top-1/2 -translate-y-1/2 w-8 h-8 bg-black/50 hover:bg-black/70 rounded-full flex items-center justify-center transition">
-                        <ChevronRight className="w-4 h-4 text-white" />
-                      </button>
-                      <div className="absolute bottom-3 left-1/2 -translate-x-1/2 flex gap-1">
-                        {images.map((_, i) => (
-                          <button key={i} onClick={() => setImgIdx(i)}
-                            className={`w-2 h-2 rounded-full transition ${i === imgIdx ? 'bg-white' : 'bg-white/40'}`} />
-                        ))}
-                      </div>
-                    </>
-                  )}
-                </>
-              ) : (
-                <div className="text-center p-12">
-                  <Sparkles className="w-16 h-16 mx-auto text-brand/20 mb-3" />
-                  <p className="text-gray-500 text-sm">No preview available</p>
-                </div>
-              )}
-            </div>
 
-            {/* Thumbnail strip */}
-            {images.length > 1 && (
-              <div className="flex gap-2 p-3 overflow-x-auto scrollbar-none bg-background/30">
-                {images.map((img, i) => (
-                  // eslint-disable-next-line @next/next/no-img-element
-                  <img key={i} src={img} alt="" loading="lazy" referrerPolicy="no-referrer" onClick={() => setImgIdx(i)}
-                    className={`h-14 w-20 object-cover rounded-lg cursor-pointer flex-shrink-0 transition ${
-                      i === imgIdx ? 'ring-2 ring-brand opacity-100' : 'opacity-50 hover:opacity-80'
-                    }`} />
-                ))}
+            {/* Tab bar — only shown when video exists */}
+            {hasVideo && (
+              <div className="flex border-b border-borderBg">
+                <button
+                  onClick={() => setMediaTab('images')}
+                  className={`flex items-center gap-1.5 px-5 py-3 text-xs font-bold transition border-b-2 ${
+                    mediaTab === 'images'
+                      ? 'border-brand text-white'
+                      : 'border-transparent text-gray-500 hover:text-gray-300'
+                  }`}
+                >
+                  <Image className="w-3.5 h-3.5" /> Photos {images.length > 0 && `(${images.length})`}
+                </button>
+                <button
+                  onClick={() => setMediaTab('video')}
+                  className={`flex items-center gap-1.5 px-5 py-3 text-xs font-bold transition border-b-2 ${
+                    mediaTab === 'video'
+                      ? 'border-brand text-white'
+                      : 'border-transparent text-gray-500 hover:text-gray-300'
+                  }`}
+                >
+                  <Video className="w-3.5 h-3.5" /> Video
+                </button>
               </div>
+            )}
+
+            {/* Video player */}
+            {mediaTab === 'video' && hasVideo && (
+              <div className="bg-black aspect-video flex items-center justify-center">
+                <video
+                  src={videos[0]}
+                  controls
+                  className="w-full h-full object-contain"
+                  playsInline
+                />
+              </div>
+            )}
+
+            {/* Images carousel */}
+            {(mediaTab === 'images' || !hasVideo) && (
+              <>
+                <div className="relative aspect-video sm:aspect-[16/10] lg:aspect-[4/3] bg-background flex items-center justify-center">
+                  {images.length > 0 ? (
+                    <>
+                      {/* eslint-disable-next-line @next/next/no-img-element */}
+                      <img src={images[imgIdx]} alt={listing.title}
+                        loading="lazy"
+                        referrerPolicy="no-referrer"
+                        className="w-full h-full object-cover" />
+                      {images.length > 1 && (
+                        <>
+                          <button onClick={() => setImgIdx(i => (i - 1 + images.length) % images.length)}
+                            className="absolute left-3 top-1/2 -translate-y-1/2 w-8 h-8 bg-black/50 hover:bg-black/70 rounded-full flex items-center justify-center transition">
+                            <ChevronLeft className="w-4 h-4 text-white" />
+                          </button>
+                          <button onClick={() => setImgIdx(i => (i + 1) % images.length)}
+                            className="absolute right-3 top-1/2 -translate-y-1/2 w-8 h-8 bg-black/50 hover:bg-black/70 rounded-full flex items-center justify-center transition">
+                            <ChevronRight className="w-4 h-4 text-white" />
+                          </button>
+                          <div className="absolute bottom-3 left-1/2 -translate-x-1/2 flex gap-1">
+                            {images.map((_, i) => (
+                              <button key={i} onClick={() => setImgIdx(i)}
+                                className={`w-2 h-2 rounded-full transition ${i === imgIdx ? 'bg-white' : 'bg-white/40'}`} />
+                            ))}
+                          </div>
+                        </>
+                      )}
+                    </>
+                  ) : (
+                    <div className="text-center p-12">
+                      <Sparkles className="w-16 h-16 mx-auto text-brand/20 mb-3" />
+                      <p className="text-gray-500 text-sm">No preview available</p>
+                    </div>
+                  )}
+                </div>
+
+                {/* Thumbnail strip */}
+                {images.length > 1 && (
+                  <div className="flex gap-2 p-3 overflow-x-auto scrollbar-none bg-background/30">
+                    {images.map((img, i) => (
+                      // eslint-disable-next-line @next/next/no-img-element
+                      <img key={i} src={img} alt="" loading="lazy" referrerPolicy="no-referrer" onClick={() => setImgIdx(i)}
+                        className={`h-14 w-20 object-cover rounded-lg cursor-pointer flex-shrink-0 transition ${
+                          i === imgIdx ? 'ring-2 ring-brand opacity-100' : 'opacity-50 hover:opacity-80'
+                        }`} />
+                    ))}
+                  </div>
+                )}
+              </>
             )}
           </div>
 

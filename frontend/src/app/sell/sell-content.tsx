@@ -12,7 +12,7 @@ import {
   DollarSign, Tag, MapPin, Clock,
   Zap, ShieldCheck, Star, TrendingUp,
   Store, BadgeCheck, Layers, ArrowRight,
-  MessageCircle, ImageOff,
+  MessageCircle, Image, Video, X, Upload, Play,
 } from 'lucide-react';
 
 /* ─────────────────────────── Constants ──────────────────────────────── */
@@ -34,7 +34,7 @@ const ACCOUNT_TYPES = [
 // Phase A = store onboarding (steps 0-3 when new)
 // Phase B = listing creation (steps 4-6)
 const ONBOARDING_STEPS = ['Welcome', 'Store Info', 'Account Type', 'Ready'];
-const LISTING_STEPS = ['Category', 'Details', 'Pricing'];
+const LISTING_STEPS = ['Category', 'Details', 'Media', 'Pricing'];
 
 /* ─────────────────────────── Progress Bar ───────────────────────────── */
 interface ProgressBarProps {
@@ -116,6 +116,13 @@ export default function SellPage() {
   const [loginMethod, setLoginMethod] = useState('');
   const [deliveryTime, setDeliveryTime] = useState('60');
 
+  /* ── media fields ── */
+  const [uploadedImages, setUploadedImages] = useState<string[]>([]);
+  const [uploadedVideo, setUploadedVideo]   = useState<string | null>(null);
+  const [mediaMode, setMediaMode]           = useState<'images' | 'video'>('images');
+  const [uploadingMedia, setUploadingMedia] = useState(false);
+  const [uploadError, setUploadError]       = useState<string | null>(null);
+
   const gameCfg = getGameConfig(gameName);
   const platformOptions = gameCfg?.platforms ?? ALL_PLATFORMS;
   const rankOptions = gameCfg?.ranks ?? [];
@@ -159,6 +166,67 @@ export default function SellPage() {
     }
   };
 
+  /* ── media upload helpers ── */
+  const API_BASE = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:3001/api/v1';
+
+  const handleImageUpload = async (files: FileList | null) => {
+    if (!files || files.length === 0) return;
+    const remaining = 8 - uploadedImages.length;
+    if (remaining <= 0) { setUploadError('Maximum 8 images reached.'); return; }
+    const toUpload = Array.from(files).slice(0, remaining);
+    setUploadError(null); setUploadingMedia(true);
+    try {
+      const token = (user as any)?.accessToken || localStorage.getItem('sb-access-token') || '';
+      const results: string[] = [];
+      for (const file of toUpload) {
+        if (!file.type.startsWith('image/')) { setUploadError(`${file.name} is not an image.`); continue; }
+        if (file.size > 8 * 1024 * 1024) { setUploadError(`${file.name} exceeds 8 MB.`); continue; }
+        const form = new FormData();
+        form.append('file', file);
+        const res = await fetch(`${API_BASE}/upload?folder=listings`, {
+          method: 'POST',
+          headers: { Authorization: `Bearer ${token}` },
+          body: form,
+        });
+        const json = await res.json();
+        if (!res.ok) throw new Error(json?.message || 'Upload failed');
+        results.push(json.data.url);
+      }
+      setUploadedImages(prev => [...prev, ...results]);
+    } catch (err: any) {
+      setUploadError(err.message || 'Image upload failed. Please try again.');
+    } finally {
+      setUploadingMedia(false);
+    }
+  };
+
+  const handleVideoUpload = async (file: File | null) => {
+    if (!file) return;
+    if (!file.type.startsWith('video/')) { setUploadError('Please select a video file (mp4, mov, webm).'); return; }
+    if (file.size > 100 * 1024 * 1024) { setUploadError('Video must be under 100 MB.'); return; }
+    setUploadError(null); setUploadingMedia(true);
+    try {
+      const token = (user as any)?.accessToken || localStorage.getItem('sb-access-token') || '';
+      const form = new FormData();
+      form.append('file', file);
+      const res = await fetch(`${API_BASE}/upload/video`, {
+        method: 'POST',
+        headers: { Authorization: `Bearer ${token}` },
+        body: form,
+      });
+      const json = await res.json();
+      if (!res.ok) throw new Error(json?.message || 'Video upload failed');
+      setUploadedVideo(json.data.url);
+    } catch (err: any) {
+      setUploadError(err.message || 'Video upload failed. Please try again.');
+    } finally {
+      setUploadingMedia(false);
+    }
+  };
+
+  const removeImage = (idx: number) => setUploadedImages(prev => prev.filter((_, i) => i !== idx));
+  const removeVideo = () => setUploadedVideo(null);
+
   /* ── listing submit ── */
   const handleCreateListing = async () => {
     setError(null); setSubmitting(true);
@@ -175,7 +243,8 @@ export default function SellPage() {
         loginMethod: loginMethod || undefined,
         deliveryTime: parseInt(deliveryTime),
         categoryId: 'auto',
-        images: [],   // no per-listing uploads; game banner is used instead
+        images: uploadedImages,
+        videos: uploadedVideo ? [uploadedVideo] : [],
       });
       if ((res as any).success) setSuccess(true);
     } catch (err: any) {
@@ -215,7 +284,7 @@ export default function SellPage() {
         </div>
         <div className="flex flex-col sm:flex-row gap-3 justify-center">
           <button
-            onClick={() => { setSuccess(false); setListStep(1); setTitle(''); setDescription(''); setPrice(''); }}
+            onClick={() => { setSuccess(false); setListStep(1); setTitle(''); setDescription(''); setPrice(''); setUploadedImages([]); setUploadedVideo(null); }}
             className="px-6 py-3 bg-brand hover:bg-brand-dark rounded-xl font-bold text-white transition">
             Create Another Listing
           </button>
@@ -445,10 +514,6 @@ export default function SellPage() {
           <h1 className="text-2xl font-black text-white">Create a Listing</h1>
           <p className="text-gray-400 text-sm mt-1">Fill in the details to list your item for sale</p>
         </div>
-        <div className="flex items-center gap-1.5 text-xs text-gray-500 bg-cardBg border border-borderBg px-3 py-1.5 rounded-xl whitespace-nowrap">
-          <ImageOff className="w-3.5 h-3.5 text-violet-400" />
-          Game banner auto-applied
-        </div>
       </div>
 
       <ProgressBar currentStep={listStep - 1} labels={LISTING_STEPS} />
@@ -592,14 +657,6 @@ export default function SellPage() {
               </div>
             )}
 
-            {/* Image note */}
-            <div className="bg-violet-900/15 border border-violet-500/20 rounded-xl p-4 flex gap-3 items-start text-xs text-gray-400">
-              <ImageOff className="w-4 h-4 text-violet-400 flex-shrink-0 mt-0.5" />
-              <div>
-                <p className="font-semibold text-white mb-0.5">No image upload needed</p>
-                <p>Your listing will automatically display the official <span className="text-white">{gameName}</span> game banner. Buyers can request specific account screenshots via private messages after purchase.</p>
-              </div>
-            </div>
           </StepCard>
 
           <div className="flex justify-between">
@@ -615,8 +672,177 @@ export default function SellPage() {
         </div>
       )}
 
-      {/* ── Step 3: Pricing & Submit ── */}
+      {/* ── Step 3: Media ── */}
       {listStep === 3 && (
+        <div className="space-y-5">
+          <StepCard>
+            <h2 className="font-bold text-white flex items-center gap-2">
+              <Image className="w-5 h-5 text-brand" /> Photos &amp; Video
+              <span className="ml-auto text-xs text-gray-500 font-normal">Optional</span>
+            </h2>
+            <p className="text-xs text-gray-400">
+              Add up to <span className="text-white font-semibold">8 screenshots</span> or <span className="text-white font-semibold">1 short video (≤30 s)</span> to show buyers what they're getting. These appear only on the listing detail page.
+            </p>
+
+            {/* Mode toggle */}
+            <div className="flex gap-2">
+              <button
+                type="button"
+                onClick={() => { setMediaMode('images'); setUploadError(null); }}
+                className={`flex items-center gap-1.5 px-4 py-2 rounded-xl text-xs font-bold border transition ${
+                  mediaMode === 'images' ? 'bg-brand/10 border-brand text-white' : 'border-borderBg text-gray-400 hover:border-brand/30'
+                }`}
+              >
+                <Image className="w-3.5 h-3.5" /> Images ({uploadedImages.length}/8)
+              </button>
+              <button
+                type="button"
+                onClick={() => { setMediaMode('video'); setUploadError(null); }}
+                className={`flex items-center gap-1.5 px-4 py-2 rounded-xl text-xs font-bold border transition ${
+                  mediaMode === 'video' ? 'bg-brand/10 border-brand text-white' : 'border-borderBg text-gray-400 hover:border-brand/30'
+                }`}
+              >
+                <Video className="w-3.5 h-3.5" /> Video {uploadedVideo ? '(1/1)' : '(0/1)'}
+              </button>
+            </div>
+
+            {uploadError && (
+              <div className="bg-red-900/20 border border-red-500/40 text-red-300 text-xs px-3 py-2 rounded-xl flex items-center gap-2">
+                <AlertCircle className="w-3.5 h-3.5 flex-shrink-0" /> {uploadError}
+                <button onClick={() => setUploadError(null)} className="ml-auto">✕</button>
+              </div>
+            )}
+
+            {/* ── Images panel ── */}
+            {mediaMode === 'images' && (
+              <div className="space-y-3">
+                {/* Grid of uploaded images */}
+                {uploadedImages.length > 0 && (
+                  <div className="grid grid-cols-4 gap-2">
+                    {uploadedImages.map((url, idx) => (
+                      <div key={idx} className="relative aspect-square rounded-xl overflow-hidden bg-background border border-borderBg group">
+                        {/* eslint-disable-next-line @next/next/no-img-element */}
+                        <img src={url} alt={`Upload ${idx + 1}`} className="w-full h-full object-cover" />
+                        <button
+                          type="button"
+                          onClick={() => removeImage(idx)}
+                          className="absolute top-1 right-1 w-5 h-5 bg-black/70 hover:bg-red-600 rounded-full flex items-center justify-center opacity-0 group-hover:opacity-100 transition"
+                        >
+                          <X className="w-3 h-3 text-white" />
+                        </button>
+                        {idx === 0 && (
+                          <span className="absolute bottom-1 left-1 text-[9px] bg-brand/80 text-white px-1.5 py-0.5 rounded font-bold">Cover</span>
+                        )}
+                      </div>
+                    ))}
+                    {/* Add more slot */}
+                    {uploadedImages.length < 8 && (
+                      <label className="aspect-square rounded-xl border-2 border-dashed border-borderBg hover:border-brand/50 flex flex-col items-center justify-center cursor-pointer transition bg-background/50 group">
+                        <Upload className="w-4 h-4 text-gray-600 group-hover:text-brand transition" />
+                        <span className="text-[10px] text-gray-600 group-hover:text-brand mt-1 transition">Add</span>
+                        <input
+                          type="file"
+                          accept="image/jpeg,image/png,image/webp,image/gif"
+                          multiple
+                          className="sr-only"
+                          onChange={e => handleImageUpload(e.target.files)}
+                        />
+                      </label>
+                    )}
+                  </div>
+                )}
+
+                {/* Drop zone (shown when no images yet) */}
+                {uploadedImages.length === 0 && (
+                  <label className={`flex flex-col items-center justify-center gap-3 border-2 border-dashed rounded-2xl p-10 cursor-pointer transition ${
+                    uploadingMedia ? 'border-brand/40 bg-brand/5' : 'border-borderBg hover:border-brand/50 bg-background/30'
+                  }`}>
+                    {uploadingMedia ? (
+                      <Loader2 className="w-8 h-8 text-brand animate-spin" />
+                    ) : (
+                      <Image className="w-8 h-8 text-gray-600" />
+                    )}
+                    <div className="text-center">
+                      <p className="text-sm font-semibold text-white">{uploadingMedia ? 'Uploading…' : 'Upload screenshots'}</p>
+                      <p className="text-xs text-gray-500 mt-0.5">JPG, PNG, WebP · max 8 MB each · up to 8 files</p>
+                    </div>
+                    <input
+                      type="file"
+                      accept="image/jpeg,image/png,image/webp,image/gif"
+                      multiple
+                      disabled={uploadingMedia}
+                      className="sr-only"
+                      onChange={e => handleImageUpload(e.target.files)}
+                    />
+                  </label>
+                )}
+
+                {uploadingMedia && uploadedImages.length > 0 && (
+                  <div className="flex items-center gap-2 text-xs text-brand">
+                    <Loader2 className="w-3.5 h-3.5 animate-spin" /> Uploading…
+                  </div>
+                )}
+              </div>
+            )}
+
+            {/* ── Video panel ── */}
+            {mediaMode === 'video' && (
+              <div className="space-y-3">
+                {!uploadedVideo ? (
+                  <label className={`flex flex-col items-center justify-center gap-3 border-2 border-dashed rounded-2xl p-10 cursor-pointer transition ${
+                    uploadingMedia ? 'border-brand/40 bg-brand/5' : 'border-borderBg hover:border-brand/50 bg-background/30'
+                  }`}>
+                    {uploadingMedia ? (
+                      <Loader2 className="w-8 h-8 text-brand animate-spin" />
+                    ) : (
+                      <Video className="w-8 h-8 text-gray-600" />
+                    )}
+                    <div className="text-center">
+                      <p className="text-sm font-semibold text-white">{uploadingMedia ? 'Uploading…' : 'Upload a short video'}</p>
+                      <p className="text-xs text-gray-500 mt-0.5">MP4, MOV, WebM · max 100 MB · max 30 seconds</p>
+                    </div>
+                    <input
+                      type="file"
+                      accept="video/mp4,video/quicktime,video/webm"
+                      disabled={uploadingMedia}
+                      className="sr-only"
+                      onChange={e => handleVideoUpload(e.target.files?.[0] ?? null)}
+                    />
+                  </label>
+                ) : (
+                  <div className="relative rounded-2xl overflow-hidden bg-black border border-borderBg">
+                    <video src={uploadedVideo} controls className="w-full max-h-64 object-contain" />
+                    <button
+                      type="button"
+                      onClick={removeVideo}
+                      className="absolute top-2 right-2 flex items-center gap-1 bg-red-600/90 hover:bg-red-600 text-white text-xs font-bold px-2.5 py-1.5 rounded-lg transition"
+                    >
+                      <X className="w-3 h-3" /> Remove
+                    </button>
+                  </div>
+                )}
+              </div>
+            )}
+          </StepCard>
+
+          <div className="flex justify-between">
+            <button onClick={() => setListStep(2)}
+              className="flex items-center gap-2 px-6 py-3 border border-borderBg hover:border-brand/40 rounded-xl text-gray-300 hover:text-white transition">
+              <ChevronLeft className="w-4 h-4" /> Back
+            </button>
+            <button
+              onClick={() => { setUploadError(null); setListStep(4); }}
+              disabled={uploadingMedia}
+              className="flex items-center gap-2 bg-brand hover:bg-brand-dark px-6 py-3 rounded-xl font-bold text-white transition disabled:opacity-50"
+            >
+              Next <ChevronRight className="w-4 h-4" />
+            </button>
+          </div>
+        </div>
+      )}
+
+      {/* ── Step 4: Pricing & Submit ── */}
+      {listStep === 4 && (
         <div className="space-y-5">
           <StepCard>
             <h2 className="font-bold text-white flex items-center gap-2"><DollarSign className="w-5 h-5 text-brand" /> Pricing & Delivery</h2>
@@ -711,7 +937,7 @@ export default function SellPage() {
           </div>
 
           <div className="flex justify-between">
-            <button onClick={() => setListStep(2)}
+            <button onClick={() => setListStep(3)}
               className="flex items-center gap-2 px-6 py-3 border border-borderBg hover:border-brand/40 rounded-xl text-gray-300 hover:text-white transition">
               <ChevronLeft className="w-4 h-4" /> Back
             </button>
