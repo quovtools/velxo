@@ -200,6 +200,13 @@ export default function RootLayout({
   return (
     <html lang="en" className={inter.variable}>
       <head>
+        {/* ── Google Analytics ── */}
+        <script async src="https://www.googletagmanager.com/gtag/js?id=G-JQNL42KBVT" />
+        <script
+          dangerouslySetInnerHTML={{
+            __html: `window.dataLayer=window.dataLayer||[];function gtag(){dataLayer.push(arguments);}gtag('js',new Date());gtag('config','G-JQNL42KBVT');`,
+          }}
+        />
         <meta name="theme-color" content="#0f172a" />
         <link rel="icon" href="/logo-new.png" />
         <link rel="apple-touch-icon" href="/logo-new.png" />
