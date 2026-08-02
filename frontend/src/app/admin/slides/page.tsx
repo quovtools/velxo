@@ -1,224 +1,138 @@
 'use client';
 
 import React, { useEffect, useState } from 'react';
-import { Image, Plus, Trash2, RefreshCw, GripVertical } from 'lucide-react';
+import { ImageIcon, Plus, Trash2, X } from 'lucide-react';
 import { api } from '@/lib/api';
 import { uploadListingImage } from '@/lib/upload';
+import { EmptyState, ErrorBanner, PageHeader, RefreshButton, AdminInput, Card } from '@/components/admin/ui';
 import { LoadingArea } from '@/components/LoadingLogo';
 
 interface Slide {
-  id?: string;
-  title: string;
-  subtitle: string;
-  imageUrl: string;
-  linkHref: string;
-  badge: string;
-  isActive: boolean;
-  sortOrder: number;
+  id?: string; title: string; subtitle: string; imageUrl: string;
+  linkHref: string; badge: string; isActive: boolean; sortOrder: number;
 }
 
-const emptySlide: Omit<Slide, 'id'> = {
-  title: '',
-  subtitle: '',
-  imageUrl: '',
-  linkHref: '',
-  badge: '',
-  isActive: true,
-  sortOrder: 0,
-};
+const empty: Omit<Slide,'id'> = { title:'', subtitle:'', imageUrl:'', linkHref:'', badge:'', isActive:true, sortOrder:0 };
 
 export default function SlidesPage() {
-  const [slides, setSlides] = useState<Slide[]>([]);
-  const [loading, setLoading] = useState(true);
+  const [slides, setSlides]     = useState<Slide[]>([]);
+  const [loading, setLoading]   = useState(true);
   const [showForm, setShowForm] = useState(false);
-  const [form, setForm] = useState<Omit<Slide, 'id'>>(emptySlide);
-  const [saving, setSaving] = useState(false);
-  const [saveError, setSaveError] = useState('');
+  const [form, setForm]         = useState(empty);
+  const [saving, setSaving]     = useState(false);
+  const [error, setError]       = useState('');
 
   const fetchSlides = async () => {
     setLoading(true);
     try {
-      const res = await api.get<{ data: Slide[] }>('/slides/all');
-      setSlides((res as any).data || []);
-    } catch {
-      // fallback to public endpoint
-      try {
-        const res = await api.get<{ data: Slide[] }>('/slides');
-        setSlides((res as any).data || []);
-      } catch {
-        setSlides([]);
-      }
-    } finally {
-      setLoading(false);
-    }
+      const res = await api.get<any>('/slides/all');
+      setSlides(res.data || []);
+    } catch { try { const r = await api.get<any>('/slides'); setSlides(r.data || []); } catch { setSlides([]); } }
+    finally { setLoading(false); }
   };
 
   useEffect(() => { fetchSlides(); }, []);
 
+  const F = (k: keyof Slide) => (v: any) => setForm(f => ({ ...f, [k]: v }));
+
   const handleSave = async () => {
     if (!form.title || !form.imageUrl) return;
-    setSaving(true);
-    setSaveError('');
-    try {
-      await api.post('/slides', form);
-      setShowForm(false);
-      setForm(emptySlide);
-      fetchSlides();
-    } catch (e: any) {
-      setSaveError(e.message || 'Failed to save slide');
-    } finally {
-      setSaving(false);
-    }
+    setSaving(true); setError('');
+    try { await api.post('/slides', form); setShowForm(false); setForm(empty); fetchSlides(); }
+    catch (e: any) { setError(e.message || 'Failed to save'); }
+    finally { setSaving(false); }
   };
 
   const handleDelete = async (id: string) => {
     if (!confirm('Delete this slide?')) return;
-    try {
-      await api.delete(`/slides/${id}`);
-      setSlides(s => s.filter(x => x.id !== id));
-    } catch (e: any) {
-      setSaveError(e.message || 'Failed to delete');
-    }
+    try { await api.delete(`/slides/${id}`); setSlides(s => s.filter(x => x.id !== id)); }
+    catch (e: any) { setError(e.message || 'Failed to delete'); }
   };
 
   const handleToggle = async (slide: Slide) => {
-    try {
-      await api.patch(`/slides/${slide.id}`, { isActive: !slide.isActive });
-      setSlides(s => s.map(x => x.id === slide.id ? { ...x, isActive: !x.isActive } : x));
-    } catch (e: any) {
-      setSaveError(e.message || 'Failed to update');
-    }
+    try { await api.patch(`/slides/${slide.id}`, { isActive: !slide.isActive }); setSlides(s => s.map(x => x.id === slide.id ? { ...x, isActive: !x.isActive } : x)); }
+    catch (e: any) { setError(e.message || 'Failed to update'); }
   };
 
   return (
-    <div className="space-y-6">
-      <div className="flex items-center justify-between">
-        <div>
-          <h1 className="text-xl font-extrabold text-white flex items-center gap-2">
-            <Image className="w-5 h-5 text-brand" /> Homepage Slides
-          </h1>
-          <p className="text-gray-400 text-sm mt-1">Manage the hero banner slideshow.</p>
-        </div>
-        <div className="flex gap-2">
-          <button onClick={fetchSlides} className="flex items-center gap-2 text-sm text-gray-400 hover:text-white transition">
-            <RefreshCw className="w-4 h-4" />
-          </button>
-          <button
-            onClick={() => { setShowForm(true); setSaveError(''); }}
-            className="flex items-center gap-2 bg-brand hover:bg-brand-dark text-white text-sm font-bold px-4 py-2 rounded-xl transition"
-          >
-            <Plus className="w-4 h-4" /> Add Slide
-          </button>
-        </div>
-      </div>
-
-      {/* Add form */}
-      {showForm && (
-        <div className="bg-cardBg border border-brand/30 rounded-2xl p-6 space-y-4">
-          <h2 className="font-bold text-white">New Slide</h2>
-          {saveError && (
-            <div className="bg-red-900/30 border border-red-500/50 text-red-300 text-sm px-4 py-3 rounded-xl">{saveError}</div>
-          )}
-          <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-            {[
-              { key: 'title', label: 'Title *', placeholder: 'e.g. Free Fire Season 8' },
-              { key: 'subtitle', label: 'Subtitle', placeholder: 'Short description' },
-              { key: 'linkHref', label: 'Link URL', placeholder: '/games/free-fire' },
-              { key: 'badge', label: 'Badge', placeholder: 'e.g. NEW' },
-              { key: 'sortOrder', label: 'Sort Order', placeholder: '0' },
-            ].map(({ key, label, placeholder }) => (
-              <div key={key}>
-                <label className="block text-xs font-semibold text-gray-400 mb-1.5">{label}</label>
-                <input
-                  type={key === 'sortOrder' ? 'number' : 'text'}
-                  value={(form as any)[key]}
-                  onChange={e => setForm(f => ({ ...f, [key]: key === 'sortOrder' ? Number(e.target.value) : e.target.value }))}
-                  placeholder={placeholder}
-                  className="w-full bg-background border border-borderBg rounded-xl px-4 py-2.5 text-sm text-white placeholder-gray-500 focus:outline-none focus:border-brand transition"
-                />
-              </div>
-            ))}
-            <div>
-              <label className="block text-xs font-semibold text-gray-400 mb-1.5">Image *</label>
-              <label className="flex items-center gap-2 cursor-pointer bg-background border border-borderBg rounded-xl px-4 py-2.5 text-sm text-gray-400 focus-within:border-brand transition overflow-hidden">
-                {form.imageUrl ? <span className="truncate text-white">Image selected</span> : <span>Choose image…</span>}
-                <input
-                  type="file"
-                  accept="image/*"
-                  className="hidden"
-                  onChange={async e => {
-                    const file = e.target.files?.[0];
-                    if (!file) return;
-                    try {
-                      const url = await uploadListingImage(file);
-                      setForm(f => ({ ...f, imageUrl: url }));
-                    } catch (err) {
-                      console.error('Slide image upload failed:', err);
-                    }
-                  }}
-                />
-              </label>
-            </div>
+    <div className="space-y-5">
+      <PageHeader icon={ImageIcon} title="Hero Slides" subtitle="Manage the homepage hero banner slideshow."
+        action={
+          <div className="flex gap-2">
+            <RefreshButton onClick={fetchSlides} loading={loading} />
+            <button onClick={() => { setShowForm(true); setError(''); }}
+              className="flex items-center gap-1.5 bg-violet-600 hover:bg-violet-500 text-white text-xs font-semibold px-3 py-2 rounded-xl transition shadow-sm shadow-violet-500/20">
+              <Plus className="w-3.5 h-3.5" />Add Slide
+            </button>
           </div>
-          <div className="flex items-center gap-3">
-            <label className="flex items-center gap-2 cursor-pointer">
-              <input
-                type="checkbox"
-                checked={form.isActive}
-                onChange={e => setForm(f => ({ ...f, isActive: e.target.checked }))}
-                className="w-4 h-4 accent-brand"
-              />
-              <span className="text-sm text-gray-300">Active</span>
+        } />
+      <ErrorBanner message={error} onClose={() => setError('')} />
+
+      {showForm && (
+        <Card className="p-5 space-y-4">
+          <div className="flex items-center justify-between">
+            <h2 className="text-sm font-semibold text-white">New Slide</h2>
+            <button onClick={() => setShowForm(false)} className="p-1 text-gray-600 hover:text-white rounded-lg hover:bg-white/5 transition"><X className="w-4 h-4" /></button>
+          </div>
+          <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+            <AdminInput label="Title *" value={form.title} onChange={e => F('title')(e.target.value)} placeholder="e.g. Free Fire Season 8" />
+            <AdminInput label="Subtitle" value={form.subtitle} onChange={e => F('subtitle')(e.target.value)} placeholder="Short description" />
+            <AdminInput label="Link URL" value={form.linkHref} onChange={e => F('linkHref')(e.target.value)} placeholder="/games/free-fire" />
+            <AdminInput label="Badge" value={form.badge} onChange={e => F('badge')(e.target.value)} placeholder="e.g. NEW" />
+            <AdminInput label="Sort order" type="number" value={form.sortOrder} onChange={e => F('sortOrder')(Number(e.target.value))} />
+          </div>
+          <div>
+            <p className="text-xs font-medium text-gray-500 mb-1.5">Image *</p>
+            <label className="flex items-center gap-2 cursor-pointer bg-[#0a0a0f] border border-white/10 hover:border-violet-500/40 rounded-xl px-4 py-3 text-xs text-gray-500 transition">
+              <ImageIcon className="w-4 h-4 flex-shrink-0" />
+              {form.imageUrl ? <span className="text-white truncate">Image selected ✓</span> : <span>Click to upload image…</span>}
+              <input type="file" accept="image/*" className="hidden"
+                onChange={async e => {
+                  const file = e.target.files?.[0]; if (!file) return;
+                  try { const url = await uploadListingImage(file); F('imageUrl')(url); }
+                  catch (err: any) { setError(err.message || 'Upload failed'); }
+                }} />
             </label>
           </div>
-          {form.imageUrl && (
-            <img src={form.imageUrl} alt="preview" className="w-full h-40 object-cover rounded-xl border border-borderBg" onError={e => (e.currentTarget.style.display = 'none')} />
-          )}
-          <div className="flex gap-3">
-            <button onClick={handleSave} disabled={saving || !form.title || !form.imageUrl} className="bg-brand hover:bg-brand-dark text-white text-sm font-bold px-5 py-2 rounded-xl transition disabled:opacity-50">
-              {saving ? 'Saving...' : 'Save Slide'}
+          {form.imageUrl && <img src={form.imageUrl} alt="preview" className="w-full h-36 object-cover rounded-xl border border-white/8" onError={e => (e.currentTarget.style.display='none')} />}
+          <label className="flex items-center gap-2 cursor-pointer text-xs text-gray-300">
+            <input type="checkbox" checked={form.isActive} onChange={e => F('isActive')(e.target.checked)} className="w-4 h-4 accent-violet-500" />Active
+          </label>
+          <div className="flex gap-2">
+            <button onClick={handleSave} disabled={saving || !form.title || !form.imageUrl}
+              className="bg-violet-600 hover:bg-violet-500 text-white text-xs font-semibold px-4 py-2 rounded-xl transition disabled:opacity-40">
+              {saving ? 'Saving…' : 'Save Slide'}
             </button>
-            <button onClick={() => setShowForm(false)} className="text-gray-400 hover:text-white text-sm px-4 py-2 rounded-xl transition">Cancel</button>
+            <button onClick={() => setShowForm(false)} className="text-gray-500 hover:text-white text-xs px-3 py-2 rounded-xl transition">Cancel</button>
           </div>
-        </div>
+        </Card>
       )}
 
-      {saveError && !showForm && (
-        <div className="bg-red-900/30 border border-red-500/50 text-red-300 text-sm px-4 py-3 rounded-xl flex justify-between items-center">
-          {saveError}
-          <button onClick={() => setSaveError('')} className="text-red-300 hover:text-white ml-4">✕</button>
-        </div>
-      )}
-
-      {/* Slides list */}
-      {loading ? (
-        <LoadingArea label="Loading slides..." />
-      ) : slides.length === 0 ? (
-        <div className="text-center py-20 bg-cardBg border border-borderBg rounded-2xl">
-          <Image className="w-12 h-12 text-gray-600 mx-auto mb-3" />
-          <p className="text-gray-400 text-sm">No slides yet. Add one above.</p>
-        </div>
+      {loading ? <LoadingArea label="Loading slides…" /> : slides.length === 0 ? (
+        <EmptyState icon={ImageIcon} title="No slides yet" subtitle="Add your first homepage banner above." />
       ) : (
-        <div className="space-y-3">
+        <div className="space-y-2">
           {slides.map(slide => (
-            <div key={slide.id} className="bg-cardBg border border-borderBg rounded-2xl p-4 flex items-center gap-4">
-              <GripVertical className="w-4 h-4 text-gray-600 flex-shrink-0" />
+            <div key={slide.id} className="bg-[#111118] border border-white/8 rounded-2xl p-4 flex items-center gap-4 hover:border-white/16 transition-colors">
               {slide.imageUrl && (
-                <img src={slide.imageUrl} alt={slide.title} className="w-20 h-12 object-cover rounded-lg flex-shrink-0" onError={e => (e.currentTarget.style.display = 'none')} />
+                <img src={slide.imageUrl} alt={slide.title}
+                  className="w-20 h-12 object-cover rounded-xl flex-shrink-0 border border-white/8"
+                  onError={e => (e.currentTarget.style.display='none')} />
               )}
               <div className="flex-1 min-w-0">
-                <p className="font-bold text-white text-sm truncate">{slide.title}</p>
-                <p className="text-xs text-gray-500 truncate">{slide.subtitle}</p>
-                {slide.badge && <span className="mt-1 inline-block bg-brand/20 text-brand text-xs px-2 py-0.5 rounded-full">{slide.badge}</span>}
+                <p className="text-sm font-medium text-white truncate">{slide.title}</p>
+                <p className="text-[11px] text-gray-600 truncate">{slide.subtitle}</p>
+                {slide.badge && <span className="text-[10px] bg-violet-500/15 text-violet-300 px-2 py-0.5 rounded-full mt-1 inline-block">{slide.badge}</span>}
               </div>
-              <div className="flex items-center gap-3 flex-shrink-0">
-                <button
-                  onClick={() => handleToggle(slide)}
-                  className={`text-xs font-bold px-3 py-1.5 rounded-full transition ${slide.isActive ? 'bg-green-500/20 text-green-300 hover:bg-red-500/20 hover:text-red-300' : 'bg-gray-700 text-gray-400 hover:bg-green-500/20 hover:text-green-300'}`}
-                >
+              <div className="flex items-center gap-2 flex-shrink-0">
+                <button onClick={() => handleToggle(slide)}
+                  className={`text-[11px] font-semibold px-3 py-1.5 rounded-full border transition ${
+                    slide.isActive ? 'bg-emerald-500/10 border-emerald-500/20 text-emerald-400 hover:bg-red-500/10 hover:border-red-500/20 hover:text-red-400'
+                    : 'bg-white/5 border-white/10 text-gray-500 hover:bg-emerald-500/10 hover:border-emerald-500/20 hover:text-emerald-400'
+                  }`}>
                   {slide.isActive ? 'Active' : 'Inactive'}
                 </button>
-                <button onClick={() => handleDelete(slide.id!)} className="text-red-400 hover:text-red-300 transition">
+                <button onClick={() => handleDelete(slide.id!)} className="p-1.5 text-red-400 hover:text-red-300 hover:bg-red-500/10 rounded-lg transition">
                   <Trash2 className="w-4 h-4" />
                 </button>
               </div>

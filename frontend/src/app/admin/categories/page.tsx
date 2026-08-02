@@ -1,75 +1,50 @@
 'use client';
 
 import React, { useEffect, useState } from 'react';
-import { FolderTree, RefreshCw, Trash2, Save } from 'lucide-react';
+import { FolderTree, Trash2, Plus, X } from 'lucide-react';
 import { api } from '@/lib/api';
-import { Badge, EmptyState, ErrorBanner, ActionButton, Modal } from '@/components/admin/ui';
+import { Badge, EmptyState, ErrorBanner, ActionButton, PageHeader, RefreshButton, AdminInput, AdminSelect, Card } from '@/components/admin/ui';
 import { LoadingArea } from '@/components/LoadingLogo';
 
-interface Subcategory {
-  id: string;
-  name: string;
-  slug: string;
-  isActive: boolean;
-  sortOrder: number;
-}
+interface Subcategory { id: string; name: string; slug: string; isActive: boolean; }
 interface Category {
-  id: string;
-  name: string;
-  slug: string;
-  description?: string;
-  icon?: string;
-  imageUrl?: string;
-  isActive: boolean;
-  sortOrder: number;
-  subcategories: Subcategory[];
-  _count?: { listings: number };
+  id: string; name: string; slug: string; description?: string; icon?: string;
+  imageUrl?: string; isActive: boolean; sortOrder: number;
+  subcategories: Subcategory[]; _count?: { listings: number };
 }
 
 export default function AdminCategoriesPage() {
-  const [items, setItems] = useState<Category[]>([]);
+  const [items, setItems]     = useState<Category[]>([]);
   const [loading, setLoading] = useState(true);
-  const [error, setError] = useState('');
-  const [form, setForm] = useState<Partial<Category>>({});
+  const [error, setError]     = useState('');
+  const [form, setForm]       = useState<Partial<Category>>({});
   const [editing, setEditing] = useState<Category | null>(null);
-  const [busy, setBusy] = useState(false);
-  const [subForm, setSubForm] = useState<{ categoryId: string; name: string; slug: string }>({ categoryId: '', name: '', slug: '' });
+  const [busy, setBusy]       = useState(false);
+  const [subForm, setSubForm] = useState({ categoryId:'', name:'', slug:'' });
+  const [showCatForm, setShowCatForm] = useState(false);
 
   const fetchItems = async () => {
-    setLoading(true);
-    setError('');
-    try {
-      const res: any = await api.get('/admin/categories');
-      setItems(res.data || []);
-    } catch (e: any) {
-      setError(e.message || 'Failed to load categories');
-    } finally {
-      setLoading(false);
-    }
+    setLoading(true); setError('');
+    try { const res: any = await api.get('/admin/categories'); setItems(res.data || []); }
+    catch (e: any) { setError(e.message || 'Failed'); }
+    finally { setLoading(false); }
   };
 
   useEffect(() => { fetchItems(); }, []);
 
   const save = async () => {
     if (!form.name || !form.slug) { setError('Name and slug are required'); return; }
-    setBusy(true);
-    setError('');
+    setBusy(true); setError('');
     try {
-      if (editing) {
-        await api.patch(`/admin/categories/${editing.id}`, form);
-      } else {
-        await api.post('/admin/categories', form);
-      }
-      setForm({});
-      setEditing(null);
-      await fetchItems();
+      if (editing) { await api.patch(`/admin/categories/${editing.id}`, form); }
+      else { await api.post('/admin/categories', form); }
+      setForm({}); setEditing(null); setShowCatForm(false); await fetchItems();
     } catch (e: any) { setError(e.message || 'Save failed'); }
     finally { setBusy(false); }
   };
 
   const remove = async (id: string) => {
-    if (!window.confirm('Delete this category and its subcategories?')) return;
-    setError('');
+    if (!window.confirm('Delete this category and all its subcategories?')) return;
     try { await api.delete(`/admin/categories/${id}`); await fetchItems(); }
     catch (e: any) { setError(e.message); }
   };
@@ -77,92 +52,85 @@ export default function AdminCategoriesPage() {
   const addSub = async () => {
     if (!subForm.categoryId || !subForm.name || !subForm.slug) return;
     setBusy(true);
-    setError('');
-    try {
-      await api.post(`/admin/categories/${subForm.categoryId}/subcategories`, subForm);
-      setSubForm({ categoryId: '', name: '', slug: '' });
-      await fetchItems();
-    } catch (e: any) { setError(e.message); }
+    try { await api.post(`/admin/categories/${subForm.categoryId}/subcategories`, subForm); setSubForm({ categoryId:'', name:'', slug:'' }); await fetchItems(); }
+    catch (e: any) { setError(e.message); }
     finally { setBusy(false); }
   };
 
   const removeSub = async (id: string) => {
     if (!window.confirm('Delete subcategory?')) return;
-    setError('');
     try { await api.delete(`/admin/subcategories/${id}`); await fetchItems(); }
     catch (e: any) { setError(e.message); }
   };
 
   const toggleActive = async (c: Category) => {
-    setError('');
     try { await api.patch(`/admin/categories/${c.id}`, { isActive: !c.isActive }); await fetchItems(); }
     catch (e: any) { setError(e.message); }
   };
 
-  return (
-    <div className="space-y-6">
-      <div className="flex items-center justify-between flex-wrap gap-3">
-        <div>
-          <h1 className="text-xl font-extrabold text-white flex items-center gap-2">
-            <FolderTree className="w-5 h-5 text-brand" /> Categories &amp; Subcategories
-          </h1>
-          <p className="text-gray-400 text-sm mt-1">Structure the marketplace catalog.</p>
-        </div>
-        <button onClick={fetchItems} className="flex items-center gap-2 text-sm text-gray-400 hover:text-white transition">
-          <RefreshCw className="w-4 h-4" /> Refresh
-        </button>
-      </div>
+  const F = (k: keyof Category) => (v: any) => setForm(f => ({ ...f, [k]: v }));
 
+  return (
+    <div className="space-y-5">
+      <PageHeader icon={FolderTree} title="Categories" subtitle="Structure the marketplace catalog."
+        action={
+          <div className="flex gap-2">
+            <RefreshButton onClick={fetchItems} loading={loading} />
+            <button onClick={() => { setShowCatForm(true); setEditing(null); setForm({}); }}
+              className="flex items-center gap-1.5 bg-violet-600 hover:bg-violet-500 text-white text-xs font-semibold px-3 py-2 rounded-xl transition shadow-sm shadow-violet-500/20">
+              <Plus className="w-3.5 h-3.5" />New Category
+            </button>
+          </div>
+        } />
       <ErrorBanner message={error} onClose={() => setError('')} />
 
-      <div className="bg-cardBg border border-borderBg rounded-2xl p-5 space-y-3">
-        <h2 className="font-bold text-white">{editing ? `Edit ${editing.name}` : 'New Category'}</h2>
-        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-3">
-          <Input label="Name" value={form.name || ''} onChange={v => setForm(f => ({ ...f, name: v }))} />
-          <Input label="Slug" value={form.slug || ''} onChange={v => setForm(f => ({ ...f, slug: v }))} />
-          <Input label="Icon" value={form.icon || ''} onChange={v => setForm(f => ({ ...f, icon: v }))} />
-          <Input label="Image URL" value={form.imageUrl || ''} onChange={v => setForm(f => ({ ...f, imageUrl: v }))} />
-        </div>
-        <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
-          <Input label="Description" value={form.description || ''} onChange={v => setForm(f => ({ ...f, description: v }))} />
-          <Input label="Sort order" type="number" value={form.sortOrder ?? 0} onChange={v => setForm(f => ({ ...f, sortOrder: Number(v) }))} />
-        </div>
-        <div className="flex gap-2">
-          <ActionButton variant="brand" loading={busy} onClick={save}>{editing ? 'Update' : 'Create'}</ActionButton>
-          {editing && <ActionButton variant="default" onClick={() => { setEditing(null); setForm({}); }}>Cancel</ActionButton>}
-        </div>
-      </div>
+      {showCatForm && (
+        <Card className="p-5 space-y-4">
+          <div className="flex items-center justify-between">
+            <h2 className="text-sm font-semibold text-white">{editing ? `Edit ${editing.name}` : 'New Category'}</h2>
+            <button onClick={() => { setShowCatForm(false); setEditing(null); setForm({}); }} className="p-1 text-gray-600 hover:text-white rounded-lg hover:bg-white/5 transition"><X className="w-4 h-4" /></button>
+          </div>
+          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-3">
+            <AdminInput label="Name *" value={form.name||''} onChange={e => F('name')(e.target.value)} />
+            <AdminInput label="Slug *" value={form.slug||''} onChange={e => F('slug')(e.target.value)} />
+            <AdminInput label="Icon"   value={form.icon||''} onChange={e => F('icon')(e.target.value)} />
+            <AdminInput label="Sort order" type="number" value={form.sortOrder??0} onChange={e => F('sortOrder')(Number(e.target.value))} />
+          </div>
+          <AdminInput label="Description" value={form.description||''} onChange={e => F('description')(e.target.value)} />
+          <div className="flex gap-2">
+            <ActionButton variant="brand" loading={busy} onClick={save}>{editing ? 'Update' : 'Create'}</ActionButton>
+            <button onClick={() => { setShowCatForm(false); setEditing(null); setForm({}); }} className="text-gray-500 hover:text-white text-xs px-3 py-1.5 rounded-xl transition">Cancel</button>
+          </div>
+        </Card>
+      )}
 
-      {loading ? (
-        <LoadingArea label="Loading categories..." />
-      ) : items.length === 0 ? (
+      {loading ? <LoadingArea label="Loading categories…" /> : items.length === 0 ? (
         <EmptyState icon={FolderTree} title="No categories yet" />
       ) : (
-        <div className="space-y-4">
+        <div className="space-y-3">
           {items.map(c => (
-            <div key={c.id} className="bg-cardBg border border-borderBg rounded-2xl p-5">
+            <div key={c.id} className="bg-[#111118] border border-white/8 rounded-2xl p-4">
               <div className="flex items-start justify-between gap-3">
                 <div>
-                  <div className="flex items-center gap-2">
-                    <h3 className="font-bold text-white">{c.name}</h3>
-                    {c.isActive ? <Badge color="green">Active</Badge> : <Badge color="red">Hidden</Badge>}
+                  <div className="flex items-center gap-2 flex-wrap">
+                    <p className="text-sm font-semibold text-white">{c.name}</p>
+                    {c.isActive ? <Badge color="green">Active</Badge> : <Badge color="gray">Hidden</Badge>}
                     <Badge color="gray">{c._count?.listings ?? 0} listings</Badge>
                   </div>
-                  <p className="text-xs text-gray-500 mt-1">/{c.slug} · {c.description || 'No description'}</p>
+                  <p className="text-[11px] text-gray-600 mt-0.5">/{c.slug}{c.description ? ` · ${c.description}` : ''}</p>
                 </div>
-                <div className="flex gap-2 flex-wrap">
-                  <ActionButton variant="default" onClick={() => { setEditing(c); setForm(c); }}>Edit</ActionButton>
+                <div className="flex gap-1.5 flex-wrap flex-shrink-0">
+                  <ActionButton variant="default" onClick={() => { setEditing(c); setForm(c); setShowCatForm(true); }}>Edit</ActionButton>
                   <ActionButton variant="warning" onClick={() => toggleActive(c)}>{c.isActive ? 'Hide' : 'Show'}</ActionButton>
-                  <ActionButton variant="danger" onClick={() => remove(c.id)}><Trash2 className="w-3.5 h-3.5" /></ActionButton>
+                  <ActionButton variant="danger" onClick={() => remove(c.id)}><Trash2 className="w-3 h-3" /></ActionButton>
                 </div>
               </div>
-
               {c.subcategories?.length > 0 && (
-                <div className="mt-4 flex flex-wrap gap-2">
+                <div className="mt-3 flex flex-wrap gap-1.5">
                   {c.subcategories.map(s => (
-                    <span key={s.id} className="inline-flex items-center gap-2 bg-white/5 border border-borderBg rounded-full px-3 py-1 text-xs text-gray-300">
+                    <span key={s.id} className="inline-flex items-center gap-1.5 bg-white/5 border border-white/8 rounded-full px-3 py-1 text-[11px] text-gray-300">
                       {s.name}
-                      <button onClick={() => removeSub(s.id)} className="text-red-400 hover:text-red-300"><Trash2 className="w-3 h-3" /></button>
+                      <button onClick={() => removeSub(s.id)} className="text-red-400 hover:text-red-300 transition"><Trash2 className="w-2.5 h-2.5" /></button>
                     </span>
                   ))}
                 </div>
@@ -172,32 +140,19 @@ export default function AdminCategoriesPage() {
         </div>
       )}
 
-      <div className="bg-cardBg border border-borderBg rounded-2xl p-5 space-y-3">
-        <h2 className="font-bold text-white">Add Subcategory</h2>
+      {/* Add subcategory */}
+      <Card className="p-5 space-y-3">
+        <h2 className="text-sm font-semibold text-white">Add Subcategory</h2>
         <div className="grid grid-cols-1 sm:grid-cols-3 gap-3">
-          <select value={subForm.categoryId} onChange={e => setSubForm(f => ({ ...f, categoryId: e.target.value }))} className="bg-background border border-borderBg rounded-xl px-3 py-2.5 text-sm text-white focus:outline-none focus:border-brand">
-            <option value="">Select category...</option>
+          <AdminSelect value={subForm.categoryId} onChange={e => setSubForm(f => ({ ...f, categoryId: e.target.value }))}>
+            <option value="">Select category…</option>
             {items.map(c => <option key={c.id} value={c.id}>{c.name}</option>)}
-          </select>
-          <Input label="Name" value={subForm.name} onChange={v => setSubForm(f => ({ ...f, name: v }))} />
-          <Input label="Slug" value={subForm.slug} onChange={v => setSubForm(f => ({ ...f, slug: v }))} />
+          </AdminSelect>
+          <AdminInput placeholder="Name" value={subForm.name} onChange={e => setSubForm(f => ({ ...f, name: e.target.value }))} />
+          <AdminInput placeholder="Slug" value={subForm.slug} onChange={e => setSubForm(f => ({ ...f, slug: e.target.value }))} />
         </div>
         <ActionButton variant="brand" loading={busy} onClick={addSub}>Add Subcategory</ActionButton>
-      </div>
+      </Card>
     </div>
-  );
-}
-
-function Input({ label, value, onChange, type = 'text' }: { label: string; value: any; onChange: (v: any) => void; type?: string }) {
-  return (
-    <label className="block">
-      <span className="text-xs text-gray-400">{label}</span>
-      <input
-        type={type}
-        value={value}
-        onChange={e => onChange(e.target.value)}
-        className="mt-1 w-full bg-background border border-borderBg rounded-xl px-3 py-2.5 text-sm text-white placeholder-gray-500 focus:outline-none focus:border-brand transition"
-      />
-    </label>
   );
 }
