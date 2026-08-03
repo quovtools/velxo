@@ -6,22 +6,10 @@ trap 'kill $(jobs -p) 2>/dev/null || true' EXIT INT TERM
 # Do NOT use set -e — a backend crash must not kill the Next.js process.
 trap 'kill $(jobs -p) 2>/dev/null || true' EXIT INT TERM
 
-# ── Schema migration — only when schema has changed ─────────────────────────
-# Computes a hash of schema.prisma and skips db push if unchanged since last
-# run. This avoids waking NeonDB compute on every container restart.
-SCHEMA_FILE="/app/backend/prisma/schema.prisma"
-HASH_FILE="/tmp/.prisma_schema_hash"
-CURRENT_HASH=$(md5sum "$SCHEMA_FILE" 2>/dev/null | awk '{print $1}')
-STORED_HASH=$(cat "$HASH_FILE" 2>/dev/null || echo "")
-
-if [ "$CURRENT_HASH" != "$STORED_HASH" ]; then
-  echo "[start.sh] Schema changed — running prisma db push..."
-  cd /app/backend && npx prisma db push --skip-generate --accept-data-loss 2>&1 && \
-    echo "$CURRENT_HASH" > "$HASH_FILE" || \
-    echo "[start.sh] ⚠ prisma db push failed — continuing anyway"
-else
-  echo "[start.sh] Schema unchanged — skipping prisma db push"
-fi
+# ── Schema migration — apply any pending migrations ──────────────────────────
+echo "[start.sh] Applying pending Prisma migrations..."
+cd /app/backend && npx prisma migrate deploy --schema ./prisma/schema.prisma 2>&1 || \
+  echo "[start.sh] ⚠ prisma migrate deploy failed — continuing anyway"
 
 # ── Backend (auto-restart on crash) ────────────────────────────────────────
 start_backend() {

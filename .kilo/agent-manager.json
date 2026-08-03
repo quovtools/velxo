@@ -13,13 +13,16 @@
     "ses_04ca0debfffeLjNzpZjs08U2OX": {
       "worktreeId": "wt-1785420780520-1",
       "createdAt": "2026-07-30T14:13:31.832Z"
+    },
+    "ses_037392727ffeQ7o2bk99Mc4bG5": {
+      "worktreeId": null,
+      "createdAt": "2026-08-03T17:58:23.049Z"
     }
   },
   "tabOrder": {
     "local": [
-      "pending:48b462ce-b750-4d3c-a88d-9dd17b64810f",
-      "ses_047a04734ffeO3Hi7sw1NXyo0H",
-      "ses_047b9d952ffennJHFmYp30i0hH"
+      "pending:a29ad742-aa3d-47fe-af22-6969b3a4620d",
+      "ses_037392727ffeQ7o2bk99Mc4bG5"
     ]
   },
   "worktreeOrder": [

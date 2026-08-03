@@ -44,5 +44,5 @@ COPY --from=builder /app/dist ./dist
 
 EXPOSE 3001
 
-# Run prisma db push to auto-sync schema, then start the app
-CMD ["sh", "-c", "npx prisma db push --skip-generate --accept-data-loss && node dist/main"]
+# Apply pending Prisma migrations, then start the app
+CMD ["sh", "-c", "npx prisma migrate deploy --schema ./prisma/schema.prisma && node dist/main"]
