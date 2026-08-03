@@ -1,12 +1,12 @@
-import type { Metadata } from 'next';
+﻿import type { Metadata } from 'next';
 import { LifeBuoy, MessageSquareWarning, Scale, Headphones } from 'lucide-react';
 import { DocHeader, DocSection, Steps, Callout, FeatureGrid, RelatedLinks, DocShell } from '../components/doc-ui';
 
 export const metadata: Metadata = {
-  title: 'Disputes & Support — piyrox documentation',
+  title: 'Disputes & Support — Piyrox Documentation',
   description:
     'How to open a dispute, what evidence the team reviews, expected resolution times, and how to contact Piyrox Support.',
-  alternates: { canonical: 'https://market.piyrox.shop/docs/disputes' },
+  alternates: { canonical: 'https://app.piyrox.shop/docs/disputes' },
 };
 
 export default function DocsDisputes() {

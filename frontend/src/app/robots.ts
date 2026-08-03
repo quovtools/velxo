@@ -1,7 +1,7 @@
-import { MetadataRoute } from 'next';
+﻿import { MetadataRoute } from 'next';
 
 export default function robots(): MetadataRoute.Robots {
-  const baseUrl = 'https://market.piyrox.shop';
+  const baseUrl = 'https://app.piyrox.shop';
   return {
     rules: [
       {

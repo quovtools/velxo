@@ -1,4 +1,4 @@
-import { Injectable, Logger } from '@nestjs/common'
+﻿import { Injectable, Logger } from '@nestjs/common'
 import { PrismaService } from '@/common/services/prisma.service'
 import { CreateSellerDto, UpdateSellerDto, UploadVerificationDocumentsDto } from './dto/create-seller.dto'
 import { NotFoundException, ConflictException, ForbiddenException, BadRequestException } from '@/common/exceptions/custom-exceptions'
@@ -785,7 +785,7 @@ export class SellersService {
 
     const returnUrl =
       callbackUrl ||
-      `${process.env.FRONTEND_URL || 'https://market.piyrox.shop'}/seller/pro?checkout=${subscription.id}`
+      `${process.env.FRONTEND_URL || 'https://app.piyrox.shop'}/seller/pro?checkout=${subscription.id}`
 
     const charge = await this.paymentIo.createCharge({
       reference: subscription.id,

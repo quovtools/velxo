@@ -1,19 +1,19 @@
-import type { Metadata } from 'next';
+﻿import type { Metadata } from 'next';
 import Link from 'next/link';
 import { BookOpen, Home } from 'lucide-react';
 import DocsSidebar from './components/DocsSidebar';
 
 export const metadata: Metadata = {
-  title: 'piyrox documentation',
+  title: 'Piyrox Documentation',
   description:
     'Everything you need to buy, sell, and trade safely on Piyrox — escrow protection, payments, wallets, rewards, the affiliate program, disputes, and verification.',
-  alternates: { canonical: 'https://market.piyrox.shop/docs' },
+  alternates: { canonical: 'https://app.piyrox.shop/docs' },
   openGraph: {
-    title: 'piyrox documentation',
+    title: 'Piyrox Documentation',
     description:
       'Guides for buying, selling, escrow, payments, rewards and staying safe on Piyrox.',
-    url: 'https://market.piyrox.shop/docs',
-    siteName: 'piyrox market',
+    url: 'https://app.piyrox.shop/docs',
+    siteName: 'Piyrox Market',
     type: 'website',
   },
 };

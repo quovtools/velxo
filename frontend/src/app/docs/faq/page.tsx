@@ -1,12 +1,12 @@
-import type { Metadata } from 'next';
+﻿import type { Metadata } from 'next';
 import { HelpCircle } from 'lucide-react';
 import { DocHeader, DocSection, Callout, RelatedLinks, DocShell } from '../components/doc-ui';
 
 export const metadata: Metadata = {
-  title: 'FAQ — piyrox documentation',
+  title: 'FAQ — Piyrox Documentation',
   description:
     'Frequently asked questions about buying, selling, escrow, payments, verification, rewards, and support on Piyrox.',
-  alternates: { canonical: 'https://market.piyrox.shop/docs/faq' },
+  alternates: { canonical: 'https://app.piyrox.shop/docs/faq' },
 };
 
 const FAQS = [

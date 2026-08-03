@@ -1,4 +1,4 @@
-import { Injectable, Logger, OnModuleInit } from '@nestjs/common'
+﻿import { Injectable, Logger, OnModuleInit } from '@nestjs/common'
 import { PrismaService } from '@/common/services/prisma.service'
 import { PaymentProvider, PaymentStatus, OrderStatus, ListingStatus } from '@prisma/client'
 import {
@@ -303,7 +303,7 @@ export class PaymentsService implements OnModuleInit {
       return { url: null, provider: null, configured: true }
     }
 
-    const callbackUrl = `${process.env.FRONTEND_URL || 'https://market.piyrox.shop'}/orders/${orderId}`
+    const callbackUrl = `${process.env.FRONTEND_URL || 'https://app.piyrox.shop'}/orders/${orderId}`
 
     this.logger.log(
       `createPaymentLink ${orderId} | orderStatus=${order.status} ` +

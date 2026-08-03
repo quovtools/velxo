@@ -1,4 +1,4 @@
-import type { Metadata } from 'next';
+﻿import type { Metadata } from 'next';
 import { Coins, Gift, TrendingUp, Percent } from 'lucide-react';
 import { DocHeader, DocSection, Steps, Callout, FeatureGrid, RelatedLinks, DocShell } from '../components/doc-ui';
 
@@ -6,7 +6,7 @@ export const metadata: Metadata = {
   title: 'PiyroxCoins & Rewards — piyrox documentation',
   description:
     'Earn PiyroxCoins through activity and redeem them for fee discounts, perks, and rewards on the marketplace.',
-  alternates: { canonical: 'https://market.piyrox.shop/docs/rewards' },
+  alternates: { canonical: 'https://app.piyrox.shop/docs/rewards' },
 };
 
 export default function DocsRewards() {

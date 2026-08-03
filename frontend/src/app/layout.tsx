@@ -1,4 +1,4 @@
-import type { Metadata, Viewport } from "next";
+﻿import type { Metadata, Viewport } from "next";
 import { Inter } from "next/font/google";
 import { Suspense } from "react";
 import "./globals.css";
@@ -16,7 +16,7 @@ const inter = Inter({
   variable: "--font-inter",
 });
 
-const SITE_URL = "https://market.piyrox.shop";
+const SITE_URL = "https://app.piyrox.shop";
 
 export const metadata: Metadata = {
   metadataBase: new URL(SITE_URL),

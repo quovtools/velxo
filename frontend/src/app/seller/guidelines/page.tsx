@@ -1,16 +1,16 @@
-import React from 'react';
+﻿import React from 'react';
 import Link from 'next/link';
 import type { Metadata } from 'next';
 import { ShieldCheck, CheckCircle, XCircle, AlertTriangle, Star, Zap } from 'lucide-react';
 
 export const metadata: Metadata = {
-  title: 'Seller Guidelines & Rules | piyrox market',
-  description: 'Read the rules, requirements, prohibited activities, and penalty structure every piyrox seller agrees to. Build trust and avoid disputes with clear listing practices.',
-  alternates: { canonical: 'https://market.piyrox.shop/seller/guidelines' },
+  title: 'Seller Guidelines & Rules | Piyrox Market',
+  description: 'Read the rules, requirements, prohibited activities, and penalty structure every Piyrox seller agrees to. Build trust and avoid disputes with clear listing practices.',
+  alternates: { canonical: 'https://app.piyrox.shop/seller/guidelines' },
   openGraph: {
-    title: 'Seller Guidelines & Rules | piyrox market',
-    description: 'Rules, prohibited activities, and penalties for piyrox sellers.',
-    url: 'https://market.piyrox.shop/seller/guidelines',
+    title: 'Seller Guidelines & Rules | Piyrox Market',
+    description: 'Rules, prohibited activities, and penalties for Piyrox sellers.',
+    url: 'https://app.piyrox.shop/seller/guidelines',
     type: 'website',
   },
 };

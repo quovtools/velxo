@@ -1,4 +1,4 @@
-import {
+﻿import {
   Controller,
   Post,
   Body,
@@ -132,7 +132,7 @@ export class CheckoutController {
 
       // ── Card / mobile-money payment via Flutterwave ───────────────────────
       const provider = (paymentMethod as PaymentProvider) || PaymentProvider.FLUTTERWAVE
-      const callbackUrl = `${process.env.FRONTEND_URL || 'https://market.piyrox.shop'}/orders/${order.id}`
+      const callbackUrl = `${process.env.FRONTEND_URL || 'https://app.piyrox.shop'}/orders/${order.id}`
 
       // Snapshot lockedRate on the order record before initiating payment.
       // Wrapped in catch so it silently skips if the migration hasn't run yet.

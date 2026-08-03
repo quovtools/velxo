@@ -1,12 +1,12 @@
-import type { Metadata } from 'next';
+﻿import type { Metadata } from 'next';
 import { Users, Link2, Percent, Wallet } from 'lucide-react';
 import { DocHeader, DocSection, Steps, Callout, FeatureGrid, RelatedLinks, DocShell } from '../components/doc-ui';
 
 export const metadata: Metadata = {
-  title: 'Affiliate Program — piyrox documentation',
+  title: 'Affiliate Program — Piyrox Documentation',
   description:
     'Earn commissions by referring new buyers and sellers to Piyrox through your personal affiliate link.',
-  alternates: { canonical: 'https://market.piyrox.shop/docs/affiliate' },
+  alternates: { canonical: 'https://app.piyrox.shop/docs/affiliate' },
 };
 
 export default function DocsAffiliate() {

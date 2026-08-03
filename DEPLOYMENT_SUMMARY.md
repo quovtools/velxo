@@ -1,4 +1,4 @@
-# 🚀 Deployment Summary - Complete Marketplace Implementation
+﻿# 🚀 Deployment Summary - Complete Marketplace Implementation
 
 ## ✅ Successfully Deployed to GitHub
 
@@ -269,9 +269,9 @@ Documentation:
 
 ### Testing URLs
 ```
-Production Frontend: https://market.piyrox.shop
-Listings Page: https://market.piyrox.shop/listings
-Featured: https://market.piyrox.shop?featured=true
+Production Frontend: https://app.piyrox.shop
+Listings Page: https://app.piyrox.shop/listings
+Featured: https://app.piyrox.shop?featured=true
 ```
 
 ---

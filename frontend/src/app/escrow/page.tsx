@@ -1,4 +1,4 @@
-import React, { Suspense } from 'react';
+﻿import React, { Suspense } from 'react';
 import Link from 'next/link';
 import type { Metadata } from 'next';
 import {
@@ -9,13 +9,13 @@ import OrderTrackingContent from '@/app/orders/[id]/order-tracking-content';
 import { LoadingArea } from '@/components/LoadingLogo';
 
 export const metadata: Metadata = {
-  title: 'How piyrox escrow Works | Safe P2P Gaming Trades',
-  description: 'piyrox escrow holds your funds securely until delivery is confirmed. Learn how our P2P escrow system, seller levels, and dispute resolution protect every trade.',
-  alternates: { canonical: 'https://market.piyrox.shop/escrow' },
+  title: 'How Piyrox Escrow Works | Safe P2P Gaming Trades',
+  description: 'Piyrox Escrow holds your funds securely until delivery is confirmed. Learn how our P2P escrow system, seller levels, and dispute resolution protect every trade.',
+  alternates: { canonical: 'https://app.piyrox.shop/escrow' },
   openGraph: {
-    title: 'How piyrox escrow Works | Safe P2P Gaming Trades',
+    title: 'How Piyrox Escrow Works | Safe P2P Gaming Trades',
     description: 'Your money is locked until you confirm delivery. P2P-grade protection on every trade.',
-    url: 'https://market.piyrox.shop/escrow',
+    url: 'https://app.piyrox.shop/escrow',
     type: 'website',
   },
 };
@@ -24,7 +24,7 @@ const steps = [
   {
     step: '01', icon: Banknote, color: 'text-brand',
     title: 'Buyer Places Order',
-    desc: 'Buyer pays — funds are immediately locked in piyrox escrow. The seller receives nothing until you confirm.',
+    desc: 'Buyer pays — funds are immediately locked in Piyrox Escrow. The seller receives nothing until you confirm.',
   },
   {
     step: '02', icon: Lock, color: 'text-yellow-400',

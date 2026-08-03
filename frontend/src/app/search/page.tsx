@@ -1,6 +1,6 @@
-import type { Metadata } from 'next';
+﻿import type { Metadata } from 'next';
 
-const SITE_URL = 'https://market.piyrox.shop';
+const SITE_URL = 'https://app.piyrox.shop';
 
 export const metadata: Metadata = {
   title: 'Search Listings | Game Accounts, Coins & Top-Ups',

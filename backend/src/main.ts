@@ -1,4 +1,4 @@
-import { NestFactory } from '@nestjs/core'
+﻿import { NestFactory } from '@nestjs/core'
 import { AppModule } from './app.module'
 import { ValidationPipe, Logger, BadRequestException } from '@nestjs/common'
 import { RequestMethod } from '@nestjs/common'
@@ -42,7 +42,7 @@ async function bootstrap() {
   app.useGlobalFilters(new AllExceptionsFilter())
 
   // Support multiple allowed origins via comma-separated CORS_ORIGIN env var
-  // e.g. CORS_ORIGIN=https://market.piyrox.shop,https://piyrox-azure.vercel.app
+  // e.g. CORS_ORIGIN=https://app.piyrox.shop,https://piyrox-azure.vercel.app
   const rawOrigin = process.env.CORS_ORIGIN
   const allowedOrigins = rawOrigin
     ? rawOrigin.split(',').map((o) => o.trim())

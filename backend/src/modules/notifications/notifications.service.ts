@@ -1,4 +1,4 @@
-import { Injectable, Logger } from '@nestjs/common'
+﻿import { Injectable, Logger } from '@nestjs/common'
 import { PrismaService } from '@/common/services/prisma.service'
 import { NotificationType } from '@prisma/client'
 import { NotFoundException } from '@/common/exceptions/custom-exceptions'
@@ -7,7 +7,7 @@ import { EmailService } from '@/shared/email.service'
 import { PushService } from './push.service'
 import { CurrencyRatesService } from '@/modules/currency/currency-rates.service'
 
-const FRONTEND = process.env.FRONTEND_URL || 'https://market.piyrox.shop'
+const FRONTEND = process.env.FRONTEND_URL || 'https://app.piyrox.shop'
 
 /**
  * Format a monetary amount from an order using its locked currency.

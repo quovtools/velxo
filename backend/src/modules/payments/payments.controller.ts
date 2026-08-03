@@ -1,4 +1,4 @@
-import { Controller, Post, Body, Logger, Headers, Req, UseGuards, Get } from '@nestjs/common'
+﻿import { Controller, Post, Body, Logger, Headers, Req, UseGuards, Get } from '@nestjs/common'
 import { PaymentsService } from './payments.service'
 import { PaymentProvider } from '@prisma/client'
 import { ApiResponseDto } from '@/common/dto/api-response.dto'
@@ -29,9 +29,7 @@ export class PaymentsController {
     @Body('currency') currency?: string,
   ) {
     try {
-      const callbackUrl = `${process.env.FRONTEND_URL || 'https://market.piyrox.shop'}/orders/${orderId}`
-      const result = await this.paymentsService.initiatePayment(
-        orderId,
+      const callbackUrl = `${process.env.FRONTEND_URL || 'https://app.piyrox.shop'}/orders/${orderId}`
         new Decimal(amount),
         provider,
         callbackUrl,

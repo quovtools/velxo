@@ -1,4 +1,4 @@
-import type { Metadata } from 'next';
+﻿import type { Metadata } from 'next';
 import { Tag, BadgeCheck, Package, Wallet, Star } from 'lucide-react';
 import { DocHeader, DocSection, Steps, Callout, FeatureGrid, RelatedLinks, DocShell } from '../components/doc-ui';
 
@@ -6,7 +6,7 @@ export const metadata: Metadata = {
   title: 'How to Sell — piyrox documentation',
   description:
     'How to create a listing, complete KYC/verification, manage orders, and withdraw earnings on Piyrox.',
-  alternates: { canonical: 'https://market.piyrox.shop/docs/sell' },
+  alternates: { canonical: 'https://app.piyrox.shop/docs/sell' },
 };
 
 export default function DocsSell() {

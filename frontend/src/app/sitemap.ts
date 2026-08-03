@@ -1,7 +1,7 @@
-import { MetadataRoute } from 'next';
+﻿import { MetadataRoute } from 'next';
 import { GAME_LIST } from '@/lib/games';
 
-const BASE_URL = 'https://market.piyrox.shop';
+const BASE_URL = 'https://app.piyrox.shop';
 
 const GAME_SLUGS = GAME_LIST.map((g) => g.slug);
 

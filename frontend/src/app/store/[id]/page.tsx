@@ -1,7 +1,7 @@
 import type { Metadata } from 'next';
 
 const API_BASE = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:3001/api/v1';
-const SITE_URL = 'https://market.piyrox.shop';
+const SITE_URL = 'https://app.piyrox.shop';
 
 export const dynamic = 'force-dynamic';
 

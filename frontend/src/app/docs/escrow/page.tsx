@@ -1,12 +1,12 @@
-import type { Metadata } from 'next';
+﻿import type { Metadata } from 'next';
 import { ShieldCheck, Lock, HandCoins, FileWarning } from 'lucide-react';
 import { DocHeader, DocSection, Steps, Callout, FeatureGrid, RelatedLinks, DocShell } from '../components/doc-ui';
 
 export const metadata: Metadata = {
-  title: 'Escrow & Buyer Protection — piyrox documentation',
+  title: 'Escrow & Buyer Protection — Piyrox Documentation',
   description:
-    'Understand how piyrox escrow protects buyers and sellers, how funds are held and released, and what happens in a dispute.',
-  alternates: { canonical: 'https://market.piyrox.shop/docs/escrow' },
+    'Understand how Piyrox Escrow protects buyers and sellers, how funds are held and released, and what happens in a dispute.',
+  alternates: { canonical: 'https://app.piyrox.shop/docs/escrow' },
 };
 
 export default function DocsEscrow() {
@@ -15,7 +15,7 @@ export default function DocsEscrow() {
       <DocHeader
         icon={<ShieldCheck className="w-6 h-6" />}
         title="Escrow & Buyer Protection"
-        description="piyrox escrow is the trust layer that makes trading safe. Your money is held by Piyrox until the deal is done right — protecting both sides from scams."
+        description="Piyrox Escrow is the trust layer that makes trading safe. Your money is held by Piyrox until the deal is done right — protecting both sides from scams."
       />
 
       <DocSection title="How escrow works">

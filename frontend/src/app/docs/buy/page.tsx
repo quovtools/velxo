@@ -1,12 +1,12 @@
-import type { Metadata } from 'next';
+﻿import type { Metadata } from 'next';
 import { ShoppingCart, Search, CreditCard, Package, CheckCircle2 } from 'lucide-react';
 import { DocHeader, DocSection, Steps, Callout, FeatureGrid, RelatedLinks, DocShell } from '../components/doc-ui';
 
 export const metadata: Metadata = {
-  title: 'How to Buy — piyrox documentation',
+  title: 'How to Buy — Piyrox Documentation',
   description:
     'Step-by-step guide to buying game accounts, items and top-ups on Piyrox: browse, checkout, escrow, pay via payment link, receive delivery, release escrow.',
-  alternates: { canonical: 'https://market.piyrox.shop/docs/buy' },
+  alternates: { canonical: 'https://app.piyrox.shop/docs/buy' },
 };
 
 export default function DocsBuy() {

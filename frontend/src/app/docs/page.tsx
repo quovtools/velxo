@@ -1,13 +1,13 @@
-import Link from 'next/link';
+﻿import Link from 'next/link';
 import type { Metadata } from 'next';
 import { Sparkles, ShieldCheck, Wallet, ArrowRight, Gamepad2, Store, Coins, Users } from 'lucide-react';
 import { DocHeader, DocSection, FeatureGrid, Callout, RelatedLinks, DocShell } from './components/doc-ui';
 
 export const metadata: Metadata = {
-  title: 'piyrox documentation — Introduction',
+  title: 'Piyrox Documentation — Introduction',
   description:
     'What is Piyrox and how to get started buying, selling, and trading game accounts, top-ups, and coins safely with escrow protection.',
-  alternates: { canonical: 'https://market.piyrox.shop/docs' },
+  alternates: { canonical: 'https://app.piyrox.shop/docs' },
 };
 
 export default function DocsIntroduction() {

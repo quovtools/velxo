@@ -1,4 +1,4 @@
-import type { Metadata } from 'next';
+﻿import type { Metadata } from 'next';
 import { Wallet, CreditCard, Smartphone, Banknote, ArrowDownToLine } from 'lucide-react';
 import { DocHeader, DocSection, Steps, Callout, FeatureGrid, RelatedLinks, DocShell } from '../components/doc-ui';
 
@@ -6,7 +6,7 @@ export const metadata: Metadata = {
   title: 'Payments & Wallets — piyrox documentation',
   description:
     'How payments, the piyrox wallet, payouts, and withdrawals work — supported methods, processing, and fees.',
-  alternates: { canonical: 'https://market.piyrox.shop/docs/payments' },
+  alternates: { canonical: 'https://app.piyrox.shop/docs/payments' },
 };
 
 export default function DocsPayments() {

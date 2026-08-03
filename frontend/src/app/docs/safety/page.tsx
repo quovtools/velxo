@@ -1,4 +1,4 @@
-import type { Metadata } from 'next';
+﻿import type { Metadata } from 'next';
 import { BadgeCheck, Fingerprint, ScanFace, ShieldAlert } from 'lucide-react';
 import { DocHeader, DocSection, Steps, Callout, FeatureGrid, RelatedLinks, DocShell } from '../components/doc-ui';
 
@@ -6,7 +6,7 @@ export const metadata: Metadata = {
   title: 'Safety & Verification — piyrox documentation',
   description:
     'How Piyrox verifies sellers with KYC, trust badges, and anti-fraud measures to keep the marketplace safe.',
-  alternates: { canonical: 'https://market.piyrox.shop/docs/safety' },
+  alternates: { canonical: 'https://app.piyrox.shop/docs/safety' },
 };
 
 export default function DocsSafety() {

@@ -2,7 +2,7 @@ import type { Metadata } from 'next';
 import GameCatalogContent from './game-catalog-content';
 import { GAME_LIST, GAME_CONFIG, slugToGameName } from '@/lib/games';
 
-const SITE_URL = 'https://market.piyrox.shop';
+const SITE_URL = 'https://app.piyrox.shop';
 
 // Pre-render every known game at build time for best performance + SEO.
 // New slugs added to GAME_LIST will be server-rendered on first request (ISR).
