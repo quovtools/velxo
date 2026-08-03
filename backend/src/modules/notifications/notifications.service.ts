@@ -5,8 +5,31 @@ import { NotFoundException } from '@/common/exceptions/custom-exceptions'
 import { NotificationsGateway } from '@/modules/gateways/notifications.gateway'
 import { EmailService } from '@/shared/email.service'
 import { PushService } from './push.service'
+import { CurrencyRatesService } from '@/modules/currency/currency-rates.service'
 
 const FRONTEND = process.env.FRONTEND_URL || 'https://market.piyrox.shop'
+
+/**
+ * Format a monetary amount from an order using its locked currency.
+ * Uses the lockedCurrency field when present (set at payment time) so
+ * all email references use the rate that was actually charged — never
+ * a live or different rate.
+ */
+function orderAmount(order: any, field: 'totalAmount' | 'sellerPayout' | 'commissionAmount' = 'totalAmount'): string {
+  const amount = Number(order?.[field] ?? 0)
+  const currency: string = (order?.lockedCurrency || order?.currency || 'USD').toUpperCase()
+  try {
+    const isZeroDecimal = ['UGX', 'RWF', 'XOF', 'XAF'].includes(currency)
+    return new Intl.NumberFormat('en-US', {
+      style: 'currency',
+      currency,
+      minimumFractionDigits: isZeroDecimal ? 0 : 2,
+      maximumFractionDigits: isZeroDecimal ? 0 : 2,
+    }).format(amount)
+  } catch {
+    return `${currency} ${amount.toFixed(2)}`
+  }
+}
 
 /** Shared branded email wrapper used by every order email below. */
 function orderEmailHtml(opts: {
@@ -112,7 +135,7 @@ export class NotificationsService {
         <table style="width:100%;border-radius:10px;background:#0f172a;padding:20px;" cellspacing="0" cellpadding="0" border="0">
           <tr><td style="padding:6px 0;color:#94a3b8;font-size:13px;">Order number</td><td style="padding:6px 0;color:#e2e8f0;font-size:13px;text-align:right;font-weight:700;">${order.orderNumber}</td></tr>
           <tr><td style="padding:6px 0;color:#94a3b8;font-size:13px;">Item</td><td style="padding:6px 0;color:#e2e8f0;font-size:13px;text-align:right;">${product}</td></tr>
-          <tr><td style="padding:6px 0;color:#94a3b8;font-size:13px;">Amount</td><td style="padding:6px 0;color:#e2e8f0;font-size:13px;text-align:right;font-weight:700;">$${Number(order.totalAmount).toFixed(2)}</td></tr>
+          <tr><td style="padding:6px 0;color:#94a3b8;font-size:13px;">Amount</td><td style="padding:6px 0;color:#e2e8f0;font-size:13px;text-align:right;font-weight:700;">${orderAmount(order)}</td></tr>
         </table>
         <p style="margin-top:16px;font-size:14px;color:#94a3b8;">Your order is reserved. Complete payment on the order page to lock funds in escrow — once paid the seller will begin fulfillment.</p>
       `,
@@ -134,7 +157,7 @@ export class NotificationsService {
         title: '✅ Payment Confirmed',
         subtitle: `Order #${order.orderNumber}`,
         body: `
-          <p>Your payment of <strong>$${Number(order.totalAmount).toFixed(2)}</strong> for <strong>${product}</strong> has been received and is held securely in escrow.</p>
+          <p>Your payment of <strong>${orderAmount(order)}</strong> for <strong>${product}</strong> has been received and is held securely in escrow.</p>
           <p style="color:#94a3b8;font-size:14px;">The seller has been notified and will begin fulfillment. You'll receive another email once your item is delivered.</p>
         `,
         ctaText: 'Track Your Order →',
@@ -150,7 +173,7 @@ export class NotificationsService {
         title: '💰 Payment Received — Action Required',
         subtitle: `Order #${order.orderNumber}`,
         body: `
-          <p>A buyer has paid <strong>$${Number(order.totalAmount).toFixed(2)}</strong> for <strong>${product}</strong>. Funds are held securely in escrow and will be released once the buyer confirms receipt.</p>
+          <p>A buyer has paid <strong>${orderAmount(order)}</strong> for <strong>${product}</strong>. Funds are held securely in escrow and will be released once the buyer confirms receipt.</p>
           <p style="color:#f59e0b;font-size:14px;font-weight:600;">⚠️ You have <strong>1 hour</strong> after accepting to deliver. Accept the order now to start the timer.</p>
         `,
         ctaText: 'Accept & Deliver →',
@@ -206,15 +229,15 @@ export class NotificationsService {
     // Seller
     const sellerEmail = await this.getUserEmail(order.seller?.userId)
     if (sellerEmail) {
-      const payout = Number(order.sellerPayout || 0).toFixed(2)
+      const payoutFormatted = orderAmount(order, 'sellerPayout')
       const html = orderEmailHtml({
         title: '💸 Funds Released to Your Wallet',
         subtitle: `Order #${order.orderNumber}`,
-        body: `<p><strong>$${payout}</strong> has been credited to your piyrox wallet for completing order <strong>${order.orderNumber}</strong> (${product}).</p><p style="color:#94a3b8;font-size:14px;">You can withdraw your earnings from the Payouts section of your seller dashboard.</p>`,
+        body: `<p><strong>${payoutFormatted}</strong> has been credited to your piyrox wallet for completing order <strong>${order.orderNumber}</strong> (${product}).</p><p style="color:#94a3b8;font-size:14px;">You can withdraw your earnings from the Payouts section of your seller dashboard.</p>`,
         ctaText: 'View Wallet →',
         ctaUrl: `${FRONTEND}/wallet`,
       })
-      this.email.sendEmail(sellerEmail, `$${payout} Credited — Order #${order.orderNumber}`, html).catch(() => {})
+      this.email.sendEmail(sellerEmail, `${payoutFormatted} Credited — Order #${order.orderNumber}`, html).catch(() => {})
     }
   }
 
@@ -226,7 +249,7 @@ export class NotificationsService {
     const html = orderEmailHtml({
       title: '↩️ Order Refunded',
       subtitle: `Order #${order.orderNumber}`,
-      body: `<p>Your order for <strong>${product}</strong> has been refunded${amount ? ` — <strong>${amount}</strong> will be returned to your original payment method` : ''}.</p><p style="color:#94a3b8;font-size:14px;">If you have questions please contact our support team.</p>`,
+      body: `<p>Your order for <strong>${product}</strong> has been refunded${amount ? ` — <strong>${amount}</strong> will be returned to your original payment method` : ` — <strong>${orderAmount(order)}</strong> will be returned to your original payment method`}.</p><p style="color:#94a3b8;font-size:14px;">If you have questions please contact our support team.</p>`,
       ctaText: 'Browse Again →',
       ctaUrl: `${FRONTEND}/search`,
     })
@@ -246,7 +269,7 @@ export class NotificationsService {
         <p>You have a new order for <strong>${product}</strong>.</p>
         <table style="width:100%;background:#0f172a;border-radius:10px;padding:16px;" cellspacing="0" cellpadding="0" border="0">
           <tr><td style="padding:5px 0;color:#94a3b8;font-size:13px;">Order</td><td style="padding:5px 0;color:#e2e8f0;font-size:13px;text-align:right;font-weight:700;">#${order.orderNumber}</td></tr>
-          <tr><td style="padding:5px 0;color:#94a3b8;font-size:13px;">Amount</td><td style="padding:5px 0;color:#10b981;font-size:13px;text-align:right;font-weight:700;">$${Number(order.totalAmount).toFixed(2)}</td></tr>
+          <tr><td style="padding:5px 0;color:#94a3b8;font-size:13px;">Amount</td><td style="padding:5px 0;color:#10b981;font-size:13px;text-align:right;font-weight:700;">${orderAmount(order)}</td></tr>
         </table>
         <p style="color:#f59e0b;font-size:14px;margin-top:16px;">The buyer will pay into escrow. Once paid you'll receive another email — you then have <strong>1 hour</strong> to accept and deliver.</p>
       `,

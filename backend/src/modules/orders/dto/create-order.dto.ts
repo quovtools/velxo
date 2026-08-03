@@ -24,4 +24,14 @@ export class CreateOrderDto {
   @IsString()
   @IsOptional()
   currency?: string
+
+  /**
+   * Live exchange rate snapshot taken at the moment the buyer confirmed
+   * checkout (units of `currency` per 1 USD).  Stored as `lockedRate` on
+   * the order so disputes and historical records always reference the rate
+   * that was actually used — never the current live rate.
+   */
+  @IsNumber()
+  @IsOptional()
+  lockedRate?: number
 }

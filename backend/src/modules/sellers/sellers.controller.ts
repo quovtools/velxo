@@ -30,11 +30,13 @@ export class SellersController {
     @CurrentUserId() userId: string,
     @Body('storeName') storeName: string,
     @Body('storeDescription') storeDescription?: string,
+    @Body('accountType') accountType?: string,
   ) {
     try {
       const seller = await this.sellersService.createSeller(userId, {
         storeName,
         storeDescription,
+        accountType: accountType as any,
       })
       return ApiResponseDto.ok(seller, 'Seller account created successfully')
     } catch (error) {

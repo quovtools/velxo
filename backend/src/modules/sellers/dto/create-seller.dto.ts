@@ -14,6 +14,10 @@ export class CreateSellerDto {
   @IsNumber()
   @IsOptional()
   responseTime?: number // hours
+
+  @IsString()
+  @IsOptional()
+  accountType?: 'STANDARD' | 'BOOSTER' | 'BOTH'
 }
 
 export class UpdateSellerDto {

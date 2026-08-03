@@ -4,6 +4,7 @@ import React, { useState, useEffect } from 'react';
 import { useRouter } from 'next/navigation';
 import { api } from '@/lib/api';
 import { useAuth } from '@/app/providers';
+import { getToken } from '@/lib/auth';
 import { GAME_NAMES, getGameConfig, REGIONS } from '@/lib/games';
 import { useCurrency } from '@/lib/useCurrency';
 import {
@@ -134,13 +135,27 @@ export default function SellPage() {
   useEffect(() => {
     if (authLoading) return;
     if (!user) { router.push('/auth/login?redirect=/sell'); return; }
+
+    // Fast-path: if the stored role is already SELLER we know they have a
+    // profile — skip the API round-trip and go straight to listing creation.
+    if ((user as any).role === 'SELLER') {
+      setIsSeller(true);
+      setCheckingStatus(false);
+      return;
+    }
+
+    // For BUYER role: hit the API to see if they somehow already have a
+    // seller profile (e.g. created on another device / tab).
     api.get<{ success: boolean; data: any }>('/sellers/me')
       .then(res => {
         if ((res as any).success && (res as any).data) {
           setIsSeller(true);
         }
       })
-      .catch(() => {})
+      .catch(() => {
+        // 404 = no seller profile yet — show the onboarding wizard.
+        // Any other error is also fine to swallow here; isSeller stays false.
+      })
       .finally(() => setCheckingStatus(false));
   }, [user, authLoading, router]);
 
@@ -176,7 +191,8 @@ export default function SellPage() {
     const toUpload = Array.from(files).slice(0, remaining);
     setUploadError(null); setUploadingMedia(true);
     try {
-      const token = (user as any)?.accessToken || localStorage.getItem('sb-access-token') || '';
+      const token = getToken();
+      if (!token) { setUploadError('You must be logged in to upload files.'); return; }
       const results: string[] = [];
       for (const file of toUpload) {
         if (!file.type.startsWith('image/')) { setUploadError(`${file.name} is not an image.`); continue; }
@@ -206,7 +222,8 @@ export default function SellPage() {
     if (file.size > 100 * 1024 * 1024) { setUploadError('Video must be under 100 MB.'); return; }
     setUploadError(null); setUploadingMedia(true);
     try {
-      const token = (user as any)?.accessToken || localStorage.getItem('sb-access-token') || '';
+      const token = getToken();
+      if (!token) { setUploadError('You must be logged in to upload files.'); return; }
       const form = new FormData();
       form.append('file', file);
       const res = await fetch(`${API_BASE}/upload/video`, {

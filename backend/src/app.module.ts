@@ -33,6 +33,7 @@ import { GameBannersModule } from './modules/game-banners/game-banners.module'
 import { BuyerRequestsModule } from './modules/buyer-requests/buyer-requests.module'
 import { LegalModule } from './modules/legal/legal.module'
 import { LiveChatModule } from './modules/live-chat/live-chat.module'
+import { CurrencyModule } from './modules/currency/currency.module'
 import { AllExceptionsFilter } from './common/filters/all-exceptions.filter'
 
 @Module({
@@ -73,6 +74,7 @@ import { AllExceptionsFilter } from './common/filters/all-exceptions.filter'
     BuyerRequestsModule,
     LegalModule,
     LiveChatModule,
+    CurrencyModule,
   ],
   providers: [
     {

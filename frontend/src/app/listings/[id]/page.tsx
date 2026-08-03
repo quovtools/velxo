@@ -51,7 +51,7 @@ export async function generateMetadata({
     alternates: { canonical: `${SITE_URL}/listings/${id}` },
     openGraph: {
       title: `${listing.title} — ${listing.gameName} | Piyrox Market`,
-      description: `Escrow-protected ${listing.gameName} listing for $${price}.`,
+      description: `Escrow-protected ${listing.gameName} listing for ${price} ${(listing as any).currency || 'USD'}.`,
       url: `${SITE_URL}/listings/${id}`,
       siteName: 'Piyrox Market',
       type: 'website',
@@ -60,7 +60,7 @@ export async function generateMetadata({
     twitter: {
       card: 'summary_large_image',
       title: `${listing.title} | Piyrox Market`,
-      description: `Escrow-protected ${listing.gameName} listing for $${price}.`,
+      description: `Escrow-protected ${listing.gameName} listing for ${price} ${(listing as any).currency || 'USD'}.`,
     },
   };
 }
@@ -79,7 +79,7 @@ export default async function ListingDetailsPage({ params }: { params: Promise<{
         offers: {
           '@type': 'Offer',
           price: Number(listing.price || 0).toFixed(2),
-          priceCurrency: 'USD',
+          priceCurrency: (listing as any).currency || 'USD',
           availability: 'https://schema.org/InStock',
           seller: {
             '@type': 'Organization',

@@ -81,6 +81,10 @@ export class PaymentsService implements OnModuleInit {
   /**
    * Creates the payment record and, for crypto (Payment.io), initiates the
    * charge and returns the hosted payment URL to redirect the buyer to.
+   *
+   * @param userCurrency  Optional ISO 4217 code detected from the buyer's locale.
+   *                      When supplied, Flutterwave charges in this currency so
+   *                      the buyer sees the amount in their local money.
    */
   async initiatePayment(
     orderId: string,
@@ -88,6 +92,7 @@ export class PaymentsService implements OnModuleInit {
     provider: PaymentProvider,
     callbackUrl: string,
     buyerId: string,
+    userCurrency?: string,
   ): Promise<{ payment: any; paymentUrl: string | null; configured: boolean }> {
     // Validate ownership and amount before creating any payment record.
     const order = await this.prisma.orders.findUnique({
@@ -157,10 +162,14 @@ export class PaymentsService implements OnModuleInit {
         where: { id: orderId },
         include: { buyer: true },
       })
+      // Use the buyer's local currency when provided — Flutterwave will charge
+      // the buyer in their own currency (NGN, GHS, KES, etc.) and handle
+      // conversion internally. Fall back to the order's stored currency.
+      const chargeCurrency = userCurrency || order.currency
       const charge = await this.flutterwave.createCharge({
         reference: orderId,
         amount: Number(amount),
-        currency: order.currency,
+        currency: chargeCurrency,
         email: fullOrder?.buyer?.email || 'buyer@piyrox.shop',
         callbackUrl,
       })
@@ -222,11 +231,16 @@ export class PaymentsService implements OnModuleInit {
    * Ask a specific provider to create a hosted charge. Returns null when the
    * provider is not configured or cannot produce a link, so callers can try
    * the next candidate instead of failing.
+   *
+   * @param userCurrency  Buyer's local ISO 4217 currency code (e.g. "NGN").
+   *                      Passed to Flutterwave so the buyer is charged in their
+   *                      own currency instead of the order's stored currency.
    */
   private async createProviderCharge(
     provider: PaymentProvider,
     order: { id: string; totalAmount: any; currency: string; buyer?: { email?: string } | null },
     callbackUrl: string,
+    userCurrency?: string,
   ): Promise<{ chargeId: string | null; paymentUrl: string | null; configured: boolean } | null> {
     try {
       if (provider === PaymentProvider.PAYMENT_IO) {
@@ -241,7 +255,9 @@ export class PaymentsService implements OnModuleInit {
         return await this.flutterwave.createCharge({
           reference: order.id,
           amount: Number(order.totalAmount),
-          currency: order.currency,
+          // Prefer the buyer's local currency for the charge; fall back to
+          // the currency stored on the order (already set by createOrder).
+          currency: userCurrency || order.currency,
           email: order.buyer?.email || 'buyer@piyrox.shop',
           callbackUrl,
         })
@@ -308,7 +324,7 @@ export class PaymentsService implements OnModuleInit {
     let activeProvider: PaymentProvider | null = null
 
     for (const candidate of candidates) {
-      const result = await this.createProviderCharge(candidate, order, callbackUrl)
+      const result = await this.createProviderCharge(candidate, order, callbackUrl, order.currency)
       if (result && result.configured && result.paymentUrl) {
         charge = result
         activeProvider = candidate
@@ -388,7 +404,15 @@ export class PaymentsService implements OnModuleInit {
       const listingId = payment.order.orderItems?.[0]?.listingId
       await this.prisma.orders.update({
         where: { id: payment.orderId },
-        data: { status: 'PAID', paidAt: new Date() },
+        data: {
+          status: 'PAID',
+          paidAt: new Date(),
+          // Snapshot the currency used at payment time if not already set.
+          // This locks the rate for dispute/history — never re-derived from
+          // the live rate after this point.
+          lockedCurrency: (payment.order as any).lockedCurrency || payment.currency || payment.order.currency,
+          lockedRate: (payment.order as any).lockedRate ?? undefined,
+        },
       })
       if (listingId) {
         await this.prisma.listings.update({

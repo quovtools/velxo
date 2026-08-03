@@ -5,6 +5,7 @@ import { Eye, CheckCircle, XCircle, DollarSign, Store, Mail, Clock, AlertTriangl
 import { api } from '@/lib/api';
 import { ErrorBanner, PageHeader, RefreshButton, AdminInput } from '@/components/admin/ui';
 import { LoadingArea } from '@/components/LoadingLogo';
+import { formatNativeAmount } from '@/lib/currency';
 
 interface Listing {
   id: string; title: string; gameName: string; price: number; currency: string;
@@ -81,7 +82,7 @@ export default function ModerationPage() {
                   <h3 className="font-semibold text-white text-sm truncate">{listing.title}</h3>
                   <p className="text-xs text-gray-500 mt-0.5">{listing.gameName}</p>
                   <div className="flex flex-wrap gap-3 mt-2 text-xs text-gray-600">
-                    <span className="flex items-center gap-1"><DollarSign className="w-3 h-3" />{listing.currency} {Number(listing.price).toFixed(2)}</span>
+                    <span className="flex items-center gap-1"><DollarSign className="w-3 h-3" />{formatNativeAmount(listing.price, listing.currency)}</span>
                     <span className="flex items-center gap-1"><Store className="w-3 h-3" />{listing.seller?.storeName || '—'}</span>
                     <span className="flex items-center gap-1"><Mail className="w-3 h-3" />{listing.seller?.user?.email || '—'}</span>
                     <span className="flex items-center gap-1"><Clock className="w-3 h-3" />{new Date(listing.createdAt).toLocaleDateString()}</span>

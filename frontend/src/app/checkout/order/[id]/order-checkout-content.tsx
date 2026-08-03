@@ -11,7 +11,7 @@ import { useCurrency } from '@/lib/useCurrency';
 export default function OrderCheckoutContent({ orderId }: { orderId: string }) {
   const router = useRouter();
   const { user, loading: authLoading } = useAuth();
-  const { fmt } = useCurrency();
+  const { fmt, currencyCode, currentRate } = useCurrency();
 
   const [order, setOrder] = useState<any | null>(null);
   const [loadingOrder, setLoadingOrder] = useState(true);
@@ -77,6 +77,7 @@ export default function OrderCheckoutContent({ orderId }: { orderId: string }) {
   const title = order.metadata?.title || (order.metadata?.sourceType === 'TOPUP' ? 'Official Piyrox Top-Up' : 'Boosting Service');
   const isTopup = order.metadata?.sourceType === 'TOPUP';
   const isGig = order.metadata?.sourceType === 'GIG';
+  // totalAmount is stored in the buyer's local currency (set by createOrder)
   const subtotal = Number(order.totalAmount);
   const total = subtotal;
 
@@ -128,7 +129,7 @@ export default function OrderCheckoutContent({ orderId }: { orderId: string }) {
                 disabled={loading}
                 className="w-full bg-brand hover:bg-brand-dark py-4 rounded-xl font-bold transition disabled:opacity-50 text-white text-base shadow-lg shadow-brand/20"
               >
-                {loading ? 'Processing Escrow Deposit...' : `Pay $${total.toFixed(2)}`}
+                {loading ? 'Processing Escrow Deposit...' : `Pay ${fmt(order.totalAmount)}`}
               </button>
             </form>
           </div>
@@ -172,7 +173,7 @@ export default function OrderCheckoutContent({ orderId }: { orderId: string }) {
             <div className="space-y-3 text-sm">
               <div className="flex justify-between text-gray-400">
                 <span>Price</span>
-                <span className="text-white font-semibold">${subtotal.toFixed(2)}</span>
+                <span className="text-white font-semibold">{fmt(order.totalAmount)}</span>
               </div>
               <p className="text-[11px] text-gray-500 leading-relaxed">
                 A 10% platform fee is paid by the <span className="text-gray-400">seller</span> — you pay the
@@ -182,7 +183,7 @@ export default function OrderCheckoutContent({ orderId }: { orderId: string }) {
 
             <div className="border-t border-borderBg pt-4 flex justify-between items-baseline">
               <span className="font-bold text-white">Total</span>
-              <span className="font-black text-white text-xl">${total.toFixed(2)}</span>
+              <span className="font-black text-white text-xl">{fmt(order.totalAmount)}</span>
             </div>
           </div>
         </div>

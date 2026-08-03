@@ -139,6 +139,7 @@ export class SellersService {
           userId,
           storeName: dto.storeName,
           storeDescription: dto.storeDescription,
+          accountType: (dto.accountType as any) || 'STANDARD',
           reputationScore: 5.0,
         },
       })
@@ -159,6 +160,17 @@ export class SellersService {
       return newSeller
     })
 
+    return seller
+  }
+
+  /**
+   * Resolve a sellers row from a users.id.
+   * Used by the /sellers/me endpoint and anywhere the caller only has the
+   * authenticated user id rather than the sellers.id.
+   */
+  async getSellerByUserId(userId: string) {
+    const seller = await this.prisma.sellers.findUnique({ where: { userId } })
+    if (!seller) throw new NotFoundException('Seller')
     return seller
   }
 

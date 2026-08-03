@@ -5,6 +5,7 @@ import { Scale, CheckCircle, Clock } from 'lucide-react';
 import { api } from '@/lib/api';
 import { Badge, ErrorBanner, PageHeader, RefreshButton, AdminSelect, AdminTextarea } from '@/components/admin/ui';
 import { LoadingArea } from '@/components/LoadingLogo';
+import { formatNativeAmount } from '@/lib/currency';
 
 interface Dispute {
   id: string; reason: string; status: string; createdAt: string;
@@ -82,7 +83,9 @@ export default function DisputesPage() {
                   </div>
                   <p className="text-sm font-medium text-white">{d.reason}</p>
                   <div className="text-xs text-gray-600 space-y-0.5">
-                    {d.order && <p>Order <span className="text-gray-400 font-mono">#{d.order.orderNumber}</span> — {d.order.currency} {Number(d.order.totalAmount).toFixed(2)}</p>}
+                    {d.order && (
+                      <p>Order <span className="text-gray-400 font-mono">#{d.order.orderNumber}</span> — {formatNativeAmount(d.order.totalAmount, d.order.currency)}</p>
+                    )}
                     {d.initiator && <p>By <span className="text-gray-400">{d.initiator.firstName} {d.initiator.lastName} ({d.initiator.email})</span></p>}
                   </div>
                 </div>

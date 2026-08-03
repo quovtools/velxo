@@ -427,6 +427,11 @@ model orders {
 
   currency        String      @default("USD")
 
+  // Currency snapshot — locked at the moment the order is paid.
+  // All dispute and historical references use these fields, never the live rate.
+  lockedRate      Decimal?    @db.Decimal(18, 8) // units of `currency` per 1 USD at payment time
+  lockedCurrency  String?                         // ISO 4217 code, e.g. "NGN"
+
   buyerNote       String?
   sellerNote      String?
   deliveryData    Json?

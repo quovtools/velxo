@@ -111,21 +111,6 @@ function statusPill(status: string) {
     </span>
   );
 }
-function money(n: string | number, currency = 'USD') {
-  // Format an amount that is already in `currency` (not USD) — used for
-  // wallet balances and order amounts stored in their native currency.
-  const v = typeof n === 'string' ? Number(n) : n;
-  try {
-    return new Intl.NumberFormat(undefined, {
-      style: 'currency',
-      currency,
-      minimumFractionDigits: 2,
-      maximumFractionDigits: 2,
-    }).format(v);
-  } catch {
-    return `${currency} ${v.toFixed(2)}`;
-  }
-}
 function initials(name?: string) {
   return (name || '?').trim().charAt(0).toUpperCase() || '?';
 }
@@ -533,7 +518,7 @@ export default function SellerDashboard() {
                   </div>
                   <div className="flex items-center gap-3">
                     {statusPill(o.status)}
-                    <span className="text-sm font-bold text-white">{money(o.totalAmount, o.currency)}</span>
+                    <span className="text-sm font-bold text-white">{fmt(o.totalAmount)}</span>
                   </div>
                 </div>
               ))}
@@ -596,7 +581,7 @@ export default function SellerDashboard() {
                         <tr key={o.id} className={`hover:bg-hoverBg/20 ${(needsAccept || isUrgent) ? 'bg-yellow-950/10' : ''}`}>
                           <td className="px-4 py-3">
                             <div className="font-semibold text-white">#{o.orderNumber.slice(-8).toUpperCase()}</div>
-                            <div className="text-xs text-gray-500">{money(o.totalAmount, o.currency)} · {new Date(o.createdAt).toLocaleDateString()}</div>
+                            <div className="text-xs text-gray-500">{fmt(o.totalAmount)} · {new Date(o.createdAt).toLocaleDateString()}</div>
                           </td>
                           <td className="px-4 py-3 text-gray-300">{buyer}</td>
                           <td className="px-4 py-3 max-w-[200px]">
@@ -701,7 +686,6 @@ export default function SellerDashboard() {
               <h3 className="font-bold text-white flex items-center gap-2 mb-3"><Banknote className="w-5 h-5 text-brand" /> Request a Payout</h3>
               <PayoutForm
                 balance={wallet ? Number(wallet.balance) : 0}
-                currency={wallet?.currency || 'USD'}
                 onDone={(msg, ok) => { flash(msg, ok); loadAll(); }}
               />
             </div>
@@ -821,7 +805,8 @@ function TabBtn({ active, onClick, label, count }: { active: boolean; onClick: (
   );
 }
 
-function PayoutForm({ balance, currency, onDone }: { balance: number; currency: string; onDone: (msg: string, ok: boolean) => void }) {
+function PayoutForm({ balance, onDone }: { balance: number; onDone: (msg: string, ok: boolean) => void }) {
+  const { fmt } = useCurrency();
   const [amount, setAmount] = useState('');
   const [method, setMethod] = useState('bank');
   const [destination, setDestination] = useState('');
@@ -835,7 +820,7 @@ function PayoutForm({ balance, currency, onDone }: { balance: number; currency: 
     setBusy(true);
     try {
       await api.post('/wallet/withdraw', { amount: amt, method, destination });
-      onDone(`Payout of ${money(amt, currency)} requested`, true);
+      onDone(`Payout of ${fmt(amt)} requested`, true);
       setAmount(''); setDestination('');
     } catch (e: any) {
       onDone(e?.message || 'Payout failed', false);
@@ -848,7 +833,7 @@ function PayoutForm({ balance, currency, onDone }: { balance: number; currency: 
     <form onSubmit={submit} className="space-y-3">
       <div className="grid grid-cols-2 gap-3">
         <div>
-          <label className="text-xs text-gray-400">Amount ({currency})</label>
+          <label className="text-xs text-gray-400">Amount</label>
           <input type="number" step="0.01" value={amount} onChange={e => setAmount(e.target.value)} placeholder="0.00" className="mt-1 w-full bg-background border border-borderBg rounded-xl px-3 py-2.5 text-sm text-white focus:outline-none focus:border-brand" />
         </div>
         <div>
@@ -865,7 +850,7 @@ function PayoutForm({ balance, currency, onDone }: { balance: number; currency: 
         <input value={destination} onChange={e => setDestination(e.target.value)} placeholder="e.g. IBAN or wallet address" className="mt-1 w-full bg-background border border-borderBg rounded-xl px-3 py-2.5 text-sm text-white focus:outline-none focus:border-brand" />
       </div>
       <div className="flex items-center justify-between">
-        <span className="text-xs text-gray-500">Available: {money(balance, currency)}</span>
+        <span className="text-xs text-gray-500">Available: {fmt(balance)}</span>
         <button type="submit" disabled={busy} className="flex items-center gap-2 bg-brand hover:bg-brand-dark px-5 py-2.5 rounded-xl text-sm font-bold text-white disabled:opacity-50">
           {busy ? <Loader2 className="w-4 h-4 animate-spin" /> : <Send className="w-4 h-4" />} Request Payout
         </button>

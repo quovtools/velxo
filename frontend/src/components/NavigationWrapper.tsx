@@ -13,6 +13,7 @@ import Marquee from '@/components/Marquee';
 import SectionNav from '@/components/SectionNav';
 import NotificationBell from '@/components/NotificationBell';
 import { useNotifications } from '@/components/NotificationProvider';
+import CurrencySelector from '@/components/CurrencySelector';
 
 export default function NavigationWrapper() {
   const { user, logout, theme, toggleTheme } = useAuth();
@@ -57,6 +58,9 @@ export default function NavigationWrapper() {
 
           {/* Right side */}
           <div className="flex items-center gap-2 md:gap-3">
+            {/* Currency selector — always visible */}
+            <CurrencySelector />
+
             {/* Theme toggle - always visible on the nav bar */}
             <button
               onClick={toggleTheme}
@@ -136,6 +140,12 @@ export default function NavigationWrapper() {
               <Link href="/affiliate" onClick={() => setMobileOpen(false)} className="flex items-center gap-3 px-3 py-3 rounded-xl text-gray-300 hover:bg-background hover:text-white transition text-sm font-medium">
                 <Users className="w-4 h-4" /> Refer & Earn
               </Link>
+
+              {/* Currency selector in mobile menu */}
+              <div className="flex items-center gap-3 px-3 py-2.5">
+                <span className="text-xs text-gray-500 font-semibold uppercase tracking-wide">Currency</span>
+                <CurrencySelector />
+              </div>
 
               {user ? (
               <>

@@ -57,7 +57,7 @@ function StatCard({ label, value, sub, icon, highlight }: {
 export default function WalletPage() {
   const router = useRouter();
   const { user, loading: authLoading } = useAuth();
-  const { fmt } = useCurrency();
+  const { fmt, currency, currencyCode } = useCurrency();
   const [wallet, setWallet]           = useState<WalletData | null>(null);
   const [transactions, setTxns]       = useState<Transaction[]>([]);
   const [loading, setLoading]         = useState(true);
@@ -96,17 +96,17 @@ export default function WalletPage() {
   const handleTopup = async (e: React.FormEvent) => {
     e.preventDefault();
     const amount = parseFloat(topupAmount);
-    if (!amount || amount < 1) { showToast('Minimum top-up is $1', false); return; }
-    if (amount > 500) { showToast('Maximum top-up is $500 per transaction', false); return; }
+    if (!amount || amount <= 0) { showToast(`Enter a valid amount`, false); return; }
     setTopupPending(true);
     try {
       const res = await api.post<{ data: { transactionId: string; paymentUrl?: string } }>(
         '/wallet/topup/initiate',
-        { amount, currency: 'USD', provider: topupProvider },
+        // Send the user's detected currency so the payment gateway charges
+        // them in their local currency instead of always USD.
+        { amount, currency: currencyCode, provider: topupProvider },
       );
       setTopupModal(false); setTopupAmount('');
       if (res.data?.paymentUrl) {
-        // Redirect to hosted payment page
         window.location.href = res.data.paymentUrl;
       } else {
         showToast('Top-up initiated — redirecting to payment…', true);
@@ -244,26 +244,33 @@ export default function WalletPage() {
               </button>
             </div>
 
-            {/* Quick amounts */}
+            {/* Quick amounts — expressed in the user's detected currency */}
             <div>
               <p className="text-xs font-semibold text-gray-400 uppercase tracking-wide mb-2">Quick Select</p>
               <div className="grid grid-cols-5 gap-2">
-                {['5','10','25','50','100'].map(v => (
-                  <button key={v} onClick={() => setTopupAmount(v)}
-                    className={`py-2 rounded-xl text-sm font-bold border transition ${topupAmount === v ? 'bg-brand border-brand text-white' : 'bg-background border-borderBg text-gray-300 hover:border-brand/40'}`}>
-                    ${v}
-                  </button>
-                ))}
+                {[5, 10, 25, 50, 100].map(usd => {
+                  // Convert USD reference amounts to the user's local currency
+                  const localAmt = Math.round(usd * currency.rate);
+                  const display = fmt(usd);
+                  return (
+                    <button key={usd} onClick={() => setTopupAmount(String(localAmt))}
+                      className={`py-2 rounded-xl text-sm font-bold border transition ${topupAmount === String(localAmt) ? 'bg-brand border-brand text-white' : 'bg-background border-borderBg text-gray-300 hover:border-brand/40'}`}>
+                      {display}
+                    </button>
+                  );
+                })}
               </div>
             </div>
 
             <form onSubmit={handleTopup} className="space-y-4">
               <div>
-                <label className="block text-xs font-semibold text-gray-400 mb-1.5 uppercase tracking-wide">Custom Amount (USD)</label>
-                <input type="number" required min="1" max="500" step="0.01"
+                <label className="block text-xs font-semibold text-gray-400 mb-1.5 uppercase tracking-wide">
+                  Amount ({currencyCode})
+                </label>
+                <input type="number" required min="1" step="0.01"
                   value={topupAmount} onChange={e => setTopupAmount(e.target.value)}
                   className="w-full bg-background border border-borderBg rounded-xl px-4 py-3 text-sm focus:outline-none focus:border-brand"
-                  placeholder="Enter amount ($1 – $500)" />
+                  placeholder={`Enter amount in ${currencyCode}`} />
               </div>
               <div>
                 <label className="block text-xs font-semibold text-gray-400 mb-1.5 uppercase tracking-wide">Payment Method</label>
@@ -290,7 +297,7 @@ export default function WalletPage() {
                 </button>
                 <button type="submit" disabled={topupPending || !topupAmount}
                   className="flex-1 flex items-center justify-center gap-2 bg-emerald-600 hover:bg-emerald-700 py-3 rounded-xl text-sm font-bold transition text-white disabled:opacity-50">
-                  {topupPending ? <><Loader2 className="w-4 h-4 animate-spin" /> Processing…</> : `Add $${topupAmount || '0'}`}
+                  {topupPending ? <><Loader2 className="w-4 h-4 animate-spin" /> Processing…</> : `Add ${topupAmount ? fmt(Number(topupAmount) / currency.rate) : fmt(0)}`}
                 </button>
               </div>
             </form>
@@ -325,7 +332,7 @@ export default function WalletPage() {
                 </select>
               </div>
               <div>
-                <label className="block text-xs font-semibold text-gray-400 mb-1.5 uppercase tracking-wide">Amount (USD)</label>
+                <label className="block text-xs font-semibold text-gray-400 mb-1.5 uppercase tracking-wide">Amount ({currencyCode})</label>
                 <input type="number" required min="1" step="0.01" value={withdrawAmount} onChange={e => setAmount(e.target.value)}
                   className="w-full bg-background border border-borderBg rounded-xl px-4 py-3 text-sm focus:outline-none focus:border-brand"
                   placeholder="0.00" />
