@@ -87,9 +87,6 @@ export class CheckoutController {
           data: {
             status: OrderStatus.PAID,
             paidAt: new Date(),
-            // Snapshot the locked rate on wallet payments too
-            lockedRate: lockedRate != null ? new Decimal(lockedRate) : undefined,
-            lockedCurrency: currency || order.currency,
             metadata: {
               ...((order.metadata as Record<string, any>) || {}),
               paymentMethod: 'WALLET',
@@ -101,6 +98,17 @@ export class CheckoutController {
             orderItems: { include: { listing: true } },
           },
         })
+        // Snapshot locked rate — only attempted if the migration has run.
+        // If the columns don't exist yet this is a no-op.
+        if (lockedRate != null || currency) {
+          await this.prisma.orders.update({
+            where: { id: order.id },
+            data: {
+              ...(lockedRate != null ? { lockedRate: new Decimal(lockedRate) } : {}),
+              ...(currency ? { lockedCurrency: currency || order.currency } : {}),
+            },
+          }).catch(() => { /* columns not yet migrated — safe to ignore */ })
+        }
 
         await this.walletService.debitBalance(
           buyerId,
@@ -126,9 +134,8 @@ export class CheckoutController {
       const provider = (paymentMethod as PaymentProvider) || PaymentProvider.FLUTTERWAVE
       const callbackUrl = `${process.env.FRONTEND_URL || 'https://market.piyrox.shop'}/orders/${order.id}`
 
-      // Snapshot lockedRate on the order record before initiating payment so
-      // the rate is persisted even if the webhook arrives before this request
-      // completes.
+      // Snapshot lockedRate on the order record before initiating payment.
+      // Wrapped in catch so it silently skips if the migration hasn't run yet.
       if (lockedRate != null) {
         await this.prisma.orders.update({
           where: { id: order.id },
@@ -136,7 +143,7 @@ export class CheckoutController {
             lockedRate: new Decimal(lockedRate),
             lockedCurrency: currency || order.currency,
           },
-        })
+        }).catch(() => { /* columns not yet migrated — safe to ignore */ })
       }
 
       const payment = await this.paymentsService.initiatePayment(

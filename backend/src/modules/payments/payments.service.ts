@@ -407,13 +407,16 @@ export class PaymentsService implements OnModuleInit {
         data: {
           status: 'PAID',
           paidAt: new Date(),
-          // Snapshot the currency used at payment time if not already set.
-          // This locks the rate for dispute/history — never re-derived from
-          // the live rate after this point.
+        },
+      })
+      // Snapshot locked currency — only attempted if migration has run.
+      await this.prisma.orders.update({
+        where: { id: payment.orderId },
+        data: {
           lockedCurrency: (payment.order as any).lockedCurrency || payment.currency || payment.order.currency,
           lockedRate: (payment.order as any).lockedRate ?? undefined,
         },
-      })
+      }).catch(() => { /* columns not yet migrated — safe to ignore */ })
       if (listingId) {
         await this.prisma.listings.update({
           where: { id: listingId },

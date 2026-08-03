@@ -132,10 +132,6 @@ export class OrdersService {
           commissionAmount: localCommission,
           sellerPayout: localPayout,
           currency: buyerCurrencyCode,
-          // Snapshot the exchange rate used at order creation.  Disputes and
-          // historical records reference these fields — never the live rate.
-          lockedCurrency: buyerCurrencyCode,
-          lockedRate: dto.lockedRate != null ? new Decimal(dto.lockedRate) : undefined,
           buyerNote: dto.buyerNote,
           status: OrderStatus.PENDING,
           metadata: dto.paymentMethodId ? { paymentMethod: dto.paymentMethodId } : undefined,

@@ -17,7 +17,13 @@ const FRONTEND = process.env.FRONTEND_URL || 'https://market.piyrox.shop'
  */
 function orderAmount(order: any, field: 'totalAmount' | 'sellerPayout' | 'commissionAmount' = 'totalAmount'): string {
   const amount = Number(order?.[field] ?? 0)
-  const currency: string = (order?.lockedCurrency || order?.currency || 'USD').toUpperCase()
+  // Prefer the locked currency (set at payment time). If the migration hasn't
+  // run yet the field won't exist — fall back to order.currency then USD.
+  const currency: string = (
+    order?.lockedCurrency ||
+    order?.currency ||
+    'USD'
+  ).toUpperCase()
   try {
     const isZeroDecimal = ['UGX', 'RWF', 'XOF', 'XAF'].includes(currency)
     return new Intl.NumberFormat('en-US', {
