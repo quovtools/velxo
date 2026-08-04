@@ -30,10 +30,13 @@ export class PaymentsController {
   ) {
     try {
       const callbackUrl = `${process.env.FRONTEND_URL || 'https://app.piyrox.shop'}/orders/${orderId}`
+      const result = await this.paymentsService.initiatePayment(
+        orderId,
         new Decimal(amount),
         provider,
         callbackUrl,
         userId,
+        currency,
       )
       return ApiResponseDto.ok(result, 'Payment initiated')
     } catch (error) {
