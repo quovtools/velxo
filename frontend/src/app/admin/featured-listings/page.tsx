@@ -157,62 +157,65 @@ export default function AdminFeaturedListingsPage() {
         <EmptyState icon={Flame} title="No listings found" />
       ) : (
         <Table headers={['Listing', 'Game', 'Price', 'Seller', 'Featured', 'Method', 'Actions']}>
-          {items.map(l => (
-            <Tr key={l.id}>
-              <Td>
-                <div className="flex items-center gap-2.5">
-                  {l.images?.[0]
-                    ? <img src={l.images[0]} alt="" className="w-9 h-9 rounded-lg object-cover flex-shrink-0" />
-                    : <div className="w-9 h-9 rounded-lg bg-white/5 flex-shrink-0 flex items-center justify-center text-gray-600">
-                        <Flame className="w-4 h-4" />
-                      </div>
-                  }
-                  <div className="min-w-0">
-                    <p className="text-sm font-medium text-white truncate max-w-[180px]">{l.title}</p>
-                    <p className="text-[10px] text-gray-500 mt-0.5">{formatDate(l.createdAt)}</p>
+          {items.map((l) => {
+            const rating = l.seller?.averageRating
+            return (
+              <Tr key={l.id}>
+                <Td>
+                  <div className="flex items-center gap-2.5">
+                    {l.images?.[0]
+                      ? <img src={l.images[0]} alt="" className="w-9 h-9 rounded-lg object-cover flex-shrink-0" />
+                      : <div className="w-9 h-9 rounded-lg bg-white/5 flex-shrink-0 flex items-center justify-center text-gray-600">
+                          <Flame className="w-4 h-4" />
+                        </div>
+                    }
+                    <div className="min-w-0">
+                      <p className="text-sm font-medium text-white truncate max-w-[180px]">{l.title}</p>
+                      <p className="text-[10px] text-gray-500 mt-0.5">{formatDate(l.createdAt)}</p>
+                    </div>
                   </div>
-                </div>
-              </Td>
-              <Td><span className="text-xs">{l.gameName}</span></Td>
-              <Td><span className="text-white text-sm font-medium">{formatMoney(l.price, l.currency)}</span></Td>
-              <Td>
-                <p className="text-xs text-gray-300 truncate max-w-[120px]">{l.seller?.storeName || '—'}</p>
-                {l.seller?.averageRating > 0 && (
-                  <p className="text-[10px] text-yellow-400 mt-0.5">★ {l.seller.averageRating.toFixed(1)}</p>
-                )}
-              </Td>
-              <Td>
-                {l.isFeatured
-                  ? <Badge color="orange">
-                      <Star className="w-2.5 h-2.5 mr-0.5 inline" /> Featured
-                    </Badge>
-                  : <Badge color="gray">—</Badge>
-                }
-              </Td>
-              <Td>
-                {l.isFeatured
-                  ? <Badge color={l.featuredByAlgo ? 'violet' : 'green'}>
-                      {l.featuredByAlgo ? 'Algorithm' : 'Manual'}
-                    </Badge>
-                  : <span className="text-gray-600 text-xs">—</span>
-                }
-                {l.featuredAt && <p className="text-[10px] text-gray-600 mt-0.5">{formatDate(l.featuredAt)}</p>}
-              </Td>
-              <Td right>
-                <ActionButton
-                  variant={l.isFeatured ? 'warning' : 'default'}
-                  loading={busy === l.id}
-                  onClick={() => toggleFeatured(l.id, l.isFeatured)}
-                  title={l.isFeatured ? 'Remove from featured' : 'Add to featured'}
-                >
+                </Td>
+                <Td><span className="text-xs">{l.gameName}</span></Td>
+                <Td><span className="text-white text-sm font-medium">{formatMoney(l.price, l.currency)}</span></Td>
+                <Td>
+                  <p className="text-xs text-gray-300 truncate max-w-[120px]">{l.seller?.storeName || '—'}</p>
+                  {rating && rating > 0 && (
+                    <p className="text-[10px] text-yellow-400 mt-0.5">★ {rating.toFixed(1)}</p>
+                  )}
+                </Td>
+                <Td>
                   {l.isFeatured
-                    ? <><StarOff className="w-3 h-3" /> Unfeature</>
-                    : <><Star className="w-3 h-3" /> Feature</>
+                    ? <Badge color="orange">
+                        <Star className="w-2.5 h-2.5 mr-0.5 inline" /> Featured
+                      </Badge>
+                    : <Badge color="gray">—</Badge>
                   }
-                </ActionButton>
-              </Td>
-            </Tr>
-          ))}
+                </Td>
+                <Td>
+                  {l.isFeatured
+                    ? <Badge color={l.featuredByAlgo ? 'violet' : 'green'}>
+                        {l.featuredByAlgo ? 'Algorithm' : 'Manual'}
+                      </Badge>
+                    : <span className="text-gray-600 text-xs">—</span>
+                  }
+                  {l.featuredAt && <p className="text-[10px] text-gray-600 mt-0.5">{formatDate(l.featuredAt)}</p>}
+                </Td>
+                <Td right>
+                  <ActionButton
+                    variant={l.isFeatured ? 'warning' : 'default'}
+                    loading={busy === l.id}
+                    onClick={() => toggleFeatured(l.id, l.isFeatured)}
+                    title={l.isFeatured ? 'Remove from featured' : 'Add to featured'}
+                  >
+                    {l.isFeatured
+                      ? <><StarOff className="w-3 h-3" /> Unfeature</>
+                      : <><Star className="w-3 h-3" /> Feature</>
+                    }
+                  </ActionButton>
+                </Td>
+              </Tr>
+            )
+          })}
         </Table>
       )}
 

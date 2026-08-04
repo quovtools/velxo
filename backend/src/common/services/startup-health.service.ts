@@ -138,8 +138,8 @@ export class StartupHealthService implements OnModuleInit {
     try {
       const { BrevoClient } = await import('@getbrevo/brevo')
       const brevo = new BrevoClient({ apiKey })
-      const { data } = await brevo.account.getAccount()
-      const company = (data as any)?.companyName || 'account verified'
+      const account = await brevo.account.getAccount()
+      const company = (account as any)?.companyName || 'account verified'
       return { name: 'brevo', label: 'Brevo (Email Primary)', ok: true, detail: company, ms: Date.now() - t }
     } catch (err: any) {
       return { name: 'brevo', label: 'Brevo (Email Primary)', ok: false, detail: err?.message, ms: Date.now() - t }
