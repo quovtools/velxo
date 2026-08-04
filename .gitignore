@@ -19,13 +19,24 @@ out/
 
 # Environment variables
 .env
+.env.*
 .env.local
+.env.*.local
 .env.development
-.env.production
 .env.development.local
-.env.test.local
+.env.production
 .env.production.local
+env.*
 env.txt
+*.env
+**/.env
+**/.env.local
+**/.env.*
+**/env.*
+**/env.txt
+backend/.env*
+frontend/.env*
+landing/.env*
 
 # Logs
 npm-debug.log*
