@@ -1,6 +1,6 @@
 'use client';
 
-import React, { useState, useEffect, useCallback, Suspense } from 'react';
+import React, { useState, useEffect, useCallback, useRef, Suspense } from 'react';
 import Link from 'next/link';
 import Image from 'next/image';
 import { useSearchParams } from 'next/navigation';
@@ -8,7 +8,8 @@ import {
   Search, SlidersHorizontal, Gamepad2, Flame, PlusCircle,
   ShieldCheck, X, Zap, Lock, Check, ArrowRight, Award, Clock,
   MessageSquarePlus, DollarSign, MapPin, ChevronDown, ChevronUp,
-  TrendingUp, Star, Layers, Send,
+  TrendingUp, Star, Layers, Send, AlertTriangle, BadgeCheck,
+  ChevronLeft, ChevronRight, Tag, Timer, Shield, Flag,
 } from 'lucide-react';
 import GameSlideshow from '@/components/GameSlideshow';
 import GameIcon from '@/components/GameIcon';
@@ -229,102 +230,310 @@ function GameBannerCards({ onSelectGame, banners }: {
   );
 }
 
+/* ─────────────────── Anti-External Contact Banner ──────────────────── */
+function ExternalContactWarningBanner() {
+  return (
+    <div className="flex items-start gap-3 bg-amber-500/10 border border-amber-500/30 rounded-xl px-4 py-3">
+      <AlertTriangle className="w-4 h-4 text-amber-400 flex-shrink-0 mt-0.5" />
+      <p className="text-xs text-amber-300 leading-relaxed">
+        <span className="font-bold">All transactions must be completed through PIYROX.</span>{' '}
+        External deals are not protected and may result in account suspension.
+        Sharing phone numbers, emails, Discord, Telegram handles, or URLs is strictly prohibited.
+      </p>
+    </div>
+  );
+}
+
+/* ─────────────────── Client-side content filter ─────────────────────── */
+const EXTERNAL_PATTERNS = [
+  { label: 'phone number',        re: /(\+?\d[\d\s\-().]{6,}\d)/g },
+  { label: 'email address',       re: /[a-zA-Z0-9._%+\-]+\s*@\s*[a-zA-Z0-9.\-]+\s*\.\s*[a-zA-Z]{2,}/g },
+  { label: 'Discord tag',         re: /\b\w{2,32}#\d{4}\b|discord\.gg\/\S+/gi },
+  { label: 'Telegram handle',     re: /@[a-zA-Z0-9_]{4,}|t\.me\/\S+|telegram\.me\/\S+/gi },
+  { label: 'WhatsApp contact',    re: /whatsapp|wa\.me\/\S+/gi },
+  { label: 'external URL',        re: /https?:\/\/[^\s]+|www\.[a-zA-Z0-9\-]+\.[a-zA-Z]{2,}/gi },
+  { label: 'social media handle', re: /\b(instagram|insta|ig|facebook|fb|twitter|snapchat|snap|tiktok)\s*[:/]?\s*@?\s*\w{3,}/gi },
+];
+function detectViolations(text: string): string[] {
+  return EXTERNAL_PATTERNS.filter(({ re }) => { re.lastIndex = 0; return re.test(text); })
+    .map(({ label }) => label);
+}
+
+/* ─────────────────── Item type / delivery / verification constants ──── */
+const ITEM_TYPES = [
+  { value: 'ACCOUNT',  label: 'Game Account',     icon: Gamepad2 },
+  { value: 'CURRENCY', label: 'In-Game Currency',  icon: DollarSign },
+  { value: 'BOOSTING', label: 'Boosting / Rank',   icon: TrendingUp },
+  { value: 'ITEM',     label: 'Item / Skin',        icon: Tag },
+  { value: 'OTHER',    label: 'Other',              icon: Layers },
+];
+const DELIVERY_OPTIONS = [
+  { value: 'WITHIN_1_HOUR',   label: 'Within 1 hour' },
+  { value: 'WITHIN_24_HOURS', label: 'Within 24 hours' },
+  { value: 'WITHIN_3_DAYS',   label: 'Within 3 days' },
+  { value: 'WITHIN_7_DAYS',   label: 'Within 7 days' },
+  { value: 'FLEXIBLE',        label: 'Flexible' },
+];
+const VERIFICATION_LEVELS = [
+  { value: 'NONE',           label: 'Any seller' },
+  { value: 'PHONE',          label: 'Phone verified' },
+  { value: 'ID',             label: 'ID verified' },
+  { value: 'FULLY_VERIFIED', label: 'Fully verified' },
+];
+
 /* ─────────────────── Buyer Request Post Form ────────────────────────── */
 function PostRequestModal({ onClose, onSuccess }: { onClose: () => void; onSuccess: () => void }) {
   const { user } = useAuth();
+  const token = typeof window !== 'undefined' ? localStorage.getItem('piyrox_token') : null;
+  const [step, setStep] = useState(1);
   const [form, setForm] = useState({
     gameName: GAME_LIST[0]?.name ?? '',
+    itemType: 'ACCOUNT',
     title: '',
     description: '',
-    budget: '',
+    budgetMin: '',
+    budgetMax: '',
+    currency: 'NGN',
     region: '',
     platform: '',
     rank: '',
+    deliveryTimeframe: 'FLEXIBLE',
+    requiredVerificationLevel: 'NONE',
   });
   const [submitting, setSubmitting] = useState(false);
   const [error, setError] = useState('');
+  const [violations, setViolations] = useState<string[]>([]);
 
-  const token = typeof window !== 'undefined' ? localStorage.getItem('piyrox_token') : null;
+  useEffect(() => {
+    setViolations(detectViolations(`${form.title} ${form.description}`));
+  }, [form.title, form.description]);
 
-  const handleSubmit = async (e: React.FormEvent) => {
-    e.preventDefault();
-    if (!form.title.trim() || !form.description.trim()) { setError('Title and description are required.'); return; }
+  const descLen = form.description.trim().length;
+  const descValid = descLen >= 50 && descLen <= 500;
+  const set = (field: string, value: string) => setForm(f => ({ ...f, [field]: value }));
+
+  const handleSubmit = async () => {
+    if (!descValid) { setError('Description must be 50–500 characters.'); return; }
     setSubmitting(true); setError('');
     try {
       const res = await fetch(`${API_BASE}/buyer-requests`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json', ...(token ? { Authorization: `Bearer ${token}` } : {}) },
         body: JSON.stringify({
-          ...form,
+          gameName: form.gameName,
           gameSlug: GAME_LIST.find(g => g.name === form.gameName)?.slug,
-          budget: form.budget ? parseFloat(form.budget) : undefined,
+          title: form.title, description: form.description,
+          itemType: form.itemType,
+          budgetMin: form.budgetMin ? parseFloat(form.budgetMin) : undefined,
+          budgetMax: form.budgetMax ? parseFloat(form.budgetMax) : undefined,
+          currency: form.currency, region: form.region || undefined,
+          platform: form.platform || undefined, rank: form.rank || undefined,
+          deliveryTimeframe: form.deliveryTimeframe,
+          requiredVerificationLevel: form.requiredVerificationLevel,
         }),
       });
-      if (!res.ok) { const d = await res.json(); throw new Error(d.message || 'Failed'); }
+      const d = await res.json();
+      if (!res.ok) throw new Error(d.message || 'Failed to post request');
       onSuccess();
     } catch (e: any) { setError(e.message || 'Failed to post request'); }
     finally { setSubmitting(false); }
   };
 
+  const STEP_LABELS = ['Type & Game', 'Details & Budget', 'Review'];
+
   return (
     <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/70 backdrop-blur-sm" onClick={e => { if (e.target === e.currentTarget) onClose(); }}>
-      <div className="bg-cardBg border border-borderBg rounded-2xl p-6 w-full max-w-lg space-y-4 shadow-2xl">
-        <div className="flex items-center justify-between">
+      <div className="bg-cardBg border border-borderBg rounded-2xl w-full max-w-lg shadow-2xl overflow-hidden">
+        {/* Header */}
+        <div className="flex items-center justify-between px-6 pt-5 pb-4 border-b border-borderBg">
           <h2 className="text-base font-extrabold text-white flex items-center gap-2">
             <MessageSquarePlus className="w-5 h-5 text-brand" /> Post a Buying Request
           </h2>
           <button onClick={onClose} className="text-gray-500 hover:text-white transition"><X className="w-5 h-5" /></button>
         </div>
-        <p className="text-xs text-gray-400">Sellers will see your request and can message you directly with offers.</p>
-        {error && <div className="bg-red-900/30 border border-red-500/40 text-red-300 text-xs px-3 py-2 rounded-xl">{error}</div>}
-        <form onSubmit={handleSubmit} className="space-y-3">
-          <div className="grid grid-cols-2 gap-3">
-            <div>
-              <label className="block text-xs font-semibold text-gray-400 mb-1">Game</label>
-              <select value={form.gameName} onChange={e => setForm(f => ({ ...f, gameName: e.target.value }))}
-                className="w-full bg-background border border-borderBg rounded-xl px-3 py-2.5 text-sm text-white focus:outline-none focus:border-brand transition">
-                {GAME_LIST.map(g => <option key={g.slug} value={g.name}>{g.name}</option>)}
-              </select>
+        {/* Step tabs */}
+        <div className="flex border-b border-borderBg">
+          {STEP_LABELS.map((label, i) => (
+            <button key={label} onClick={() => i + 1 < step && setStep(i + 1)}
+              className={`flex-1 py-2.5 text-[11px] font-semibold transition border-b-2 ${step === i + 1 ? 'border-brand text-brand' : step > i + 1 ? 'border-emerald-500/50 text-emerald-400 cursor-pointer' : 'border-transparent text-gray-600 cursor-default'}`}>
+              <span className="mr-1">{i + 1}.</span>{label}
+            </button>
+          ))}
+        </div>
+        <div className="p-6 space-y-4 max-h-[68vh] overflow-y-auto">
+          <ExternalContactWarningBanner />
+          {error && (
+            <div className="bg-red-900/30 border border-red-500/40 text-red-300 text-xs px-3 py-2 rounded-xl flex items-start gap-2">
+              <AlertTriangle className="w-3.5 h-3.5 flex-shrink-0 mt-0.5" /> {error}
             </div>
-            <div>
-              <label className="block text-xs font-semibold text-gray-400 mb-1">Budget (optional)</label>
-              <div className="relative">
-                <DollarSign className="absolute left-3 top-1/2 -translate-y-1/2 w-3.5 h-3.5 text-gray-500" />
-                <input type="number" min="0" placeholder="0.00" value={form.budget}
-                  onChange={e => setForm(f => ({ ...f, budget: e.target.value }))}
-                  className="w-full bg-background border border-borderBg rounded-xl pl-8 pr-3 py-2.5 text-sm text-white focus:outline-none focus:border-brand transition" />
+          )}
+          {violations.length > 0 && (
+            <div className="bg-red-900/20 border border-red-500/30 text-red-300 text-xs px-3 py-2 rounded-xl flex items-start gap-2">
+              <Flag className="w-3.5 h-3.5 flex-shrink-0 mt-0.5" />
+              External contact detected ({violations.join(', ')}). Remove it or your request will be flagged and you may be suspended.
+            </div>
+          )}
+          {/* Step 1: Type + Game */}
+          {step === 1 && (
+            <div className="space-y-4">
+              <div>
+                <label className="block text-xs font-semibold text-gray-400 mb-2 uppercase tracking-wide">What are you looking for? *</label>
+                <div className="grid grid-cols-2 sm:grid-cols-3 gap-2">
+                  {ITEM_TYPES.map(({ value, label, icon: Icon }) => (
+                    <button key={value} type="button" onClick={() => set('itemType', value)}
+                      className={`flex items-center gap-2 p-3 rounded-xl border text-left text-xs font-semibold transition ${form.itemType === value ? 'bg-brand/10 border-brand text-white' : 'bg-background border-borderBg text-gray-400 hover:border-brand/30 hover:text-white'}`}>
+                      <Icon className={`w-4 h-4 flex-shrink-0 ${form.itemType === value ? 'text-brand' : 'text-gray-500'}`} />
+                      {label}
+                    </button>
+                  ))}
+                </div>
+              </div>
+              <div>
+                <label className="block text-xs font-semibold text-gray-400 mb-1.5 uppercase tracking-wide">Game *</label>
+                <select value={form.gameName} onChange={e => set('gameName', e.target.value)}
+                  className="w-full bg-background border border-borderBg rounded-xl px-3 py-2.5 text-sm text-white focus:outline-none focus:border-brand transition">
+                  {GAME_LIST.map(g => <option key={g.slug} value={g.name}>{g.name}</option>)}
+                </select>
+              </div>
+              <div className="grid grid-cols-2 gap-3">
+                <div>
+                  <label className="block text-xs font-semibold text-gray-400 mb-1.5">Platform</label>
+                  <select value={form.platform} onChange={e => set('platform', e.target.value)}
+                    className="w-full bg-background border border-borderBg rounded-xl px-3 py-2.5 text-sm text-white focus:outline-none focus:border-brand transition">
+                    <option value="">Any</option>
+                    {['Android','iOS','PC','PlayStation','Xbox'].map(p => <option key={p}>{p}</option>)}
+                  </select>
+                </div>
+                <div>
+                  <label className="block text-xs font-semibold text-gray-400 mb-1.5">Region</label>
+                  <select value={form.region} onChange={e => set('region', e.target.value)}
+                    className="w-full bg-background border border-borderBg rounded-xl px-3 py-2.5 text-sm text-white focus:outline-none focus:border-brand transition">
+                    <option value="">Any</option>
+                    {['Africa','Europe','North America','Asia','Middle East','Global'].map(r => <option key={r}>{r}</option>)}
+                  </select>
+                </div>
               </div>
             </div>
-          </div>
-          <div>
-            <label className="block text-xs font-semibold text-gray-400 mb-1">Title *</label>
-            <input required maxLength={120} placeholder="e.g. Looking for Diamond rank Free Fire account"
-              value={form.title} onChange={e => setForm(f => ({ ...f, title: e.target.value }))}
-              className="w-full bg-background border border-borderBg rounded-xl px-3 py-2.5 text-sm text-white focus:outline-none focus:border-brand transition" />
-          </div>
-          <div>
-            <label className="block text-xs font-semibold text-gray-400 mb-1">Description *</label>
-            <textarea required rows={3} maxLength={500} placeholder="Describe exactly what you're looking for..."
-              value={form.description} onChange={e => setForm(f => ({ ...f, description: e.target.value }))}
-              className="w-full bg-background border border-borderBg rounded-xl px-3 py-2.5 text-sm text-white focus:outline-none focus:border-brand transition resize-none" />
-          </div>
-          <div className="grid grid-cols-3 gap-3">
-            {[['region','Region','Africa'], ['platform','Platform','Android'], ['rank','Rank (optional)','Diamond']].map(([key, label, ph]) => (
-              <div key={key}>
-                <label className="block text-xs font-semibold text-gray-400 mb-1">{label}</label>
-                <input placeholder={ph} value={(form as any)[key]} onChange={e => setForm(f => ({ ...f, [key]: e.target.value }))}
+          )}
+          {/* Step 2: Details + Budget */}
+          {step === 2 && (
+            <div className="space-y-4">
+              <div>
+                <label className="block text-xs font-semibold text-gray-400 mb-1.5 uppercase tracking-wide">Title *</label>
+                <input maxLength={120} placeholder="e.g. Looking for Diamond rank Free Fire account"
+                  value={form.title} onChange={e => set('title', e.target.value)}
                   className="w-full bg-background border border-borderBg rounded-xl px-3 py-2.5 text-sm text-white focus:outline-none focus:border-brand transition" />
+                <p className="text-[10px] text-gray-600 mt-1">{form.title.length}/120</p>
               </div>
-            ))}
-          </div>
-          <div className="flex gap-3 pt-1">
-            <button type="submit" disabled={submitting}
+              <div>
+                <label className="block text-xs font-semibold text-gray-400 mb-1.5 uppercase tracking-wide">
+                  Description * <span className="text-gray-600 normal-case">(50–500 chars)</span>
+                </label>
+                <textarea rows={4} maxLength={500}
+                  placeholder="Describe what you need. Do NOT include phone numbers, emails, Discord, Telegram, or any external links."
+                  value={form.description} onChange={e => set('description', e.target.value)}
+                  className={`w-full bg-background border rounded-xl px-3 py-2.5 text-sm text-white focus:outline-none transition resize-none ${form.description && !descValid ? 'border-red-500/60 focus:border-red-500' : 'border-borderBg focus:border-brand'}`} />
+                <p className={`text-[10px] mt-1 ${descLen < 50 ? 'text-amber-400' : descLen > 500 ? 'text-red-400' : 'text-emerald-400'}`}>
+                  {descLen}/500{descLen < 50 ? ` (${50 - descLen} more needed)` : ''}
+                </p>
+              </div>
+              <div>
+                <label className="block text-xs font-semibold text-gray-400 mb-1.5 uppercase tracking-wide">Budget Range</label>
+                <div className="flex gap-2 items-center">
+                  <div className="relative flex-1">
+                    <DollarSign className="absolute left-3 top-1/2 -translate-y-1/2 w-3.5 h-3.5 text-gray-500" />
+                    <input type="number" min="0" placeholder="Min" value={form.budgetMin} onChange={e => set('budgetMin', e.target.value)}
+                      className="w-full bg-background border border-borderBg rounded-xl pl-8 pr-3 py-2.5 text-sm text-white focus:outline-none focus:border-brand transition" />
+                  </div>
+                  <span className="text-gray-600 text-xs">to</span>
+                  <div className="relative flex-1">
+                    <DollarSign className="absolute left-3 top-1/2 -translate-y-1/2 w-3.5 h-3.5 text-gray-500" />
+                    <input type="number" min="0" placeholder="Max" value={form.budgetMax} onChange={e => set('budgetMax', e.target.value)}
+                      className="w-full bg-background border border-borderBg rounded-xl pl-8 pr-3 py-2.5 text-sm text-white focus:outline-none focus:border-brand transition" />
+                  </div>
+                  <select value={form.currency} onChange={e => set('currency', e.target.value)}
+                    className="bg-background border border-borderBg rounded-xl px-2 py-2.5 text-sm text-white focus:outline-none focus:border-brand w-20">
+                    {['NGN','USD','GHS','KES','ZAR'].map(c => <option key={c}>{c}</option>)}
+                  </select>
+                </div>
+              </div>
+              <div className="grid grid-cols-2 gap-3">
+                <div>
+                  <label className="block text-xs font-semibold text-gray-400 mb-1.5 flex items-center gap-1"><Timer className="w-3 h-3" /> Delivery Timeframe</label>
+                  <select value={form.deliveryTimeframe} onChange={e => set('deliveryTimeframe', e.target.value)}
+                    className="w-full bg-background border border-borderBg rounded-xl px-3 py-2.5 text-sm text-white focus:outline-none focus:border-brand transition">
+                    {DELIVERY_OPTIONS.map(o => <option key={o.value} value={o.value}>{o.label}</option>)}
+                  </select>
+                </div>
+                <div>
+                  <label className="block text-xs font-semibold text-gray-400 mb-1.5 flex items-center gap-1"><Shield className="w-3 h-3" /> Seller Verification</label>
+                  <select value={form.requiredVerificationLevel} onChange={e => set('requiredVerificationLevel', e.target.value)}
+                    className="w-full bg-background border border-borderBg rounded-xl px-3 py-2.5 text-sm text-white focus:outline-none focus:border-brand transition">
+                    {VERIFICATION_LEVELS.map(o => <option key={o.value} value={o.value}>{o.label}</option>)}
+                  </select>
+                </div>
+              </div>
+              {form.itemType === 'BOOSTING' && (
+                <div>
+                  <label className="block text-xs font-semibold text-gray-400 mb-1.5">Target Rank (optional)</label>
+                  <input placeholder="e.g. Diamond, Heroic" value={form.rank} onChange={e => set('rank', e.target.value)}
+                    className="w-full bg-background border border-borderBg rounded-xl px-3 py-2.5 text-sm text-white focus:outline-none focus:border-brand transition" />
+                </div>
+              )}
+            </div>
+          )}
+          {/* Step 3: Review */}
+          {step === 3 && (
+            <div className="space-y-3">
+              <p className="text-xs text-gray-400">Review your request before posting. Matching sellers will be notified.</p>
+              <div className="bg-background border border-borderBg rounded-xl p-4 space-y-2">
+                {([['Game', form.gameName], ['Type', ITEM_TYPES.find(t => t.value === form.itemType)?.label],
+                  ['Title', form.title], ['Budget', form.budgetMin || form.budgetMax ? `${form.budgetMin || '0'} – ${form.budgetMax || '∞'} ${form.currency}` : 'Not specified'],
+                  ['Delivery', DELIVERY_OPTIONS.find(o => o.value === form.deliveryTimeframe)?.label],
+                  ['Verification', VERIFICATION_LEVELS.find(v => v.value === form.requiredVerificationLevel)?.label],
+                  ...(form.region ? [['Region', form.region]] : []),
+                  ...(form.platform ? [['Platform', form.platform]] : []),
+                ] as [string, string][]).map(([label, val]) => (
+                  <div key={label} className="flex justify-between gap-2">
+                    <span className="text-gray-500 text-xs">{label}</span>
+                    <span className="text-white text-xs font-medium text-right">{val}</span>
+                  </div>
+                ))}
+              </div>
+              <div className="bg-background border border-borderBg rounded-xl p-3">
+                <p className="text-[10px] text-gray-500 font-semibold uppercase mb-1">Description</p>
+                <p className="text-xs text-gray-300 leading-relaxed">{form.description}</p>
+              </div>
+            </div>
+          )}
+        </div>
+        {/* Footer */}
+        <div className="flex gap-3 px-6 py-4 border-t border-borderBg">
+          {step > 1 && (
+            <button type="button" onClick={() => setStep(s => s - 1)}
+              className="flex items-center gap-1.5 px-4 py-2.5 text-sm text-gray-400 hover:text-white border border-borderBg hover:border-brand/30 rounded-xl transition">
+              <ChevronLeft className="w-4 h-4" /> Back
+            </button>
+          )}
+          {step < 3 && (
+            <button type="button" className="flex-1 flex items-center justify-center gap-1.5 bg-brand hover:bg-brand-dark text-white text-sm font-bold py-2.5 rounded-xl transition"
+              onClick={() => {
+                if (step === 2 && (!form.title.trim() || !descValid)) { setError(!form.title.trim() ? 'Title is required.' : 'Description must be 50–500 characters.'); return; }
+                setError(''); setStep(s => s + 1);
+              }}>
+              Continue <ChevronRight className="w-4 h-4" />
+            </button>
+          )}
+          {step === 3 && (
+            <button type="button" disabled={submitting || !descValid} onClick={handleSubmit}
               className="flex-1 flex items-center justify-center gap-2 bg-brand hover:bg-brand-dark text-white text-sm font-bold py-2.5 rounded-xl transition disabled:opacity-50">
               <Send className="w-4 h-4" />{submitting ? 'Posting…' : 'Post Request'}
             </button>
-            <button type="button" onClick={onClose} className="px-4 py-2.5 text-sm text-gray-400 hover:text-white transition rounded-xl">Cancel</button>
-          </div>
-        </form>
+          )}
+          {step === 1 && (
+            <button type="button" onClick={onClose} className="px-4 py-2.5 text-sm text-gray-400 hover:text-white transition">Cancel</button>
+          )}
+        </div>
       </div>
     </div>
   );
@@ -365,6 +574,9 @@ function BuyerRequestsSection({ onPostClick }: { onPostClick: () => void }) {
           <PlusCircle className="w-3.5 h-3.5" /> Post Request
         </button>
       </div>
+
+      {/* Platform protection notice */}
+      <ExternalContactWarningBanner />
 
       {loading ? (
         <div className="space-y-2">
@@ -421,12 +633,117 @@ function BuyerRequestsSection({ onPostClick }: { onPostClick: () => void }) {
 }
 
 /* ─────────────────── Featured Listings Section ──────────────────────── */
+function StarRating({ rating }: { rating: number }) {
+  return (
+    <span className="flex items-center gap-0.5">
+      {[1,2,3,4,5].map(i => (
+        <Star key={i} className={`w-2.5 h-2.5 ${i <= Math.round(rating) ? 'text-yellow-400 fill-yellow-400' : 'text-gray-600'}`} />
+      ))}
+      <span className="text-[9px] text-gray-400 ml-0.5">{rating > 0 ? rating.toFixed(1) : 'New'}</span>
+    </span>
+  );
+}
+
+function FeaturedListingCard({ item, banner }: { item: Listing; banner?: GameBanner }) {
+  const { fmt } = useCurrency();
+  const accentColor = banner?.color ?? '#8b5cf6';
+  const isVerified = item.seller?.isVerified;
+  const sellerLevel = (item.seller as any)?.sellerLevel as string | undefined;
+  const levelColors: Record<string, string> = { BRONZE: 'text-amber-600', SILVER: 'text-gray-300', GOLD: 'text-yellow-400', ELITE: 'text-purple-400' };
+
+  return (
+    <Link href={`/listings/${item.id}`}
+      className="group bg-cardBg border border-borderBg hover:border-brand/50 rounded-2xl overflow-hidden flex flex-col transition-all duration-300 hover:shadow-xl hover:shadow-brand/10 hover:-translate-y-1">
+      {/* Image */}
+      <div className="relative h-40 overflow-hidden" style={{ background: `linear-gradient(135deg, ${accentColor}33, var(--color-background))` }}>
+        {banner?.bannerUrl ? (
+          <Image src={banner.bannerUrl} alt={item.gameName} fill sizes="(max-width:640px) 100vw, 25vw"
+            className="object-cover group-hover:scale-105 transition-transform duration-500" loading="lazy" unoptimized />
+        ) : (
+          <div className="absolute inset-0 flex items-center justify-center">
+            <GameIcon game={item.gameSlug ?? item.gameName.toLowerCase().replace(/\s+/g,'-')} className="w-14 h-14 opacity-50" />
+          </div>
+        )}
+        <div className="absolute inset-0 bg-gradient-to-t from-black/80 via-black/20 to-transparent pointer-events-none" />
+        {/* Featured badge */}
+        <span className="absolute top-2.5 left-2.5 flex items-center gap-1 text-[10px] font-bold text-white bg-gradient-to-r from-orange-500 to-amber-500 px-2 py-0.5 rounded-full shadow">
+          <Flame className="w-3 h-3" /> Featured
+        </span>
+        {item.rank && (
+          <span className="absolute bottom-2.5 left-2.5 text-[10px] font-semibold text-white/90 bg-black/50 px-2 py-0.5 rounded-full backdrop-blur-sm">
+            {item.rank}
+          </span>
+        )}
+        {item.platform && (
+          <span className="absolute bottom-2.5 right-2.5 text-[10px] text-white/70 bg-black/40 px-1.5 py-0.5 rounded backdrop-blur-sm">
+            {item.platform}
+          </span>
+        )}
+      </div>
+      {/* Body */}
+      <div className="p-3.5 flex-1 flex flex-col gap-2">
+        {/* Game tag + item type */}
+        <div className="flex items-center gap-1.5 flex-wrap">
+          <span className="text-[10px] font-bold px-2 py-0.5 rounded border uppercase tracking-wide"
+            style={{ color: accentColor, background: `${accentColor}1a`, borderColor: `${accentColor}33` }}>
+            {item.gameName}
+          </span>
+        </div>
+        {/* Title */}
+        <h3 className="text-sm font-bold text-white line-clamp-2 leading-snug group-hover:text-brand transition">
+          {item.title}
+        </h3>
+        {/* Seller info */}
+        <div className="flex items-center justify-between mt-auto pt-1">
+          <div className="min-w-0">
+            <p className="text-[10px] text-gray-400 truncate flex items-center gap-1">
+              {isVerified && <BadgeCheck className="w-3 h-3 text-emerald-400 flex-shrink-0" />}
+              <span className="truncate">{item.seller?.storeName || 'Seller'}</span>
+              {sellerLevel && <span className={`text-[9px] font-bold ml-1 ${levelColors[sellerLevel] ?? ''}`}>{sellerLevel}</span>}
+            </p>
+            <StarRating rating={item.seller?.averageRating ?? 0} />
+          </div>
+        </div>
+        {/* Price row */}
+        <div className="flex items-center justify-between border-t border-borderBg pt-2.5 mt-1">
+          <span className="text-lg font-black text-white">{fmt(item.price)}</span>
+          <span className="flex items-center gap-1 bg-gradient-to-r from-brand to-brand-dark px-3 py-1.5 rounded-xl text-[11px] font-bold text-white shadow-sm shadow-brand/20">
+            View Details <ArrowRight className="w-3 h-3" />
+          </span>
+        </div>
+        {/* Trust badge */}
+        {isVerified && (
+          <div className="flex items-center gap-1.5 bg-emerald-500/8 border border-emerald-500/20 rounded-lg px-2.5 py-1.5">
+            <ShieldCheck className="w-3 h-3 text-emerald-400 flex-shrink-0" />
+            <span className="text-[10px] text-emerald-400 font-semibold">Verified Seller · Buyer Protected</span>
+          </div>
+        )}
+      </div>
+    </Link>
+  );
+}
+
+function FeaturedListingCardSkeleton() {
+  return (
+    <div className="bg-cardBg border border-borderBg rounded-2xl overflow-hidden animate-pulse">
+      <div className="h-40 bg-gray-800/50" />
+      <div className="p-3.5 space-y-2.5">
+        <div className="h-3 bg-gray-700 rounded w-1/3" />
+        <div className="h-4 bg-gray-700 rounded w-4/5" />
+        <div className="h-4 bg-gray-700 rounded w-3/5" />
+        <div className="h-8 bg-gray-700 rounded-xl mt-3" />
+      </div>
+    </div>
+  );
+}
+
 function FeaturedListingsSection({ banners }: { banners: Record<string, GameBanner> }) {
   const [items, setItems] = useState<Listing[]>([]);
   const [loading, setLoading] = useState(true);
+  const [carouselIdx, setCarouselIdx] = useState(0);
 
   useEffect(() => {
-    fetch(`${API_BASE}/listings/featured?limit=12`)
+    fetch(`${API_BASE}/listings/featured?limit=8`)
       .then(r => r.ok ? r.json() : { data: [] })
       .then(d => setItems(d.data || []))
       .catch(() => setItems([]))
@@ -435,22 +752,70 @@ function FeaturedListingsSection({ banners }: { banners: Record<string, GameBann
 
   if (!loading && items.length === 0) return null;
 
+  // Mobile carousel helpers
+  const mobileItems = items.slice(carouselIdx, carouselIdx + 1);
+
   return (
-    <div className="space-y-3">
+    <div className="space-y-4">
       <div className="flex items-center justify-between">
         <h2 className="text-base font-bold text-white flex items-center gap-2">
           <Flame className="w-4 h-4 text-orange-400" /> Featured Listings
         </h2>
-        <Link href="/?featured=true" className="text-xs font-medium text-brand hover:text-brand-light flex items-center gap-1 transition">
-          View All <ArrowRight className="w-3 h-3" />
-        </Link>
+        <div className="flex items-center gap-2">
+          {/* Mobile carousel controls */}
+          {items.length > 1 && (
+            <div className="flex items-center gap-1 sm:hidden">
+              <button onClick={() => setCarouselIdx(i => Math.max(0, i - 1))} disabled={carouselIdx === 0}
+                className="w-7 h-7 flex items-center justify-center rounded-lg bg-cardBg border border-borderBg text-gray-400 hover:text-white disabled:opacity-30 transition">
+                <ChevronLeft className="w-4 h-4" />
+              </button>
+              <span className="text-[10px] text-gray-500">{carouselIdx + 1}/{items.length}</span>
+              <button onClick={() => setCarouselIdx(i => Math.min(items.length - 1, i + 1))} disabled={carouselIdx >= items.length - 1}
+                className="w-7 h-7 flex items-center justify-center rounded-lg bg-cardBg border border-borderBg text-gray-400 hover:text-white disabled:opacity-30 transition">
+                <ChevronRight className="w-4 h-4" />
+              </button>
+            </div>
+          )}
+          <Link href="/?featured=true" className="text-xs font-medium text-brand hover:text-brand-light flex items-center gap-1 transition">
+            View All <ArrowRight className="w-3 h-3" />
+          </Link>
+        </div>
       </div>
-      <HorizontalScroll>
+
+      {/* Mobile: horizontal scroll carousel */}
+      <div className="sm:hidden">
+        {loading ? (
+          <FeaturedListingCardSkeleton />
+        ) : (
+          <div className="overflow-x-auto scrollbar-none">
+            <div className="flex gap-3" style={{ width: `${items.length * 280}px` }}>
+              {items.map(item => (
+                <div key={item.id} style={{ width: 268 }} className="flex-shrink-0">
+                  <FeaturedListingCard item={item} banner={banners[item.gameName]} />
+                </div>
+              ))}
+            </div>
+          </div>
+        )}
+      </div>
+
+      {/* Tablet: 2-column grid */}
+      <div className="hidden sm:grid md:hidden grid-cols-2 gap-4">
         {loading
-          ? Array.from({ length: 6 }).map((_, i) => <SkeletonCard key={i} />)
-          : items.map(item => <ListingCardH key={item.id} item={item} banner={banners[item.gameName]} />)
-        }
-      </HorizontalScroll>
+          ? Array.from({ length: 4 }).map((_, i) => <FeaturedListingCardSkeleton key={i} />)
+          : items.slice(0, 4).map(item => (
+            <FeaturedListingCard key={item.id} item={item} banner={banners[item.gameName]} />
+          ))}
+      </div>
+
+      {/* Desktop: 4-column grid */}
+      <div className="hidden md:grid grid-cols-4 gap-4">
+        {loading
+          ? Array.from({ length: 4 }).map((_, i) => <FeaturedListingCardSkeleton key={i} />)
+          : items.slice(0, 8).map(item => (
+            <FeaturedListingCard key={item.id} item={item} banner={banners[item.gameName]} />
+          ))}
+      </div>
     </div>
   );
 }
@@ -812,6 +1177,9 @@ function MarketplaceContent() {
         </div>
       )}
 
+      {/* ── Featured Listings — above fold, below hero ── */}
+      {!hasFilters && !activeGame && <FeaturedListingsSection banners={banners} />}
+
       {/* ── Game tab bar ── */}
       <GameTabBar activeGame={activeGame} onSelect={setActiveGame} banners={banners} />
 
@@ -829,9 +1197,6 @@ function MarketplaceContent() {
         icon={<Flame className="w-4 h-4 text-orange-400" />}
         banners={banners}
       />
-
-      {/* ── Featured Listings ── */}
-      {!hasFilters && <FeaturedListingsSection banners={banners} />}
 
       {/* ── Buyer Requests ── */}
       {!hasFilters && <BuyerRequestsSection key={requestKey} onPostClick={handlePostRequest} />}

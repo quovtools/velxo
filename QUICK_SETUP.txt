@@ -16,8 +16,8 @@ GOOGLE_CLIENT_ID=your-google-client-id-here
 GOOGLE_CLIENT_SECRET=your-google-client-secret-here
 GOOGLE_REDIRECT_URI=http://localhost:3001/api/v1/auth/google/callback
 
-# Resend Email (Required for email verification & password reset)
-RESEND_API_KEY=re_123456789_your-resend-api-key-here
+# Brevo Email (Required for email verification & password reset)
+BREVO_API_KEY=xkeysib_your-brevo-api-key-here
 EMAIL_FROM=noreply@piyrox.shop
 
 # Frontend URL
@@ -85,25 +85,24 @@ IMPORTANT: Google OAuth Setup
 6. Copy Client ID and Secret to .env.development
 
 --------------------------------------------------------------------------------
-IMPORTANT: Resend Email Setup
---------------------------------------------------------------------------------
+IMPORTANT: Brevo Email Setup
+------------------------------------------------------------------------------
 
-1. Sign up at https://resend.com
-2. Get your API key from dashboard
-3. Verify your sender email (e.g., noreply@yourdomain.com)
-4. Add the API key to .env.development
+1. Sign up at https://www.brevo.com/
+2. Get your API key from dashboard → SMTP & API → API Keys
+3. Add the API key to .env.development
 
---------------------------------------------------------------------------------
+------------------------------------------------------------------------------
 TROUBLESHOOTING
---------------------------------------------------------------------------------
+------------------------------------------------------------------------------
 
 Google Auth not working?
 → Check GOOGLE_CLIENT_ID and GOOGLE_CLIENT_SECRET are set correctly
 → Verify redirect URIs in Google Cloud Console match exactly
 
 Emails not sending?
-→ Verify RESEND_API_KEY is correct
-→ Check email domain is verified in Resend
+→ Verify BREVO_API_KEY is correct
+→ Check sender email is verified in Brevo
 
 Database connection failed?
 → Verify DATABASE_URL in .env.development

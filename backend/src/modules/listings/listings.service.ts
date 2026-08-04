@@ -282,17 +282,36 @@ export class ListingsService {
   }
 
   async getFeaturedListings(limit: number = 10) {
+    const parsedLimit = typeof limit === 'string' ? parseInt(limit as any, 10) : limit
+    const take = Number.isFinite(parsedLimit) && parsedLimit > 0 ? parsedLimit : 10
+
     return this.prisma.listings.findMany({
       where: {
         status: ListingStatus.ACTIVE,
         isFeatured: true,
+        isSold: false,
       },
-      take: limit,
+      take,
       include: {
-        seller: { include: { user: true } },
+        seller: {
+          select: {
+            id: true,
+            storeName: true,
+            averageRating: true,
+            isVerified: true,
+            kycStatus: true,
+            sellerLevel: true,
+            deliverySuccessRate: true,
+            totalSales: true,
+          },
+        },
         category: true,
+        listingReviews: {
+          select: { rating: true },
+          take: 5,
+        },
       },
-      orderBy: { createdAt: 'desc' },
+      orderBy: [{ featuredAt: 'desc' }, { createdAt: 'desc' }],
     })
   }
 

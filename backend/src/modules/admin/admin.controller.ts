@@ -1459,4 +1459,130 @@ export class AdminController {
       throw error
     }
   }
+
+  // ─────────────────────────────────────────────────────────────────────────
+  // BUYER REQUESTS — admin
+  // ─────────────────────────────────────────────────────────────────────────
+
+  @Get('buyer-requests/flagged')
+  @UseGuards(AdminPasswordGuard)
+  async adminGetFlaggedRequests(
+    @Query('limit') limit?: string,
+    @Query('offset') offset?: string,
+    @Query('status') status?: string,
+  ) {
+    try {
+      const result = await this.adminService.adminListFlaggedRequests({
+        limit: limit ? parseInt(limit) : 25,
+        offset: offset ? parseInt(offset) : 0,
+        status,
+      })
+      return ApiResponseDto.ok(result, 'Flagged buyer requests retrieved')
+    } catch (error) {
+      this.logger.error('Error fetching flagged buyer requests:', error)
+      throw error
+    }
+  }
+
+  @Patch('buyer-requests/:id/review')
+  @UseGuards(AdminPasswordGuard)
+  async adminReviewBuyerRequest(
+    @Param('id') requestId: string,
+    @CurrentUserId() adminId: string,
+    @Body('action') action: 'CLEAR' | 'CONFIRM_VIOLATION' | 'DELETE',
+  ) {
+    try {
+      const result = await this.adminService.adminReviewBuyerRequest(requestId, adminId ?? 'admin-console', action)
+      return ApiResponseDto.ok(result, 'Buyer request reviewed')
+    } catch (error) {
+      this.logger.error('Error reviewing buyer request:', error)
+      throw error
+    }
+  }
+
+  @Patch('users/:id/reset-strikes')
+  @UseGuards(AdminPasswordGuard)
+  async resetUserStrikes(
+    @Param('id') userId: string,
+    @CurrentUserId() adminId: string,
+  ) {
+    try {
+      const user = await this.adminService.adminResetUserStrikes(userId, adminId ?? 'admin-console')
+      return ApiResponseDto.ok(user, 'User strikes reset and account reinstated')
+    } catch (error) {
+      this.logger.error('Error resetting user strikes:', error)
+      throw error
+    }
+  }
+
+  // ─────────────────────────────────────────────────────────────────────────
+  // FEATURED LISTINGS — admin controls
+  // ─────────────────────────────────────────────────────────────────────────
+
+  @Get('featured-listings')
+  @UseGuards(AdminPasswordGuard)
+  async adminGetFeaturedListings(
+    @Query('page') page?: string,
+    @Query('limit') limit?: string,
+    @Query('search') search?: string,
+    @Query('game') game?: string,
+    @Query('featuredOnly') featuredOnly?: string,
+  ) {
+    try {
+      const result = await this.adminService.adminListFeaturedListings({
+        page: page ? parseInt(page) : 1,
+        limit: limit ? parseInt(limit) : 25,
+        search,
+        game,
+        featuredOnly: featuredOnly === 'true',
+      })
+      return ApiResponseDto.ok(result.items, 'Featured listings retrieved', {
+        total: result.total,
+        page: result.page,
+        limit: result.limit,
+        totalPages: result.totalPages,
+      })
+    } catch (error) {
+      this.logger.error('Error fetching featured listings admin:', error)
+      throw error
+    }
+  }
+
+  @Patch('featured-listings/:id/toggle')
+  @UseGuards(AdminPasswordGuard)
+  async adminToggleListingFeatured(
+    @Param('id') listingId: string,
+    @CurrentUserId() adminId: string,
+    @Body('featured') featured: boolean,
+  ) {
+    try {
+      const listing = await this.adminService.adminSetListingFeatured(
+        listingId,
+        featured,
+        adminId ?? 'admin-console',
+      )
+      return ApiResponseDto.ok(listing, `Listing ${featured ? 'featured' : 'unfeatured'}`)
+    } catch (error) {
+      this.logger.error('Error toggling listing featured:', error)
+      throw error
+    }
+  }
+
+  @Post('featured-listings/run-algo')
+  @UseGuards(AdminPasswordGuard)
+  async runAlgorithmicFeaturedSelection(
+    @CurrentUserId() adminId: string,
+    @Body('limit') limit?: number,
+  ) {
+    try {
+      const result = await this.adminService.runAlgorithmicFeaturedSelection(
+        limit ?? 8,
+        adminId ?? 'admin-console',
+      )
+      return ApiResponseDto.ok(result, `Algo selection complete: ${result.selected} listings featured`)
+    } catch (error) {
+      this.logger.error('Error running algo featured selection:', error)
+      throw error
+    }
+  }
 }

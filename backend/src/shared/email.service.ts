@@ -1,22 +1,22 @@
 import { Injectable, Logger } from '@nestjs/common';
-import { Resend } from 'resend';
+import { BrevoClient } from '@getbrevo/brevo';
 import { Bavimail } from 'bavimail';
 
 @Injectable()
 export class EmailService {
-  private readonly resend: Resend | null;
+  private readonly brevo: BrevoClient | null;
   private readonly bavimail: Bavimail | null;
   private readonly bavimailAliasId: string | null;
   private readonly fromEmail: string;
   private readonly logger = new Logger(EmailService.name);
 
   constructor() {
-    // ── Resend (primary) ────────────────────────────────────────────────────
-    const resendKey = process.env.RESEND_API_KEY;
-    if (!resendKey) {
-      this.logger.warn('RESEND_API_KEY not set — Resend disabled, will use Bavimail fallback if configured.');
+    // ── Brevo (primary) ───────────────────────────────────────────────────────
+    const brevoKey = process.env.BREVO_API_KEY;
+    if (!brevoKey) {
+      this.logger.warn('BREVO_API_KEY not set — Brevo disabled, will use Bavimail fallback if configured.');
     }
-    this.resend = resendKey ? new Resend(resendKey) : null;
+    this.brevo = brevoKey ? new BrevoClient({ apiKey: brevoKey }) : null;
 
     // ── Bavimail (fallback) ──────────────────────────────────────────────────
     // Required env vars:
@@ -40,31 +40,26 @@ export class EmailService {
   }
 
   isConfigured(): boolean {
-    return this.resend !== null || this.bavimail !== null;
+    return this.brevo !== null || this.bavimail !== null;
   }
 
-  // ── Core send — tries Resend first, falls back to Bavimail on any failure ─
+  // ── Core send — tries Brevo first, falls back to Bavimail on any failure ─
   async sendEmail(to: string, subject: string, html: string): Promise<{ success: boolean; messageId?: string; provider?: string; error?: string }> {
-    // 1. Try Resend
-    if (this.resend) {
+    // 1. Try Brevo
+    if (this.brevo) {
       try {
-        const { data, error } = await this.resend.emails.send({
-          from: this.fromEmail,
-          to,
+        const result = await this.brevo.transactionalEmails.sendTransacEmail({
+          sender: { name: process.env.EMAIL_SENDER_NAME || 'Piyrox', email: process.env.EMAIL_FROM || 'noreply@piyrox.shop' },
+          to: [{ email: to }],
           subject,
-          html,
+          htmlContent: html,
         });
 
-        if (!error) {
-          this.logger.log(`[Resend] Email sent to ${to}: "${subject}" (ID: ${data?.id})`);
-          return { success: true, messageId: data?.id, provider: 'resend' };
-        }
-
-        // Resend returned an API-level error — fall through to Bavimail
-        this.logger.warn(`[Resend] API error for "${subject}" to ${to}: ${error.message} — trying Bavimail fallback`);
+        this.logger.log(`[Brevo] Email sent to ${to}: "${subject}" (ID: ${result.messageId})`);
+        return { success: true, messageId: result.messageId, provider: 'brevo' };
       } catch (err: any) {
         // Network / rate-limit / unexpected error — fall through to Bavimail
-        this.logger.warn(`[Resend] Exception for "${subject}" to ${to}: ${err?.message} — trying Bavimail fallback`);
+        this.logger.warn(`[Brevo] Exception for "${subject}" to ${to}: ${err?.message} — trying Bavimail fallback`);
       }
     }
 
@@ -87,7 +82,7 @@ export class EmailService {
 
     // Neither provider configured
     this.logger.error(`[EMAIL NOT SENT] No provider available. Would have sent "${subject}" to ${to}`);
-    return { success: false, error: 'No email provider configured (set RESEND_API_KEY and/or BAVIMAIL_API_KEY + BAVIMAIL_ALIAS_ID).' };
+    return { success: false, error: 'No email provider configured (set BREVO_API_KEY and/or BAVIMAIL_API_KEY + BAVIMAIL_ALIAS_ID).' };
   }
 
   // Email Templates

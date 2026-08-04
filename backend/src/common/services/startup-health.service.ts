@@ -26,7 +26,7 @@ export class StartupHealthService implements OnModuleInit {
       this.checkDatabase(),
       this.checkNeonDB(),
       this.checkCloudinary(),
-      this.checkResend(),
+      this.checkBrevo(),
       this.checkBavimail(),
       this.checkFlutterwave(),
       this.checkPaymentIo(),
@@ -127,24 +127,22 @@ export class StartupHealthService implements OnModuleInit {
     }
   }
 
-  // ── 4. Resend — verify API key + live domains list ───────────────────────
-  private async checkResend(): Promise<CheckResult> {
-    const apiKey = process.env.RESEND_API_KEY
+  // ── 4. Brevo — verify API key + account info ────────────────────────────────
+  private async checkBrevo(): Promise<CheckResult> {
+    const apiKey = process.env.BREVO_API_KEY
     if (!apiKey) {
-      return { name: 'resend', label: 'Resend (Email Primary)', ok: false, detail: 'RESEND_API_KEY not set' }
+      return { name: 'brevo', label: 'Brevo (Email Primary)', ok: false, detail: 'BREVO_API_KEY not set' }
     }
 
     const t = Date.now()
     try {
-      const { Resend } = await import('resend')
-      const resend = new Resend(apiKey)
-      // Lightweight authenticated call — list domains
-      const { data, error } = await resend.domains.list()
-      if (error) throw new Error(error.message)
-      const count = (data as any)?.data?.length ?? 0
-      return { name: 'resend', label: 'Resend (Email Primary)', ok: true, detail: `${count} domain(s) verified`, ms: Date.now() - t }
+      const { BrevoClient } = await import('@getbrevo/brevo')
+      const brevo = new BrevoClient({ apiKey })
+      const { data } = await brevo.account.getAccount()
+      const company = (data as any)?.companyName || 'account verified'
+      return { name: 'brevo', label: 'Brevo (Email Primary)', ok: true, detail: company, ms: Date.now() - t }
     } catch (err: any) {
-      return { name: 'resend', label: 'Resend (Email Primary)', ok: false, detail: err?.message, ms: Date.now() - t }
+      return { name: 'brevo', label: 'Brevo (Email Primary)', ok: false, detail: err?.message, ms: Date.now() - t }
     }
   }
 

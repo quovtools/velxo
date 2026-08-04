@@ -54,7 +54,7 @@
     "react-dom": "18.2.0",
     "reflect-metadata": "0.1.14",
     "bavimail": "latest",
-    "resend": "4.0.0",
+    "@getbrevo/brevo": "latest",
     "rxjs": "7.8.1",
     "ws": "8.16.0"
   },

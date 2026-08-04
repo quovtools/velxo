@@ -8,7 +8,7 @@ import {
   LogOut, Menu, X, Megaphone, UserCheck, Users, Store, ShoppingBag,
   CreditCard, LifeBuoy, FolderTree, Gamepad2, FileText, History, Package,
   Upload, Crown, MessageSquareMore, ScrollText, ChevronRight, ChevronDown,
-  Bell, Globe, TrendingUp, Slash,
+  Bell, Globe, TrendingUp, Slash, Flame,
 } from 'lucide-react';
 import { api } from '@/lib/api';
 import { Spinner } from '@/components/admin/ui';
@@ -28,12 +28,14 @@ const NAV = [
     label: 'Marketplace',
     items: [
       { href: '/admin/moderation',         label: 'Moderation',   icon: Eye },
-      { href: '/admin/listings',           label: 'Listings',     icon: ShoppingBag },
-      { href: '/admin/listings-manager',   label: 'Bulk Manager', icon: Package },
-      { href: '/admin/bulk-image-manager', label: 'Bulk Images',  icon: Upload },
-      { href: '/admin/orders',             label: 'Orders',       icon: CreditCard },
-      { href: '/admin/disputes',           label: 'Disputes',     icon: Scale },
-      { href: '/admin/categories',         label: 'Categories',   icon: FolderTree },
+      { href: '/admin/listings',            label: 'Listings',          icon: ShoppingBag },
+      { href: '/admin/featured-listings',  label: 'Featured Listings', icon: Flame },
+      { href: '/admin/buyer-requests',     label: 'Buyer Requests',    icon: MessageSquareMore },
+      { href: '/admin/listings-manager',   label: 'Bulk Manager',      icon: Package },
+      { href: '/admin/bulk-image-manager', label: 'Bulk Images',       icon: Upload },
+      { href: '/admin/orders',             label: 'Orders',             icon: CreditCard },
+      { href: '/admin/disputes',           label: 'Disputes',           icon: Scale },
+      { href: '/admin/categories',         label: 'Categories',         icon: FolderTree },
     ],
   },
   {

@@ -1607,4 +1607,267 @@ export class AdminService {
       pagination: { page, limit, total, totalPages: Math.ceil(total / limit) },
     }
   }
+
+  // ─────────────────────────────────────────────────────────────────────────
+  // BUYER REQUESTS — admin management
+  // ─────────────────────────────────────────────────────────────────────────
+
+  /** List all flagged buyer requests for manual review */
+  async adminListFlaggedRequests(opts: { limit?: number; offset?: number; status?: string }) {
+    const where: any = {}
+    if (opts.status) {
+      where.status = opts.status
+    } else {
+      where.status = { in: ['FLAGGED', 'AUTO_SUSPENDED'] }
+    }
+
+    const limit = opts.limit ?? 25
+    const offset = opts.offset ?? 0
+
+    const [items, total] = await Promise.all([
+      this.prisma.buyerRequests.findMany({
+        where,
+        orderBy: { flaggedAt: 'desc' },
+        take: limit,
+        skip: offset,
+        include: {
+          buyer: {
+            select: {
+              id: true,
+              email: true,
+              firstName: true,
+              lastName: true,
+              isBanned: true,
+              externalContactStrikes: true,
+            },
+          },
+        },
+      }),
+      this.prisma.buyerRequests.count({ where }),
+    ])
+
+    return { items, total, limit, offset }
+  }
+
+  /** Admin clears flag (false positive) or confirms violation */
+  async adminReviewBuyerRequest(
+    requestId: string,
+    adminId: string,
+    action: 'CLEAR' | 'CONFIRM_VIOLATION' | 'DELETE',
+  ) {
+    const req = await this.prisma.buyerRequests.findUnique({
+      where: { id: requestId },
+      include: { buyer: { select: { id: true, externalContactStrikes: true } } },
+    })
+    if (!req) throw new Error('Request not found')
+
+    if (action === 'DELETE') {
+      await this.prisma.buyerRequests.delete({ where: { id: requestId } })
+      await this.createAuditLog(adminId, AuditAction.DELETE, 'BuyerRequest', requestId, { reason: 'admin_delete' })
+      return { deleted: true }
+    }
+
+    if (action === 'CLEAR') {
+      const updated = await this.prisma.buyerRequests.update({
+        where: { id: requestId },
+        data: {
+          isFlagged: false,
+          flagReason: null,
+          reviewedByAdminAt: new Date(),
+          reviewedByAdminId: adminId,
+          status: 'OPEN' as any,
+        },
+      })
+      await this.createAuditLog(adminId, AuditAction.STATUS_CHANGE, 'BuyerRequest', requestId, { action: 'CLEAR_FLAG' })
+      return updated
+    }
+
+    // CONFIRM_VIOLATION — increment buyer strikes, potentially ban
+    const buyer = req.buyer
+    const newStrikes = (buyer.externalContactStrikes ?? 0) + 1
+    const shouldBan = newStrikes >= 3
+
+    await this.prisma.users.update({
+      where: { id: buyer.id },
+      data: {
+        externalContactStrikes: newStrikes,
+        ...(shouldBan ? { isBanned: true, banReason: 'Suspended: 3 confirmed external contact violations.' } : {}),
+      },
+    })
+
+    const updated = await this.prisma.buyerRequests.update({
+      where: { id: requestId },
+      data: {
+        reviewedByAdminAt: new Date(),
+        reviewedByAdminId: adminId,
+        status: shouldBan ? ('AUTO_SUSPENDED' as any) : ('FLAGGED' as any),
+      },
+    })
+
+    await this.createAuditLog(adminId, AuditAction.STATUS_CHANGE, 'BuyerRequest', requestId, {
+      action: 'CONFIRM_VIOLATION',
+      strikes: newStrikes,
+      userBanned: shouldBan,
+    })
+
+    return { ...updated, userBanned: shouldBan, newStrikes }
+  }
+
+  /** Admin resets a user's external-contact strikes and unban if auto-suspended */
+  async adminResetUserStrikes(userId: string, adminId: string) {
+    const user = await this.prisma.users.update({
+      where: { id: userId },
+      data: { externalContactStrikes: 0, isBanned: false, banReason: null },
+    })
+    await this.createAuditLog(adminId, AuditAction.STATUS_CHANGE, 'User', userId, {
+      action: 'RESET_STRIKES',
+    })
+    return user
+  }
+
+  // ─────────────────────────────────────────────────────────────────────────
+  // FEATURED LISTINGS — admin controls + algorithmic rotation
+  // ─────────────────────────────────────────────────────────────────────────
+
+  /** Paginated list of all listings with featured management columns */
+  async adminListFeaturedListings(opts: {
+    page?: number
+    limit?: number
+    search?: string
+    game?: string
+    featuredOnly?: boolean
+  }) {
+    const page = opts.page ?? 1
+    const limit = opts.limit ?? 25
+    const offset = (page - 1) * limit
+
+    const where: any = { status: 'ACTIVE' }
+    if (opts.featuredOnly) where.isFeatured = true
+    if (opts.search) {
+      where.OR = [
+        { title: { contains: opts.search, mode: 'insensitive' } },
+        { gameName: { contains: opts.search, mode: 'insensitive' } },
+      ]
+    }
+    if (opts.game) where.gameName = { contains: opts.game, mode: 'insensitive' }
+
+    const [items, total] = await Promise.all([
+      this.prisma.listings.findMany({
+        where,
+        orderBy: [{ isFeatured: 'desc' }, { createdAt: 'desc' }],
+        take: limit,
+        skip: offset,
+        include: {
+          seller: {
+            select: { id: true, storeName: true, averageRating: true, isVerified: true },
+          },
+        },
+      }),
+      this.prisma.listings.count({ where }),
+    ])
+
+    return { items, total, page, limit, totalPages: Math.ceil(total / limit) }
+  }
+
+  /** Manually toggle featured status on a single listing */
+  async adminSetListingFeatured(listingId: string, featured: boolean, adminId: string) {
+    const listing = await this.prisma.listings.update({
+      where: { id: listingId },
+      data: {
+        isFeatured: featured,
+        featuredAt: featured ? new Date() : null,
+        featuredByAlgo: false, // manual override always clears algo flag
+      },
+    })
+
+    await this.createAuditLog(adminId, AuditAction.UPDATE, 'Listing', listingId, {
+      isFeatured: featured,
+      method: 'manual',
+    })
+
+    return listing
+  }
+
+  /**
+   * Algorithmic featured selection.
+   * Selects the top N ACTIVE listings based on:
+   *   - seller average rating (40%)
+   *   - delivery success rate (20%)
+   *   - recent sales (20%)
+   *   - competitive pricing vs. game median (20%)
+   * Clears previously algo-featured listings, then sets the new selection.
+   */
+  async runAlgorithmicFeaturedSelection(limit: number = 8, adminId: string) {
+    this.logger.log(`Running algorithmic featured selection (top ${limit})`)
+
+    // Fetch candidate listings — ACTIVE, not suspended, not sold
+    const candidates = await this.prisma.listings.findMany({
+      where: { status: 'ACTIVE', isSold: false },
+      include: {
+        seller: {
+          select: {
+            averageRating: true,
+            deliverySuccessRate: true,
+          },
+        },
+      },
+    })
+
+    if (candidates.length === 0) return { selected: 0, cleared: 0 }
+
+    // Compute per-game median prices for competitiveness score
+    const pricesByGame: Record<string, number[]> = {}
+    candidates.forEach((l) => {
+      if (!pricesByGame[l.gameName]) pricesByGame[l.gameName] = []
+      pricesByGame[l.gameName].push(Number(l.price))
+    })
+    const medianByGame: Record<string, number> = {}
+    Object.entries(pricesByGame).forEach(([game, prices]) => {
+      const sorted = [...prices].sort((a, b) => a - b)
+      medianByGame[game] = sorted[Math.floor(sorted.length / 2)]
+    })
+
+    // Score each listing
+    const scored = candidates.map((l) => {
+      const rating = (l.seller as any)?.averageRating ?? 0
+      const deliveryRate = (l.seller as any)?.deliverySuccessRate ?? 100
+      const sales = l.salesCount ?? 0
+      const median = medianByGame[l.gameName] ?? Number(l.price)
+      const priceRatio = median > 0 ? Number(l.price) / median : 1
+      // Lower price ratio = more competitive (score 0-1, lower is better)
+      const priceScore = Math.max(0, 1 - Math.abs(priceRatio - 0.85))
+
+      const score =
+        (rating / 5) * 40 +
+        (deliveryRate / 100) * 20 +
+        Math.min(sales / 50, 1) * 20 +
+        priceScore * 20
+
+      return { id: l.id, score }
+    })
+
+    scored.sort((a, b) => b.score - a.score)
+    const selectedIds = scored.slice(0, limit).map((s) => s.id)
+
+    // Clear previously algo-featured listings
+    const cleared = await this.prisma.listings.updateMany({
+      where: { featuredByAlgo: true },
+      data: { isFeatured: false, featuredByAlgo: false },
+    })
+
+    // Set new algo-featured listings
+    await this.prisma.listings.updateMany({
+      where: { id: { in: selectedIds } },
+      data: { isFeatured: true, featuredByAlgo: true, featuredAt: new Date() },
+    })
+
+    await this.createAuditLog(adminId, AuditAction.UPDATE, 'FeaturedListings', 'batch', {
+      action: 'algo_rotation',
+      selected: selectedIds.length,
+      cleared: cleared.count,
+    })
+
+    this.logger.log(`Algo selection: set ${selectedIds.length} featured, cleared ${cleared.count} old`)
+    return { selected: selectedIds.length, cleared: cleared.count, ids: selectedIds }
+  }
 }

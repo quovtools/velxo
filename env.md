@@ -58,11 +58,11 @@ This document covers all environment variables for the Piyrox stack. Variables m
 
 ## Backend — Email
 
-Email uses **Resend as primary** and **Bavimail as automatic fallback**. If Resend returns an error or throws (rate limit, network issue, etc.), the send is retried immediately via Bavimail. At least one provider must be configured.
+Email uses **Brevo as primary** and **Bavimail as automatic fallback**. If Brevo returns an error or throws (rate limit, network issue, etc.), the send is retried immediately via Bavimail. At least one provider must be configured.
 
 | Variable | Scope | Description |
 |----------|-------|-------------|
-| `RESEND_API_KEY` | Server | Resend API key — primary transactional email provider |
+| `BREVO_API_KEY` | Server | Brevo API key — primary transactional email provider |
 | `EMAIL_FROM` | Server | Sender address (e.g. `noreply@piyrox.shop`) |
 | `BAVIMAIL_API_KEY` | Server | Bavimail API key — fallback provider |
 | `BAVIMAIL_ALIAS_ID` | Server | Bavimail sending alias ID for `noreply@piyrox.shop` (from dashboard → Aliases) |
@@ -111,7 +111,7 @@ fly secrets set \
   DIRECT_URL="postgresql://neondb_owner:[password]@[direct-host].neon.tech/neondb?sslmode=require" \
   FRONTEND_URL="https://app.piyrox.shop" \
   API_URL="https://app.piyrox.shop" \
-  RESEND_API_KEY="re_..." \
+  BREVO_API_KEY="xkeysib-..." \
   EMAIL_FROM="noreply@piyrox.shop" \
   BAVIMAIL_API_KEY="your-bavimail-api-key" \
   BAVIMAIL_ALIAS_ID="your-bavimail-alias-id" \
