@@ -648,6 +648,9 @@ export class SellersService {
         listings: {
           where: { status: 'ACTIVE' },
           orderBy: { isFeatured: 'desc' },
+          // FIX: Added pagination limit — previously fetched ALL listings with no
+          // bound, causing slow queries and high memory for prolific sellers.
+          take: 20,
           include: { category: true },
         },
       },

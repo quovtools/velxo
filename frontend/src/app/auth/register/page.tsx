@@ -12,6 +12,7 @@ import {
   Gamepad2, ShoppingCart, Users, ChevronRight
 } from 'lucide-react';
 
+// API_BASE is used only for the Google OAuth redirect in step 1.
 const API_BASE = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:3001/api/v1';
 
 const ACCOUNT_TYPES = [

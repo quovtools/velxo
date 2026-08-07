@@ -123,7 +123,7 @@ export class OrdersService {
 
       const newOrder = await tx.orders.create({
         data: {
-          orderNumber: `ORD-${Date.now()}-${Math.random().toString(36).substr(2, 9).toUpperCase()}`,
+          orderNumber: `ORD-${Date.now()}-${require('crypto').randomBytes(5).toString('hex').toUpperCase()}`,
           buyerId,
           sellerId,
           subtotal: localSubtotal,
@@ -250,7 +250,7 @@ export class OrdersService {
     const order = await this.prisma.$transaction(async (tx) => {
       const newOrder = await tx.orders.create({
         data: {
-          orderNumber: `ORD-${Date.now()}-${Math.random().toString(36).substr(2, 9).toUpperCase()}`,
+          orderNumber: `ORD-${Date.now()}-${require('crypto').randomBytes(5).toString('hex').toUpperCase()}`,
           buyerId,
           sellerId: dto.sellerId,
           subtotal,
@@ -472,8 +472,15 @@ export class OrdersService {
         }).catch(() => {}) // non-fatal if listing no longer exists
       }
 
-      // Remove the dangling escrow row so it does not block future orders.
-      await tx.escrowTransactions.deleteMany({ where: { orderId } }).catch(() => {})
+      // FIX: Mark escrow REFUNDED rather than deleting it.
+      // Deleting the row while a payment webhook is in-flight creates a race
+      // condition where the webhook arrives after cancellation and finds no
+      // escrow row to update, causing a Prisma FK error. Marking REFUNDED is
+      // safe and idempotent — the webhook handler checks order.status first.
+      await tx.escrowTransactions.updateMany({
+        where: { orderId, status: { notIn: ['REFUNDED', 'RELEASED'] } },
+        data: { status: 'REFUNDED', refundedAt: new Date() },
+      }).catch(() => {})
 
       return updated
     })
@@ -728,6 +735,17 @@ export class OrdersService {
     // Notify both parties that the order is complete and funds were released.
     await this.notifications.notifyCompleted(updatedOrder).catch(() => {})
 
+    // FIX F4: Refresh seller stats (level, rating, delivery rate) after every
+    // order completion so badges and commission tiers stay accurate. Non-fatal.
+    const sellerRecord = await this.prisma.sellers.findUnique({
+      where: { id: updatedOrder.sellerId },
+    }).catch(() => null)
+    if (sellerRecord) {
+      this.updateSellerStatsById(sellerRecord.id).catch((e: any) =>
+        this.logger.error('Seller stats refresh failed (non-fatal):', e),
+      )
+    }
+
     return updatedOrder
   }
 
@@ -911,6 +929,17 @@ export class OrdersService {
     const updatedOrder = await this.releaseOrderEscrow(order)
     await this.creditOrderBonuses(order, updatedOrder)
     await this.notifications.notifyCompleted(updatedOrder).catch(() => {})
+
+    // FIX F4: Refresh seller stats after order completion.
+    const sellerRecord = await this.prisma.sellers.findUnique({
+      where: { id: updatedOrder.sellerId },
+    }).catch(() => null)
+    if (sellerRecord) {
+      this.updateSellerStatsById(sellerRecord.id).catch((e: any) =>
+        this.logger.error('Seller stats refresh (confirmRelease) failed (non-fatal):', e),
+      )
+    }
+
     return updatedOrder
   }
 
@@ -1004,6 +1033,58 @@ export class OrdersService {
       escrow: order.escrow,
       commissions: order.commissions,
     }
+  }
+
+  /**
+   * Recomputes and persists seller stats (level, rating, delivery rate) in-process.
+   * Extracted here to avoid adding a SellersService dependency to OrdersService.
+   * Non-fatal — always call with .catch().
+   */
+  private async updateSellerStatsById(sellerId: string) {
+    const seller = await this.prisma.sellers.findUnique({ where: { id: sellerId } })
+    if (!seller) return
+
+    const completedOrders = await this.prisma.orders.findMany({
+      where: { sellerId, status: 'COMPLETED' },
+    })
+    const totalSales = completedOrders.length
+    const totalRevenue = completedOrders.reduce(
+      (sum: any, o: any) => sum.plus(o.totalAmount),
+      new Decimal(0),
+    )
+
+    const allReviews = await this.prisma.reviews.findMany({ where: { sellerId } })
+    const avgRating =
+      allReviews.length > 0
+        ? allReviews.reduce((sum: number, r: any) => sum + r.rating, 0) / allReviews.length
+        : 0
+
+    const acceptedOrders = await this.prisma.orders.count({
+      where: { sellerId, acceptedAt: { not: null } },
+    })
+    const deliverySuccessRate = acceptedOrders > 0 ? (totalSales / acceptedOrders) * 100 : 100
+
+    const avgResponseHours = seller.responseTime ? seller.responseTime / 60 : 0
+    const reputationScore = Math.min(5, avgRating * 0.7 + (totalSales / 100) * 0.3)
+
+    // Compute seller level thresholds
+    let sellerLevel = 'BRONZE'
+    if (totalSales >= 200 && avgRating >= 4.8 && deliverySuccessRate >= 98) sellerLevel = 'ELITE'
+    else if (totalSales >= 50 && avgRating >= 4.5 && deliverySuccessRate >= 95) sellerLevel = 'GOLD'
+    else if (totalSales >= 10 && avgRating >= 4.0 && deliverySuccessRate >= 90) sellerLevel = 'SILVER'
+
+    await this.prisma.sellers.update({
+      where: { id: sellerId },
+      data: {
+        totalSales,
+        totalRevenue,
+        averageRating: avgRating,
+        reputationScore,
+        deliverySuccessRate,
+        avgResponseTimeHours: avgResponseHours,
+        sellerLevel: sellerLevel as any,
+      },
+    })
   }
 }
 

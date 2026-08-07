@@ -50,11 +50,8 @@
     "pino": "9.0.0",
     "pino-pretty": "11.1.0",
     "prisma": "5.19.0",
-    "react": "18.2.0",
-    "react-dom": "18.2.0",
     "reflect-metadata": "0.1.14",
-    "bavimail": "latest",
-    "@getbrevo/brevo": "latest",
+    "resend": "4.0.0",
     "rxjs": "7.8.1",
     "ws": "8.16.0"
   },

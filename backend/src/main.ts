@@ -5,7 +5,6 @@ import { RequestMethod } from '@nestjs/common'
 import helmet from 'helmet'
 import rateLimit from 'express-rate-limit'
 import express from 'express'
-import { AllExceptionsFilter } from './common/filters/all-exceptions.filter'
 
 async function bootstrap() {
   const logger = new Logger('Bootstrap')
@@ -38,8 +37,9 @@ async function bootstrap() {
     res.status(200).end()
   })
 
-  // Register global exception filter — catches ALL errors and logs them to Render
-  app.useGlobalFilters(new AllExceptionsFilter())
+  // AllExceptionsFilter is registered globally via APP_FILTER in app.module.ts.
+  // Do NOT call app.useGlobalFilters() here — that would register it twice,
+  // causing every exception to be logged twice in production logs.
 
   // Support multiple allowed origins via comma-separated CORS_ORIGIN env var
   // e.g. CORS_ORIGIN=https://app.piyrox.shop,https://piyrox-azure.vercel.app
@@ -135,7 +135,7 @@ async function bootstrap() {
   logger.log(`📦 Environment: ${nodeEnv}`)
   logger.log(`🌐 CORS origins: ${allowedOrigins ? allowedOrigins.join(', ') : 'ALL (open)'}`)
   logger.log(`🗃️  Database URL: ${process.env.DATABASE_URL ? 'SET' : 'MISSING ⚠️'}`)
-  logger.log(`🔐 JWT Secret: ${process.env.JWT_SECRET ? 'SET' : 'MISSING — using fallback ⚠️'}`)
+  logger.log(`🔐 JWT Secret: ${process.env.JWT_SECRET ? 'SET' : 'MISSING — startup will abort ⚠️'}`)
 
   await app.listen(port)
 }

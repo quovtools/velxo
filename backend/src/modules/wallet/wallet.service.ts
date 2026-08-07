@@ -1,13 +1,19 @@
-import { Injectable, Logger, BadRequestException } from '@nestjs/common'
+import { Injectable, Logger, BadRequestException, Inject, forwardRef } from '@nestjs/common'
 import { PrismaService } from '@/common/services/prisma.service'
 import { NotFoundException, InsufficientFundsException } from '@/common/exceptions/custom-exceptions'
 import { Decimal } from '@prisma/client/runtime/library'
+import { FlutterwaveService } from '@/modules/payments/flutterwave.service'
+import { PaymentIoService } from '@/modules/payments/paymentio.service'
 
 @Injectable()
 export class WalletService {
   private readonly logger = new Logger(WalletService.name)
 
-  constructor(private prisma: PrismaService) {}
+  constructor(
+    private prisma: PrismaService,
+    private flutterwave: FlutterwaveService,
+    private paymentIo: PaymentIoService,
+  ) {}
 
   async getOrCreateWallet(userId: string) {
     let wallet = await this.prisma.wallet.findUnique({
@@ -129,7 +135,16 @@ export class WalletService {
   }
 
   async topupInitiate(userId: string, amount: number, currency: string, provider: string) {
+    // FIX C5: Wire to the actual payment provider so the buyer gets a real payment URL.
+    // Previously this only created a HOLD record but never called the provider.
+    if (!amount || amount <= 0) {
+      throw new BadRequestException('Top-up amount must be greater than zero')
+    }
+
     const wallet = await this.getOrCreateWallet(userId)
+    const user = await this.prisma.users.findUnique({ where: { id: userId }, select: { email: true } })
+
+    // Create a pending HOLD transaction so we have a reference ID before the external call.
     const txn = await this.prisma.walletTransactions.create({
       data: {
         walletId: wallet.id,
@@ -137,11 +152,47 @@ export class WalletService {
         amount: new Decimal(amount),
         currency,
         balanceAfter: wallet.balance,
-        description: 'Wallet top-up pending',
+        description: 'Wallet top-up pending payment',
         relatedId: userId,
       },
     })
-    return { transactionId: txn.id, amount, currency, status: 'PENDING' }
+
+    // Build the return URL so the payment gateway can redirect back after payment.
+    const frontendUrl = process.env.FRONTEND_URL || 'https://app.piyrox.shop'
+    const callbackUrl = `${frontendUrl}/wallet?topup=${txn.id}`
+
+    let paymentUrl: string | null = null
+    let configured = false
+
+    try {
+      const upperProvider = provider?.toUpperCase()
+      if (upperProvider === 'PAYMENT_IO') {
+        const charge = await this.paymentIo.createCharge({
+          reference: txn.id,
+          amount,
+          currency,
+          callbackUrl,
+        })
+        paymentUrl = charge.paymentUrl
+        configured = charge.configured
+      } else {
+        // Default to Flutterwave for bank/mobile-money top-ups.
+        const charge = await this.flutterwave.createCharge({
+          reference: txn.id,
+          amount,
+          currency,
+          email: user?.email || 'user@piyrox.shop',
+          callbackUrl,
+        })
+        paymentUrl = charge.paymentUrl
+        configured = charge.configured
+      }
+    } catch (err: any) {
+      this.logger.error(`Top-up provider error (${provider}):`, err?.message || err)
+      // Non-fatal for sandbox — return the transactionId so the caller can poll status.
+    }
+
+    return { transactionId: txn.id, amount, currency, status: 'PENDING', paymentUrl, configured }
   }
 
   async topupStatus(txnId: string, userId: string) {

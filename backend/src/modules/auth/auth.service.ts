@@ -141,11 +141,45 @@ export class AuthService {
       throw new UnauthorizedException('Invalid email or password')
     }
 
+    // ── Brute-force protection ────────────────────────────────────────────────
+    // Track failed attempts in the user metadata JSON field (no schema migration
+    // required). Lock the account for 15 minutes after 5 consecutive failures.
+    const meta = (user as any).preferences as Record<string, any> ?? {}
+    const loginMeta = meta.__loginAttempts as { count: number; lastFail: number; lockedUntil?: number } | undefined
+
+    if (loginMeta?.lockedUntil && Date.now() < loginMeta.lockedUntil) {
+      const remainingMs = loginMeta.lockedUntil - Date.now()
+      const remainingMin = Math.ceil(remainingMs / 60000)
+      throw new UnauthorizedException(
+        `Too many failed login attempts. Account is temporarily locked. Try again in ${remainingMin} minute(s).`,
+      )
+    }
+
     const passwordMatch = await bcrypt.compare(dto.password, user.passwordHash)
     if (!passwordMatch) {
       this.logger.warn(`Login failed for ${dto.email} — wrong password`)
+
+      // Increment failure counter. Lock after 5 consecutive failures for 15 min.
+      const failCount = (loginMeta?.count ?? 0) + 1
+      const lockedUntil = failCount >= 5 ? Date.now() + 15 * 60 * 1000 : undefined
+      const newLoginMeta = { count: failCount, lastFail: Date.now(), ...(lockedUntil ? { lockedUntil } : {}) }
+      await this.prisma.users.update({
+        where: { id: user.id },
+        data: { preferences: { ...(meta ?? {}), __loginAttempts: newLoginMeta } } as any,
+      }).catch(() => {})
+
       throw new UnauthorizedException('Invalid email or password')
     }
+
+    // Clear failure counter on successful login.
+    if (loginMeta && loginMeta.count > 0) {
+      const { __loginAttempts: _removed, ...cleanMeta } = meta
+      await this.prisma.users.update({
+        where: { id: user.id },
+        data: { preferences: cleanMeta } as any,
+      }).catch(() => {})
+    }
+    // ─────────────────────────────────────────────────────────────────────────
 
     if (user.isBanned) {
       throw new UnauthorizedException('Your account has been suspended')
@@ -352,5 +386,33 @@ export class AuthService {
       data: { actorId: moderatorId, action: 'STATUS_CHANGE', entityType: 'user', entityId: userId, newValue: { isBanned: true, reason } },
     })
     return user
+  }
+
+  // ── Session code store (in-memory, single-process) ────────────────────────
+  // Maps a short-lived random code → { accessToken, user, expiresAt }.
+  // Codes expire after 30 seconds and are single-use.
+  private readonly sessionCodes = new Map<string, { accessToken: string; user: any; expiresAt: number }>()
+
+  async issueSessionCode(result: { accessToken: string; user: any }): Promise<string> {
+    const code = require('crypto').randomBytes(24).toString('hex')
+    this.sessionCodes.set(code, { ...result, expiresAt: Date.now() + 30_000 })
+    // Clean up expired codes passively (no scheduled job needed at this scale).
+    for (const [k, v] of this.sessionCodes.entries()) {
+      if (v.expiresAt < Date.now()) this.sessionCodes.delete(k)
+    }
+    return code
+  }
+
+  async exchangeSessionCode(code: string) {
+    if (!code) throw new UnauthorizedException('Missing session code')
+    const entry = this.sessionCodes.get(code)
+    if (!entry) throw new UnauthorizedException('Invalid or expired session code')
+    if (Date.now() > entry.expiresAt) {
+      this.sessionCodes.delete(code)
+      throw new UnauthorizedException('Session code has expired — please sign in again')
+    }
+    // Single-use: delete immediately after first consumption.
+    this.sessionCodes.delete(code)
+    return { accessToken: entry.accessToken, user: entry.user }
   }
 }

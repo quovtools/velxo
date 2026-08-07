@@ -10,6 +10,7 @@ import { ShieldCheck, Wallet, Sparkles, ImageIcon, Check, Lock, Clock, Star, Zap
 import { useCurrency } from '@/lib/useCurrency';
 import SellerLevelBadge from '@/components/SellerLevelBadge';
 
+// API_BASE is used only for the public listing fetch (no auth token needed).
 const API_BASE = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:3001/api/v1';
 
 interface Listing {
@@ -48,8 +49,9 @@ function ProductImage({ src, alt }: { src?: string; alt: string }) {
 }
 
 const PROVIDERS = [
-  { id: 'FLUTTERWAVE' as const, name: 'Flutterwave', description: 'Cards, bank transfer & Mobile Money', icon: Wallet, accent: 'text-brand' },
-  { id: 'PAYMENT_IO' as const, name: 'Payment.io', description: 'Crypto (BTC, USDT, SOL)', icon: Sparkles, accent: 'text-brand-accent' },
+  { id: 'WALLET' as const,      name: 'Piyrox Wallet',  description: 'Pay instantly from your balance',     icon: Wallet,   accent: 'text-emerald-400' },
+  { id: 'FLUTTERWAVE' as const, name: 'Flutterwave',    description: 'Cards, bank transfer & Mobile Money', icon: Wallet,   accent: 'text-brand' },
+  { id: 'PAYMENT_IO' as const,  name: 'Payment.io',     description: 'Crypto (BTC, USDT, SOL)',             icon: Sparkles, accent: 'text-brand-accent' },
 ];
 
 export default function CheckoutContent({ listingId }: { listingId: string }) {
@@ -58,17 +60,21 @@ export default function CheckoutContent({ listingId }: { listingId: string }) {
 
   const [listing, setListing] = useState<Listing | null>(null);
   const [loadingListing, setLoadingListing] = useState(true);
-  const [paymentProvider, setPaymentProvider] = useState<'FLUTTERWAVE' | 'PAYMENT_IO'>('PAYMENT_IO');
+  const [paymentProvider, setPaymentProvider] = useState<'WALLET' | 'FLUTTERWAVE' | 'PAYMENT_IO'>('PAYMENT_IO');
   const [providerConfig, setProviderConfig] = useState<{ flutterwave?: { configured: boolean }; paymentio?: { configured: boolean } } | null>(null);
+  const [walletBalance, setWalletBalance] = useState<number | null>(null);
   const [buyerNote, setBuyerNote] = useState('');
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
 
-  // FIX #21: useCurrency() must be called unconditionally at the top level,
-  // BEFORE any early returns, to satisfy React's Rules of Hooks.
+  // FIX: useCurrency() must be called unconditionally at the top level (Rules of Hooks).
   const { fmt, currency } = useCurrency();
 
-  const isProviderConfigured = (id: 'FLUTTERWAVE' | 'PAYMENT_IO') => {
+  const isProviderConfigured = (id: 'WALLET' | 'FLUTTERWAVE' | 'PAYMENT_IO') => {
+    if (id === 'WALLET') {
+      // Wallet is available when the user has enough balance to cover the listing price.
+      return walletBalance !== null && listing !== null && walletBalance >= Number(listing.price);
+    }
     const cfg = providerConfig as any;
     return id === 'FLUTTERWAVE'
       ? Boolean(cfg?.flutterwave?.configured)
@@ -91,33 +97,59 @@ export default function CheckoutContent({ listingId }: { listingId: string }) {
         setLoadingListing(false);
       }
 
+      // Load payment provider config and wallet balance in parallel.
       try {
-        const cfgRes = await api.get<{ data: any }>('/payments/config');
-        const cfg = (cfgRes as any).data;
-        setProviderConfig(cfg);
-        const fw = Boolean(cfg?.flutterwave?.configured);
-        const pio = Boolean(cfg?.paymentIo?.configured ?? (cfg as any)?.paymentio?.configured);
-        if (pio) setPaymentProvider('PAYMENT_IO');
-        else if (fw) setPaymentProvider('FLUTTERWAVE');
-      } catch { /* leave default */ }
+        const [cfgRes, walletRes] = await Promise.allSettled([
+          api.get<{ data: any }>('/payments/config'),
+          api.get<{ success: boolean; data: { balance: string } }>('/wallet'),
+        ]);
+        if (cfgRes.status === 'fulfilled') {
+          const cfg = (cfgRes.value as any).data;
+          setProviderConfig(cfg);
+          const fw = Boolean(cfg?.flutterwave?.configured);
+          const pio = Boolean(cfg?.paymentIo?.configured ?? (cfg as any)?.paymentio?.configured);
+          if (pio) setPaymentProvider('PAYMENT_IO');
+          else if (fw) setPaymentProvider('FLUTTERWAVE');
+        }
+        if (walletRes.status === 'fulfilled') {
+          const wb = walletRes.value as any;
+          if (wb?.success && wb?.data?.balance !== undefined) {
+            setWalletBalance(Number(wb.data.balance));
+          }
+        }
+      } catch { /* leave defaults */ }
     }
     loadListing();
   }, [listingId, user, authLoading, router]);
 
+  // FIX C6: POST to /checkout/initiate (CheckoutController) with the correct DTO fields.
+  // Previously this posted to /orders with wrong field names, bypassing payment initiation.
   const handleCheckout = async (e: React.FormEvent) => {
     e.preventDefault();
     setError(null);
     setLoading(true);
     try {
-      const response = await api.post<{ success: boolean; data: any }>('/orders', {
+      // Snapshot the exchange rate at checkout time so it's locked with the order.
+      const lockedRate = currency.rate;
+
+      const response = await api.post<{ success: boolean; data: any }>('/checkout/initiate', {
         listingId,
         quantity: 1,
-        buyerNote,
-        paymentMethodId: paymentProvider,
+        buyerNote: buyerNote || undefined,
+        paymentMethod: paymentProvider,   // CheckoutController expects "paymentMethod"
         currency: currency.code,
+        lockedRate,
       });
-      if (!response.success || !response.data) throw new Error('Could not establish escrow holding order');
-      router.push(`/orders/${response.data.id}`);
+      if (!response.success || !response.data) {
+        throw new Error('Could not establish escrow holding order');
+      }
+      // If a payment URL was returned, redirect to the payment gateway.
+      if (response.data.paymentUrl) {
+        window.location.href = response.data.paymentUrl;
+      } else {
+        // Wallet payment or unconfigured provider — go to order tracking.
+        router.push(`/orders/${response.data.order?.id ?? response.data.id}`);
+      }
     } catch (err: any) {
       setError(err.message || 'Payment execution failed');
     } finally {
@@ -188,6 +220,7 @@ export default function CheckoutContent({ listingId }: { listingId: string }) {
                     const selected = paymentProvider === p.id;
                     const Icon = p.icon;
                     const configured = isProviderConfigured(p.id);
+                    const isWallet = p.id === 'WALLET';
                     return (
                       <button
                         key={p.id}
@@ -210,10 +243,16 @@ export default function CheckoutContent({ listingId }: { listingId: string }) {
                           <span className="flex items-center gap-2">
                             <span className={`font-bold text-sm ${selected ? 'text-white' : 'text-gray-300'}`}>{p.name}</span>
                             {!configured && (
-                              <span className="text-[10px] uppercase font-bold text-red-400 bg-red-500/10 border border-red-500/30 px-1.5 py-0.5 rounded">Not configured</span>
+                              <span className="text-[10px] uppercase font-bold text-red-400 bg-red-500/10 border border-red-500/30 px-1.5 py-0.5 rounded">
+                                {isWallet ? 'Insufficient funds' : 'Not configured'}
+                              </span>
                             )}
                           </span>
-                          <span className="block text-xs text-gray-500 mt-0.5">{p.description}</span>
+                          <span className="block text-xs text-gray-500 mt-0.5">
+                            {isWallet && walletBalance !== null
+                              ? `Balance: ${fmt(walletBalance)}`
+                              : p.description}
+                          </span>
                         </span>
                         <span className={`flex items-center justify-center w-5 h-5 rounded-full border flex-shrink-0 ${selected ? 'bg-brand border-brand text-white' : 'border-borderBg text-transparent'}`}>
                           <Check className="w-3 h-3" strokeWidth={3} />

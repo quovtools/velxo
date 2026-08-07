@@ -145,27 +145,38 @@ export class AuthController {
     res.redirect(this.authService.getGoogleAuthUrl(req))
   }
 
-  /** Step 2: Google callback */
+  /** Step 2: Google callback — exchanges code for token, then redirects the
+   * frontend with a short-lived one-time code in the query string (not the
+   * URL fragment) so the token never leaks via browser history or analytics. */
   @Get('google/callback')
   async googleCallback(@Req() req: Request, @Query('code') code: string, @Res() res: Response) {
     try {
       const result = await this.authService.handleGoogleCallback(code, req)
       const frontendUrl = process.env.FRONTEND_URL || 'https://app.piyrox.shop'
-      const u = result.user
-      const hash = [
-        `token=${result.accessToken}`,
-        `userId=${u.id}`,
-        `email=${encodeURIComponent(u.email || '')}`,
-        `firstName=${encodeURIComponent(u.firstName || '')}`,
-        `lastName=${encodeURIComponent(u.lastName || '')}`,
-        `role=${encodeURIComponent(u.role || 'BUYER')}`,
-        `emailVerified=${u.emailVerified ? 1 : 0}`,
-      ].join('&')
-      res.redirect(`${frontendUrl}/auth/callback#${hash}`)
+
+      // Issue a short-lived one-time session code (30 s). The frontend
+      // /auth/callback page exchanges this for the real JWT via POST
+      // /auth/exchange-code — the JWT is never placed in the URL itself.
+      const sessionCode = await this.authService.issueSessionCode(result)
+      res.redirect(`${frontendUrl}/auth/callback?code=${sessionCode}`)
     } catch (error) {
       this.logger.error('Google OAuth callback error:', error)
       const frontendUrl = process.env.FRONTEND_URL || 'https://app.piyrox.shop'
       res.redirect(`${frontendUrl}/auth/login?error=google_failed`)
+    }
+  }
+
+  /** Exchange a short-lived session code (issued by the Google callback) for a
+   * real JWT. Code is single-use and expires in 30 seconds. */
+  @Post('exchange-code')
+  @HttpCode(200)
+  async exchangeCode(@Body('code') code: string) {
+    try {
+      const result = await this.authService.exchangeSessionCode(code)
+      return ApiResponseDto.ok(result, 'Authentication successful')
+    } catch (error) {
+      this.logger.error('Session code exchange error:', error)
+      throw error
     }
   }
 }

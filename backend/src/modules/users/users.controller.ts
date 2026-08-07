@@ -81,7 +81,9 @@ export class UsersController {
     }
   }
 
+  // FIX S3: Guarded with JWT auth — previously unauthenticated, leaking user emails.
   @Get('search')
+  @UseGuards(SupabaseJwtGuard)
   async searchUsers(@Query('q') query: string, @Query('limit') limit?: number) {
     try {
       const users = await this.usersService.searchUsers(query, limit)

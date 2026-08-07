@@ -9,7 +9,21 @@ const nextConfig: NextConfig = {
     deviceSizes: [375, 640, 750, 828, 1080, 1200, 1920],
     imageSizes: [16, 32, 48, 64, 96, 128, 256, 384],
     minimumCacheTTL: 60 * 60 * 24 * 30, // 30 days
-    remotePatterns: [{ protocol: "https", hostname: "**" }],
+    // FIX S1: Removed wildcard hostname "**" — only known CDN domains are allowed.
+    remotePatterns: [
+      {
+        protocol: "https",
+        hostname: "res.cloudinary.com",
+        port: "",
+        pathname: "/**",
+      },
+      {
+        protocol: "https",
+        hostname: "*.cloudinary.com",
+        port: "",
+        pathname: "/**",
+      },
+    ],
   },
 
   // — Compiler / bundle optimisation ————————————————————————
@@ -20,7 +34,23 @@ const nextConfig: NextConfig = {
 
   // — HTTP caching headers for immutable static assets ————————
   async headers() {
+    // FIX S2: Added security headers to all routes.
+    const securityHeaders = [
+      { key: "X-Frame-Options",        value: "SAMEORIGIN" },
+      { key: "X-Content-Type-Options", value: "nosniff" },
+      { key: "Referrer-Policy",        value: "strict-origin-when-cross-origin" },
+      { key: "Permissions-Policy",     value: "camera=(), microphone=(), geolocation=()" },
+      {
+        key: "Strict-Transport-Security",
+        value: "max-age=63072000; includeSubDomains; preload",
+      },
+    ];
     return [
+      // Security headers on every response
+      {
+        source: "/(.*)",
+        headers: securityHeaders,
+      },
       {
         source: "/_next/static/:path*",
         headers: [

@@ -57,6 +57,19 @@ export class ListingsController {
     }
   }
 
+  // FIX C7: market-stats MUST appear before :id so NestJS routes the literal
+  // path "market-stats" correctly and doesn't swallow it as a listing ID.
+  @Get('market-stats')
+  async getMarketStats(@Query('gameId') gameId: string, @Query('rank') rank?: string, @Query('platform') platform?: string) {
+    try {
+      const result = await this.listingsService.getMarketStats(gameId, rank, platform)
+      return ApiResponseDto.ok(result, 'Market stats retrieved')
+    } catch (error) {
+      this.logger.error('Error fetching market stats:', error)
+      throw error
+    }
+  }
+
   @Get(':id')
   async getListingById(@Param('id') id: string) {
     try {
@@ -75,17 +88,6 @@ export class ListingsController {
       return ApiResponseDto.ok(result, 'Value estimated successfully')
     } catch (error) {
       this.logger.error('Error estimating value:', error)
-      throw error
-    }
-  }
-
-  @Get('market-stats')
-  async getMarketStats(@Query('gameId') gameId: string, @Query('rank') rank?: string, @Query('platform') platform?: string) {
-    try {
-      const result = await this.listingsService.getMarketStats(gameId, rank, platform)
-      return ApiResponseDto.ok(result, 'Market stats retrieved')
-    } catch (error) {
-      this.logger.error('Error fetching market stats:', error)
       throw error
     }
   }

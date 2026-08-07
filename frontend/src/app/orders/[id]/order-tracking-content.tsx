@@ -256,7 +256,9 @@ export default function OrderTrackingContent({ id }: { id: string }) {
   }, [order?.status, id, user?.id]);
 
   // ── Derived values ─────────────────────────────────────────────────────────
-  if (!order && !loading && !error) return null;
+  // FIX F5: Previously returned null here, causing a completely blank screen.
+  // Now falls through to the error state render below which shows a proper message.
+  // (The error/loading states are rendered unconditionally later in the component.)
 
   const isBuyer  = user?.id === order?.buyerId;
   const isSeller = user?.id === order?.seller?.userId;

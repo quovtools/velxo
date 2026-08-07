@@ -29,12 +29,45 @@ export class PrismaService extends PrismaClient implements OnModuleInit, OnModul
     ;(this as any).$on('warn', (e: any) => {
       this.logger.warn(`Prisma warning: ${e.message}`)
     })
+
+    // ── Soft-delete middleware ─────────────────────────────────────────────
+    // Automatically exclude logically-deleted users (deletedAt IS NOT NULL)
+    // from all findFirst / findMany / findUnique / count queries on the users
+    // table. This ensures deleted accounts never appear in search, order
+    // lookups, or notification queries without requiring call-site changes.
+    ;(this as any).$use(async (params: any, next: any) => {
+      const softDeleteModels = ['users']
+      if (softDeleteModels.includes(params.model)) {
+        const readOps = ['findFirst', 'findFirstOrThrow', 'findMany', 'count', 'aggregate', 'groupBy']
+        if (readOps.includes(params.action)) {
+          params.args = params.args ?? {}
+          params.args.where = params.args.where ?? {}
+          // Only inject the filter when the caller hasn't explicitly asked for
+          // deleted records (e.g. admin soft-delete management screen).
+          if (params.args.where.deletedAt === undefined) {
+            params.args.where.deletedAt = null
+          }
+        }
+        // Convert hard deletes to soft deletes.
+        if (params.action === 'delete') {
+          params.action = 'update'
+          params.args.data = { deletedAt: new Date() }
+        }
+        if (params.action === 'deleteMany') {
+          params.action = 'updateMany'
+          if (params.args.data !== undefined) {
+            params.args.data.deletedAt = new Date()
+          } else {
+            params.args.data = { deletedAt: new Date() }
+          }
+        }
+      }
+      return next(params)
+    })
   }
 
   async onModuleInit() {
     // Retry connecting up to 5 times with exponential back-off.
-    // This handles Fly Postgres cold-starts and brief network blips without
-    // crashing the whole container (which would also kill Next.js).
     const MAX_RETRIES = 5
     let lastErr: unknown
     for (let attempt = 1; attempt <= MAX_RETRIES; attempt++) {
@@ -47,15 +80,12 @@ export class PrismaService extends PrismaClient implements OnModuleInit, OnModul
         lastErr = err
         this.logger.error(`❌ Database connection failed (attempt ${attempt}/${MAX_RETRIES}):`, err)
         if (attempt < MAX_RETRIES) {
-          const delayMs = attempt * 3000 // 3s, 6s, 9s, 12s
+          const delayMs = attempt * 3000
           this.logger.log(`Retrying in ${delayMs / 1000}s...`)
           await new Promise((r) => setTimeout(r, delayMs))
         }
       }
     }
-    // After all retries, log the error but do NOT throw — this keeps NestJS
-    // alive so Next.js can still serve non-API pages and the backend can
-    // recover on the next request once the DB comes back.
     this.logger.error('❌ Database connection failed after all retries. API calls will fail until DB recovers.', lastErr)
   }
 

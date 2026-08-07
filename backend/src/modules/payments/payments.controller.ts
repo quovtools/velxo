@@ -49,22 +49,41 @@ export class PaymentsController {
   async handleFlutterwaveWebhook(
     @Headers('verif-hash') verifHash: string,
     @Body() event: any,
+    @Req() req: any,
   ) {
     try {
-      // FIX #30: Verify the Flutterwave webhook signature early before processing.
-      // Flutterwave sends a `verif-hash` header with an HMAC-SHA256 signature
-      // of the raw request body using the secret key. While the verify-transaction
-      // call will catch forged transactions server-side, rejecting invalid signatures
-      // upfront prevents wasted processing and is standard practice.
-      const webhookSecret = process.env.FLUTTERWAVE_WEBHOOK_SECRET || ''
-      if (webhookSecret && verifHash) {
-        const crypto = require('crypto')
-        const hash = crypto.createHmac('sha256', webhookSecret).update(JSON.stringify(event)).digest('base64')
-        if (hash !== verifHash) {
-          this.logger.warn('Flutterwave webhook signature verification failed — rejecting')
-          return ApiResponseDto.ok(null, 'Invalid signature')
-        }
+      // FIX S4: Webhook signature verification is now MANDATORY.
+      // If FLUTTERWAVE_WEBHOOK_SECRET is not set, ALL webhook calls are rejected
+      // to prevent forged webhooks from marking orders paid without real payment.
+      const webhookSecret = process.env.FLUTTERWAVE_WEBHOOK_SECRET
+      if (!webhookSecret) {
+        this.logger.error(
+          'FLUTTERWAVE_WEBHOOK_SECRET is not set — all Flutterwave webhooks are blocked. ' +
+          'Set this env var to the webhook secret from your Flutterwave dashboard.',
+        )
+        // Return 200 to prevent Flutterwave from retrying, but do not process.
+        return ApiResponseDto.ok(null, 'Webhook secret not configured — skipped')
       }
+
+      if (!verifHash) {
+        this.logger.warn('Flutterwave webhook received with no verif-hash header — rejecting')
+        return ApiResponseDto.ok(null, 'Missing signature')
+      }
+
+      // Use the raw body (captured by the json verify function in main.ts) for
+      // accurate HMAC computation. Fall back to JSON.stringify as a safety net.
+      const rawBody = req?.rawBody ?? JSON.stringify(event)
+      const crypto = require('crypto')
+      const expectedHash = crypto
+        .createHmac('sha256', webhookSecret)
+        .update(rawBody)
+        .digest('base64')
+
+      if (expectedHash !== verifHash) {
+        this.logger.warn('Flutterwave webhook signature verification FAILED — rejecting forged request')
+        return ApiResponseDto.ok(null, 'Invalid signature')
+      }
+
       await this.paymentsService.handleFlutterwaveWebhook(event)
       return ApiResponseDto.ok(null, 'Webhook processed')
     } catch (error) {

@@ -141,15 +141,30 @@ export class DisputesService {
   }
 
   async addDisputeEvidence(disputeId: string, userId: string, dto: { evidenceUrls?: string[]; evidenceText?: string }) {
-    const dispute = await this.prisma.disputes.findUnique({ where: { id: disputeId } })
+    const dispute = await this.prisma.disputes.findUnique({
+      where: { id: disputeId },
+      include: { order: { include: { seller: true } } },
+    })
     if (!dispute) throw new NotFoundException('Dispute')
-    if (dispute.initiatedById !== userId) throw new ForbiddenException('Only the initiator can add evidence')
+
+    // FIX S5: Allow BOTH order participants (buyer AND seller) to add evidence,
+    // not just the initiator. Previously only the initiator could submit evidence,
+    // leaving the counterparty with no way to defend themselves.
+    const isBuyer  = dispute.order?.buyerId === userId
+    const isSeller = dispute.order?.seller?.userId === userId
+    if (!isBuyer && !isSeller) {
+      throw new ForbiddenException('Only order participants can add evidence to a dispute')
+    }
+
     if (dispute.status === DisputeStatus.CLOSED) throw new InvalidEscrowStateException('Dispute is closed')
+
     const updated = await this.prisma.disputes.update({
       where: { id: disputeId },
       data: {
         evidenceUrls: { set: [...(dispute.evidenceUrls as string[] || []), ...(dto.evidenceUrls || [])] },
-        evidenceText: dto.evidenceText ? (dispute.evidenceText ? dispute.evidenceText + '\n' + dto.evidenceText : dto.evidenceText) : dispute.evidenceText,
+        evidenceText: dto.evidenceText
+          ? (dispute.evidenceText ? dispute.evidenceText + '\n' + dto.evidenceText : dto.evidenceText)
+          : dispute.evidenceText,
       },
     })
     return updated

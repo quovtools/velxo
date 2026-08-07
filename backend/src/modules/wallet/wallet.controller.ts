@@ -1,4 +1,4 @@
-import { Controller, Get, Post, Body, Param, Logger, UseGuards, Query, Ip } from '@nestjs/common'
+import { Controller, Get, Post, Body, Param, Logger, UseGuards, Query } from '@nestjs/common'
 import { WalletService } from './wallet.service'
 import { SupabaseJwtGuard } from '@/common/guards/jwt.guard'
 import { CurrentUserId } from '@/common/decorators/current-user.decorator'
@@ -25,6 +25,25 @@ export class WalletController {
     }
   }
 
+  // FIX C4: Add missing GET /wallet/transactions endpoint.
+  // The frontend wallet page calls /wallet/transactions — this route was previously missing,
+  // causing the transaction history to silently fail for all users.
+  @Get('transactions')
+  @UseGuards(SupabaseJwtGuard)
+  async getTransactions(
+    @CurrentUserId() userId: string,
+    @Query('limit') limit?: number,
+  ) {
+    try {
+      const parsedLimit = limit ? parseInt(limit as any, 10) : 50
+      const transactions = await this.walletService.getTransactionHistory(userId, parsedLimit)
+      return ApiResponseDto.ok(transactions, 'Transaction history retrieved')
+    } catch (error) {
+      this.logger.error('Error fetching transactions:', error)
+      throw error
+    }
+  }
+
   @Post('withdraw')
   @UseGuards(SupabaseJwtGuard)
   async withdraw(@CurrentUserId() userId: string, @Body() dto: WithdrawDto) {
@@ -46,6 +65,7 @@ export class WalletController {
   @UseGuards(SupabaseJwtGuard)
   async topupInitiate(@CurrentUserId() userId: string, @Body() dto: TopupInitiateDto) {
     try {
+      // FIX C5: topupInitiate now calls the payment provider and returns a paymentUrl.
       const result = await this.walletService.topupInitiate(userId, dto.amount, dto.currency, dto.provider)
       return ApiResponseDto.ok(result, 'Wallet top-up initiated')
     } catch (error) {

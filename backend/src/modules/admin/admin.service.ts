@@ -774,20 +774,64 @@ export class AdminService {
   }
 
   async refundOrder(orderId: string, amount: number, reason: string, moderatorId?: string) {
-    const order = await this.prisma.orders.update({
-      where: { id: orderId },
-      data: { status: OrderStatus.REFUNDED, refundedAt: new Date() },
+    // FIX C3: Credit the buyer's wallet AND update order status in a single transaction.
+    // Previously only the order status was updated; the buyer never received their money back.
+    return this.prisma.$transaction(async (tx) => {
+      const order = await tx.orders.findUnique({
+        where: { id: orderId },
+        include: { buyer: true },
+      })
+      if (!order) throw new Error('Order not found')
+
+      const updatedOrder = await tx.orders.update({
+        where: { id: orderId },
+        data: { status: OrderStatus.REFUNDED, refundedAt: new Date() },
+      })
+
+      // Credit the buyer's wallet with the refund amount (capped to order total).
+      const refundDecimal = new Decimal(amount > 0 ? amount : 0)
+      const refundAmount = refundDecimal.greaterThan(order.totalAmount) ? order.totalAmount : refundDecimal
+      if (refundAmount.greaterThan(0) && order.buyer) {
+        const buyerWallet = await tx.wallet.findUnique({ where: { userId: order.buyer.id } })
+        if (buyerWallet) {
+          const newBalance = buyerWallet.balance.plus(refundAmount)
+          await tx.wallet.update({ where: { id: buyerWallet.id }, data: { balance: newBalance } })
+          await tx.walletTransactions.create({
+            data: {
+              walletId: buyerWallet.id,
+              type: 'REFUND',
+              amount: refundAmount,
+              currency: order.currency,
+              balanceAfter: newBalance,
+              description: `Admin refund for order ${order.orderNumber}. Reason: ${reason}`,
+              relatedId: orderId,
+            },
+          })
+        }
+      }
+
+      // Also mark escrow as refunded if it is still held.
+      const escrow = await tx.escrowTransactions.findUnique({ where: { orderId } })
+      if (escrow && escrow.status === 'HELD') {
+        await tx.escrowTransactions.update({
+          where: { id: escrow.id },
+          data: { status: 'REFUNDED', refundedAt: new Date() },
+        })
+      }
+
+      return updatedOrder
+    }).then(async (order) => {
+      await this.createAuditLog(
+        moderatorId || 'admin-console',
+        'REFUND',
+        'order',
+        orderId,
+        {},
+        { status: OrderStatus.REFUNDED, amount, reason },
+      )
+      await this.notifications.notifyRefunded(order, `${order.currency} ${amount}`).catch(() => {})
+      return order
     })
-    await this.createAuditLog(
-      moderatorId || 'admin-console',
-      'REFUND',
-      'order',
-      orderId,
-      { status: order.status },
-      { status: OrderStatus.REFUNDED, amount, reason },
-    )
-    await this.notifications.notifyRefunded(order, `$${amount}`).catch(() => {})
-    return order
   }
 
   /**
@@ -907,6 +951,10 @@ export class AdminService {
   }
 
   async approveWithdrawal(id: string, moderatorId?: string) {
+    // FIX C2: Do NOT debit the wallet here. WalletService.withdraw() already
+    // deducted the balance and recorded a DEBIT transaction when the seller
+    // submitted the withdrawal request. This method only updates the status and
+    // notifies — a second deduct would double-charge the seller.
     return this.prisma.$transaction(async (tx) => {
       const withdrawal = await tx.withdrawalRequests.findUnique({
         where: { id },
@@ -915,6 +963,7 @@ export class AdminService {
       if (!withdrawal) throw new Error('Withdrawal not found')
       if (withdrawal.status !== 'PENDING') throw new Error('Withdrawal already processed')
 
+      // Only update the status — balance was already deducted at request time.
       await tx.withdrawalRequests.update({
         where: { id },
         data: {
@@ -924,27 +973,8 @@ export class AdminService {
         },
       })
 
-      const wallet = await tx.wallet.findUnique({ where: { userId: withdrawal.seller.userId } })
-      if (wallet) {
-        const newBalance = wallet.balance.minus(withdrawal.amount)
-        await tx.wallet.update({
-          where: { userId: withdrawal.seller.userId },
-          data: { balance: newBalance, totalWithdrawn: wallet.totalWithdrawn.plus(withdrawal.amount) },
-        })
-        await tx.walletTransactions.create({
-          data: {
-            walletId: wallet.id,
-            type: 'DEBIT',
-            amount: withdrawal.amount,
-            currency: withdrawal.currency,
-            balanceAfter: newBalance,
-            description: `Withdrawal approved #${withdrawal.id}`,
-            relatedId: withdrawal.id,
-          },
-        })
-      }
-
-      await this.prisma.adminAuditLogs.create({
+      // Create an audit record for transparency without touching the balance.
+      await tx.adminAuditLogs.create({
         data: {
           actorId: moderatorId || 'admin-console',
           action: 'WITHDRAWAL',
@@ -960,7 +990,7 @@ export class AdminService {
             withdrawal.seller.userId,
             'WITHDRAWAL',
             'Withdrawal Approved',
-            `Your withdrawal of ${withdrawal.amount} ${withdrawal.currency} has been approved and processed.`,
+            `Your withdrawal of ${withdrawal.amount} ${withdrawal.currency} has been approved and is being processed.`,
           )
           .catch(() => {})
       }

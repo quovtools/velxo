@@ -114,7 +114,8 @@ export const metadata: Metadata = {
 export const viewport: Viewport = {
   width: "device-width",
   initialScale: 1,
-  maximumScale: 1,
+  // FIX U1: Removed maximumScale:1 — it blocked pinch-zoom for low-vision users,
+  // violating WCAG 2.1 SC 1.4.4 (Resize Text). Never restrict user zoom.
   themeColor: "#0f172a",
 };
 
@@ -201,12 +202,17 @@ export default function RootLayout({
     <html lang="en" className={inter.variable}>
       <head>
         {/* ── Google Analytics ── */}
-        <script async src="https://www.googletagmanager.com/gtag/js?id=G-JQNL42KBVT" />
-        <script
-          dangerouslySetInnerHTML={{
-            __html: `window.dataLayer=window.dataLayer||[];function gtag(){dataLayer.push(arguments);}gtag('js',new Date());gtag('config','G-JQNL42KBVT');`,
-          }}
-        />
+        {/* FIX S6: GA ID read from env var — never hardcoded in source. */}
+        {process.env.NEXT_PUBLIC_GA_MEASUREMENT_ID && (
+          <>
+            <script async src={`https://www.googletagmanager.com/gtag/js?id=${process.env.NEXT_PUBLIC_GA_MEASUREMENT_ID}`} />
+            <script
+              dangerouslySetInnerHTML={{
+                __html: `window.dataLayer=window.dataLayer||[];function gtag(){dataLayer.push(arguments);}gtag('js',new Date());gtag('config','${process.env.NEXT_PUBLIC_GA_MEASUREMENT_ID}');`,
+              }}
+            />
+          </>
+        )}
         <meta name="theme-color" content="#0f172a" />
         <link rel="icon" href="/logo-new.png" />
         <link rel="apple-touch-icon" href="/logo-new.png" />

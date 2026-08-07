@@ -22,7 +22,8 @@ const config: Config = {
         borderBg: "var(--border-bg)",
         hoverBg: "var(--hover-bg)",
         violet: {
-          300: "#d4d4d4",
+          // FIX U2: violet.300 was '#d4d4d4' (gray) — corrected to actual violet-300.
+          300: "#c4b5fd",
           400: "#a78bfa",
           500: "#8b5cf6",
           600: "#7c3aed",

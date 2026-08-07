@@ -118,7 +118,13 @@ export default function WalletPage() {
 
   const handleWithdraw = async (e: React.FormEvent) => {
     e.preventDefault();
-    if (!wallet || parseFloat(withdrawAmount) > parseFloat(wallet.balance)) {
+    const amount = parseFloat(withdrawAmount);
+    // FIX: Added minimum amount validation and proper numeric comparison.
+    if (!amount || amount <= 0) {
+      showToast('Enter a withdrawal amount greater than zero', false);
+      return;
+    }
+    if (wallet && amount > parseFloat(wallet.balance)) {
       showToast('Amount exceeds available balance', false);
       return;
     }

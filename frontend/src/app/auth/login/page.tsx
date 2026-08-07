@@ -8,6 +8,7 @@ import { api } from '@/lib/api';
 import { setSession } from '@/lib/auth';
 import { Eye, EyeOff, Loader2, ShieldCheck, Zap, BadgeCheck } from 'lucide-react';
 
+// API_BASE is used only for the Google OAuth redirect.
 const API_BASE = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:3001/api/v1';
 
 function LoginForm() {

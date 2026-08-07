@@ -1,7 +1,8 @@
 import { Module } from '@nestjs/common'
-import { ConfigModule } from '@nestjs/config'
+import { ConfigModule, ConfigService } from '@nestjs/config'
 import { JwtModule } from '@nestjs/jwt'
-import { APP_FILTER, APP_PIPE } from '@nestjs/core'
+import { APP_FILTER, APP_INTERCEPTOR } from '@nestjs/core'
+import { LoggingInterceptor } from './common/interceptors/logging.interceptor'
 import { PrismaModule } from './common/services/prisma.module'
 import { StartupHealthService } from './common/services/startup-health.service'
 import { AppController } from './app.controller'
@@ -40,10 +41,20 @@ import { AllExceptionsFilter } from './common/filters/all-exceptions.filter'
   controllers: [AppController],
   imports: [
     ConfigModule.forRoot({ isGlobal: true }),
-    JwtModule.register({
+    JwtModule.registerAsync({
       global: true,
-      secret: process.env.JWT_SECRET || 'piyrox-fallback-secret-change-in-prod',
-      signOptions: { expiresIn: '7d' },
+      imports: [ConfigModule],
+      inject: [ConfigService],
+      useFactory: (config: ConfigService) => {
+        const secret = config.get<string>('JWT_SECRET')
+        if (!secret) {
+          throw new Error(
+            'JWT_SECRET environment variable is not set. ' +
+            'Set it to a strong random string (min 64 chars) before starting the server.',
+          )
+        }
+        return { secret, signOptions: { expiresIn: '7d' } }
+      },
     }),
     PrismaModule,
     AuthModule,
@@ -80,6 +91,10 @@ import { AllExceptionsFilter } from './common/filters/all-exceptions.filter'
     {
       provide: APP_FILTER,
       useClass: AllExceptionsFilter,
+    },
+    {
+      provide: APP_INTERCEPTOR,
+      useClass: LoggingInterceptor,
     },
     StartupHealthService,
   ],

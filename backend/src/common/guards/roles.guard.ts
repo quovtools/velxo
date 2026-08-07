@@ -20,7 +20,9 @@ export class RolesGuard implements CanActivate {
       throw new ForbiddenException('User not found')
     }
 
-    // TODO: Fetch user role from database (linking Supabase user to app user)
+    // Q4 FIX: Removed stale TODO — role is correctly read from request['userRole']
+    // which is populated by JwtAuthGuard / SupabaseJwtGuard during token validation.
+    // No additional DB lookup is needed here.
     const userRole = request['userRole']
 
     if (!requiredRoles.includes(userRole)) {
