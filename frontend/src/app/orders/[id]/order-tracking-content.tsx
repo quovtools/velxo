@@ -13,6 +13,7 @@ import {
 } from 'lucide-react';
 import Link from 'next/link';
 import { useCurrency } from '@/lib/useCurrency';
+import { formatNativeAmount } from '@/lib/currency';
 import SellerLevelBadge from '@/components/SellerLevelBadge';
 
 // ─── Types ───────────────────────────────────────────────────────────────────
@@ -268,6 +269,12 @@ export default function OrderTrackingContent({ id }: { id: string }) {
   const fee       = n(order?.commissionAmount);
   const payout    = n(order?.sellerPayout);
   const commRate  = Math.round(n(order?.commissionRate) * 100);
+
+  // Order amounts are stored in the buyer's local currency (e.g. NGN), NOT in USD.
+  // Using fmt() (which multiplies by the exchange rate) would double-convert them.
+  // Use formatNativeAmount() instead, which formats an already-local-currency value.
+  const orderCurrency = order?.currency ?? order?.escrow?.currency ?? 'USD';
+  const fmtOrder = (amount: number) => formatNativeAmount(amount, orderCurrency);
 
   // Timers
   const sellerDeadlineMs = order?.sellerDeliverDeadline
@@ -634,13 +641,13 @@ export default function OrderTrackingContent({ id }: { id: string }) {
             </div>
             <div className="px-6 py-5 space-y-0">
               <InfoRow label="Order Total (Buyer pays)"
-                value={fmt(escrowAmt)} valueClass="font-bold text-white" />
+                value={fmtOrder(escrowAmt)} valueClass="font-bold text-white" />
               <InfoRow
                 label={`Platform Fee (${commRate > 0 ? commRate : 10}%)`}
-                value={`- ${fmt(fee)}`} valueClass="text-gray-400" />
+                value={`- ${fmtOrder(fee)}`} valueClass="text-gray-400" />
               <div className="pt-3 mt-1 border-t border-borderBg flex items-center justify-between">
                 <span className="text-sm font-bold text-white">Seller Payout</span>
-                <span className="text-lg font-black text-emerald-400">{fmt(payout)}</span>
+                <span className="text-lg font-black text-emerald-400">{fmtOrder(payout)}</span>
               </div>
               {isBuyer && (
                 <p className="text-[10px] text-gray-600 mt-3 pt-3 border-t border-borderBg/40">
@@ -1024,7 +1031,7 @@ export default function OrderTrackingContent({ id }: { id: string }) {
               {order.completedAt && <InfoRow label="Completed" value={new Date(order.completedAt).toLocaleDateString('en-GB', { day: 'numeric', month: 'short' })} valueClass="text-emerald-400" />}
               <div className="pt-3 mt-1 border-t border-borderBg/40 flex items-center justify-between">
                 <span className="text-sm font-bold text-gray-300">Total</span>
-                <span className="text-base font-black text-white">{fmt(escrowAmt)}</span>
+                <span className="text-base font-black text-white">{fmtOrder(escrowAmt)}</span>
               </div>
             </div>
           </div>

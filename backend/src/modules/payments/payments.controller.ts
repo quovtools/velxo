@@ -70,16 +70,21 @@ export class PaymentsController {
         return ApiResponseDto.ok(null, 'Missing signature')
       }
 
-      // Use the raw body (captured by the json verify function in main.ts) for
-      // accurate HMAC computation. Fall back to JSON.stringify as a safety net.
-      const rawBody = req?.rawBody ?? JSON.stringify(event)
+      // Flutterwave sends the raw webhook secret as a plain string in the
+      // verif-hash header (NOT an HMAC). We compare using timingSafeEqual
+      // to prevent timing-based secret leakage.
       const crypto = require('crypto')
-      const expectedHash = crypto
-        .createHmac('sha256', webhookSecret)
-        .update(rawBody)
-        .digest('base64')
+      let signatureValid = false
+      try {
+        signatureValid = crypto.timingSafeEqual(
+          Buffer.from(verifHash),
+          Buffer.from(webhookSecret),
+        )
+      } catch {
+        signatureValid = false
+      }
 
-      if (expectedHash !== verifHash) {
+      if (!signatureValid) {
         this.logger.warn('Flutterwave webhook signature verification FAILED — rejecting forged request')
         return ApiResponseDto.ok(null, 'Invalid signature')
       }
