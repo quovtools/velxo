@@ -96,7 +96,13 @@ export class UsersService {
       this.prisma.wallet.findUnique({ where: { userId } }),
     ])
 
-    let sellerStats = null
+    let sellerStats: {
+      storeName: string
+      isVerified: boolean
+      totalSales: number
+      averageRating: number
+      reputationScore: number
+    } | null = null
     const seller = await this.prisma.sellers.findUnique({
       where: { userId },
     })

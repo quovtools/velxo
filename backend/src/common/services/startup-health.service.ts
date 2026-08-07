@@ -136,7 +136,8 @@ export class StartupHealthService implements OnModuleInit {
 
     const t = Date.now()
     try {
-      const { BrevoClient } = await import('@getbrevo/brevo')
+      // eslint-disable-next-line @typescript-eslint/no-var-requires
+      const { BrevoClient } = require('@getbrevo/brevo') as any
       const brevo = new BrevoClient({ apiKey })
       const account = await brevo.account.getAccount()
       const company = (account as any)?.companyName || 'account verified'
@@ -158,7 +159,8 @@ export class StartupHealthService implements OnModuleInit {
 
     const t = Date.now()
     try {
-      const { Bavimail } = await import('bavimail')
+      // eslint-disable-next-line @typescript-eslint/no-var-requires
+      const { Bavimail } = require('bavimail') as any
       new Bavimail({ apiKey })
       return { name: 'bavimail', label: 'Bavimail (Email Fallback)', ok: true, detail: `alias=${aliasId}`, ms: Date.now() - t }
     } catch (err: any) {

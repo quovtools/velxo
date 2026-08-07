@@ -359,7 +359,7 @@ export class ListingsService {
       console: 1.2,
     }
 
-    let base = GAME_BASE[dto.gameSlug] || 20
+    let base = GAME_BASE[dto.gameSlug ?? ''] || 20
     const rankMult = RANK_MULTIPLIER[dto.rank] || 1.0
     const platformMult = PLATFORM_MULTIPLIER[dto.platform] || 1.0
     const levelBonus = Math.max(0, (dto.level - 1)) * 0.5

@@ -73,7 +73,7 @@ export class OrdersService {
       const sellerByUser = await this.prisma.sellers.findUnique({
         where: { userId: listing.sellerId },
       })
-      sellerId = sellerByUser?.id
+      sellerId = sellerByUser?.id ?? ''
     }
     if (!sellerId) {
       throw new BadRequestException('This listing is not linked to a valid seller')
@@ -601,7 +601,7 @@ export class OrdersService {
     const updatedOrder = await this.prisma.$transaction(async (tx) => {
       // Update escrow
       await tx.escrowTransactions.update({
-        where: { id: order.escrow.id },
+        where: { id: order.escrow!.id },
         data: {
           status: EscrowStatus.RELEASED,
           releasedAt: new Date(),
@@ -738,7 +738,7 @@ export class OrdersService {
     // FIX F4: Refresh seller stats (level, rating, delivery rate) after every
     // order completion so badges and commission tiers stay accurate. Non-fatal.
     const sellerRecord = await this.prisma.sellers.findUnique({
-      where: { id: updatedOrder.sellerId },
+      where: { id: updatedOrder.sellerId ?? undefined },
     }).catch(() => null)
     if (sellerRecord) {
       this.updateSellerStatsById(sellerRecord.id).catch((e: any) =>
@@ -932,7 +932,7 @@ export class OrdersService {
 
     // FIX F4: Refresh seller stats after order completion.
     const sellerRecord = await this.prisma.sellers.findUnique({
-      where: { id: updatedOrder.sellerId },
+      where: { id: updatedOrder.sellerId ?? undefined },
     }).catch(() => null)
     if (sellerRecord) {
       this.updateSellerStatsById(sellerRecord.id).catch((e: any) =>

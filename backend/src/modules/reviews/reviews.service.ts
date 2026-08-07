@@ -50,7 +50,7 @@ export class ReviewsService {
           orderId: dto.orderId,
           listingId,
           buyerId,
-          sellerId: order.sellerId,
+          sellerId: order.sellerId as string,
           rating: dto.rating,
           comment: dto.comment,
         },
@@ -62,13 +62,13 @@ export class ReviewsService {
 
       // Update seller average rating
       const allReviews = await tx.reviews.findMany({
-        where: { sellerId: order.sellerId },
+        where: { sellerId: order.sellerId as string },
       })
 
       const avgRating = allReviews.reduce((sum, r) => sum + r.rating, 0) / allReviews.length
 
       await tx.sellers.update({
-        where: { id: order.sellerId },
+        where: { id: order.sellerId as string },
         data: { averageRating: avgRating },
       })
 

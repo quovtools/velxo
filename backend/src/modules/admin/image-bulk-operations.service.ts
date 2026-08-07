@@ -288,7 +288,7 @@ export class ImageBulkOperationsService {
   async findListingsWithMissingImages() {
     const listings = await this.prisma.listings.findMany({
       where: {
-        OR: [{ images: { isEmpty: true } }, { images: null }],
+        OR: [{ images: { isEmpty: true } }],
       },
       select: {
         id: true,
