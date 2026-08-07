@@ -75,7 +75,7 @@ export default function OrdersPage() {
     if (statusFilter) params.status = statusFilter;
     if (gameFilter)   params.gameName = gameFilter;
     api.get<{ success: boolean; data: Order[] }>(endpoint, { params })
-      .then(res => { if (res.success) setOrders(res.data || []); })
+      .then(res => { if (res.success) setOrders(Array.isArray(res.data) ? res.data : []); })
       .catch(console.error)
       .finally(() => setLoading(false));
   }, [user, authLoading, router, viewMode, statusFilter, gameFilter]);

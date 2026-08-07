@@ -476,14 +476,22 @@ export class NotificationsService {
   }
 
   async markAsRead(notificationId: string, userId?: string) {
-    if (userId) {
-      const existing = await this.prisma.notifications.findUnique({ where: { id: notificationId } })
-      if (!existing || existing.userId !== userId) throw new NotFoundException('Notification')
+    try {
+      if (userId) {
+        const existing = await this.prisma.notifications.findUnique({ where: { id: notificationId } })
+        if (!existing || existing.userId !== userId) throw new NotFoundException('Notification')
+      }
+      return await this.prisma.notifications.update({
+        where: { id: notificationId },
+        data: { isRead: true, readAt: new Date() },
+      })
+    } catch (e: any) {
+      // Prisma P2023 = malformed ID format, P2025 = record not found
+      if (e?.code === 'P2023' || e?.code === 'P2025') {
+        throw new NotFoundException('Notification')
+      }
+      throw e
     }
-    return this.prisma.notifications.update({
-      where: { id: notificationId },
-      data: { isRead: true, readAt: new Date() },
-    })
   }
 
   async markAllAsRead(userId: string) {
