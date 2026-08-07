@@ -164,12 +164,12 @@ export default function SellerDashboard() {
         api.get<{ success: boolean; data: Wallet }>('/wallet').catch(() => ({ success: false, data: null })),
       ]);
       if (sRes.success) setSeller(sRes.data);
-      if (oRes.success) setOrders(oRes.data?.orders || []);
-      if (lRes.success) setListings(lRes.data?.listings || []);
+      if (oRes.success) setOrders(Array.isArray(oRes.data?.orders) ? oRes.data.orders : []);
+      if (lRes.success) setListings(Array.isArray(lRes.data?.listings) ? lRes.data.listings : []);
       if (wRes.success) setWallet(wRes.data);
       if (sRes.success) {
         api.get<{ success: boolean; data: Review[] }>(`/reviews/seller/${sRes.data.id}`)
-          .then(r => r.success && setReviews(r.data || []))
+          .then(r => r.success && setReviews(Array.isArray(r.data) ? r.data : []))
           .catch(() => {});
       }
     } catch (e) {

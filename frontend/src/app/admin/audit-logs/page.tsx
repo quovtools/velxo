@@ -38,7 +38,7 @@ export default function AdminAuditLogsPage() {
       const res: any = await api.get('/admin/audit-logs', {
         params: { action, entityType, ...(search ? { actorId: search } : {}), page, limit: 50 },
       });
-      setItems(res.data || []); setTotalPages(res.meta?.totalPages || 1);
+      setItems(Array.isArray(res.data) ? res.data : []); setTotalPages(res.meta?.totalPages || 1);
     } catch (e: any) { setError(e.message || 'Failed to load logs'); setItems([]); }
     finally { setLoading(false); }
   }, [action, entityType, search, page]);

@@ -33,7 +33,7 @@ export default function AdminListingsPage() {
     setLoading(true); setError('');
     try {
       const res: any = await api.get('/admin/listings', { params: { search, status, game, page, limit: 25 } });
-      setItems(res.data || []); setTotalPages(res.meta?.totalPages || 1);
+      setItems(Array.isArray(res.data) ? res.data : []); setTotalPages(res.meta?.totalPages || 1);
     } catch (e: any) { setError(e.message || 'Failed to load listings'); setItems([]); }
     finally { setLoading(false); }
   }, [search, status, game, page]);

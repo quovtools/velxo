@@ -61,7 +61,7 @@ export default function AdminFeaturedListingsPage() {
       if (game)   params.game   = game;
       if (featuredOnly) params.featuredOnly = 'true';
       const res: any = await api.get('/admin/featured-listings', { params });
-      setItems(res.data || []);
+      setItems(Array.isArray(res.data) ? res.data : []);
       const meta = res.meta ?? {};
       setTotal(meta.total ?? (res.data?.length ?? 0));
       setTotalPages(meta.totalPages ?? 1);

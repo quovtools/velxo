@@ -35,7 +35,7 @@ export default function DisputesPage() {
     setLoading(true);
     try {
       const res = await api.get<any>('/disputes/open');
-      setDisputes(res.data || []);
+      setDisputes(Array.isArray(res.data) ? res.data : []);
     } catch { setDisputes([]); }
     finally { setLoading(false); }
   };

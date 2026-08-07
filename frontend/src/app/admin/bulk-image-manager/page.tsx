@@ -29,7 +29,7 @@ export default function BulkImageManagerPage() {
       const params = new URLSearchParams({ status: 'ACTIVE', limit: '200' });
       if (search.trim()) params.set('search', search.trim());
       const res = await api.get<any>(`/admin/listings?${params}`);
-      setListings(res.data || []);
+      setListings(Array.isArray(res.data) ? res.data : []);
     } catch (e: any) { setError(e.message || 'Failed to load listings'); }
     finally { setLoadingListings(false); }
   }, [search]);

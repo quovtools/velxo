@@ -26,7 +26,7 @@ export default function ModerationPage() {
     setLoading(true);
     try {
       const res = await api.get<any>('/admin/listings/pending');
-      setListings(res.data || []);
+      setListings(Array.isArray(res.data) ? res.data : []);
     } catch { setListings([]); }
     finally { setLoading(false); }
   };

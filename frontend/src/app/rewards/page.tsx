@@ -48,7 +48,7 @@ export default function RewardsPage() {
         setReferral(meRes.data);
         setAffiliateStats(statsRes.data);
         setCoinBalance(coinsRes.data?.coinBalance || 0);
-        setTransactions(txRes.data || []);
+        setTransactions(Array.isArray(txRes.data) ? txRes.data : []);
       } catch (e) {
         console.error(e);
       } finally {

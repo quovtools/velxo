@@ -112,7 +112,7 @@ function ChatContent() {
   const fetchConvos = async () => {
     try {
       const res = await api.get<{ success: boolean; data: Conversation[] }>('/messages');
-      if (res.success) { const list = res.data || []; setConvos(list); return list; }
+      if (res.success) { const list = Array.isArray(res.data) ? res.data : []; setConvos(list); return list; }
     } catch { /* silent */ }
     return [];
   };

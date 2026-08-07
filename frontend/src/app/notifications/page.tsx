@@ -71,7 +71,7 @@ export default function NotificationsPage() {
     (async () => {
       try {
         const res = await api.get<{ data: Notification[] }>('/notifications');
-        setNotifs(res.data || []);
+        setNotifs(Array.isArray(res.data) ? res.data : []);
       } catch { /* silent */ }
       finally { setLoading(false); }
     })();

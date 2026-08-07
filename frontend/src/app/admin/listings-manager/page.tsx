@@ -50,7 +50,7 @@ export default function ListingsManagerPage() {
       if (gameFilter)   params.append('game', gameFilter);
       if (search)       params.append('search', search);
       const res = await api.get<any>(`/admin/listings?${params}`);
-      setListings(res.data || []);
+      setListings(Array.isArray(res.data) ? res.data : []);
     } catch (e: any) { setError(e.message || 'Failed to load listings'); }
     finally { setLoading(false); }
   }, [statusFilter, gameFilter, search]);

@@ -25,7 +25,7 @@ export default function AdminCategoriesPage() {
 
   const fetchItems = async () => {
     setLoading(true); setError('');
-    try { const res: any = await api.get('/admin/categories'); setItems(res.data || []); }
+    try { const res: any = await api.get('/admin/categories'); setItems(Array.isArray(res.data) ? res.data : []); }
     catch (e: any) { setError(e.message || 'Failed'); }
     finally { setLoading(false); }
   };

@@ -40,7 +40,7 @@ export default function AdminLiveChatPage() {
       const params: Record<string, string | number> = { limit: 60 };
         if (filter) params.status = filter;
         const res: any = await api.get('/live-chat/admin/chats', { params });
-      setChats(res.data || []);
+      setChats(Array.isArray(res.data) ? res.data : []);
     } catch (e: any) {
       setError(e.message || 'Failed to load chats');
     } finally {

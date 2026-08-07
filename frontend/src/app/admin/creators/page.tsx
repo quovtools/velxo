@@ -74,7 +74,7 @@ export default function AdminCreatorsPage() {
     setLoading(true);
     try {
       const res = await api.get<any>('/affiliate/admin/creators', { params: status ? { status, limit: 100 } : { limit: 100 } });
-      setCreators(res.data || []);
+      setCreators(Array.isArray(res.data) ? res.data : []);
     } catch { } finally { setLoading(false); }
   };
 

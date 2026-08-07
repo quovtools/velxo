@@ -25,7 +25,7 @@ export default function MarqueeAdminPage() {
 
   const fetchItems = async () => {
     setLoading(true);
-    try { const res = await api.get<any>('/marquee/all'); setItems(res.data || []); }
+    try { const res = await api.get<any>('/marquee/all'); setItems(Array.isArray(res.data) ? res.data : []); }
     catch { setItems([]); } finally { setLoading(false); }
   };
 

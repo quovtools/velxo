@@ -65,7 +65,7 @@ export default function NotificationProvider({ children }: { children: React.Rea
     try {
       const res = await api.get<{ success: boolean; data: AppNotification[] }>('/notifications');
       const list = res.data || [];
-      setNotifications(list);
+      setNotifications(Array.isArray(list) ? list : []);
       setUnread(list.filter((n) => !n.isRead).length);
     } catch {
       /* silent */

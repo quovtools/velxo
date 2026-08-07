@@ -82,7 +82,7 @@ export default function WalletPage() {
           api.get<{ success: boolean; data: Transaction[] }>('/wallet/transactions'),
         ]);
         if (w.success) setWallet(w.data);
-        if (t.success) setTxns(t.data || []);
+      if (t.success) setTxns(Array.isArray(t.data) ? t.data : []);
       } catch { /* silent */ }
       finally { setLoading(false); }
     })();

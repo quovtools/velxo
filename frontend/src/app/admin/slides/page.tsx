@@ -26,8 +26,8 @@ export default function SlidesPage() {
     setLoading(true);
     try {
       const res = await api.get<any>('/slides/all');
-      setSlides(res.data || []);
-    } catch { try { const r = await api.get<any>('/slides'); setSlides(r.data || []); } catch { setSlides([]); } }
+      setSlides(Array.isArray(res.data) ? res.data : []);
+    } catch { try { const r = await api.get<any>('/slides'); setSlides(Array.isArray(r.data) ? r.data : []); } catch { setSlides([]); } }
     finally { setLoading(false); }
   };
 

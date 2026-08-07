@@ -28,7 +28,7 @@ export default function AdminKycPage() {
 
   const fetchPending = async () => {
     setLoading(true); setError('');
-    try { const res = await api.get<any>('/admin/kyc/pending'); setItems(res.data || []); }
+    try { const res = await api.get<any>('/admin/kyc/pending'); setItems(Array.isArray(res.data) ? res.data : []); }
     catch (e: any) { setError(e?.message || 'Failed to load'); }
     finally { setLoading(false); }
   };
