@@ -26,8 +26,7 @@ export class StartupHealthService implements OnModuleInit {
       this.checkDatabase(),
       this.checkNeonDB(),
       this.checkCloudinary(),
-      this.checkBrevo(),
-      this.checkBavimail(),
+      this.checkResend(),
       this.checkFlutterwave(),
       this.checkPaymentIo(),
       this.checkGoogleOAuth(),
@@ -127,45 +126,14 @@ export class StartupHealthService implements OnModuleInit {
     }
   }
 
-  // ── 4. Brevo — verify API key + account info ────────────────────────────────
-  private async checkBrevo(): Promise<CheckResult> {
-    const apiKey = process.env.BREVO_API_KEY
+  // ── 4. Resend — verify API key is set ──────────────────────────────────────
+  private async checkResend(): Promise<CheckResult> {
+    const apiKey = process.env.RESEND_API_KEY
     if (!apiKey) {
-      return { name: 'brevo', label: 'Brevo (Email Primary)', ok: false, detail: 'BREVO_API_KEY not set' }
+      return { name: 'resend', label: 'Resend (Email)', ok: false, detail: 'RESEND_API_KEY not set' }
     }
-
-    const t = Date.now()
-    try {
-      // eslint-disable-next-line @typescript-eslint/no-var-requires
-      const { BrevoClient } = require('@getbrevo/brevo') as any
-      const brevo = new BrevoClient({ apiKey })
-      const account = await brevo.account.getAccount()
-      const company = (account as any)?.companyName || 'account verified'
-      return { name: 'brevo', label: 'Brevo (Email Primary)', ok: true, detail: company, ms: Date.now() - t }
-    } catch (err: any) {
-      return { name: 'brevo', label: 'Brevo (Email Primary)', ok: false, detail: err?.message, ms: Date.now() - t }
-    }
-  }
-
-  // ── 5. Bavimail — verify key + alias are set ─────────────────────────────
-  private async checkBavimail(): Promise<CheckResult> {
-    const apiKey  = process.env.BAVIMAIL_API_KEY
-    const aliasId = process.env.BAVIMAIL_ALIAS_ID
-
-    if (!apiKey || !aliasId) {
-      const missing = [apiKey ? null : 'BAVIMAIL_API_KEY', aliasId ? null : 'BAVIMAIL_ALIAS_ID'].filter(Boolean).join(', ')
-      return { name: 'bavimail', label: 'Bavimail (Email Fallback)', ok: false, detail: `missing: ${missing}` }
-    }
-
-    const t = Date.now()
-    try {
-      // eslint-disable-next-line @typescript-eslint/no-var-requires
-      const { Bavimail } = require('bavimail') as any
-      new Bavimail({ apiKey })
-      return { name: 'bavimail', label: 'Bavimail (Email Fallback)', ok: true, detail: `alias=${aliasId}`, ms: Date.now() - t }
-    } catch (err: any) {
-      return { name: 'bavimail', label: 'Bavimail (Email Fallback)', ok: false, detail: err?.message, ms: Date.now() - t }
-    }
+    const from = process.env.EMAIL_FROM || 'notify@piyrox.shop'
+    return { name: 'resend', label: 'Resend (Email)', ok: true, detail: `from=${from}` }
   }
 
   // ── 6. Flutterwave — verify key + live API ping ──────────────────────────
