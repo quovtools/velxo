@@ -86,11 +86,12 @@ EXCEPTION WHEN duplicate_table THEN null; END $$;
 -- ─────────────────────────────────────────────────────────────
 
 ALTER TABLE orders
-  ADD COLUMN IF NOT EXISTS "lockedRate"             DECIMAL(18,8),
-  ADD COLUMN IF NOT EXISTS "lockedCurrency"         TEXT,
-  ADD COLUMN IF NOT EXISTS "acceptedAt"             TIMESTAMP(3),
-  ADD COLUMN IF NOT EXISTS "sellerDeliverDeadline"  TIMESTAMP(3),
-  ADD COLUMN IF NOT EXISTS "buyerConfirmDeadline"   TIMESTAMP(3);
+  ADD COLUMN IF NOT EXISTS "lockedRate"               DECIMAL(18,8),
+  ADD COLUMN IF NOT EXISTS "lockedCurrency"           TEXT,
+  ADD COLUMN IF NOT EXISTS "acceptedAt"               TIMESTAMP(3),
+  ADD COLUMN IF NOT EXISTS "sellerDeliverDeadline"    TIMESTAMP(3),
+  ADD COLUMN IF NOT EXISTS "buyerConfirmDeadline"     TIMESTAMP(3),
+  ADD COLUMN IF NOT EXISTS "sellerDisputeEligibleAt"  TIMESTAMP(3);
 
 
 -- ─────────────────────────────────────────────────────────────
@@ -460,3 +461,25 @@ DO $$ BEGIN
     FOREIGN KEY ("chatId") REFERENCES "live_chats"("id") ON DELETE CASCADE ON UPDATE CASCADE;
 EXCEPTION WHEN duplicate_object THEN null; END $$;
 CREATE INDEX IF NOT EXISTS "live_chat_messages_chatId_createdAt_idx" ON "live_chat_messages"("chatId", "createdAt");
+
+
+-- ─────────────────────────────────────────────────────────────
+-- 9. SESSION_CODES — short-lived OAuth session code store
+--    Replaces the in-memory Map so codes survive across multiple
+--    app instances (Fly.io multi-machine deployments).
+-- ─────────────────────────────────────────────────────────────
+
+CREATE TABLE IF NOT EXISTS "session_codes" (
+  "id"          TEXT        NOT NULL,
+  "code"        TEXT        NOT NULL,
+  "accessToken" TEXT        NOT NULL,
+  "user"        JSONB       NOT NULL,
+  "expiresAt"   TIMESTAMP(3) NOT NULL,
+  "createdAt"   TIMESTAMP(3) NOT NULL DEFAULT CURRENT_TIMESTAMP,
+  CONSTRAINT "session_codes_pkey" PRIMARY KEY ("id")
+);
+DO $$ BEGIN
+  CREATE UNIQUE INDEX "session_codes_code_key" ON "session_codes"("code");
+EXCEPTION WHEN duplicate_table THEN null; END $$;
+CREATE INDEX IF NOT EXISTS "session_codes_code_idx"      ON "session_codes"("code");
+CREATE INDEX IF NOT EXISTS "session_codes_expiresAt_idx" ON "session_codes"("expiresAt");

@@ -1359,3 +1359,16 @@ model liveChatMessages {
   @@index([chatId, createdAt])
   @@map("live_chat_messages")
 }
+
+model sessionCodes {
+  id          String   @id @default(cuid())
+  code        String   @unique
+  accessToken String
+  user        Json
+  expiresAt   DateTime
+  createdAt   DateTime @default(now())
+
+  @@index([code])
+  @@index([expiresAt])
+  @@map("session_codes")
+}

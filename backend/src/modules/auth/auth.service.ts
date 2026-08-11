@@ -388,31 +388,49 @@ export class AuthService {
     return user
   }
 
-  // ── Session code store (in-memory, single-process) ────────────────────────
-  // Maps a short-lived random code → { accessToken, user, expiresAt }.
-  // Codes expire after 30 seconds and are single-use.
-  private readonly sessionCodes = new Map<string, { accessToken: string; user: any; expiresAt: number }>()
+  // ── Session code store (DB-backed, multi-instance safe) ──────────────────
+  // Codes are stored in the `session_codes` table so they survive across
+  // multiple Fly.io app instances. TTL is 5 minutes to handle slow networks
+  // and cold page loads. Codes are single-use and deleted on consumption.
 
   async issueSessionCode(result: { accessToken: string; user: any }): Promise<string> {
-    const code = require('crypto').randomBytes(24).toString('hex')
-    this.sessionCodes.set(code, { ...result, expiresAt: Date.now() + 30_000 })
-    // Clean up expired codes passively (no scheduled job needed at this scale).
-    for (const [k, v] of this.sessionCodes.entries()) {
-      if (v.expiresAt < Date.now()) this.sessionCodes.delete(k)
-    }
+    const { randomBytes } = await import('crypto')
+    const code = randomBytes(24).toString('hex')
+    const expiresAt = new Date(Date.now() + 5 * 60 * 1000) // 5 minutes
+
+    await this.prisma.sessionCodes.create({
+      data: {
+        id: randomBytes(12).toString('hex'),
+        code,
+        accessToken: result.accessToken,
+        user: result.user,
+        expiresAt,
+      },
+    })
+
+    // Passive cleanup: purge expired codes so the table stays small.
+    this.prisma.sessionCodes
+      .deleteMany({ where: { expiresAt: { lt: new Date() } } })
+      .catch(() => { /* non-critical, ignore */ })
+
     return code
   }
 
   async exchangeSessionCode(code: string) {
     if (!code) throw new UnauthorizedException('Missing session code')
-    const entry = this.sessionCodes.get(code)
+
+    const entry = await this.prisma.sessionCodes.findUnique({ where: { code } })
+
     if (!entry) throw new UnauthorizedException('Invalid or expired session code')
-    if (Date.now() > entry.expiresAt) {
-      this.sessionCodes.delete(code)
+
+    if (new Date() > entry.expiresAt) {
+      await this.prisma.sessionCodes.delete({ where: { code } }).catch(() => { /* already gone */ })
       throw new UnauthorizedException('Session code has expired — please sign in again')
     }
+
     // Single-use: delete immediately after first consumption.
-    this.sessionCodes.delete(code)
+    await this.prisma.sessionCodes.delete({ where: { code } })
+
     return { accessToken: entry.accessToken, user: entry.user }
   }
 }

@@ -6,12 +6,7 @@ COPY backend/package.json ./
 RUN npm install --legacy-peer-deps --prefer-offline=false
 COPY backend/prisma ./prisma/
 RUN npx prisma generate
-# Copy source excluding node_modules (use .dockerignore or explicit excludes)
-COPY backend/src ./src
-COPY backend/tsconfig.json ./tsconfig.json
-COPY backend/tsconfig.build.json ./tsconfig.build.json
-COPY backend/nest-cli.json ./nest-cli.json
-RUN mkdir -p ./public
+COPY backend/ .
 RUN npm run build
 
 # Build frontend
@@ -44,7 +39,7 @@ COPY --from=backend-builder /app/backend/prisma ./backend/prisma
 COPY --from=frontend-builder /app/frontend/.next ./frontend/.next
 COPY --from=frontend-builder /app/frontend/public ./frontend/public
 
-# Serve backend's static images through Next.js (if any)
+# Serve backend's static images through Next.js
 COPY backend/public ./backend/public
 RUN cp -r backend/public/images frontend/public/images 2>/dev/null || true
 
