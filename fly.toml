@@ -13,8 +13,8 @@ kill_timeout = "10s"
   min_machines_running = 1
 
 [[http_service.checks]]
-  grace_period = "10s"
+  grace_period = "35s"
   interval = "30s"
   method = "GET"
-  path = "/"
+  path = "/api/v1"
   timeout = "5s"
