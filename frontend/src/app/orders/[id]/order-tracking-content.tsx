@@ -203,6 +203,20 @@ export default function OrderTrackingContent({ id }: { id: string }) {
   const [showDelivery, setShowDelivery] = useState(false);
   const [deliveryTab, setDeliveryTab]   = useState<'credentials' | 'notes' | 'raw'>('credentials');
 
+  // Seller action panel tab
+  const [actionTab, setActionTab] = useState<'deliver' | 'details' | 'request'>('deliver');
+
+  // Auto-switch to 'details' when order moves to IN_PROGRESS (delivery submitted)
+  useEffect(() => {
+    if (order?.status === 'IN_PROGRESS' && isSeller) {
+      setActionTab('details');
+    }
+  }, [order?.status, isSeller]);
+
+  // Request release state
+  const [requestingRelease, setRequestingRelease] = useState(false);
+  const [releaseRequested, setReleaseRequested]   = useState(false);
+
   // Dispute / review / cancel modals
   const [showDispute, setShowDispute]               = useState(false);
   const [disputeReason, setDisputeReason]           = useState('');
@@ -409,6 +423,19 @@ export default function OrderTrackingContent({ id }: { id: string }) {
     await api.patch(`/orders/${id}/confirm-delivery`);
     showToast('Receipt confirmed — funds released to seller', 'success');
   });
+
+  const handleRequestRelease = async () => {
+    setRequestingRelease(true);
+    try {
+      await api.post(`/orders/${id}/request-release`, {});
+      setReleaseRequested(true);
+      showToast('Release request sent — buyer has been notified', 'success');
+    } catch (err: any) {
+      showToast(err.message || 'Failed to send release request', 'error');
+    } finally {
+      setRequestingRelease(false);
+    }
+  };
 
   const handleCancel = async () => {
     setCancelling(true);
@@ -971,192 +998,390 @@ export default function OrderTrackingContent({ id }: { id: string }) {
             </div>
           )}
 
-          {/* Order Actions */}
+          {/* ══ ORDER ACTIONS ══════════════════════════════════════════════ */}
           {!isCancelled && (
             <div className="bg-cardBg border border-borderBg rounded-2xl overflow-hidden">
-              <div className="px-6 py-4 border-b border-borderBg">
-                <h3 className="font-bold text-white text-sm">Order Actions</h3>
+
+              {/* ── Header ── */}
+              <div className="flex items-center justify-between px-6 py-4 border-b border-borderBg">
+                <div className="flex items-center gap-2">
+                  <SendHorizonal className="w-4 h-4 text-brand" />
+                  <h3 className="font-bold text-white text-sm">Order Actions</h3>
+                </div>
+                {/* Seller tab switcher — only show when accepted + PAID/IN_PROGRESS */}
+                {isSeller && order.status === 'PAID' && order.acceptedAt && (
+                  <div className="flex gap-1 bg-background border border-borderBg rounded-xl p-1">
+                    {([
+                      { key: 'deliver', label: 'Deliver' },
+                      { key: 'details', label: 'Preview' },
+                    ] as const).map(t => (
+                      <button key={t.key} onClick={() => setActionTab(t.key)}
+                        className={`px-3 py-1.5 rounded-lg text-xs font-bold transition
+                          ${actionTab === t.key ? 'bg-brand text-white' : 'text-gray-400 hover:text-white'}`}>
+                        {t.label}
+                      </button>
+                    ))}
+                  </div>
+                )}
+                {isSeller && order.status === 'IN_PROGRESS' && (
+                  <div className="flex gap-1 bg-background border border-borderBg rounded-xl p-1">
+                    {([
+                      { key: 'details', label: 'Delivery' },
+                      { key: 'request', label: 'Release' },
+                    ] as const).map(t => (
+                      <button key={t.key} onClick={() => setActionTab(t.key as any)}
+                        className={`px-3 py-1.5 rounded-lg text-xs font-bold transition
+                          ${actionTab === t.key ? 'bg-brand text-white' : 'text-gray-400 hover:text-white'}`}>
+                        {t.label}
+                      </button>
+                    ))}
+                  </div>
+                )}
               </div>
+
               <div className="px-6 py-5 space-y-4">
 
-                {/* ── SELLER ACTIONS ── */}
+                {/* ── SELLER: Awaiting accept ── */}
                 {isSeller && order.status === 'PAID' && !order.acceptedAt && (
                   <>
-                    <div className="flex items-start gap-3 bg-brand/5 border border-brand/20 rounded-xl p-4">
-                      <Lock className="w-4 h-4 text-brand flex-shrink-0 mt-0.5" />
-                      <div>
-                        <p className="text-sm font-bold text-white">Accept order to start delivery timer</p>
-                        <p className="text-xs text-gray-400 mt-1">
-                          Funds are locked in escrow. Accepting starts your <strong className="text-white">1h 30m</strong> delivery window.
-                          The buyer will be notified and expects credentials within that time.
-                        </p>
+                    <div className="rounded-2xl overflow-hidden border border-brand/20 bg-brand/5">
+                      <div className="px-5 py-4 flex items-start gap-3">
+                        <div className="p-2 bg-brand/15 rounded-xl flex-shrink-0">
+                          <Lock className="w-5 h-5 text-brand" />
+                        </div>
+                        <div>
+                          <p className="text-sm font-bold text-white">Accept to start your delivery timer</p>
+                          <p className="text-xs text-gray-400 mt-1">
+                            Funds are locked in escrow. Once you accept, you have <strong className="text-white">1h 30m</strong> to
+                            send the account credentials. The buyer will be notified immediately.
+                          </p>
+                        </div>
+                      </div>
+                      <div className="grid grid-cols-3 divide-x divide-borderBg border-t border-borderBg text-center">
+                        <div className="px-3 py-3">
+                          <p className="text-[10px] text-gray-500 uppercase font-bold tracking-widest">Window</p>
+                          <p className="text-sm font-black text-white mt-0.5">1h 30m</p>
+                        </div>
+                        <div className="px-3 py-3">
+                          <p className="text-[10px] text-gray-500 uppercase font-bold tracking-widest">Payout</p>
+                          <p className="text-sm font-black text-emerald-400 mt-0.5">{fmtOrder(payout)}</p>
+                        </div>
+                        <div className="px-3 py-3">
+                          <p className="text-[10px] text-gray-500 uppercase font-bold tracking-widest">Status</p>
+                          <p className="text-sm font-black text-yellow-400 mt-0.5">Pending</p>
+                        </div>
                       </div>
                     </div>
                     <button onClick={handleAccept} disabled={actionLoading}
-                      className="w-full flex items-center justify-center gap-2 bg-brand hover:opacity-90 py-4 rounded-xl font-black text-white disabled:opacity-50 transition shadow-lg shadow-brand/20">
+                      className="w-full flex items-center justify-center gap-2 bg-brand hover:opacity-90 py-4 rounded-xl font-black text-white disabled:opacity-50 transition shadow-lg shadow-brand/20 text-sm">
                       {actionLoading ? <Loader2 className="w-5 h-5 animate-spin" /> : <CheckCircle className="w-5 h-5" />}
                       Accept Order &amp; Start Delivery Timer
                     </button>
                   </>
                 )}
 
+                {/* ── SELLER: Accepted — Delivery hub ── */}
                 {isSeller && order.status === 'PAID' && order.acceptedAt && (
                   <>
-                    {/* Delivery countdown */}
-                    <div className="flex items-center gap-4 bg-yellow-950/20 border border-yellow-500/20 rounded-xl p-4">
-                      <Truck className="w-6 h-6 text-yellow-400 flex-shrink-0" />
+                    {/* Countdown bar */}
+                    <div className={`rounded-xl border px-4 py-3 flex items-center gap-4
+                      ${sellerRemaining !== null && sellerRemaining < 600_000
+                        ? 'bg-red-950/30 border-red-500/30'
+                        : 'bg-yellow-950/20 border-yellow-500/20'}`}>
+                      <Truck className={`w-5 h-5 flex-shrink-0 ${sellerRemaining !== null && sellerRemaining < 600_000 ? 'text-red-400' : 'text-yellow-400'}`} />
                       <div className="flex-1 min-w-0">
-                        <p className="text-xs text-yellow-300 font-bold uppercase tracking-widest">Deliver within</p>
-                        <p className={`text-2xl font-black font-mono ${cdColor(sellerRemaining)}`}>{fmtCountdown(sellerRemaining ?? 0)}</p>
-                        <p className="text-[10px] text-gray-500 mt-0.5">Miss this and the buyer can open a dispute — fill in all fields below before submitting.</p>
+                        <p className={`text-[10px] font-black uppercase tracking-widest ${sellerRemaining !== null && sellerRemaining < 600_000 ? 'text-red-300' : 'text-yellow-300'}`}>
+                          Deliver within
+                        </p>
+                        <p className={`text-2xl font-black font-mono leading-tight ${cdColor(sellerRemaining)}`}>
+                          {fmtCountdown(sellerRemaining ?? 0)}
+                        </p>
+                      </div>
+                      <div className="text-right flex-shrink-0">
+                        <p className="text-[10px] text-gray-500 uppercase font-bold tracking-widest">Your payout</p>
+                        <p className="text-base font-black text-emerald-400">{fmtOrder(payout)}</p>
                       </div>
                     </div>
 
-                    {/* Delivery form */}
-                    <form onSubmit={handleMarkDelivered} className="space-y-4">
-                      <div className="flex items-center gap-2 pb-1 border-b border-borderBg">
-                        <Truck className="w-4 h-4 text-brand" />
-                        <p className="text-xs font-black text-white uppercase tracking-widest">Account Credentials</p>
-                      </div>
+                    {/* Tab: Deliver */}
+                    {actionTab === 'deliver' && (
+                      <form onSubmit={handleMarkDelivered} className="space-y-4">
 
-                      <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+                        {/* Section header */}
+                        <div className="flex items-center gap-2 pb-1 border-b border-borderBg">
+                          <FileText className="w-4 h-4 text-brand" />
+                          <p className="text-xs font-black text-white uppercase tracking-widest">Account Credentials</p>
+                          <span className="ml-auto text-[10px] text-gray-500">Fields marked <span className="text-brand">*</span> required</span>
+                        </div>
+
+                        <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+                          <div>
+                            <label className="text-[10px] text-gray-500 uppercase tracking-wide font-bold block mb-1.5">
+                              Email / UID <span className="text-brand">*</span>
+                            </label>
+                            <input
+                              type="text"
+                              value={deliveryEmail}
+                              onChange={e => setDeliveryEmail(e.target.value)}
+                              placeholder="user@example.com or Player UID"
+                              className="w-full bg-background border border-borderBg rounded-xl px-3 py-2.5 text-sm text-white font-mono focus:outline-none focus:border-brand transition placeholder:text-gray-600"
+                            />
+                          </div>
+                          <div>
+                            <label className="text-[10px] text-gray-500 uppercase tracking-wide font-bold block mb-1.5">
+                              Password <span className="text-brand">*</span>
+                            </label>
+                            <input
+                              type="text"
+                              value={deliveryPass}
+                              onChange={e => setDeliveryPass(e.target.value)}
+                              placeholder="Account password"
+                              className="w-full bg-background border border-borderBg rounded-xl px-3 py-2.5 text-sm text-white font-mono focus:outline-none focus:border-brand transition placeholder:text-gray-600"
+                            />
+                          </div>
+                          <div>
+                            <label className="text-[10px] text-gray-500 uppercase tracking-wide font-bold block mb-1.5">
+                              Username / In-game Name
+                            </label>
+                            <input
+                              type="text"
+                              value={deliveryExtra}
+                              onChange={e => setDeliveryExtra(e.target.value)}
+                              placeholder="In-game name or recovery email"
+                              className="w-full bg-background border border-borderBg rounded-xl px-3 py-2.5 text-sm text-white font-mono focus:outline-none focus:border-brand transition placeholder:text-gray-600"
+                            />
+                          </div>
+                          <div>
+                            <label className="text-[10px] text-gray-500 uppercase tracking-wide font-bold block mb-1.5">
+                              Login Method
+                            </label>
+                            <select
+                              value={deliveryLoginMethod}
+                              onChange={e => setDeliveryLoginMethod(e.target.value)}
+                              className="w-full bg-background border border-borderBg rounded-xl px-3 py-2.5 text-sm text-white focus:outline-none focus:border-brand transition"
+                            >
+                              <option value="">Select…</option>
+                              <option value="Email &amp; Password">Email &amp; Password</option>
+                              <option value="Facebook">Facebook</option>
+                              <option value="Google">Google</option>
+                              <option value="Apple ID">Apple ID</option>
+                              <option value="Guest / UID">Guest / UID</option>
+                              <option value="VK">VK</option>
+                              <option value="Twitter / X">Twitter / X</option>
+                              <option value="Other">Other</option>
+                            </select>
+                          </div>
+                        </div>
+
                         <div>
-                          <label className="text-[10px] text-gray-500 uppercase tracking-wide font-bold block mb-1">
-                            Email / UID <span className="text-brand">*</span>
+                          <label className="text-[10px] text-gray-500 uppercase tracking-wide font-bold block mb-1.5">
+                            Notes to Buyer <span className="text-brand">*</span>
+                            <span className="ml-1 text-gray-600 normal-case font-normal tracking-normal">
+                              — login steps, warnings, tips
+                            </span>
                           </label>
-                          <input
-                            type="text"
-                            value={deliveryEmail}
-                            onChange={e => setDeliveryEmail(e.target.value)}
-                            placeholder="user@example.com or Player UID"
-                            className="w-full bg-background border border-borderBg rounded-xl px-3 py-2.5 text-sm text-white font-mono focus:outline-none focus:border-brand transition"
+                          <textarea
+                            value={deliveryNotes}
+                            onChange={e => setDeliveryNotes(e.target.value)}
+                            rows={3}
+                            required
+                            placeholder="e.g. Log in via Facebook · Do not change the email · 2FA sent to +234..."
+                            className="w-full bg-background border border-borderBg rounded-xl px-3 py-2.5 text-sm text-white focus:outline-none focus:border-brand resize-none transition placeholder:text-gray-600"
                           />
                         </div>
-                        <div>
-                          <label className="text-[10px] text-gray-500 uppercase tracking-wide font-bold block mb-1">
-                            Password <span className="text-brand">*</span>
-                          </label>
-                          <input
-                            type="text"
-                            value={deliveryPass}
-                            onChange={e => setDeliveryPass(e.target.value)}
-                            placeholder="Account password"
-                            className="w-full bg-background border border-borderBg rounded-xl px-3 py-2.5 text-sm text-white font-mono focus:outline-none focus:border-brand transition"
-                          />
-                        </div>
-                      </div>
 
-                      <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
-                        <div>
-                          <label className="text-[10px] text-gray-500 uppercase tracking-wide font-bold block mb-1">
-                            Username / In-game Name
-                          </label>
-                          <input
-                            type="text"
-                            value={deliveryExtra}
-                            onChange={e => setDeliveryExtra(e.target.value)}
-                            placeholder="In-game name or recovery email"
-                            className="w-full bg-background border border-borderBg rounded-xl px-3 py-2.5 text-sm text-white font-mono focus:outline-none focus:border-brand transition"
-                          />
+                        <div className="flex items-start gap-2.5 bg-brand/5 border border-brand/15 rounded-xl px-4 py-3">
+                          <Info className="w-4 h-4 text-brand flex-shrink-0 mt-0.5" />
+                          <p className="text-xs text-gray-400">
+                            <strong className="text-white">Before you submit:</strong> take a screenshot of the account
+                            confirming everything is intact. If a dispute is opened, you can attach it as evidence.
+                            The buyer will receive all credentials by email immediately.
+                          </p>
                         </div>
-                        <div>
-                          <label className="text-[10px] text-gray-500 uppercase tracking-wide font-bold block mb-1">
-                            Login Method
-                          </label>
-                          <select
-                            value={deliveryLoginMethod}
-                            onChange={e => setDeliveryLoginMethod(e.target.value)}
-                            className="w-full bg-background border border-borderBg rounded-xl px-3 py-2.5 text-sm text-white focus:outline-none focus:border-brand transition"
-                          >
-                            <option value="">Select login method…</option>
-                            <option value="Email & Password">Email &amp; Password</option>
-                            <option value="Facebook">Facebook</option>
-                            <option value="Google">Google</option>
-                            <option value="Apple ID">Apple ID</option>
-                            <option value="Guest / UID">Guest / UID</option>
-                            <option value="VK">VK</option>
-                            <option value="Twitter / X">Twitter / X</option>
-                            <option value="Other">Other</option>
-                          </select>
-                        </div>
-                      </div>
 
-                      <div>
-                        <label className="text-[10px] text-gray-500 uppercase tracking-wide font-bold block mb-1">
-                          Notes to Buyer <span className="text-brand">*</span>
-                          <span className="ml-2 text-gray-600 normal-case font-normal">(login steps, tips, warnings)</span>
-                        </label>
-                        <textarea
-                          value={deliveryNotes}
-                          onChange={e => setDeliveryNotes(e.target.value)}
-                          rows={3}
-                          required
-                          placeholder="e.g. Log in via Facebook · Do not change email · 2FA code sent to +234..."
-                          className="w-full bg-background border border-borderBg rounded-xl px-3 py-2.5 text-sm text-white focus:outline-none focus:border-brand resize-none transition"
-                        />
-                      </div>
+                        <button
+                          type="submit"
+                          disabled={submittingDelivery}
+                          className="w-full flex items-center justify-center gap-2 bg-brand hover:opacity-90 py-4 rounded-xl font-black text-white disabled:opacity-50 transition shadow-lg shadow-brand/20 text-sm"
+                        >
+                          {submittingDelivery
+                            ? <><Loader2 className="w-5 h-5 animate-spin" /> Submitting delivery…</>
+                            : <><SendHorizonal className="w-5 h-5" /> Mark as Delivered &amp; Notify Buyer</>}
+                        </button>
+                      </form>
+                    )}
 
-                      {/* Screenshot note */}
-                      <div className="flex items-start gap-2 bg-brand/5 border border-brand/15 rounded-xl px-4 py-3">
-                        <Info className="w-4 h-4 text-brand flex-shrink-0 mt-0.5" />
-                        <p className="text-xs text-gray-400">
-                          <strong className="text-white">Screenshot tip:</strong> Take a screenshot of the delivered account before submitting.
-                          If a dispute arises, you can attach it as evidence on the dispute page.
+                    {/* Tab: Preview (what you've already filled in) */}
+                    {actionTab === 'details' && (
+                      <div className="space-y-3">
+                        <p className="text-xs text-gray-500">
+                          This is a live preview of the credentials as the buyer will see them.
+                          Switch back to <strong className="text-white">Deliver</strong> to edit before submitting.
                         </p>
+                        <div className="bg-background border border-borderBg rounded-xl p-4 space-y-0">
+                          {deliveryEmail && <CopyRow label="Email / UID" value={deliveryEmail} />}
+                          {deliveryPass  && <CopyRow label="Password"   value={deliveryPass} />}
+                          {deliveryExtra && <CopyRow label="Username"   value={deliveryExtra} />}
+                          {deliveryLoginMethod && <CopyRow label="Login Method" value={deliveryLoginMethod} />}
+                          {deliveryNotes && (
+                            <div className="pt-2.5 border-t border-borderBg/40 mt-1">
+                              <p className="text-[10px] font-black text-gray-500 uppercase tracking-widest mb-1">Notes</p>
+                              <pre className="text-sm text-gray-300 font-mono whitespace-pre-wrap">{deliveryNotes}</pre>
+                            </div>
+                          )}
+                          {!deliveryEmail && !deliveryPass && !deliveryExtra && !deliveryNotes && (
+                            <p className="text-sm text-gray-500 text-center py-3">Nothing filled in yet — switch to Deliver tab.</p>
+                          )}
+                        </div>
                       </div>
-
-                      <button
-                        type="submit"
-                        disabled={submittingDelivery}
-                        className="w-full flex items-center justify-center gap-2 bg-brand hover:opacity-90 py-4 rounded-xl font-black text-white disabled:opacity-50 transition shadow-lg shadow-brand/20 text-sm"
-                      >
-                        {submittingDelivery
-                          ? <><Loader2 className="w-5 h-5 animate-spin" /> Submitting delivery…</>
-                          : <><SendHorizonal className="w-5 h-5" /> Mark as Delivered &amp; Notify Buyer</>}
-                      </button>
-                    </form>
+                    )}
                   </>
                 )}
 
+                {/* ── SELLER: IN_PROGRESS — Delivery tab / Release tab ── */}
                 {isSeller && order.status === 'IN_PROGRESS' && (
-                  <div className="flex items-start gap-3 bg-brand/5 border border-brand/20 rounded-xl p-4">
-                    <CheckCircle className="w-4 h-4 text-emerald-400 flex-shrink-0 mt-0.5" />
-                    <div>
-                      <p className="font-semibold text-emerald-300 text-sm">Delivered — awaiting buyer confirmation</p>
-                      {buyerRemaining !== null && buyerRemaining > 0 && (
-                        <p className="text-xs text-gray-400 mt-0.5">
-                          Buyer window closes in <span className={`font-mono font-bold ${cdColor(buyerRemaining)}`}>{fmtCountdown(buyerRemaining)}</span>
-                        </p>
-                      )}
-                      {buyerRemaining !== null && buyerRemaining <= 0 && (
-                        <p className="text-xs text-emerald-400 mt-0.5 font-semibold">
-                          Buyer window elapsed — funds will auto-release shortly.
-                        </p>
-                      )}
+                  <>
+                    {/* Delivery tab — show what was sent */}
+                    {actionTab === 'details' && (
+                      <div className="space-y-3">
+                        <div className="flex items-start gap-3 bg-emerald-500/5 border border-emerald-500/20 rounded-xl p-4">
+                          <CheckCircle className="w-4 h-4 text-emerald-400 flex-shrink-0 mt-0.5" />
+                          <div>
+                            <p className="text-sm font-bold text-emerald-300">Delivery submitted — awaiting buyer confirmation</p>
+                            {buyerRemaining !== null && buyerRemaining > 0 && (
+                              <p className="text-xs text-gray-400 mt-1">
+                                Buyer window closes in{' '}
+                                <span className={`font-mono font-bold ${cdColor(buyerRemaining)}`}>{fmtCountdown(buyerRemaining)}</span>
+                              </p>
+                            )}
+                            {buyerRemaining !== null && buyerRemaining <= 0 && (
+                              <p className="text-xs text-emerald-400 mt-1 font-semibold">
+                                Buyer confirmation window elapsed — funds releasing shortly.
+                              </p>
+                            )}
+                          </div>
+                        </div>
+                        {/* Credentials preview */}
+                        <p className="text-[10px] font-black text-gray-500 uppercase tracking-widest">What you sent the buyer</p>
+                        <div className="bg-background border border-borderBg rounded-xl p-4 space-y-0">
+                          {(() => {
+                            const dc = order.deliveryData?.credentials ?? {};
+                            const dn = order.deliveryData?.notes ?? order.deliveryData?.message ?? '';
+                            const entries = Object.entries(dc).filter(([, v]) => v);
+                            return entries.length > 0 ? (
+                              <>
+                                {entries.map(([k, v]) => <CopyRow key={k} label={k} value={String(v)} />)}
+                                {dn && (
+                                  <div className="pt-2.5 border-t border-borderBg/40 mt-1">
+                                    <p className="text-[10px] font-black text-gray-500 uppercase tracking-widest mb-1">Notes</p>
+                                    <pre className="text-sm text-gray-300 font-mono whitespace-pre-wrap">{dn}</pre>
+                                  </div>
+                                )}
+                              </>
+                            ) : dn ? (
+                              <pre className="text-sm text-gray-300 font-mono whitespace-pre-wrap">{dn}</pre>
+                            ) : (
+                              <p className="text-sm text-gray-500 text-center py-3">No delivery data recorded.</p>
+                            );
+                          })()}
+                        </div>
+                      </div>
+                    )}
+
+                    {/* Release tab */}
+                    {actionTab === 'request' && (
+                      <div className="space-y-4">
+                        <div className="flex items-start gap-3 bg-brand/5 border border-brand/20 rounded-xl p-4">
+                          <Wallet className="w-4 h-4 text-brand flex-shrink-0 mt-0.5" />
+                          <div>
+                            <p className="text-sm font-bold text-white">Request early fund release</p>
+                            <p className="text-xs text-gray-400 mt-1">
+                              If the buyer has confirmed they're satisfied but hasn't clicked the button yet, you can
+                              send them a release request. They'll get a notification to confirm and release funds.
+                            </p>
+                          </div>
+                        </div>
+                        {releaseRequested ? (
+                          <div className="flex items-center gap-2 bg-emerald-500/10 border border-emerald-500/25 rounded-xl px-4 py-3">
+                            <CheckCircle className="w-4 h-4 text-emerald-400" />
+                            <p className="text-sm font-semibold text-emerald-300">Release request sent — buyer notified.</p>
+                          </div>
+                        ) : (
+                          <button
+                            onClick={handleRequestRelease}
+                            disabled={requestingRelease}
+                            className="w-full flex items-center justify-center gap-2 bg-emerald-600 hover:bg-emerald-700 py-3.5 rounded-xl font-bold text-white disabled:opacity-50 transition shadow-lg shadow-emerald-600/20 text-sm"
+                          >
+                            {requestingRelease
+                              ? <><Loader2 className="w-4 h-4 animate-spin" /> Sending…</>
+                              : <><Wallet className="w-4 h-4" /> Send Release Request to Buyer</>}
+                          </button>
+                        )}
+                        {/* Dispute option */}
+                        {sellerDisputeEligible && !isDisputed && (
+                          <button onClick={() => setShowDispute(true)}
+                            className="w-full flex items-center justify-center gap-2 bg-orange-600/20 hover:bg-orange-600/30 border border-orange-500/30 py-3 rounded-xl text-sm font-bold text-orange-400 transition">
+                            <AlertTriangle className="w-4 h-4" /> Open a Dispute Instead
+                          </button>
+                        )}
+                        {!sellerDisputeEligible && sellerDisputeCooldownMs > 0 && (
+                          <p className="text-xs text-gray-500 text-center">
+                            Dispute eligible in{' '}
+                            <span className={`font-mono font-bold ${cdColor(sellerDisputeCooldownMs)}`}>
+                              {fmtCountdown(sellerDisputeCooldownMs)}
+                            </span>
+                          </p>
+                        )}
+                      </div>
+                    )}
+                  </>
+                )}
+
+                {/* ── SELLER: Completed ── */}
+                {isSeller && order.status === 'COMPLETED' && (
+                  <div className="rounded-xl overflow-hidden border border-emerald-500/25">
+                    <div className="flex items-center gap-3 bg-emerald-500/10 px-5 py-4">
+                      <CheckCircle className="w-5 h-5 text-emerald-400 flex-shrink-0" />
+                      <div className="flex-1">
+                        <p className="text-sm font-bold text-emerald-300">Order complete — payout credited</p>
+                        <p className="text-xs text-gray-400 mt-0.5">{fmtOrder(payout)} sent to your Piyrox wallet</p>
+                      </div>
+                    </div>
+                    <div className="flex divide-x divide-emerald-500/20 border-t border-emerald-500/20">
+                      <Link href="/wallet"
+                        className="flex-1 flex items-center justify-center gap-1.5 py-3 text-xs font-bold text-brand hover:text-white transition">
+                        <Wallet className="w-3.5 h-3.5" /> View Wallet
+                      </Link>
+                      <Link href="/seller/dashboard"
+                        className="flex-1 flex items-center justify-center gap-1.5 py-3 text-xs font-bold text-gray-400 hover:text-white transition">
+                        <ChevronRight className="w-3.5 h-3.5" /> Dashboard
+                      </Link>
                     </div>
                   </div>
                 )}
 
-                {isSeller && order.status === 'COMPLETED' && (
-                  <div className="flex items-center gap-3 bg-emerald-500/10 border border-emerald-500/25 rounded-xl p-4">
-                    <CheckCircle className="w-5 h-5 text-emerald-400" />
-                    <p className="text-sm font-bold text-emerald-300">Payout credited to your Piyrox wallet.</p>
-                    <Link href="/wallet" className="ml-auto text-xs font-bold text-brand flex items-center gap-1">
-                      Wallet <ChevronRight className="w-3 h-3" />
-                    </Link>
+                {/* ── BUYER: IN_PROGRESS confirm ── */}
+                {isBuyer && order.status === 'IN_PROGRESS' && (
+                  <div className="space-y-3">
+                    <div className="flex items-start gap-3 bg-brand/5 border border-brand/20 rounded-xl p-4">
+                      <Truck className="w-4 h-4 text-brand flex-shrink-0 mt-0.5" />
+                      <div>
+                        <p className="text-sm font-bold text-white">Your order has been delivered</p>
+                        <p className="text-xs text-gray-400 mt-1">
+                          Check the credentials in the Delivery Details card above, test them in the game,
+                          then confirm receipt to release funds. <strong className="text-white">Do not confirm until you have verified the account.</strong>
+                        </p>
+                      </div>
+                    </div>
+                    <button onClick={handleConfirmDelivery} disabled={actionLoading}
+                      className="w-full flex items-center justify-center gap-2 bg-emerald-500 hover:bg-emerald-600 text-black font-black py-4 rounded-xl text-sm disabled:opacity-50 transition shadow-lg shadow-emerald-500/20">
+                      {actionLoading ? <Loader2 className="w-5 h-5 animate-spin" /> : <CheckCircle className="w-5 h-5" />}
+                      Confirm Receipt &amp; Release Funds
+                    </button>
                   </div>
                 )}
 
-                {/* ── BUYER ACTIONS ── */}
-                {isBuyer && order.status === 'IN_PROGRESS' && (
-                  <button onClick={handleConfirmDelivery} disabled={actionLoading}
-                    className="w-full flex items-center justify-center gap-2 bg-emerald-500 hover:bg-emerald-600 text-black font-black py-4 rounded-xl text-sm disabled:opacity-50 transition shadow-lg shadow-emerald-500/20">
-                    {actionLoading ? <Loader2 className="w-5 h-5 animate-spin" /> : <CheckCircle className="w-5 h-5" />}
-                    Confirm Receipt & Release Funds
-                  </button>
-                )}
-
-                {/* Dispute — available to buyer when PAID (after 1h30m) or IN_PROGRESS, and to seller when IN_PROGRESS (after 1h) */}
+                {/* ── BUYER: Dispute button ── */}
                 {isBuyer && (order.status === 'PAID' || order.status === 'IN_PROGRESS') && !isDisputed && !buyerDisputeEligible && (
                   <button onClick={() => setShowDispute(true)}
                     className="w-full flex items-center justify-center gap-2 bg-red-600/10 hover:bg-red-600/20 border border-red-500/20 py-3 rounded-xl text-sm font-bold text-red-400/70 hover:text-red-400 transition">
@@ -1164,15 +1389,7 @@ export default function OrderTrackingContent({ id }: { id: string }) {
                   </button>
                 )}
 
-                {/* Seller dispute when in_progress — only after 1h (covered by banner, but keep as fallback) */}
-                {isSeller && order.status === 'IN_PROGRESS' && !isDisputed && sellerDisputeEligible && (
-                  <button onClick={() => setShowDispute(true)}
-                    className="w-full flex items-center justify-center gap-2 bg-orange-600/20 hover:bg-orange-600/30 border border-orange-500/30 py-3 rounded-xl text-sm font-bold text-orange-400 transition">
-                    <AlertTriangle className="w-4 h-4" /> Open a Dispute
-                  </button>
-                )}
-
-                {/* Buyer cancel PENDING */}
+                {/* ── BUYER: Cancel PENDING ── */}
                 {isBuyer && order.status === 'PENDING' && (
                   <button onClick={() => setShowCancelConfirm(true)}
                     className="w-full flex items-center justify-center gap-2 bg-background border border-borderBg hover:border-red-500/40 py-3 rounded-xl text-sm font-semibold text-gray-400 hover:text-red-400 transition">
@@ -1180,7 +1397,7 @@ export default function OrderTrackingContent({ id }: { id: string }) {
                   </button>
                 )}
 
-                {/* Leave a review after completion */}
+                {/* ── BUYER: Review after completion ── */}
                 {isBuyer && order.status === 'COMPLETED' && !reviewDone && (
                   <div className="space-y-3 pt-1">
                     <p className="text-xs font-bold text-gray-400 uppercase tracking-widest">Leave a Review</p>
