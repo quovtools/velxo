@@ -19,18 +19,25 @@ export interface FlutterwaveChargeResult {
 export class FlutterwaveService {
   private readonly logger = new Logger(FlutterwaveService.name)
 
-  private readonly apiUrl          = process.env.FLUTTERWAVE_API_URL      || 'https://api.flutterwave.com/v3'
-  private readonly secretKey       = process.env.FLUTTERWAVE_SECRET_KEY   || ''
-  private readonly publicKey       = process.env.FLUTTERWAVE_PUBLIC_KEY   || ''
-  private readonly encryptionKey   = process.env.FLUTTERWAVE_ENCRYPTION_KEY || ''
+  // v4 OAuth 2.0 credentials
+  private readonly clientId     = process.env.FLUTTERWAVE_PUBLIC_KEY   || ''
+  private readonly clientSecret = process.env.FLUTTERWAVE_SECRET_KEY   || ''
+  private readonly encryptionKey = process.env.FLUTTERWAVE_ENCRYPTION_KEY || ''
+
+  // v4 production base URL
+  private readonly apiUrl = process.env.FLUTTERWAVE_API_URL || 'https://f4bexperience.flutterwave.com'
+
+  // OAuth token cache
+  private cachedToken: string | null = null
+  private tokenExpiresAt = 0 // epoch ms
 
   get isConfigured(): boolean {
-    return Boolean(this.apiUrl && this.secretKey)
+    return Boolean(this.clientId && this.clientSecret)
   }
 
-  /** Expose public key for client-side use (e.g. inline payment widget) */
+  /** Expose public key (client ID) for client-side use */
   get clientPublicKey(): string {
-    return this.publicKey
+    return this.clientId
   }
 
   /** Expose encryption key for direct charge payload encryption */
@@ -39,9 +46,50 @@ export class FlutterwaveService {
   }
 
   /**
+   * Fetches a short-lived OAuth 2.0 access token from Flutterwave's IDP.
+   * Tokens are cached and reused until ~1 minute before expiry (10 min TTL).
+   */
+  async getAccessToken(): Promise<string> {
+    const now = Date.now()
+    // Return cached token if still valid (with 60s buffer)
+    if (this.cachedToken && now < this.tokenExpiresAt - 60_000) {
+      return this.cachedToken
+    }
+
+    const res = await fetch(
+      'https://idp.flutterwave.com/realms/flutterwave/protocol/openid-connect/token',
+      {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/x-www-form-urlencoded' },
+        body: new URLSearchParams({
+          client_id: this.clientId,
+          client_secret: this.clientSecret,
+          grant_type: 'client_credentials',
+        }),
+        signal: AbortSignal.timeout(8000),
+      },
+    )
+
+    if (!res.ok) {
+      const text = await res.text()
+      throw new Error(`Flutterwave OAuth token request failed: ${res.status} ${text}`)
+    }
+
+    const data = await res.json()
+    if (!data?.access_token) {
+      throw new Error('Flutterwave OAuth response missing access_token')
+    }
+
+    this.cachedToken = data.access_token as string
+    // expires_in is in seconds
+    this.tokenExpiresAt = now + (data.expires_in as number) * 1000
+    return this.cachedToken
+  }
+
+  /**
    * Create a Flutterwave hosted payment (redirect) link.
-   * Uses the standard v3 /payments endpoint which returns a `data.link`
-   * the buyer is redirected to in order to pay (cards / mobile money / bank).
+   * Uses the v4 /payments endpoint which returns a `data.link`
+   * the buyer is redirected to.
    */
   async createCharge(params: FlutterwaveChargeParams): Promise<FlutterwaveChargeResult> {
     if (!this.isConfigured) {
@@ -63,11 +111,12 @@ export class FlutterwaveService {
     }
 
     try {
+      const token = await this.getAccessToken()
       const res = await fetch(`${this.apiUrl}/payments`, {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
-          Authorization: `Bearer ${this.secretKey}`,
+          Authorization: `Bearer ${token}`,
         },
         body: JSON.stringify(body),
       })
@@ -91,18 +140,17 @@ export class FlutterwaveService {
 
   /**
    * Verify a Flutterwave transaction server-side before trusting a webhook.
-   * Flutterwave recommends confirming via the Verify API rather than relying on
-   * the webhook body alone, so a spurious/early callback can't mark an order
-   * paid without a real transaction. Docs: GET {apiUrl}/transactions/{id}/verify
+   * GET {apiUrl}/transactions/{id}/verify
    */
   async verifyTransaction(transactionId: string | number): Promise<boolean> {
     if (!this.isConfigured) return false
     try {
+      const token = await this.getAccessToken()
       const res = await fetch(`${this.apiUrl}/transactions/${transactionId}/verify`, {
         method: 'GET',
         headers: {
           'Content-Type': 'application/json',
-          Authorization: `Bearer ${this.secretKey}`,
+          Authorization: `Bearer ${token}`,
         },
       })
       if (!res.ok) return false
@@ -116,9 +164,8 @@ export class FlutterwaveService {
   }
 
   /**
-   * FIX #10: Issue a refund via Flutterwave for a completed transaction.
-   * Docs: POST {apiUrl}/transactions/{id}/refund
-   * Returns true if the refund was accepted by Flutterwave.
+   * Issue a refund via Flutterwave for a completed transaction.
+   * POST {apiUrl}/transactions/{id}/refund
    */
   async refundTransaction(transactionId: string | number): Promise<boolean> {
     if (!this.isConfigured) {
@@ -126,11 +173,12 @@ export class FlutterwaveService {
       return false
     }
     try {
+      const token = await this.getAccessToken()
       const res = await fetch(`${this.apiUrl}/transactions/${transactionId}/refund`, {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
-          Authorization: `Bearer ${this.secretKey}`,
+          Authorization: `Bearer ${token}`,
         },
         body: JSON.stringify({}),
       })

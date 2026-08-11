@@ -136,40 +136,72 @@ export class StartupHealthService implements OnModuleInit {
     return { name: 'resend', label: 'Resend (Email)', ok: true, detail: `from=${from}` }
   }
 
-  // ── 6. Flutterwave — verify key + live API ping ──────────────────────────
+  // ── 6. Flutterwave — OAuth 2.0 token exchange + live API ping (v4) ────────
   private async checkFlutterwave(): Promise<CheckResult> {
-    const secretKey     = process.env.FLUTTERWAVE_SECRET_KEY
-    const publicKey     = process.env.FLUTTERWAVE_PUBLIC_KEY
+    const clientId      = process.env.FLUTTERWAVE_PUBLIC_KEY      // v4: client_id
+    const clientSecret  = process.env.FLUTTERWAVE_SECRET_KEY      // v4: client_secret
     const encryptionKey = process.env.FLUTTERWAVE_ENCRYPTION_KEY
 
     const missing = [
-      secretKey     ? null : 'FLUTTERWAVE_SECRET_KEY',
-      publicKey     ? null : 'FLUTTERWAVE_PUBLIC_KEY',
+      clientId      ? null : 'FLUTTERWAVE_PUBLIC_KEY',
+      clientSecret  ? null : 'FLUTTERWAVE_SECRET_KEY',
       encryptionKey ? null : 'FLUTTERWAVE_ENCRYPTION_KEY',
     ].filter(Boolean)
 
-    if (!secretKey) {
+    if (!clientId || !clientSecret) {
       return { name: 'flutterwave', label: 'Flutterwave (Payments)', ok: false, detail: `missing: ${missing.join(', ')}` }
     }
 
     const t = Date.now()
     try {
-      const res = await fetch('https://api.flutterwave.com/v3/transactions?page=1&per_page=1', {
-        headers: { Authorization: `Bearer ${secretKey}`, 'Content-Type': 'application/json' },
+      // Step 1: Exchange client credentials for an OAuth access token (v4)
+      const tokenRes = await fetch(
+        'https://idp.flutterwave.com/realms/flutterwave/protocol/openid-connect/token',
+        {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/x-www-form-urlencoded' },
+          body: new URLSearchParams({
+            client_id: clientId,
+            client_secret: clientSecret,
+            grant_type: 'client_credentials',
+          }),
+          signal: AbortSignal.timeout(8000),
+        },
+      )
+
+      if (!tokenRes.ok) {
+        const text = await tokenRes.text()
+        return {
+          name: 'flutterwave',
+          label: 'Flutterwave (Payments)',
+          ok: false,
+          detail: `OAuth token failed (HTTP ${tokenRes.status}) — check client_id/client_secret`,
+          ms: Date.now() - t,
+        }
+      }
+
+      const tokenData = await tokenRes.json()
+      const accessToken: string = tokenData?.access_token
+      if (!accessToken) {
+        return { name: 'flutterwave', label: 'Flutterwave (Payments)', ok: false, detail: 'OAuth response missing access_token', ms: Date.now() - t }
+      }
+
+      // Step 2: Hit the v4 transactions endpoint to confirm API access
+      const apiUrl = process.env.FLUTTERWAVE_API_URL || 'https://f4bexperience.flutterwave.com'
+      const apiRes = await fetch(`${apiUrl}/transactions?page=1&per_page=1`, {
+        headers: { Authorization: `Bearer ${accessToken}`, 'Content-Type': 'application/json' },
         signal: AbortSignal.timeout(6000),
       })
-      if (res.status === 200) {
+
+      if (apiRes.ok || apiRes.status === 200) {
         const keys = [
-          'secret ✓',
-          publicKey     ? 'public ✓' : 'public ✗',
+          'oauth ✓',
           encryptionKey ? 'encryption ✓' : 'encryption ✗',
         ].join(', ')
         return { name: 'flutterwave', label: 'Flutterwave (Payments)', ok: true, detail: keys, ms: Date.now() - t }
       }
-      if (res.status === 401) {
-        return { name: 'flutterwave', label: 'Flutterwave (Payments)', ok: false, detail: 'Invalid secret key (HTTP 401)', ms: Date.now() - t }
-      }
-      return { name: 'flutterwave', label: 'Flutterwave (Payments)', ok: false, detail: `HTTP ${res.status}`, ms: Date.now() - t }
+
+      return { name: 'flutterwave', label: 'Flutterwave (Payments)', ok: false, detail: `API HTTP ${apiRes.status}`, ms: Date.now() - t }
     } catch (err: any) {
       return { name: 'flutterwave', label: 'Flutterwave (Payments)', ok: false, detail: err?.message, ms: Date.now() - t }
     }

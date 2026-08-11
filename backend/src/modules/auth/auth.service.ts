@@ -419,17 +419,22 @@ export class AuthService {
   async exchangeSessionCode(code: string) {
     if (!code) throw new UnauthorizedException('Missing session code')
 
-    const entry = await this.prisma.sessionCodes.findUnique({ where: { code } })
+    // Use a transaction so the lookup and delete are atomic — prevents a
+    // second concurrent request (e.g. React StrictMode double-invoke) from
+    // racing past the findUnique check and hitting "Invalid or expired" on
+    // a code that was actually valid but already consumed by the first call.
+    const entry = await this.prisma.$transaction(async (tx) => {
+      const record = await tx.sessionCodes.findUnique({ where: { code } })
+      if (!record) return null
+      await tx.sessionCodes.delete({ where: { code } })
+      return record
+    })
 
     if (!entry) throw new UnauthorizedException('Invalid or expired session code')
 
     if (new Date() > entry.expiresAt) {
-      await this.prisma.sessionCodes.delete({ where: { code } }).catch(() => { /* already gone */ })
       throw new UnauthorizedException('Session code has expired — please sign in again')
     }
-
-    // Single-use: delete immediately after first consumption.
-    await this.prisma.sessionCodes.delete({ where: { code } })
 
     return { accessToken: entry.accessToken, user: entry.user }
   }

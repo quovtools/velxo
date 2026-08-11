@@ -6,6 +6,7 @@
   Logger,
   BadRequestException,
 } from '@nestjs/common'
+import { IsOptional, IsString, IsNumber, IsPositive } from 'class-validator'
 import { SupabaseJwtGuard } from '@/common/guards/jwt.guard'
 import { CurrentUserId } from '@/common/decorators/current-user.decorator'
 import { ApiResponseDto } from '@/common/dto/api-response.dto'
@@ -17,9 +18,21 @@ import { Decimal } from '@prisma/client/runtime/library'
 import { PaymentProvider, PaymentStatus, OrderStatus } from '@prisma/client'
 
 class InitiateCheckoutDto {
+  @IsOptional()
+  @IsString()
   listingId?: string
+
+  @IsOptional()
+  @IsNumber()
+  @IsPositive()
   quantity?: number
+
+  @IsOptional()
+  @IsString()
   paymentMethod?: string
+
+  @IsOptional()
+  @IsString()
   buyerNote?: string
 
   /**
@@ -27,6 +40,8 @@ class InitiateCheckoutDto {
    * Detected client-side from the user's locale and sent here so Flutterwave
    * charges in the correct local currency.
    */
+  @IsOptional()
+  @IsString()
   currency?: string
 
   /**
@@ -35,6 +50,8 @@ class InitiateCheckoutDto {
    * `lockedRate` so disputes and historical records always reference the
    * rate that was actually used — never the current live rate.
    */
+  @IsOptional()
+  @IsNumber()
   lockedRate?: number
 }
 
