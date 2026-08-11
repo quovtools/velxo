@@ -445,6 +445,8 @@ model orders {
   acceptedAt      DateTime?
   sellerDeliverDeadline DateTime?
   buyerConfirmDeadline DateTime?
+  // Seller can open a dispute after this time if buyer hasn't confirmed receipt.
+  sellerDisputeEligibleAt DateTime?
   completedAt     DateTime?
   cancelledAt     DateTime?
   refundedAt      DateTime?

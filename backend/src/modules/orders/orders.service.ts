@@ -14,10 +14,15 @@ import { OrderStatus, EscrowStatus, PaymentStatus } from '@prisma/client'
 import { Decimal } from '@prisma/client/runtime/library'
 
 // Escrow timing windows (milliseconds).
-// SELLER_WINDOW: after the seller accepts, they have this long to deliver.
-// BUYER_WINDOW: after delivery, the buyer has this long to confirm receipt.
-export const ESCROW_SELLER_WINDOW_MS = 60 * 60 * 1000
-export const ESCROW_BUYER_WINDOW_MS = 60 * 60 * 1000
+// SELLER_WINDOW:        after the seller accepts, they have this long to deliver.
+// BUYER_WINDOW:         after delivery, the buyer has this long to confirm receipt.
+// SELLER_DISPUTE_AFTER: seller can open dispute this long after delivery if buyer hasn't confirmed.
+// BUYER_DISPUTE_AFTER:  buyer can open dispute this long after acceptance if seller hasn't delivered.
+// SELLER_CANCEL_AFTER:  seller can cancel an unpaid order after this time.
+export const ESCROW_SELLER_WINDOW_MS = 90 * 60 * 1000       // 1h 30m — seller delivery deadline
+export const ESCROW_BUYER_WINDOW_MS  = 60 * 60 * 1000       // 1h    — buyer confirmation window
+export const SELLER_DISPUTE_AFTER_MS = 60 * 60 * 1000       // 1h    — seller dispute eligibility after delivery
+export const BUYER_DISPUTE_AFTER_MS  = 90 * 60 * 1000       // 1h 30m — buyer dispute eligibility after acceptance
 import { RewardsService } from '../rewards/rewards.service'
 import { NotificationsService } from '../notifications/notifications.service'
 import { AffiliateService } from '../affiliate/affiliate.service'
@@ -347,6 +352,24 @@ export class OrdersService {
 
     await this.notifications.notifyOrderAccepted?.(updated).catch(() => {})
 
+    // Schedule a buyer "dispute eligible" nudge 1h 30m after acceptance if
+    // the seller hasn't marked delivery by then. Non-fatal best-effort.
+    try {
+      setTimeout(async () => {
+        try {
+          const fresh = await this.prisma.orders.findUnique({ where: { id: updated.id } })
+          // Only fire if order is still in PAID (not yet delivered) state.
+          if (fresh && fresh.status === OrderStatus.PAID) {
+            await this.notifications.notifyBuyerDisputeEligible(updated).catch(() => {})
+          }
+        } catch (err) {
+          this.logger.warn(`Buyer dispute-eligible (no delivery) nudge failed: ${err}`)
+        }
+      }, ESCROW_SELLER_WINDOW_MS)
+    } catch (err) {
+      this.logger.warn(`Failed to schedule buyer dispute-eligible nudge: ${err}`)
+    }
+
     return updated
   }
 
@@ -406,6 +429,7 @@ export class OrdersService {
       paidAt: (order as any).paidAt ?? null,
       cancelledAt: (order as any).cancelledAt ?? null,
       completedAt: (order as any).completedAt ?? null,
+      sellerDisputeEligibleAt: (order as any).sellerDisputeEligibleAt ?? null,
     }
   }
 
@@ -858,13 +882,19 @@ export class OrdersService {
       throw new BadRequestException('You must accept the order before marking it as delivered')
     }
 
+    const now = new Date()
+    const buyerConfirmDeadline = new Date(now.getTime() + ESCROW_BUYER_WINDOW_MS)
+    // Seller can open a dispute 1h after delivery if buyer still hasn't confirmed.
+    const sellerDisputeEligibleAt = new Date(now.getTime() + SELLER_DISPUTE_AFTER_MS)
+
     const updated = await this.prisma.orders.update({
       where: { id: orderId },
       data: {
         status: OrderStatus.IN_PROGRESS,
         deliveryData: deliveryData ?? order.deliveryData,
-        deliveredAt: new Date(),
-        buyerConfirmDeadline: new Date(Date.now() + ESCROW_BUYER_WINDOW_MS),
+        deliveredAt: now,
+        buyerConfirmDeadline,
+        sellerDisputeEligibleAt,
       },
       include: {
         buyer: true,
@@ -873,29 +903,44 @@ export class OrdersService {
       },
     })
 
-    // Notify the buyer that the seller has delivered.
+    // Notify buyer (in-app + email) with delivery details.
     await this.notifications.notifyDelivered(updated).catch(() => {})
 
-    // Schedule a "confirm receipt soon" nudge ~15 min before the buyer
-    // confirmation deadline (clamped >=0, max 1 hour). Only fires if the
-    // order is still IN_PROGRESS at that time. Non-fatal.
+    // ── Scheduled nudges (non-fatal, best-effort via setTimeout) ──────────
+
+    // 1. Buyer "confirm receipt soon" nudge ~15 min before deadline.
     try {
-      if (updated.buyerConfirmDeadline) {
-        const deadline = new Date(updated.buyerConfirmDeadline).getTime()
-        const delay = Math.min(Math.max(deadline - 15 * 60 * 1000 - Date.now(), 0), 60 * 60 * 1000)
-        setTimeout(async () => {
-          try {
-            const fresh = await this.prisma.orders.findUnique({ where: { id: updated.id } })
-            if (fresh && fresh.status === OrderStatus.IN_PROGRESS) {
-              await this.notifications.notifyBuyerNearDeadline(updated)
-            }
-          } catch (err) {
-            this.logger.warn(`Buyer near-deadline nudge failed: ${err}`)
+      const deadline = buyerConfirmDeadline.getTime()
+      const delay = Math.min(Math.max(deadline - 15 * 60 * 1000 - Date.now(), 0), 60 * 60 * 1000)
+      setTimeout(async () => {
+        try {
+          const fresh = await this.prisma.orders.findUnique({ where: { id: updated.id } })
+          if (fresh && fresh.status === OrderStatus.IN_PROGRESS) {
+            await this.notifications.notifyBuyerNearDeadline(updated)
           }
-        }, delay)
-      }
+        } catch (err) {
+          this.logger.warn(`Buyer near-deadline nudge failed: ${err}`)
+        }
+      }, delay)
     } catch (err) {
       this.logger.warn(`Failed to schedule buyer near-deadline nudge: ${err}`)
+    }
+
+    // 2. Seller "you can open a dispute" nudge 1h after delivery if buyer hasn't confirmed.
+    try {
+      const sellerDisputeDelay = SELLER_DISPUTE_AFTER_MS
+      setTimeout(async () => {
+        try {
+          const fresh = await this.prisma.orders.findUnique({ where: { id: updated.id } })
+          if (fresh && fresh.status === OrderStatus.IN_PROGRESS) {
+            await this.notifications.notifySellerDisputeEligible(updated).catch(() => {})
+          }
+        } catch (err) {
+          this.logger.warn(`Seller dispute-eligible nudge failed: ${err}`)
+        }
+      }, sellerDisputeDelay)
+    } catch (err) {
+      this.logger.warn(`Failed to schedule seller dispute-eligible nudge: ${err}`)
     }
 
     return updated

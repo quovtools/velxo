@@ -195,23 +195,45 @@ export class NotificationsService {
     if (!buyerEmail) return
     const product = order.orderItems?.[0]?.listing?.title || order.metadata?.title || 'Gaming Assets'
     const orderUrl = `${FRONTEND}/orders/${order.id}`
-    const deliveryMsg = order.deliveryData?.message || 'The seller has marked your order as delivered. Check your order page for the delivery details.'
+    const deliveryMsg = order.deliveryData?.notes || order.deliveryData?.message || ''
+    const creds = order.deliveryData?.credentials ?? {}
+
+    // Build a safe credentials preview for the email (only show keys, not full values)
+    const credPreviewRows = Object.entries(creds)
+      .filter(([, v]) => v)
+      .map(([k]) => `<tr><td style="padding:4px 0;color:#94a3b8;font-size:12px;text-transform:capitalize;">${k}</td><td style="padding:4px 0;color:#e2e8f0;font-size:12px;text-align:right;font-family:monospace;">••••••</td></tr>`)
+      .join('')
+
+    const credBlock = credPreviewRows
+      ? `<div style="background:#0f172a;border-radius:10px;padding:16px;margin:16px 0;">
+           <p style="margin:0 0 8px;color:#94a3b8;font-size:12px;font-weight:700;text-transform:uppercase;letter-spacing:.05em;">Delivery Credentials (log in to view)</p>
+           <table style="width:100%;" cellspacing="0" cellpadding="0">${credPreviewRows}</table>
+         </div>`
+      : ''
+
+    const msgBlock = deliveryMsg
+      ? `<div style="background:#0f172a;border-radius:10px;padding:16px;margin:12px 0;">
+           <p style="margin:0;color:#94a3b8;font-size:12px;font-weight:700;text-transform:uppercase;letter-spacing:.05em;">Seller's Note</p>
+           <p style="margin:8px 0 0;color:#e2e8f0;font-size:14px;white-space:pre-line;">${deliveryMsg}</p>
+         </div>`
+      : ''
+
     const html = orderEmailHtml({
       title: '📦 Your Order Has Been Delivered',
       subtitle: `Order #${order.orderNumber}`,
       body: `
-        <p>The seller has marked <strong>${product}</strong> as delivered.</p>
-        <div style="background:#0f172a;border-radius:10px;padding:16px;margin:16px 0;">
-          <p style="margin:0;color:#94a3b8;font-size:12px;font-weight:700;text-transform:uppercase;letter-spacing:.05em;">Delivery Message</p>
-          <p style="margin:8px 0 0;color:#e2e8f0;font-size:14px;white-space:pre-line;">${deliveryMsg}</p>
+        <p>The seller has marked <strong>${product}</strong> as delivered and your credentials are ready.</p>
+        ${credBlock}
+        ${msgBlock}
+        <div style="background:#052e16;border-radius:10px;padding:16px;margin:16px 0;border-left:3px solid #10b981;">
+          <p style="margin:0;color:#10b981;font-size:13px;font-weight:700;">⏱️ You have 1 hour to confirm receipt.</p>
+          <p style="margin:6px 0 0;color:#94a3b8;font-size:13px;">Log in, test your credentials, then confirm receipt on the order page to release funds. If there's an issue, open a dispute <em>before</em> confirming.</p>
         </div>
-        <p style="color:#10b981;font-size:14px;font-weight:600;">✅ You have <strong>1 hour</strong> to confirm receipt. After that the seller may file a complaint.</p>
-        <p style="color:#94a3b8;font-size:13px;">Once you confirm, funds are released to the seller and the order is complete. If there's an issue, open a dispute before confirming.</p>
       `,
       ctaText: 'Confirm Receipt & Release Funds →',
       ctaUrl: orderUrl,
     })
-    this.email.sendEmail(buyerEmail, `Delivery Confirmed — Please Review Order #${order.orderNumber}`, html).catch(() => {})
+    this.email.sendEmail(buyerEmail, `✅ Delivery Ready — Confirm Receipt for Order #${order.orderNumber}`, html).catch(() => {})
   }
 
   /** Sends both parties an email when the order completes. */
@@ -334,7 +356,7 @@ export class NotificationsService {
       buyerUserId,
       'ORDER_STATUS',
       'Order Accepted',
-      `Your order (${order.orderNumber}) for ${product} has been accepted. The seller has 1 hour to deliver.`,
+      `Your order (${order.orderNumber}) for ${product} has been accepted. The seller has 1h 30m to deliver.`,
       { orderId: order.id, orderNumber: order.orderNumber, status: 'ACCEPTED' },
     )
     // Send email to buyer
@@ -343,11 +365,18 @@ export class NotificationsService {
       const html = orderEmailHtml({
         title: '⏱️ Order Accepted — Delivery Timer Started',
         subtitle: `Order #${order.orderNumber}`,
-        body: `<p>The seller has accepted your order for <strong>${product}</strong> and the 1-hour delivery timer has started.</p><p style="color:#94a3b8;font-size:14px;">If the seller misses the deadline you can open a dispute from your order page.</p>`,
+        body: `
+          <p>The seller has accepted your order for <strong>${product}</strong> and the delivery timer has started.</p>
+          <div style="background:#0f172a;border-radius:10px;padding:16px;margin:16px 0;">
+            <p style="margin:0;color:#94a3b8;font-size:12px;font-weight:700;text-transform:uppercase;letter-spacing:.05em;">Delivery Deadline</p>
+            <p style="margin:6px 0 0;color:#f59e0b;font-size:22px;font-weight:800;">1 hour 30 minutes</p>
+          </div>
+          <p style="color:#94a3b8;font-size:14px;">If the seller misses the deadline, you can open a dispute directly from your order page. Your funds remain safely locked in escrow until you confirm receipt.</p>
+        `,
         ctaText: 'Track Your Order →',
         ctaUrl: orderUrl,
       })
-      this.email.sendEmail(buyerEmail, `Order Accepted — #${order.orderNumber}`, html).catch(() => {})
+      this.email.sendEmail(buyerEmail, `Order Accepted — Delivery starts now #${order.orderNumber}`, html).catch(() => {})
     }
   }
 
@@ -380,10 +409,10 @@ export class NotificationsService {
       order.buyerId,
       'ORDER_STATUS',
       '📦 Order Delivered — Confirm Receipt',
-      `The seller delivered order ${order.orderNumber}. Confirm receipt within 1 hour to release funds.`,
+      `The seller delivered order ${order.orderNumber}. Confirm receipt within 1 hour to release funds to the seller.`,
       { orderId: order.id, orderNumber: order.orderNumber, status: 'IN_PROGRESS' },
     )
-    // Email buyer
+    // Email buyer with delivery details
     await this.sendDeliveredEmail(order).catch(() => {})
   }
 
@@ -455,6 +484,91 @@ export class NotificationsService {
       })
     } catch (err) {
       this.logger.warn(`Failed to notify buyer near deadline: ${err}`)
+    }
+  }
+
+  /**
+   * Notifies the seller that they are now eligible to open a dispute because
+   * the buyer has not confirmed receipt within the 1-hour window after delivery.
+   */
+  async notifySellerDisputeEligible(order: any): Promise<void> {
+    try {
+      const sellerUserId = order?.seller?.userId
+      if (!sellerUserId) return
+
+      const product = order?.orderItems?.[0]?.listing?.title || order?.metadata?.title || 'your item'
+      const orderUrl = `${FRONTEND}/orders/${order.id}`
+
+      await this.createNotification(
+        sellerUserId,
+        NotificationType.ORDER_STATUS,
+        '⚠️ Buyer hasn\'t confirmed — open a dispute',
+        `The buyer has not confirmed receipt for order ${order.orderNumber} (${product}). You can now open a dispute.`,
+        { orderId: order.id, orderNumber: order.orderNumber, canDispute: true },
+      )
+
+      const sellerEmail = await this.getUserEmail(sellerUserId)
+      if (sellerEmail) {
+        const html = orderEmailHtml({
+          title: '⚠️ Buyer Hasn\'t Confirmed Receipt',
+          subtitle: `Order #${order.orderNumber}`,
+          body: `
+            <p>You marked <strong>${product}</strong> as delivered 1 hour ago, but the buyer has not confirmed receipt yet.</p>
+            <div style="background:#1a1a2e;border-radius:10px;padding:16px;margin:16px 0;border-left:3px solid #f59e0b;">
+              <p style="margin:0;color:#f59e0b;font-size:13px;font-weight:700;">You are now eligible to open a dispute.</p>
+              <p style="margin:6px 0 0;color:#94a3b8;font-size:13px;">If you believe there is an issue, open a dispute from your order page. Our moderation team will review within 24–72 hours.</p>
+            </div>
+            <p style="color:#94a3b8;font-size:13px;">If the buyer is simply taking longer to test, you can wait — funds auto-release after the buyer confirmation window closes.</p>
+          `,
+          ctaText: 'View Order & Open Dispute →',
+          ctaUrl: orderUrl,
+        })
+        this.email.sendEmail(sellerEmail, `Buyer hasn't confirmed — Order #${order.orderNumber}`, html).catch(() => {})
+      }
+    } catch (err) {
+      this.logger.warn(`Failed to notify seller dispute eligible: ${err}`)
+    }
+  }
+
+  /**
+   * Notifies the buyer that they are now eligible to open a dispute because
+   * the seller has not delivered within the 1h 30m window after accepting.
+   */
+  async notifyBuyerDisputeEligible(order: any): Promise<void> {
+    try {
+      if (!order?.buyerId) return
+
+      const product = order?.orderItems?.[0]?.listing?.title || order?.metadata?.title || 'your item'
+      const orderUrl = `${FRONTEND}/orders/${order.id}`
+
+      await this.createNotification(
+        order.buyerId,
+        NotificationType.ORDER_STATUS,
+        '⚠️ Seller missed delivery window — open a dispute',
+        `The seller has not delivered order ${order.orderNumber} (${product}) within the deadline. You can now open a dispute.`,
+        { orderId: order.id, orderNumber: order.orderNumber, canDispute: true },
+      )
+
+      const buyerEmail = await this.getUserEmail(order.buyerId)
+      if (buyerEmail) {
+        const html = orderEmailHtml({
+          title: '⚠️ Seller Missed the Delivery Deadline',
+          subtitle: `Order #${order.orderNumber}`,
+          body: `
+            <p>The seller accepted your order for <strong>${product}</strong> 1h 30m ago but has not delivered yet.</p>
+            <div style="background:#1a1a2e;border-radius:10px;padding:16px;margin:16px 0;border-left:3px solid #ef4444;">
+              <p style="margin:0;color:#ef4444;font-size:13px;font-weight:700;">You are now eligible to open a dispute.</p>
+              <p style="margin:6px 0 0;color:#94a3b8;font-size:13px;">Go to your order page and click "Open a Dispute". Our moderation team will review the case and arrange a refund if the seller cannot be reached.</p>
+            </div>
+            <p style="color:#94a3b8;font-size:13px;">Your funds remain safe in escrow until the dispute is resolved.</p>
+          `,
+          ctaText: 'View Order & Open Dispute →',
+          ctaUrl: orderUrl,
+        })
+        this.email.sendEmail(buyerEmail, `Delivery deadline missed — Order #${order.orderNumber}`, html).catch(() => {})
+      }
+    } catch (err) {
+      this.logger.warn(`Failed to notify buyer dispute eligible: ${err}`)
     }
   }
 

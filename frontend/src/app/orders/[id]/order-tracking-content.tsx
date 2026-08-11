@@ -9,7 +9,7 @@ import {
   FileText, X, Lock, ExternalLink, Loader2, Copy,
   Clock, Eye, EyeOff, Star, Package, ArrowLeft,
   Shield, History, Wallet, XCircle, ChevronRight,
-  UserCheck, Timer,
+  UserCheck, Timer, SendHorizonal, Info, BadgeCheck,
 } from 'lucide-react';
 import Link from 'next/link';
 import { useCurrency } from '@/lib/useCurrency';
@@ -36,6 +36,8 @@ interface Order {
   sellerDeliverDeadline?: string | null;
   deliveredAt?: string | null;
   buyerConfirmDeadline?: string | null;
+  /** Set by backend after delivery — seller can dispute 1h after delivery if buyer hasn't confirmed */
+  sellerDisputeEligibleAt?: string | null;
   buyerId: string;
   sellerId: string;
   currency?: string;
@@ -72,9 +74,11 @@ const STATUS_COLORS: Record<string, string> = {
   REFUNDED:    'bg-gray-800/60 text-gray-400 border-gray-700',
 };
 
-const THREE_HOURS_MS = 3 * 60 * 60 * 1000;
-const SELLER_WINDOW_MS = 60 * 60 * 1000;
-const BUYER_WINDOW_MS = 60 * 60 * 1000;
+const THREE_HOURS_MS    = 3 * 60 * 60 * 1000;       // seller can cancel unpaid order after 3h
+const SELLER_WINDOW_MS  = 90 * 60 * 1000;            // 1h 30m — seller delivery window
+const BUYER_WINDOW_MS   = 60 * 60 * 1000;            // 1h — buyer confirmation window
+const BUYER_DISPUTE_AFTER_MS  = 90 * 60 * 1000;      // 1h 30m — buyer can dispute if no delivery
+const SELLER_DISPUTE_AFTER_MS = 60 * 60 * 1000;      // 1h — seller can dispute if buyer didn't confirm
 
 const STEPS = [
   { key: 'PENDING',     label: 'Order Placed',     sub: 'Awaiting secure payment',   icon: Package },
@@ -188,10 +192,11 @@ export default function OrderTrackingContent({ id }: { id: string }) {
   const [paymentLoading, setPaymentLoading] = useState(false);
 
   // Delivery form (seller)
-  const [deliveryEmail, setDeliveryEmail]   = useState('');
-  const [deliveryPass, setDeliveryPass]     = useState('');
-  const [deliveryExtra, setDeliveryExtra]   = useState('');
-  const [deliveryNotes, setDeliveryNotes]   = useState('');
+  const [deliveryEmail, setDeliveryEmail]       = useState('');
+  const [deliveryPass, setDeliveryPass]         = useState('');
+  const [deliveryExtra, setDeliveryExtra]       = useState('');
+  const [deliveryLoginMethod, setDeliveryLoginMethod] = useState('');
+  const [deliveryNotes, setDeliveryNotes]       = useState('');
   const [submittingDelivery, setSubmittingDelivery] = useState(false);
 
   // Delivery reveal (buyer)
@@ -282,14 +287,39 @@ export default function OrderTrackingContent({ id }: { id: string }) {
     : order?.acceptedAt ? new Date(order.acceptedAt).getTime() + SELLER_WINDOW_MS : null;
   const buyerDeadlineMs  = order?.buyerConfirmDeadline ? new Date(order.buyerConfirmDeadline).getTime() : null;
   const orderCreatedMs   = order?.createdAt ? new Date(order.createdAt).getTime() : null;
+  const acceptedMs       = order?.acceptedAt ? new Date(order.acceptedAt).getTime() : null;
+  const deliveredMs      = order?.deliveredAt ? new Date(order.deliveredAt).getTime() : null;
 
+  // Countdown values (negative = elapsed/expired)
   const sellerRemaining = sellerDeadlineMs != null ? sellerDeadlineMs - now : null;
   const buyerRemaining  = buyerDeadlineMs  != null ? buyerDeadlineMs  - now : null;
   const pendingAgeMs    = orderCreatedMs   != null ? now - orderCreatedMs    : 0;
-  // Seller can close unpaid order after 3hrs
+
+  // Seller can close unpaid order after 3h
   const canSellerCancel = order?.status === 'PENDING' && isSeller && pendingAgeMs >= THREE_HOURS_MS;
   const sellerCancelCooldownMs = order?.status === 'PENDING' && isSeller && pendingAgeMs < THREE_HOURS_MS
     ? THREE_HOURS_MS - pendingAgeMs : 0;
+
+  // Buyer can dispute if seller hasn't delivered 1h30m after acceptance
+  const buyerDisputeEligible = isBuyer
+    && order?.status === 'PAID'
+    && acceptedMs !== null
+    && (now - acceptedMs) >= BUYER_DISPUTE_AFTER_MS;
+  const buyerDisputeCooldownMs = isBuyer && order?.status === 'PAID' && acceptedMs !== null
+    && (now - acceptedMs) < BUYER_DISPUTE_AFTER_MS
+    ? BUYER_DISPUTE_AFTER_MS - (now - acceptedMs) : 0;
+
+  // Seller can dispute if buyer hasn't confirmed 1h after delivery
+  const sellerDisputeEligibleAt = order?.sellerDisputeEligibleAt
+    ? new Date(order.sellerDisputeEligibleAt).getTime()
+    : deliveredMs !== null ? deliveredMs + SELLER_DISPUTE_AFTER_MS : null;
+  const sellerDisputeEligible = isSeller
+    && order?.status === 'IN_PROGRESS'
+    && sellerDisputeEligibleAt !== null
+    && now >= sellerDisputeEligibleAt;
+  const sellerDisputeCooldownMs = isSeller && order?.status === 'IN_PROGRESS' && sellerDisputeEligibleAt !== null
+    && now < sellerDisputeEligibleAt
+    ? sellerDisputeEligibleAt - now : 0;
 
   const curIdx      = order ? stepIndex(order.status, order.deliveredAt) : 0;
   const isDisputed  = order?.status === 'DISPUTED';
@@ -341,26 +371,38 @@ export default function OrderTrackingContent({ id }: { id: string }) {
   const handleMarkDelivered = async (e: React.FormEvent) => {
     e.preventDefault();
     if (!deliveryEmail && !deliveryPass && !deliveryExtra) {
-      showToast('Please fill in at least one credential field', 'error'); return;
+      showToast('Please fill in at least one credential field (email, password, or username)', 'error');
+      return;
+    }
+    if (!deliveryNotes.trim()) {
+      showToast('Please add a note to the buyer (instructions, login method, tips)', 'error');
+      return;
     }
     setSubmittingDelivery(true);
     try {
       await api.patch(`/orders/${id}/mark-delivered`, {
         deliveryData: {
           credentials: {
-            email:       deliveryEmail  || undefined,
-            password:    deliveryPass   || undefined,
-            username:    deliveryExtra  || undefined,
-            loginMethod: undefined,
+            email:       deliveryEmail       || undefined,
+            password:    deliveryPass        || undefined,
+            username:    deliveryExtra       || undefined,
+            loginMethod: deliveryLoginMethod || undefined,
           },
-          notes: deliveryNotes || undefined,
+          notes: deliveryNotes.trim(),
         },
       });
-      showToast('Delivery confirmed — awaiting buyer', 'success');
-      setDeliveryEmail(''); setDeliveryPass(''); setDeliveryExtra(''); setDeliveryNotes('');
+      showToast('Delivery submitted — buyer has been notified by email', 'success');
+      setDeliveryEmail('');
+      setDeliveryPass('');
+      setDeliveryExtra('');
+      setDeliveryLoginMethod('');
+      setDeliveryNotes('');
       await load();
-    } catch (err: any) { showToast(err.message || 'Failed to mark delivered', 'error'); }
-    finally { setSubmittingDelivery(false); }
+    } catch (err: any) {
+      showToast(err.message || 'Failed to mark delivered', 'error');
+    } finally {
+      setSubmittingDelivery(false);
+    }
   };
 
   const handleConfirmDelivery = () => act(async () => {
@@ -502,14 +544,16 @@ export default function OrderTrackingContent({ id }: { id: string }) {
             <div>
               <p className="text-sm font-bold text-white">Awaiting buyer payment</p>
               {canSellerCancel ? (
-                <p className="text-xs text-emerald-400 mt-0.5">3 hours elapsed — you can close this unpaid order now.</p>
+                <p className="text-xs text-emerald-400 mt-0.5">
+                  3 hours elapsed — you can close this unpaid order now to free the listing.
+                </p>
               ) : (
                 <p className="text-xs text-gray-400 mt-0.5">
                   You can close this order in{' '}
                   <span className={`font-mono font-bold ${cdColor(sellerCancelCooldownMs)}`}>
                     {fmtCountdown(sellerCancelCooldownMs)}
                   </span>
-                  {' '}if the buyer hasn&apos;t paid.
+                  {' '}if the buyer hasn&apos;t paid. No action needed until then.
                 </p>
               )}
             </div>
@@ -544,6 +588,98 @@ export default function OrderTrackingContent({ id }: { id: string }) {
             {actionLoading ? <Loader2 className="w-4 h-4 animate-spin" /> : <CheckCircle className="w-4 h-4" />}
             Confirm & Release Funds
           </button>
+        </div>
+      )}
+
+      {/* Buyer: seller missed delivery deadline — dispute eligible banner */}
+      {buyerDisputeEligible && !isDisputed && (
+        <div className="bg-red-950/30 border border-red-500/40 rounded-2xl p-5">
+          <div className="flex items-start gap-3 mb-4">
+            <div className="p-2 bg-red-500/15 rounded-xl flex-shrink-0">
+              <AlertTriangle className="w-5 h-5 text-red-400" />
+            </div>
+            <div>
+              <p className="font-bold text-red-200 text-sm">Delivery deadline passed — seller hasn't delivered</p>
+              <p className="text-xs text-gray-400 mt-1">
+                The seller accepted your order over 1h 30m ago but hasn't marked it as delivered.
+                Your funds are still safely locked in escrow.
+              </p>
+            </div>
+          </div>
+          <div className="flex flex-col sm:flex-row gap-2">
+            <button onClick={() => setShowDispute(true)}
+              className="flex-1 flex items-center justify-center gap-2 bg-red-600 hover:bg-red-700 py-3 rounded-xl text-sm font-bold text-white transition shadow-lg shadow-red-600/20">
+              <AlertTriangle className="w-4 h-4" /> Open a Dispute
+            </button>
+            <p className="text-xs text-gray-500 sm:self-center sm:text-right mt-1 sm:mt-0 sm:max-w-[200px]">
+              Our team resolves disputes within 24–72h. Funds stay in escrow throughout.
+            </p>
+          </div>
+        </div>
+      )}
+
+      {/* Buyer: PAID, seller accepted, not yet eligible — show countdown until they can dispute */}
+      {!buyerDisputeEligible && isBuyer && order.status === 'PAID' && order.acceptedAt && !isDisputed && buyerDisputeCooldownMs > 0 && (
+        <div className="bg-cardBg border border-borderBg rounded-2xl p-4 flex items-center gap-3">
+          <div className="p-2 bg-brand/10 rounded-xl flex-shrink-0">
+            <Info className="w-4 h-4 text-brand" />
+          </div>
+          <div className="flex-1 min-w-0">
+            <p className="text-sm font-semibold text-white">Seller is preparing your delivery</p>
+            <p className="text-xs text-gray-400 mt-0.5">
+              If not delivered in{' '}
+              <span className={`font-mono font-bold ${cdColor(buyerDisputeCooldownMs)}`}>
+                {fmtCountdown(buyerDisputeCooldownMs)}
+              </span>
+              {' '}you can open a dispute.
+            </p>
+          </div>
+        </div>
+      )}
+
+      {/* Seller: buyer hasn't confirmed after 1h — dispute eligible banner */}
+      {sellerDisputeEligible && !isDisputed && (
+        <div className="bg-orange-950/30 border border-orange-500/40 rounded-2xl p-5">
+          <div className="flex items-start gap-3 mb-4">
+            <div className="p-2 bg-orange-500/15 rounded-xl flex-shrink-0">
+              <AlertTriangle className="w-5 h-5 text-orange-400" />
+            </div>
+            <div>
+              <p className="font-bold text-orange-200 text-sm">Buyer hasn't confirmed receipt after 1 hour</p>
+              <p className="text-xs text-gray-400 mt-1">
+                You marked the order as delivered over 1 hour ago. If the buyer is unresponsive
+                or there is an issue, you can open a dispute for admin review.
+              </p>
+            </div>
+          </div>
+          <div className="flex flex-col sm:flex-row gap-2">
+            <button onClick={() => setShowDispute(true)}
+              className="flex-1 flex items-center justify-center gap-2 bg-orange-600 hover:bg-orange-700 py-3 rounded-xl text-sm font-bold text-white transition shadow-lg shadow-orange-600/20">
+              <AlertTriangle className="w-4 h-4" /> Open a Dispute
+            </button>
+            <p className="text-xs text-gray-500 sm:self-center sm:text-right mt-1 sm:mt-0 sm:max-w-[200px]">
+              Admin will review within 24–72h. Funds remain in escrow during review.
+            </p>
+          </div>
+        </div>
+      )}
+
+      {/* Seller: IN_PROGRESS, waiting for buyer confirm, not yet dispute eligible */}
+      {!sellerDisputeEligible && isSeller && order.status === 'IN_PROGRESS' && sellerDisputeCooldownMs > 0 && !isDisputed && (
+        <div className="bg-cardBg border border-borderBg rounded-2xl p-4 flex items-center gap-3">
+          <div className="p-2 bg-emerald-500/10 rounded-xl flex-shrink-0">
+            <BadgeCheck className="w-4 h-4 text-emerald-400" />
+          </div>
+          <div className="flex-1 min-w-0">
+            <p className="text-sm font-semibold text-white">Delivery sent — waiting for buyer confirmation</p>
+            <p className="text-xs text-gray-400 mt-0.5">
+              You can open a dispute in{' '}
+              <span className={`font-mono font-bold ${cdColor(sellerDisputeCooldownMs)}`}>
+                {fmtCountdown(sellerDisputeCooldownMs)}
+              </span>
+              {' '}if the buyer hasn't confirmed by then.
+            </p>
+          </div>
         </div>
       )}
 
@@ -601,14 +737,14 @@ export default function OrderTrackingContent({ id }: { id: string }) {
                 {order.status === 'PAID' && order.acceptedAt && sellerRemaining !== null && (
                   <div className="mt-4 flex items-center gap-2 text-xs bg-yellow-950/20 border border-yellow-500/20 rounded-xl px-4 py-2.5">
                     <Clock className="w-3.5 h-3.5 text-yellow-400 flex-shrink-0" />
-                    <span className="text-gray-400">Seller delivery window:</span>
+                    <span className="text-gray-400">Seller delivery window (1h 30m):</span>
                     <span className={`font-mono font-black text-sm ml-auto ${cdColor(sellerRemaining)}`}>{fmtCountdown(sellerRemaining)}</span>
                   </div>
                 )}
                 {order.status === 'IN_PROGRESS' && buyerRemaining !== null && (
                   <div className="mt-4 flex items-center gap-2 text-xs bg-brand/5 border border-brand/20 rounded-xl px-4 py-2.5">
                     <Clock className="w-3.5 h-3.5 text-brand flex-shrink-0" />
-                    <span className="text-gray-400">Buyer confirmation window:</span>
+                    <span className="text-gray-400">Buyer confirmation window (1h):</span>
                     <span className={`font-mono font-black text-sm ml-auto ${cdColor(buyerRemaining)}`}>{fmtCountdown(buyerRemaining)}</span>
                   </div>
                 )}
@@ -619,6 +755,27 @@ export default function OrderTrackingContent({ id }: { id: string }) {
                       <p className="text-sm font-bold text-red-300">Under Moderation</p>
                       <p className="text-xs text-gray-400 mt-0.5">Our team is reviewing both parties and will resolve within 24–72 hours.</p>
                     </div>
+                  </div>
+                )}
+
+                {/* PAID: seller has not accepted yet — guide them */}
+                {order.status === 'PAID' && isSeller && !order.acceptedAt && (
+                  <div className="mt-4 flex items-start gap-2 bg-brand/5 border border-brand/20 rounded-xl px-4 py-3">
+                    <Info className="w-4 h-4 text-brand flex-shrink-0 mt-0.5" />
+                    <p className="text-xs text-gray-300">
+                      <strong className="text-white">Next step:</strong> Accept the order below to start your 1h 30m delivery timer.
+                      You cannot deliver without accepting first.
+                    </p>
+                  </div>
+                )}
+
+                {/* PAID: buyer is waiting after seller accepted */}
+                {order.status === 'PAID' && isBuyer && order.acceptedAt && sellerRemaining !== null && sellerRemaining > 0 && (
+                  <div className="mt-4 flex items-start gap-2 bg-brand/5 border border-brand/20 rounded-xl px-4 py-3">
+                    <Info className="w-4 h-4 text-brand flex-shrink-0 mt-0.5" />
+                    <p className="text-xs text-gray-300">
+                      The seller is preparing your delivery. You&apos;ll receive an email notification and in-app alert when it&apos;s ready.
+                    </p>
                   </div>
                 )}
               </div>
@@ -752,10 +909,14 @@ export default function OrderTrackingContent({ id }: { id: string }) {
                       )}
                     </div>
                     {order.status === 'IN_PROGRESS' && (
-                      <p className="text-xs text-yellow-400 flex items-center gap-1.5">
-                        <AlertTriangle className="w-3.5 h-3.5 flex-shrink-0" />
-                        Only confirm receipt after you have successfully tested the account credentials.
-                      </p>
+                      <div className="flex items-start gap-2 bg-yellow-950/20 border border-yellow-500/20 rounded-xl px-4 py-3">
+                        <AlertTriangle className="w-3.5 h-3.5 text-yellow-400 flex-shrink-0 mt-0.5" />
+                        <p className="text-xs text-yellow-300">
+                          <strong>Important:</strong> Only confirm receipt after testing the credentials.
+                          Once confirmed, funds are released immediately and cannot be reversed.
+                          If something is wrong, open a dispute <em>before</em> confirming.
+                        </p>
+                      </div>
                     )}
                   </>
                 )}
@@ -823,58 +984,135 @@ export default function OrderTrackingContent({ id }: { id: string }) {
                   <>
                     <div className="flex items-start gap-3 bg-brand/5 border border-brand/20 rounded-xl p-4">
                       <Lock className="w-4 h-4 text-brand flex-shrink-0 mt-0.5" />
-                      <p className="text-sm text-gray-300">Funds are locked in escrow. Accept to start your <span className="font-bold text-white">1-hour</span> delivery window.</p>
+                      <div>
+                        <p className="text-sm font-bold text-white">Accept order to start delivery timer</p>
+                        <p className="text-xs text-gray-400 mt-1">
+                          Funds are locked in escrow. Accepting starts your <strong className="text-white">1h 30m</strong> delivery window.
+                          The buyer will be notified and expects credentials within that time.
+                        </p>
+                      </div>
                     </div>
                     <button onClick={handleAccept} disabled={actionLoading}
                       className="w-full flex items-center justify-center gap-2 bg-brand hover:opacity-90 py-4 rounded-xl font-black text-white disabled:opacity-50 transition shadow-lg shadow-brand/20">
                       {actionLoading ? <Loader2 className="w-5 h-5 animate-spin" /> : <CheckCircle className="w-5 h-5" />}
-                      Accept Order & Start Delivery Timer
+                      Accept Order &amp; Start Delivery Timer
                     </button>
                   </>
                 )}
 
                 {isSeller && order.status === 'PAID' && order.acceptedAt && (
                   <>
+                    {/* Delivery countdown */}
                     <div className="flex items-center gap-4 bg-yellow-950/20 border border-yellow-500/20 rounded-xl p-4">
                       <Truck className="w-6 h-6 text-yellow-400 flex-shrink-0" />
-                      <div>
+                      <div className="flex-1 min-w-0">
                         <p className="text-xs text-yellow-300 font-bold uppercase tracking-widest">Deliver within</p>
                         <p className={`text-2xl font-black font-mono ${cdColor(sellerRemaining)}`}>{fmtCountdown(sellerRemaining ?? 0)}</p>
-                        <p className="text-[10px] text-gray-500 mt-0.5">Miss this window and the buyer can open a dispute.</p>
+                        <p className="text-[10px] text-gray-500 mt-0.5">Miss this and the buyer can open a dispute — fill in all fields below before submitting.</p>
                       </div>
                     </div>
-                    <form onSubmit={handleMarkDelivered} className="space-y-3">
-                      <p className="text-xs font-bold text-gray-400 uppercase tracking-widest">Account Credentials</p>
+
+                    {/* Delivery form */}
+                    <form onSubmit={handleMarkDelivered} className="space-y-4">
+                      <div className="flex items-center gap-2 pb-1 border-b border-borderBg">
+                        <Truck className="w-4 h-4 text-brand" />
+                        <p className="text-xs font-black text-white uppercase tracking-widest">Account Credentials</p>
+                      </div>
+
                       <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
                         <div>
-                          <label className="text-[10px] text-gray-500 uppercase tracking-wide font-bold block mb-1">Email / UID</label>
-                          <input type="text" value={deliveryEmail} onChange={e => setDeliveryEmail(e.target.value)}
-                            placeholder="user@example.com"
-                            className="w-full bg-background border border-borderBg rounded-xl px-3 py-2.5 text-sm text-white font-mono focus:outline-none focus:border-brand transition" />
+                          <label className="text-[10px] text-gray-500 uppercase tracking-wide font-bold block mb-1">
+                            Email / UID <span className="text-brand">*</span>
+                          </label>
+                          <input
+                            type="text"
+                            value={deliveryEmail}
+                            onChange={e => setDeliveryEmail(e.target.value)}
+                            placeholder="user@example.com or Player UID"
+                            className="w-full bg-background border border-borderBg rounded-xl px-3 py-2.5 text-sm text-white font-mono focus:outline-none focus:border-brand transition"
+                          />
                         </div>
                         <div>
-                          <label className="text-[10px] text-gray-500 uppercase tracking-wide font-bold block mb-1">Password</label>
-                          <input type="text" value={deliveryPass} onChange={e => setDeliveryPass(e.target.value)}
-                            placeholder="••••••••"
-                            className="w-full bg-background border border-borderBg rounded-xl px-3 py-2.5 text-sm text-white font-mono focus:outline-none focus:border-brand transition" />
+                          <label className="text-[10px] text-gray-500 uppercase tracking-wide font-bold block mb-1">
+                            Password <span className="text-brand">*</span>
+                          </label>
+                          <input
+                            type="text"
+                            value={deliveryPass}
+                            onChange={e => setDeliveryPass(e.target.value)}
+                            placeholder="Account password"
+                            className="w-full bg-background border border-borderBg rounded-xl px-3 py-2.5 text-sm text-white font-mono focus:outline-none focus:border-brand transition"
+                          />
                         </div>
                       </div>
-                      <div>
-                        <label className="text-[10px] text-gray-500 uppercase tracking-wide font-bold block mb-1">Username / Extra Info</label>
-                        <input type="text" value={deliveryExtra} onChange={e => setDeliveryExtra(e.target.value)}
-                          placeholder="Username, recovery email, login method, etc."
-                          className="w-full bg-background border border-borderBg rounded-xl px-3 py-2.5 text-sm text-white font-mono focus:outline-none focus:border-brand transition" />
+
+                      <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+                        <div>
+                          <label className="text-[10px] text-gray-500 uppercase tracking-wide font-bold block mb-1">
+                            Username / In-game Name
+                          </label>
+                          <input
+                            type="text"
+                            value={deliveryExtra}
+                            onChange={e => setDeliveryExtra(e.target.value)}
+                            placeholder="In-game name or recovery email"
+                            className="w-full bg-background border border-borderBg rounded-xl px-3 py-2.5 text-sm text-white font-mono focus:outline-none focus:border-brand transition"
+                          />
+                        </div>
+                        <div>
+                          <label className="text-[10px] text-gray-500 uppercase tracking-wide font-bold block mb-1">
+                            Login Method
+                          </label>
+                          <select
+                            value={deliveryLoginMethod}
+                            onChange={e => setDeliveryLoginMethod(e.target.value)}
+                            className="w-full bg-background border border-borderBg rounded-xl px-3 py-2.5 text-sm text-white focus:outline-none focus:border-brand transition"
+                          >
+                            <option value="">Select login method…</option>
+                            <option value="Email & Password">Email &amp; Password</option>
+                            <option value="Facebook">Facebook</option>
+                            <option value="Google">Google</option>
+                            <option value="Apple ID">Apple ID</option>
+                            <option value="Guest / UID">Guest / UID</option>
+                            <option value="VK">VK</option>
+                            <option value="Twitter / X">Twitter / X</option>
+                            <option value="Other">Other</option>
+                          </select>
+                        </div>
                       </div>
+
                       <div>
-                        <label className="text-[10px] text-gray-500 uppercase tracking-wide font-bold block mb-1">Notes to Buyer (optional)</label>
-                        <textarea value={deliveryNotes} onChange={e => setDeliveryNotes(e.target.value)} rows={2}
-                          placeholder="e.g. Log in via Facebook · do not change email"
-                          className="w-full bg-background border border-borderBg rounded-xl px-3 py-2.5 text-sm text-white focus:outline-none focus:border-brand resize-none transition" />
+                        <label className="text-[10px] text-gray-500 uppercase tracking-wide font-bold block mb-1">
+                          Notes to Buyer <span className="text-brand">*</span>
+                          <span className="ml-2 text-gray-600 normal-case font-normal">(login steps, tips, warnings)</span>
+                        </label>
+                        <textarea
+                          value={deliveryNotes}
+                          onChange={e => setDeliveryNotes(e.target.value)}
+                          rows={3}
+                          required
+                          placeholder="e.g. Log in via Facebook · Do not change email · 2FA code sent to +234..."
+                          className="w-full bg-background border border-borderBg rounded-xl px-3 py-2.5 text-sm text-white focus:outline-none focus:border-brand resize-none transition"
+                        />
                       </div>
-                      <button type="submit" disabled={submittingDelivery}
-                        className="w-full flex items-center justify-center gap-2 bg-brand hover:opacity-90 py-4 rounded-xl font-black text-white disabled:opacity-50 transition shadow-lg shadow-brand/20">
-                        {submittingDelivery ? <Loader2 className="w-5 h-5 animate-spin" /> : <Truck className="w-5 h-5" />}
-                        {submittingDelivery ? 'Submitting…' : 'Mark as Delivered'}
+
+                      {/* Screenshot note */}
+                      <div className="flex items-start gap-2 bg-brand/5 border border-brand/15 rounded-xl px-4 py-3">
+                        <Info className="w-4 h-4 text-brand flex-shrink-0 mt-0.5" />
+                        <p className="text-xs text-gray-400">
+                          <strong className="text-white">Screenshot tip:</strong> Take a screenshot of the delivered account before submitting.
+                          If a dispute arises, you can attach it as evidence on the dispute page.
+                        </p>
+                      </div>
+
+                      <button
+                        type="submit"
+                        disabled={submittingDelivery}
+                        className="w-full flex items-center justify-center gap-2 bg-brand hover:opacity-90 py-4 rounded-xl font-black text-white disabled:opacity-50 transition shadow-lg shadow-brand/20 text-sm"
+                      >
+                        {submittingDelivery
+                          ? <><Loader2 className="w-5 h-5 animate-spin" /> Submitting delivery…</>
+                          : <><SendHorizonal className="w-5 h-5" /> Mark as Delivered &amp; Notify Buyer</>}
                       </button>
                     </form>
                   </>
@@ -884,10 +1122,15 @@ export default function OrderTrackingContent({ id }: { id: string }) {
                   <div className="flex items-start gap-3 bg-brand/5 border border-brand/20 rounded-xl p-4">
                     <CheckCircle className="w-4 h-4 text-emerald-400 flex-shrink-0 mt-0.5" />
                     <div>
-                      <p className="font-semibold text-emerald-300 text-sm">Delivered — Awaiting buyer confirmation</p>
-                      {buyerRemaining !== null && (
+                      <p className="font-semibold text-emerald-300 text-sm">Delivered — awaiting buyer confirmation</p>
+                      {buyerRemaining !== null && buyerRemaining > 0 && (
                         <p className="text-xs text-gray-400 mt-0.5">
-                          Auto-releases in <span className={`font-mono font-bold ${cdColor(buyerRemaining)}`}>{fmtCountdown(buyerRemaining)}</span>
+                          Buyer window closes in <span className={`font-mono font-bold ${cdColor(buyerRemaining)}`}>{fmtCountdown(buyerRemaining)}</span>
+                        </p>
+                      )}
+                      {buyerRemaining !== null && buyerRemaining <= 0 && (
+                        <p className="text-xs text-emerald-400 mt-0.5 font-semibold">
+                          Buyer window elapsed — funds will auto-release shortly.
                         </p>
                       )}
                     </div>
@@ -913,10 +1156,18 @@ export default function OrderTrackingContent({ id }: { id: string }) {
                   </button>
                 )}
 
-                {/* Dispute — available to buyer when PAID or IN_PROGRESS */}
-                {isBuyer && (order.status === 'PAID' || order.status === 'IN_PROGRESS') && !isDisputed && (
+                {/* Dispute — available to buyer when PAID (after 1h30m) or IN_PROGRESS, and to seller when IN_PROGRESS (after 1h) */}
+                {isBuyer && (order.status === 'PAID' || order.status === 'IN_PROGRESS') && !isDisputed && !buyerDisputeEligible && (
                   <button onClick={() => setShowDispute(true)}
-                    className="w-full flex items-center justify-center gap-2 bg-red-600/20 hover:bg-red-600/30 border border-red-500/30 py-3 rounded-xl text-sm font-bold text-red-400 transition">
+                    className="w-full flex items-center justify-center gap-2 bg-red-600/10 hover:bg-red-600/20 border border-red-500/20 py-3 rounded-xl text-sm font-bold text-red-400/70 hover:text-red-400 transition">
+                    <AlertTriangle className="w-4 h-4" /> Open a Dispute
+                  </button>
+                )}
+
+                {/* Seller dispute when in_progress — only after 1h (covered by banner, but keep as fallback) */}
+                {isSeller && order.status === 'IN_PROGRESS' && !isDisputed && sellerDisputeEligible && (
+                  <button onClick={() => setShowDispute(true)}
+                    className="w-full flex items-center justify-center gap-2 bg-orange-600/20 hover:bg-orange-600/30 border border-orange-500/30 py-3 rounded-xl text-sm font-bold text-orange-400 transition">
                     <AlertTriangle className="w-4 h-4" /> Open a Dispute
                   </button>
                 )}
@@ -1087,26 +1338,42 @@ export default function OrderTrackingContent({ id }: { id: string }) {
             <div className="flex items-center justify-between">
               <div className="flex items-center gap-3">
                 <div className="p-2.5 bg-red-500/10 rounded-xl"><AlertTriangle className="w-5 h-5 text-red-400" /></div>
-                <h3 className="font-bold text-white">Open a Dispute</h3>
+                <div>
+                  <h3 className="font-bold text-white">Open a Dispute</h3>
+                  <p className="text-xs text-gray-500 mt-0.5">Reviewed by our team within 24–72 hours</p>
+                </div>
               </div>
               <button onClick={() => setShowDispute(false)} className="text-gray-400 hover:text-white transition">
                 <X className="w-5 h-5" />
               </button>
             </div>
-            <p className="text-xs text-gray-500">
-              Disputes are reviewed by our moderation team within 24–72 hours. Provide as much detail as possible.
-            </p>
+
+            <div className="bg-background border border-borderBg rounded-xl px-4 py-3 flex items-start gap-2">
+              <Shield className="w-4 h-4 text-brand flex-shrink-0 mt-0.5" />
+              <p className="text-xs text-gray-400">
+                Funds remain locked in escrow throughout the dispute. Be as detailed as possible — screenshots and evidence can be added from the dispute page after submission.
+              </p>
+            </div>
+
             <form onSubmit={handleDispute} className="space-y-3">
               <div>
                 <label className="text-[10px] font-black text-gray-500 uppercase tracking-widest block mb-1.5">Reason</label>
                 <select value={disputeReason} onChange={e => setDisputeReason(e.target.value)} required
                   className="w-full bg-background border border-borderBg rounded-xl px-4 py-2.5 text-sm text-white focus:outline-none focus:border-brand transition">
                   <option value="">Select a reason…</option>
-                  <option value="ITEM_NOT_RECEIVED">Item not received / no credentials</option>
-                  <option value="ITEM_NOT_AS_DESCRIBED">Account not as described</option>
-                  <option value="ACCOUNT_BANNED">Account was banned / suspended</option>
-                  <option value="WRONG_CREDENTIALS">Credentials don&apos;t work</option>
-                  <option value="SELLER_UNRESPONSIVE">Seller is unresponsive</option>
+                  {isBuyer && <>
+                    <option value="ITEM_NOT_RECEIVED">Item not received / no credentials</option>
+                    <option value="ITEM_NOT_AS_DESCRIBED">Account not as described</option>
+                    <option value="ACCOUNT_BANNED">Account was banned / suspended</option>
+                    <option value="WRONG_CREDENTIALS">Credentials don&apos;t work</option>
+                    <option value="SELLER_UNRESPONSIVE">Seller is unresponsive</option>
+                    <option value="SELLER_MISSED_DEADLINE">Seller missed delivery deadline</option>
+                  </>}
+                  {isSeller && <>
+                    <option value="BUYER_NOT_RESPONDING">Buyer is not responding after delivery</option>
+                    <option value="BUYER_REFUSED_CONFIRM">Buyer received item but won&apos;t confirm</option>
+                    <option value="BUYER_WRONG_CLAIM">Buyer making false claims</option>
+                  </>}
                   <option value="OTHER">Other</option>
                 </select>
               </div>
@@ -1114,15 +1381,16 @@ export default function OrderTrackingContent({ id }: { id: string }) {
                 <label className="text-[10px] font-black text-gray-500 uppercase tracking-widest block mb-1.5">Description</label>
                 <textarea value={disputeDesc} onChange={e => setDisputeDesc(e.target.value)}
                   rows={4} required minLength={20}
-                  placeholder="Describe the issue in detail…"
+                  placeholder="Describe the issue in detail. Include what happened, when it happened, and any steps you've taken to resolve it."
                   className="w-full bg-background border border-borderBg rounded-xl px-4 py-2.5 text-sm text-white focus:outline-none focus:border-brand resize-none transition" />
+                <p className="text-[10px] text-gray-600 mt-1">Minimum 20 characters. You can add screenshots after submitting.</p>
               </div>
               <div className="flex gap-3 pt-1">
                 <button type="button" onClick={() => setShowDispute(false)}
                   className="flex-1 py-3 rounded-xl text-sm font-semibold text-gray-400 hover:text-white border border-borderBg transition">
                   Cancel
                 </button>
-                <button type="submit" disabled={submittingDispute}
+                <button type="submit" disabled={submittingDispute || !disputeReason}
                   className="flex-1 flex items-center justify-center gap-2 bg-red-600 hover:bg-red-700 py-3 rounded-xl text-sm font-bold text-white disabled:opacity-50 transition">
                   {submittingDispute ? <><Loader2 className="w-4 h-4 animate-spin" /> Submitting…</> : 'Open Dispute'}
                 </button>
