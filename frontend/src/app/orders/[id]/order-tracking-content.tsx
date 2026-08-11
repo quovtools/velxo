@@ -206,13 +206,6 @@ export default function OrderTrackingContent({ id }: { id: string }) {
   // Seller action panel tab
   const [actionTab, setActionTab] = useState<'deliver' | 'details' | 'request'>('deliver');
 
-  // Auto-switch to 'details' when order moves to IN_PROGRESS (delivery submitted)
-  useEffect(() => {
-    if (order?.status === 'IN_PROGRESS' && isSeller) {
-      setActionTab('details');
-    }
-  }, [order?.status, isSeller]);
-
   // Request release state
   const [requestingRelease, setRequestingRelease] = useState(false);
   const [releaseRequested, setReleaseRequested]   = useState(false);
@@ -334,6 +327,14 @@ export default function OrderTrackingContent({ id }: { id: string }) {
   const sellerDisputeCooldownMs = isSeller && order?.status === 'IN_PROGRESS' && sellerDisputeEligibleAt !== null
     && now < sellerDisputeEligibleAt
     ? sellerDisputeEligibleAt - now : 0;
+
+  // Auto-switch seller action tab to 'details' when order moves to IN_PROGRESS
+  // (must come after isSeller/order?.status are defined)
+  useEffect(() => {
+    if (order?.status === 'IN_PROGRESS' && isSeller) {
+      setActionTab('details');
+    }
+  }, [order?.status, isSeller]);
 
   const curIdx      = order ? stepIndex(order.status, order.deliveredAt) : 0;
   const isDisputed  = order?.status === 'DISPUTED';
