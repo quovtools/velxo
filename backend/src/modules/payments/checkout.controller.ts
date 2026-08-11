@@ -163,15 +163,34 @@ export class CheckoutController {
         }).catch(() => { /* columns not yet migrated — safe to ignore */ })
       }
 
-      const payment = await this.paymentsService.initiatePayment(
-        order.id,
-        totalAmount,
-        provider,
-        callbackUrl,
-        buyerId,
-        // Pass the user's local currency so Flutterwave charges in it
-        currency || order.currency,
-      )
+      let payment: Awaited<ReturnType<typeof this.paymentsService.initiatePayment>>
+      try {
+        payment = await this.paymentsService.initiatePayment(
+          order.id,
+          totalAmount,
+          provider,
+          callbackUrl,
+          buyerId,
+          // Pass the user's local currency so Flutterwave charges in it
+          currency || order.currency,
+        )
+      } catch (paymentError) {
+        // Payment provider failed — roll back the order so the listing is freed
+        // and the buyer can retry with a different payment method.
+        try {
+          await this.prisma.orders.update({
+            where: { id: order.id },
+            data: { status: OrderStatus.CANCELLED },
+          })
+          await this.prisma.listings.update({
+            where: { id: listingId },
+            data: { isSold: false, status: 'ACTIVE' },
+          })
+        } catch (rollbackError) {
+          this.logger.error(`Failed to roll back order ${order.id} after payment error:`, rollbackError)
+        }
+        throw paymentError
+      }
 
       return ApiResponseDto.ok(
         {

@@ -148,12 +148,18 @@ export class PaymentsService implements OnModuleInit {
     }
 
     if (provider === PaymentProvider.PAYMENT_IO) {
-      const charge = await this.paymentIo.createCharge({
-        reference: orderId,
-        amount: Number(amount),
-        currency: order.currency,
-        callbackUrl,
-      })
+      let charge: Awaited<ReturnType<typeof this.paymentIo.createCharge>>
+      try {
+        charge = await this.paymentIo.createCharge({
+          reference: orderId,
+          amount: Number(amount),
+          currency: order.currency,
+          callbackUrl,
+        })
+      } catch (err) {
+        await revertReservation()
+        throw err
+      }
       return handleCharge(charge)
     }
 
@@ -166,13 +172,19 @@ export class PaymentsService implements OnModuleInit {
       // the buyer in their own currency (NGN, GHS, KES, etc.) and handle
       // conversion internally. Fall back to the order's stored currency.
       const chargeCurrency = userCurrency || order.currency
-      const charge = await this.flutterwave.createCharge({
-        reference: orderId,
-        amount: Number(amount),
-        currency: chargeCurrency,
-        email: fullOrder?.buyer?.email || 'buyer@piyrox.shop',
-        callbackUrl,
-      })
+      let charge: Awaited<ReturnType<typeof this.flutterwave.createCharge>>
+      try {
+        charge = await this.flutterwave.createCharge({
+          reference: orderId,
+          amount: Number(amount),
+          currency: chargeCurrency,
+          email: fullOrder?.buyer?.email || 'buyer@piyrox.shop',
+          callbackUrl,
+        })
+      } catch (err) {
+        await revertReservation()
+        throw err
+      }
       return handleCharge(charge)
     }
 
