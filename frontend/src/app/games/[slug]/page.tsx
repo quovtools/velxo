@@ -1,6 +1,7 @@
 import type { Metadata } from 'next';
 import GameCatalogContent from './game-catalog-content';
 import { GAME_LIST, GAME_CONFIG, slugToGameName } from '@/lib/games';
+import { getGameSEOContent, buildFAQJsonLd } from '@/lib/seo-content';
 
 const SITE_URL = 'https://app.piyrox.shop';
 
@@ -103,6 +104,8 @@ export default async function GameCatalogPage({
   const currency = getCurrencyLabel(slug);
   const genre = getGenre(slug);
   const topRank = getTopRank(slug);
+  const seoContent = getGameSEOContent(slug);
+  const faqJsonLd = seoContent?.faqs ? buildFAQJsonLd(seoContent.faqs) : null;
 
   // CollectionPage gives Google a strong signal that this is a browsable category
   const collectionPageJsonLd = {
@@ -178,6 +181,12 @@ export default async function GameCatalogPage({
         type="application/ld+json"
         dangerouslySetInnerHTML={{ __html: JSON.stringify(offerListJsonLd) }}
       />
+      {faqJsonLd && (
+        <script
+          type="application/ld+json"
+          dangerouslySetInnerHTML={{ __html: JSON.stringify(faqJsonLd) }}
+        />
+      )}
     </>
   );
 }
