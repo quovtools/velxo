@@ -173,7 +173,7 @@ model users {
   banReason        String?
   externalContactStrikes Int @default(0) // incremented per verified external-contact violation
   lastLoginAt      DateTime?
-  lastSeenAt       DateTime?
+  lastSeenAt       DateTime? @map("last_seen_at")
   createdAt        DateTime @default(now())
   updatedAt        DateTime @updatedAt
   deletedAt        DateTime?
