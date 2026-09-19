@@ -125,7 +125,7 @@ export default async function BlogPostPage({
     dateModified: post.updatedAt ?? post.publishedAt ?? undefined,
     inLanguage: 'en',
     mainEntityOfPage: { '@type': 'WebPage', '@id': `${SITE_URL}/blog/${slug}` },
-    ...(post.keywords ?? post.tags ? { keywords: (post.tags ?? []).join(', ') } : {}),
+    ...(post.tags?.length ? { keywords: post.tags.join(', ') } : {}),
   };
 
   const breadcrumbJsonLd = {
