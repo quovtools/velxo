@@ -72,7 +72,7 @@ function ProgressBar({ currentStep, labels, color = 'bg-brand border-brand' }: P
 /* ─────────────────────────── Step shell ─────────────────────────────── */
 function StepCard({ children }: { children: React.ReactNode }) {
   return (
-    <div className="bg-cardBg border border-borderBg rounded-2xl p-6 space-y-5">
+    <div className="bg-[var(--card-bg)] border border-[var(--border-bg)] rounded-2xl p-6 space-y-5">
       {children}
     </div>
   );
@@ -294,7 +294,7 @@ export default function SellPage() {
         <p className="text-gray-400 text-sm max-w-xs mx-auto">
           Your listing is under review. Our team will approve it within 24 hours and buyers will start seeing it.
         </p>
-        <div className="bg-cardBg border border-borderBg rounded-2xl p-5 text-left space-y-2 text-sm">
+        <div className="bg-[var(--card-bg)] border border-[var(--border-bg)] rounded-2xl p-5 text-left space-y-2 text-sm">
           <div className="flex justify-between"><span className="text-gray-400">Game</span><span className="font-bold text-white">{gameName}</span></div>
           <div className="flex justify-between"><span className="text-gray-400">Title</span><span className="font-bold text-white truncate max-w-[180px]">{title}</span></div>
           <div className="flex justify-between"><span className="text-gray-400">Price</span><span className="font-bold text-brand">{fmt(parseFloat(price) || 0)}</span></div>
@@ -307,7 +307,7 @@ export default function SellPage() {
           </button>
           <button
             onClick={() => router.push('/seller/dashboard')}
-            className="px-6 py-3 bg-hoverBg/50 border border-borderBg hover:border-brand/30 rounded-xl font-bold text-white transition">
+            className="px-6 py-3 bg-[var(--hover-bg)]/50 border border-[var(--border-bg)] hover:border-brand/30 rounded-xl font-bold text-white transition">
             View Dashboard
           </button>
         </div>
@@ -343,7 +343,7 @@ export default function SellPage() {
                 { icon: Zap, color: 'text-orange-400', title: 'Fast Payouts', desc: 'Withdraw earnings to your wallet anytime' },
                 { icon: MessageCircle, color: 'text-violet-400', title: 'Direct Messaging', desc: 'Chat with buyers directly in the platform' },
               ].map(({ icon: Icon, color, title, desc }) => (
-                <div key={title} className="bg-cardBg border border-borderBg rounded-xl p-4 flex gap-3 items-start">
+                <div key={title} className="bg-[var(--card-bg)] border border-[var(--border-bg)] rounded-xl p-4 flex gap-3 items-start">
                   <Icon className={`w-5 h-5 flex-shrink-0 mt-0.5 ${color}`} />
                   <div>
                     <p className="text-sm font-bold text-white">{title}</p>
@@ -386,7 +386,7 @@ export default function SellPage() {
                   required
                   maxLength={60}
                   autoFocus
-                  className={`w-full bg-background border rounded-xl px-4 py-3 text-sm text-white focus:outline-none focus:border-brand transition ${!storeName.trim() && error ? 'border-red-500/60' : 'border-borderBg'}`}
+                  className={`w-full bg-background border rounded-xl px-4 py-3 text-sm text-white focus:outline-none focus:border-brand transition ${!storeName.trim() && error ? 'border-red-500/60' : 'border-[var(--border-bg)]'}`}
                   placeholder="e.g. GamePro Store, Apex Coins, DiamondDeals"
                   value={storeName}
                   onChange={e => setStoreName(e.target.value)}
@@ -398,7 +398,7 @@ export default function SellPage() {
                 <textarea
                   rows={3}
                   maxLength={300}
-                  className="w-full bg-background border border-borderBg rounded-xl px-4 py-3 text-sm text-white focus:outline-none focus:border-brand transition resize-none"
+                  className="w-full bg-background border border-[var(--border-bg)] rounded-xl px-4 py-3 text-sm text-white focus:outline-none focus:border-brand transition resize-none"
                   placeholder="Tell buyers what you specialise in — game accounts, Free Fire coins, boosting…"
                   value={storeDescription}
                   onChange={e => setStoreDescription(e.target.value)}
@@ -409,7 +409,7 @@ export default function SellPage() {
 
             <div className="flex gap-3">
               <button onClick={() => setOnboardStep(0)}
-                className="flex items-center gap-2 px-5 py-3 border border-borderBg hover:border-brand/40 rounded-xl text-gray-300 hover:text-white transition">
+                className="flex items-center gap-2 px-5 py-3 border border-[var(--border-bg)] hover:border-brand/40 rounded-xl text-gray-300 hover:text-white transition">
                 <ChevronLeft className="w-4 h-4" /> Back
               </button>
               <button
@@ -447,7 +447,7 @@ export default function SellPage() {
                   className={`w-full flex items-center gap-4 p-4 rounded-2xl border text-left transition-all ${
                     accountType === value
                       ? 'bg-brand/10 border-brand shadow-lg shadow-brand/10'
-                      : 'bg-cardBg border-borderBg hover:border-brand/30'
+                      : 'bg-[var(--card-bg)] border-[var(--border-bg)] hover:border-brand/30'
                   }`}
                 >
                   <div className={`w-10 h-10 rounded-xl flex items-center justify-center flex-shrink-0 ${accountType === value ? 'bg-brand text-white' : 'bg-background text-gray-400'}`}>
@@ -464,7 +464,7 @@ export default function SellPage() {
 
             <div className="flex gap-3">
               <button onClick={() => setOnboardStep(1)}
-                className="flex items-center gap-2 px-5 py-3 border border-borderBg hover:border-brand/40 rounded-xl text-gray-300 hover:text-white transition">
+                className="flex items-center gap-2 px-5 py-3 border border-[var(--border-bg)] hover:border-brand/40 rounded-xl text-gray-300 hover:text-white transition">
                 <ChevronLeft className="w-4 h-4" /> Back
               </button>
               <button
@@ -493,7 +493,7 @@ export default function SellPage() {
               </p>
             </div>
 
-            <div className="bg-cardBg border border-borderBg rounded-2xl p-5 text-left space-y-3">
+            <div className="bg-[var(--card-bg)] border border-[var(--border-bg)] rounded-2xl p-5 text-left space-y-3">
               <p className="text-sm font-bold text-white">Your store summary</p>
               <div className="space-y-2 text-sm">
                 <div className="flex justify-between"><span className="text-gray-400">Store name</span><span className="text-white font-semibold">{storeName}</span></div>
@@ -510,7 +510,7 @@ export default function SellPage() {
               </button>
               <button
                 onClick={() => router.push('/seller/dashboard')}
-                className="flex-1 py-3.5 rounded-xl font-bold text-white border border-borderBg hover:border-brand/30 transition">
+                className="flex-1 py-3.5 rounded-xl font-bold text-white border border-[var(--border-bg)] hover:border-brand/30 transition">
                 Go to Dashboard
               </button>
             </div>
@@ -556,7 +556,7 @@ export default function SellPage() {
                     className={`flex items-center gap-3 p-3.5 rounded-xl border text-left transition-all ${
                       category === value
                         ? 'bg-brand/10 border-brand text-white'
-                        : 'border-borderBg text-gray-400 hover:border-brand/30 hover:text-white'
+                        : 'border-[var(--border-bg)] text-gray-400 hover:border-brand/30 hover:text-white'
                     }`}>
                     <Icon className={`w-5 h-5 flex-shrink-0 ${category === value ? 'text-brand' : 'text-gray-500'}`} />
                     <div className="min-w-0">
@@ -573,7 +573,7 @@ export default function SellPage() {
               <select
                 value={gameName}
                 onChange={e => setGameName(e.target.value)}
-                className="w-full bg-background border border-borderBg rounded-xl px-4 py-3 text-sm text-white focus:outline-none focus:border-brand transition"
+                className="w-full bg-background border border-[var(--border-bg)] rounded-xl px-4 py-3 text-sm text-white focus:outline-none focus:border-brand transition"
               >
                 {GAMES.map(g => <option key={g}>{g}</option>)}
               </select>
@@ -614,7 +614,7 @@ export default function SellPage() {
                   category === 'boost'   ? `e.g. ${gameName} Bronze → Diamond Boost` :
                   `e.g. ${gameName} ${category}`
                 }
-                className="w-full bg-background border border-borderBg rounded-xl px-4 py-3 text-sm text-white focus:outline-none focus:border-brand transition"
+                className="w-full bg-background border border-[var(--border-bg)] rounded-xl px-4 py-3 text-sm text-white focus:outline-none focus:border-brand transition"
               />
               <p className="text-xs text-gray-500 mt-1">{title.length}/150 characters · Make it descriptive</p>
             </div>
@@ -634,7 +634,7 @@ export default function SellPage() {
                     ? 'Describe the service: which ranks you cover, estimated time, what you need from the buyer…'
                     : 'Describe exactly what the buyer receives — quantity, delivery method, any requirements…'
                 }
-                className="w-full bg-background border border-borderBg rounded-xl px-4 py-3 text-sm text-white focus:outline-none focus:border-brand transition resize-none"
+                className="w-full bg-background border border-[var(--border-bg)] rounded-xl px-4 py-3 text-sm text-white focus:outline-none focus:border-brand transition resize-none"
               />
               <p className="text-xs text-gray-500 mt-1">{description.length}/2000 · Clear descriptions convert better</p>
             </div>
@@ -655,20 +655,20 @@ export default function SellPage() {
                     <label className="block text-xs font-semibold text-gray-400 mb-2 uppercase tracking-wide">Rank <span className="text-gray-600 font-normal normal-case">(optional)</span></label>
                     <input type="text" value={rank} onChange={e => setRank(e.target.value)} list="rank-options"
                       placeholder={rankOptions.length ? rankOptions[Math.floor(rankOptions.length / 2)] : 'e.g. Diamond'}
-                      className="w-full bg-background border border-borderBg rounded-xl px-4 py-3 text-sm text-white focus:outline-none focus:border-brand transition" />
+                      className="w-full bg-background border border-[var(--border-bg)] rounded-xl px-4 py-3 text-sm text-white focus:outline-none focus:border-brand transition" />
                     {rankOptions.length > 0 && <datalist id="rank-options">{rankOptions.map(o => <option key={o} value={o} />)}</datalist>}
                   </div>
                 )}
                 <div>
                   <label className="block text-xs font-semibold text-gray-400 mb-2 uppercase tracking-wide">Level <span className="text-gray-600 font-normal normal-case">(optional)</span></label>
                   <input type="number" value={level} onChange={e => setLevel(e.target.value)} placeholder="e.g. 70"
-                    className="w-full bg-background border border-borderBg rounded-xl px-4 py-3 text-sm text-white focus:outline-none focus:border-brand transition" />
+                    className="w-full bg-background border border-[var(--border-bg)] rounded-xl px-4 py-3 text-sm text-white focus:outline-none focus:border-brand transition" />
                 </div>
                 <div className="sm:col-span-2">
                   <label className="block text-xs font-semibold text-gray-400 mb-2 uppercase tracking-wide">Login Method <span className="text-gray-600 font-normal normal-case">(optional)</span></label>
                   <input type="text" value={loginMethod} onChange={e => setLoginMethod(e.target.value)} list="login-options"
                     placeholder={loginOptions.length ? loginOptions.join(', ') : 'e.g. Google, Facebook'}
-                    className="w-full bg-background border border-borderBg rounded-xl px-4 py-3 text-sm text-white focus:outline-none focus:border-brand transition" />
+                    className="w-full bg-background border border-[var(--border-bg)] rounded-xl px-4 py-3 text-sm text-white focus:outline-none focus:border-brand transition" />
                   {loginOptions.length > 0 && <datalist id="login-options">{loginOptions.map(o => <option key={o} value={o} />)}</datalist>}
                 </div>
               </div>
@@ -678,7 +678,7 @@ export default function SellPage() {
 
           <div className="flex justify-between">
             <button onClick={() => setListStep(1)}
-              className="flex items-center gap-2 px-6 py-3 border border-borderBg hover:border-brand/40 rounded-xl text-gray-300 hover:text-white transition">
+              className="flex items-center gap-2 px-6 py-3 border border-[var(--border-bg)] hover:border-brand/40 rounded-xl text-gray-300 hover:text-white transition">
               <ChevronLeft className="w-4 h-4" /> Back
             </button>
             <button onClick={() => { setError(null); setListStep(3); }} disabled={!title.trim() || !description.trim()}
@@ -707,7 +707,7 @@ export default function SellPage() {
                 type="button"
                 onClick={() => { setMediaMode('images'); setUploadError(null); }}
                 className={`flex items-center gap-1.5 px-4 py-2 rounded-xl text-xs font-bold border transition ${
-                  mediaMode === 'images' ? 'bg-brand/10 border-brand text-white' : 'border-borderBg text-gray-400 hover:border-brand/30'
+                  mediaMode === 'images' ? 'bg-brand/10 border-brand text-white' : 'border-[var(--border-bg)] text-gray-400 hover:border-brand/30'
                 }`}
               >
                 <Image className="w-3.5 h-3.5" /> Images ({uploadedImages.length}/8)
@@ -716,7 +716,7 @@ export default function SellPage() {
                 type="button"
                 onClick={() => { setMediaMode('video'); setUploadError(null); }}
                 className={`flex items-center gap-1.5 px-4 py-2 rounded-xl text-xs font-bold border transition ${
-                  mediaMode === 'video' ? 'bg-brand/10 border-brand text-white' : 'border-borderBg text-gray-400 hover:border-brand/30'
+                  mediaMode === 'video' ? 'bg-brand/10 border-brand text-white' : 'border-[var(--border-bg)] text-gray-400 hover:border-brand/30'
                 }`}
               >
                 <Video className="w-3.5 h-3.5" /> Video {uploadedVideo ? '(1/1)' : '(0/1)'}
@@ -737,7 +737,7 @@ export default function SellPage() {
                 {uploadedImages.length > 0 && (
                   <div className="grid grid-cols-4 gap-2">
                     {uploadedImages.map((url, idx) => (
-                      <div key={idx} className="relative aspect-square rounded-xl overflow-hidden bg-background border border-borderBg group">
+                      <div key={idx} className="relative aspect-square rounded-xl overflow-hidden bg-background border border-[var(--border-bg)] group">
                         {/* eslint-disable-next-line @next/next/no-img-element */}
                         <img src={url} alt={`Upload ${idx + 1}`} className="w-full h-full object-cover" />
                         <button
@@ -754,7 +754,7 @@ export default function SellPage() {
                     ))}
                     {/* Add more slot */}
                     {uploadedImages.length < 8 && (
-                      <label className="aspect-square rounded-xl border-2 border-dashed border-borderBg hover:border-brand/50 flex flex-col items-center justify-center cursor-pointer transition bg-background/50 group">
+                      <label className="aspect-square rounded-xl border-2 border-dashed border-[var(--border-bg)] hover:border-brand/50 flex flex-col items-center justify-center cursor-pointer transition bg-background/50 group">
                         <Upload className="w-4 h-4 text-gray-600 group-hover:text-brand transition" />
                         <span className="text-[10px] text-gray-600 group-hover:text-brand mt-1 transition">Add</span>
                         <input
@@ -772,7 +772,7 @@ export default function SellPage() {
                 {/* Drop zone (shown when no images yet) */}
                 {uploadedImages.length === 0 && (
                   <label className={`flex flex-col items-center justify-center gap-3 border-2 border-dashed rounded-2xl p-10 cursor-pointer transition ${
-                    uploadingMedia ? 'border-brand/40 bg-brand/5' : 'border-borderBg hover:border-brand/50 bg-background/30'
+                    uploadingMedia ? 'border-brand/40 bg-brand/5' : 'border-[var(--border-bg)] hover:border-brand/50 bg-background/30'
                   }`}>
                     {uploadingMedia ? (
                       <Loader2 className="w-8 h-8 text-brand animate-spin" />
@@ -807,7 +807,7 @@ export default function SellPage() {
               <div className="space-y-3">
                 {!uploadedVideo ? (
                   <label className={`flex flex-col items-center justify-center gap-3 border-2 border-dashed rounded-2xl p-10 cursor-pointer transition ${
-                    uploadingMedia ? 'border-brand/40 bg-brand/5' : 'border-borderBg hover:border-brand/50 bg-background/30'
+                    uploadingMedia ? 'border-brand/40 bg-brand/5' : 'border-[var(--border-bg)] hover:border-brand/50 bg-background/30'
                   }`}>
                     {uploadingMedia ? (
                       <Loader2 className="w-8 h-8 text-brand animate-spin" />
@@ -827,7 +827,7 @@ export default function SellPage() {
                     />
                   </label>
                 ) : (
-                  <div className="relative rounded-2xl overflow-hidden bg-black border border-borderBg">
+                  <div className="relative rounded-2xl overflow-hidden bg-black border border-[var(--border-bg)]">
                     <video src={uploadedVideo} controls className="w-full max-h-64 object-contain" />
                     <button
                       type="button"
@@ -844,7 +844,7 @@ export default function SellPage() {
 
           <div className="flex justify-between">
             <button onClick={() => setListStep(2)}
-              className="flex items-center gap-2 px-6 py-3 border border-borderBg hover:border-brand/40 rounded-xl text-gray-300 hover:text-white transition">
+              className="flex items-center gap-2 px-6 py-3 border border-[var(--border-bg)] hover:border-brand/40 rounded-xl text-gray-300 hover:text-white transition">
               <ChevronLeft className="w-4 h-4" /> Back
             </button>
             <button
@@ -868,14 +868,14 @@ export default function SellPage() {
               <div>
                 <label className="block text-xs font-semibold text-gray-400 mb-2 uppercase tracking-wide">Platform *</label>
                 <select value={platform} onChange={e => setPlatform(e.target.value)}
-                  className="w-full bg-background border border-borderBg rounded-xl px-4 py-3 text-sm text-white focus:outline-none focus:border-brand transition">
+                  className="w-full bg-background border border-[var(--border-bg)] rounded-xl px-4 py-3 text-sm text-white focus:outline-none focus:border-brand transition">
                   {platformOptions.map(p => <option key={p}>{p}</option>)}
                 </select>
               </div>
               <div>
                 <label className="block text-xs font-semibold text-gray-400 mb-2 uppercase tracking-wide">Region *</label>
                 <select value={region} onChange={e => setRegion(e.target.value)}
-                  className="w-full bg-background border border-borderBg rounded-xl px-4 py-3 text-sm text-white focus:outline-none focus:border-brand transition">
+                  className="w-full bg-background border border-[var(--border-bg)] rounded-xl px-4 py-3 text-sm text-white focus:outline-none focus:border-brand transition">
                   {REGIONS.map(r => <option key={r}>{r}</option>)}
                 </select>
               </div>
@@ -887,13 +887,13 @@ export default function SellPage() {
                 <div className="relative">
                   <span className="absolute left-3.5 top-1/2 -translate-y-1/2 text-gray-400 font-bold text-sm">$</span>
                   <input type="number" required min="0.50" step="0.01" value={price} onChange={e => setPrice(e.target.value)} placeholder="0.00"
-                    className="w-full bg-background border border-borderBg rounded-xl pl-8 pr-4 py-3 text-sm text-white focus:outline-none focus:border-brand transition" />
+                    className="w-full bg-background border border-[var(--border-bg)] rounded-xl pl-8 pr-4 py-3 text-sm text-white focus:outline-none focus:border-brand transition" />
                 </div>
               </div>
               <div>
                 <label className="block text-xs font-semibold text-gray-400 mb-2 uppercase tracking-wide">Delivery Time</label>
                 <select value={deliveryTime} onChange={e => setDeliveryTime(e.target.value)}
-                  className="w-full bg-background border border-borderBg rounded-xl px-4 py-3 text-sm text-white focus:outline-none focus:border-brand transition">
+                  className="w-full bg-background border border-[var(--border-bg)] rounded-xl px-4 py-3 text-sm text-white focus:outline-none focus:border-brand transition">
                   <option value="15">15 minutes</option>
                   <option value="30">30 minutes</option>
                   <option value="60">1 hour</option>
@@ -906,7 +906,7 @@ export default function SellPage() {
           </StepCard>
 
           {/* Listing preview summary */}
-          <div className="bg-cardBg border border-borderBg rounded-2xl p-5 space-y-3">
+          <div className="bg-[var(--card-bg)] border border-[var(--border-bg)] rounded-2xl p-5 space-y-3">
             <h3 className="text-sm font-bold text-white flex items-center gap-2"><Package className="w-4 h-4 text-brand" /> Listing Preview</h3>
             <div className="text-sm space-y-2 divide-y divide-borderBg">
               {[
@@ -929,7 +929,7 @@ export default function SellPage() {
 
           {/* Earnings breakdown */}
           {price && parseFloat(price) > 0 && (
-            <div className="bg-cardBg border border-brand/20 rounded-2xl p-5 space-y-2">
+            <div className="bg-[var(--card-bg)] border border-brand/20 rounded-2xl p-5 space-y-2">
               <h3 className="text-sm font-bold text-white">Your Earnings</h3>
               <div className="space-y-2 text-sm">
                 <div className="flex justify-between">
@@ -940,7 +940,7 @@ export default function SellPage() {
                   <span className="text-gray-400">Platform fee (10%)</span>
                   <span className="text-gray-500">−{fmt(parseFloat(price) * 0.1)}</span>
                 </div>
-                <div className="flex justify-between border-t border-borderBg pt-2">
+                <div className="flex justify-between border-t border-[var(--border-bg)] pt-2">
                   <span className="font-bold text-white">You receive</span>
                   <span className="font-black text-brand text-xl">{fmt(parseFloat(price) * 0.9)}</span>
                 </div>
@@ -955,7 +955,7 @@ export default function SellPage() {
 
           <div className="flex justify-between">
             <button onClick={() => setListStep(3)}
-              className="flex items-center gap-2 px-6 py-3 border border-borderBg hover:border-brand/40 rounded-xl text-gray-300 hover:text-white transition">
+              className="flex items-center gap-2 px-6 py-3 border border-[var(--border-bg)] hover:border-brand/40 rounded-xl text-gray-300 hover:text-white transition">
               <ChevronLeft className="w-4 h-4" /> Back
             </button>
             <button

@@ -66,12 +66,12 @@ const STATUS_LABELS: Record<string, string> = {
 
 const STATUS_COLORS: Record<string, string> = {
   PENDING:     'bg-yellow-500/10 text-yellow-300 border-yellow-500/30',
-  PAID:        'bg-blue-500/10 text-blue-300 border-blue-500/30',
-  IN_PROGRESS: 'bg-brand/10 text-brand border-brand/30',
+  PAID:        'bg-brand/10 text-brand border-brand/30',
+  IN_PROGRESS: 'bg-brand/15 text-brand-light border-brand/40',
   COMPLETED:   'bg-emerald-500/10 text-emerald-300 border-emerald-500/30',
   DISPUTED:    'bg-red-500/10 text-red-300 border-red-500/30',
-  CANCELLED:   'bg-gray-800/60 text-gray-400 border-gray-700',
-  REFUNDED:    'bg-gray-800/60 text-gray-400 border-gray-700',
+  CANCELLED:   'bg-white/5 text-gray-400 border-white/10',
+  REFUNDED:    'bg-white/5 text-gray-400 border-white/10',
 };
 
 const THREE_HOURS_MS    = 3 * 60 * 60 * 1000;       // seller can cancel unpaid order after 3h
@@ -138,7 +138,7 @@ function Toast({ msg, type, onClose }: { msg: string; type: 'success' | 'error';
 function CopyRow({ label, value }: { label: string; value: string }) {
   const [copied, setCopied] = useState(false);
   return (
-    <div className="flex items-start justify-between gap-3 py-2.5 border-b border-borderBg/40 last:border-0">
+    <div className="flex items-start justify-between gap-3 py-2.5 border-b border-[var(--border-bg)]/40 last:border-0">
       <div className="min-w-0 flex-1">
         <p className="text-[10px] font-black text-gray-500 uppercase tracking-widest">{label}</p>
         <p className="text-sm text-white font-mono mt-0.5 break-all">{value}</p>
@@ -153,7 +153,7 @@ function CopyRow({ label, value }: { label: string; value: string }) {
 
 function InfoRow({ label, value, valueClass }: { label: string; value: React.ReactNode; valueClass?: string }) {
   return (
-    <div className="flex items-center justify-between py-2 border-b border-borderBg/30 last:border-0">
+    <div className="flex items-center justify-between py-2 border-b border-[var(--border-bg)]/30 last:border-0">
       <span className="text-xs text-gray-400">{label}</span>
       <span className={`text-sm font-semibold ${valueClass ?? 'text-white'}`}>{value}</span>
     </div>
@@ -477,20 +477,20 @@ export default function OrderTrackingContent({ id }: { id: string }) {
 
   if (loading) return (
     <div className="space-y-5 py-6 animate-pulse">
-      <div className="h-8 bg-cardBg rounded-xl w-48" />
+      <div className="h-8 bg-[var(--card-bg)] rounded-xl w-48" />
       <div className="grid grid-cols-1 lg:grid-cols-3 gap-5">
         <div className="lg:col-span-2 space-y-4">
-          <div className="h-52 bg-cardBg rounded-3xl" />
-          <div className="h-40 bg-cardBg rounded-3xl" />
-          <div className="h-64 bg-cardBg rounded-3xl" />
+          <div className="h-52 bg-[var(--card-bg)] rounded-3xl" />
+          <div className="h-40 bg-[var(--card-bg)] rounded-3xl" />
+          <div className="h-64 bg-[var(--card-bg)] rounded-3xl" />
         </div>
-        <div className="h-96 bg-cardBg rounded-3xl" />
+        <div className="h-96 bg-[var(--card-bg)] rounded-3xl" />
       </div>
     </div>
   );
 
   if (error || !order) return (
-    <div className="text-center py-20 bg-cardBg border border-borderBg rounded-3xl">
+    <div className="text-center py-20 bg-[var(--card-bg)] border border-[var(--border-bg)] rounded-3xl">
       <Package className="w-12 h-12 text-gray-700 mx-auto mb-4" />
       <p className="text-red-400 font-semibold mb-3">{error || 'Order not found'}</p>
       <Link href="/orders" className="text-brand hover:underline font-semibold text-sm">← Back to orders</Link>
@@ -503,22 +503,18 @@ export default function OrderTrackingContent({ id }: { id: string }) {
     <div className="space-y-5 pb-10">
       {toast && <Toast msg={toast.msg} type={toast.type} onClose={() => setToast(null)} />}
 
-      {/* ─── Header ────────────────────────────────────────────────────────── */}
-      <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 pb-4 border-b border-borderBg">
+      {/* Header */}
+      <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 pb-4 border-b border-[var(--border-bg)]">
         <div>
           <div className="flex items-center gap-2 mb-1">
-            <Link href="/orders" className="p-1 text-gray-500 hover:text-white transition rounded-lg">
+            <Link href="/orders" className="p-1.5 text-gray-500 hover:text-brand hover:bg-brand/10 transition rounded-lg">
               <ArrowLeft className="w-4 h-4" />
             </Link>
-            <h1 className="text-xl font-black text-white">Track Order</h1>
+            <h1 className="text-xl font-black text-white">Order <span className="text-brand">#{order.orderNumber.slice(-8).toUpperCase()}</span></h1>
           </div>
-          <p className="text-xs text-gray-500 pl-7">
-            <span className="text-brand font-bold">#{order.orderNumber.slice(-10).toUpperCase()}</span>
-            <span className="mx-2 opacity-30">·</span>
-            {new Date(order.createdAt).toLocaleString()}
-            {order.paidAt && (
-              <><span className="mx-2 opacity-30">·</span>Paid {new Date(order.paidAt).toLocaleDateString()}</>
-            )}
+          <p className="text-xs text-gray-500 pl-9">
+            Placed {new Date(order.createdAt).toLocaleString()}
+            {order.paidAt && <> · Paid {new Date(order.paidAt).toLocaleDateString()}</>}
           </p>
         </div>
         <span className={`self-start sm:self-auto px-4 py-1.5 rounded-full text-xs font-bold border ${STATUS_COLORS[order.status] ?? STATUS_COLORS.PENDING}`}>
@@ -564,7 +560,7 @@ export default function OrderTrackingContent({ id }: { id: string }) {
 
       {/* Seller: buyer hasn't paid — close order countdown */}
       {order.status === 'PENDING' && isSeller && (
-        <div className="bg-cardBg border border-borderBg rounded-2xl p-4 flex flex-col sm:flex-row sm:items-center gap-4">
+        <div className="bg-[var(--card-bg)] border border-[var(--border-bg)] rounded-2xl p-4 flex flex-col sm:flex-row sm:items-center gap-4">
           <div className="flex items-center gap-3 flex-1 min-w-0">
             <div className="p-2 bg-yellow-500/10 rounded-xl flex-shrink-0">
               <Timer className="w-5 h-5 text-yellow-400" />
@@ -648,7 +644,7 @@ export default function OrderTrackingContent({ id }: { id: string }) {
 
       {/* Buyer: PAID, seller accepted, not yet eligible — show countdown until they can dispute */}
       {!buyerDisputeEligible && isBuyer && order.status === 'PAID' && order.acceptedAt && !isDisputed && buyerDisputeCooldownMs > 0 && (
-        <div className="bg-cardBg border border-borderBg rounded-2xl p-4 flex items-center gap-3">
+        <div className="bg-[var(--card-bg)] border border-[var(--border-bg)] rounded-2xl p-4 flex items-center gap-3">
           <div className="p-2 bg-brand/10 rounded-xl flex-shrink-0">
             <Info className="w-4 h-4 text-brand" />
           </div>
@@ -694,7 +690,7 @@ export default function OrderTrackingContent({ id }: { id: string }) {
 
       {/* Seller: IN_PROGRESS, waiting for buyer confirm, not yet dispute eligible */}
       {!sellerDisputeEligible && isSeller && order.status === 'IN_PROGRESS' && sellerDisputeCooldownMs > 0 && !isDisputed && (
-        <div className="bg-cardBg border border-borderBg rounded-2xl p-4 flex items-center gap-3">
+        <div className="bg-[var(--card-bg)] border border-[var(--border-bg)] rounded-2xl p-4 flex items-center gap-3">
           <div className="p-2 bg-emerald-500/10 rounded-xl flex-shrink-0">
             <BadgeCheck className="w-4 h-4 text-emerald-400" />
           </div>
@@ -718,8 +714,8 @@ export default function OrderTrackingContent({ id }: { id: string }) {
         <div className="lg:col-span-2 space-y-5">
 
           {/* Escrow Progression */}
-          <div className="bg-cardBg border border-borderBg rounded-2xl overflow-hidden">
-            <div className="flex items-center gap-2 px-6 py-4 border-b border-borderBg">
+          <div className="bg-[var(--card-bg)] border border-[var(--border-bg)] rounded-2xl overflow-hidden">
+            <div className="flex items-center gap-2 px-6 py-4 border-b border-[var(--border-bg)]">
               <ShieldCheck className="w-4 h-4 text-brand" />
               <h3 className="font-bold text-white text-sm">Trust-Trade Escrow</h3>
               <span className={`ml-auto text-[10px] font-bold px-2 py-0.5 rounded-full border ${STATUS_COLORS[order.escrow?.status ?? order.status] ?? 'text-gray-400 border-gray-700'}`}>
@@ -746,7 +742,7 @@ export default function OrderTrackingContent({ id }: { id: string }) {
                         <div className={`w-9 h-9 rounded-full flex items-center justify-center transition-all duration-300
                           ${done   ? 'bg-emerald-500 shadow-lg shadow-emerald-500/30'
                           : active ? 'bg-brand ring-4 ring-brand/20 shadow-lg shadow-brand/20'
-                          : 'bg-background border-2 border-borderBg'}`}>
+                          : 'bg-background border-2 border-[var(--border-bg)]'}`}>
                           {done
                             ? <CheckCircle className="w-4 h-4 text-white" />
                             : <StepIcon className={`w-4 h-4 ${active ? 'text-white' : 'text-gray-600'}`} />}
@@ -819,8 +815,8 @@ export default function OrderTrackingContent({ id }: { id: string }) {
           </div>
 
           {/* Escrow Breakdown — own dedicated card */}
-          <div className="bg-cardBg border border-borderBg rounded-2xl overflow-hidden">
-            <div className="flex items-center gap-2 px-6 py-4 border-b border-borderBg">
+          <div className="bg-[var(--card-bg)] border border-[var(--border-bg)] rounded-2xl overflow-hidden">
+            <div className="flex items-center gap-2 px-6 py-4 border-b border-[var(--border-bg)]">
               <Wallet className="w-4 h-4 text-brand" />
               <h3 className="font-bold text-white text-sm">Escrow Breakdown</h3>
             </div>
@@ -830,18 +826,18 @@ export default function OrderTrackingContent({ id }: { id: string }) {
               <InfoRow
                 label={`Platform Fee (${commRate > 0 ? commRate : 10}%)`}
                 value={`- ${fmtOrder(fee)}`} valueClass="text-gray-400" />
-              <div className="pt-3 mt-1 border-t border-borderBg flex items-center justify-between">
+              <div className="pt-3 mt-1 border-t border-[var(--border-bg)] flex items-center justify-between">
                 <span className="text-sm font-bold text-white">Seller Payout</span>
                 <span className="text-lg font-black text-emerald-400">{fmtOrder(payout)}</span>
               </div>
               {isBuyer && (
-                <p className="text-[10px] text-gray-600 mt-3 pt-3 border-t border-borderBg/40">
+                <p className="text-[10px] text-gray-600 mt-3 pt-3 border-t border-[var(--border-bg)]/40">
                   Funds are locked in Piyrox Trust-Trade escrow until you confirm receipt.
                   They are never released until you confirm — or a dispute is resolved.
                 </p>
               )}
               {isSeller && (
-                <p className="text-[10px] text-gray-600 mt-3 pt-3 border-t border-borderBg/40">
+                <p className="text-[10px] text-gray-600 mt-3 pt-3 border-t border-[var(--border-bg)]/40">
                   Your payout is released to your Piyrox wallet once the buyer confirms receipt.
                 </p>
               )}
@@ -850,17 +846,17 @@ export default function OrderTrackingContent({ id }: { id: string }) {
 
           {/* Item details */}
           {item?.listing && (
-            <div className="bg-cardBg border border-borderBg rounded-2xl overflow-hidden">
-              <div className="flex items-center gap-2 px-6 py-4 border-b border-borderBg">
+            <div className="bg-[var(--card-bg)] border border-[var(--border-bg)] rounded-2xl overflow-hidden">
+              <div className="flex items-center gap-2 px-6 py-4 border-b border-[var(--border-bg)]">
                 <Package className="w-4 h-4 text-brand" />
                 <h3 className="font-bold text-white text-sm">Order Item</h3>
               </div>
               <div className="px-6 py-5 flex items-center gap-4">
                 {item.listing.images?.[0] ? (
                   <img src={item.listing.images[0]} alt={item.listing.title}
-                    className="w-16 h-16 object-cover rounded-xl flex-shrink-0 border border-borderBg" />
+                    className="w-16 h-16 object-cover rounded-xl flex-shrink-0 border border-[var(--border-bg)]" />
                 ) : (
-                  <div className="w-16 h-16 bg-background border border-borderBg rounded-xl flex items-center justify-center flex-shrink-0">
+                  <div className="w-16 h-16 bg-black/30 border border-[var(--border-bg)] rounded-xl flex items-center justify-center flex-shrink-0">
                     <Package className="w-6 h-6 text-gray-600" />
                   </div>
                 )}
@@ -870,7 +866,7 @@ export default function OrderTrackingContent({ id }: { id: string }) {
                   <p className="text-sm font-black text-brand mt-1">{fmt(n(item.listing.price))}</p>
                 </div>
                 <Link href={`/listings/${item.listing.id}`}
-                  className="flex-shrink-0 p-2 text-gray-500 hover:text-brand border border-borderBg hover:border-brand/30 rounded-lg transition">
+                  className="flex-shrink-0 p-2 text-gray-500 hover:text-brand border border-[var(--border-bg)] hover:border-brand/30 rounded-lg transition">
                   <ChevronRight className="w-4 h-4" />
                 </Link>
               </div>
@@ -879,26 +875,26 @@ export default function OrderTrackingContent({ id }: { id: string }) {
 
           {/* Delivery Details — buyer view */}
           {(order.status === 'IN_PROGRESS' || order.status === 'COMPLETED') && isBuyer && (
-            <div className="bg-cardBg border border-brand/30 rounded-2xl overflow-hidden">
-              <div className="flex items-center justify-between px-6 py-4 border-b border-borderBg">
+            <div className="bg-[var(--card-bg)] border border-brand/30 rounded-2xl overflow-hidden">
+              <div className="flex items-center justify-between px-6 py-4 border-b border-[var(--border-bg)]">
                 <div className="flex items-center gap-2">
                   <FileText className="w-4 h-4 text-brand" />
                   <h3 className="font-bold text-white text-sm">Delivery Details</h3>
                 </div>
                 <button onClick={() => setShowDelivery(v => !v)}
-                  className="flex items-center gap-1.5 text-xs font-semibold px-3 py-1.5 rounded-lg border border-borderBg text-gray-400 hover:text-white hover:border-brand/30 transition">
+                  className="flex items-center gap-1.5 text-xs font-semibold px-3 py-1.5 rounded-lg border border-[var(--border-bg)] text-gray-400 hover:text-white hover:border-brand/30 transition">
                   {showDelivery ? <><EyeOff className="w-3 h-3" /> Hide</> : <><Eye className="w-3 h-3" /> Reveal</>}
                 </button>
               </div>
               <div className="px-6 py-5 space-y-4">
                 {!showDelivery ? (
                   <button onClick={() => setShowDelivery(true)}
-                    className="w-full flex items-center justify-center gap-2 py-4 bg-background border border-dashed border-borderBg rounded-xl text-gray-500 text-sm hover:border-brand/40 hover:text-gray-300 transition">
+                    className="w-full flex items-center justify-center gap-2 py-4 bg-background border border-dashed border-[var(--border-bg)] rounded-xl text-gray-500 text-sm hover:border-brand/40 hover:text-gray-300 transition">
                     <Eye className="w-4 h-4" /> Click Reveal to view account credentials
                   </button>
                 ) : (
                   <>
-                    <div className="flex gap-1 bg-background border border-borderBg rounded-xl p-1">
+                    <div className="flex gap-1 bg-black/30 border border-[var(--border-bg)] rounded-xl p-1">
                       {(['credentials', 'notes', 'raw'] as const).map(t => (
                         <button key={t} onClick={() => setDeliveryTab(t)}
                           className={`flex-1 text-xs font-bold py-2 rounded-lg capitalize transition
@@ -907,7 +903,7 @@ export default function OrderTrackingContent({ id }: { id: string }) {
                         </button>
                       ))}
                     </div>
-                    <div className="bg-background border border-borderBg rounded-xl p-4">
+                    <div className="bg-black/30 border border-[var(--border-bg)] rounded-xl p-4">
                       {deliveryTab === 'credentials' && (
                         credFields.length > 0 ? (
                           credFields.map(([k, v]) => <CopyRow key={k} label={k} value={String(v)} />)
@@ -954,14 +950,14 @@ export default function OrderTrackingContent({ id }: { id: string }) {
 
           {/* Seller: your delivery message */}
           {(order.status === 'IN_PROGRESS' || order.status === 'COMPLETED') && isSeller && (
-            <div className="bg-cardBg border border-borderBg rounded-2xl overflow-hidden">
-              <div className="flex items-center gap-2 px-6 py-4 border-b border-borderBg">
+            <div className="bg-[var(--card-bg)] border border-[var(--border-bg)] rounded-2xl overflow-hidden">
+              <div className="flex items-center gap-2 px-6 py-4 border-b border-[var(--border-bg)]">
                 <FileText className="w-4 h-4 text-brand" />
                 <h3 className="font-bold text-white text-sm">Your Delivery (sent to buyer)</h3>
               </div>
               <div className="px-6 py-5">
                 {rawFull ? (
-                  <pre className="text-sm text-gray-300 font-mono whitespace-pre-wrap bg-background border border-borderBg rounded-xl p-4">{rawFull}</pre>
+                  <pre className="text-sm text-gray-300 font-mono whitespace-pre-wrap bg-black/30 border border-[var(--border-bg)] rounded-xl p-4">{rawFull}</pre>
                 ) : (
                   <p className="text-sm text-gray-500">Delivery data not available.</p>
                 )}
@@ -971,8 +967,8 @@ export default function OrderTrackingContent({ id }: { id: string }) {
 
           {/* Order Activity Timeline */}
           {timeline && timeline.length > 0 && (
-            <div className="bg-cardBg border border-borderBg rounded-2xl overflow-hidden">
-              <div className="flex items-center gap-2 px-6 py-4 border-b border-borderBg">
+            <div className="bg-[var(--card-bg)] border border-[var(--border-bg)] rounded-2xl overflow-hidden">
+              <div className="flex items-center gap-2 px-6 py-4 border-b border-[var(--border-bg)]">
                 <History className="w-4 h-4 text-brand" />
                 <h3 className="font-bold text-white text-sm">Order Activity</h3>
               </div>
@@ -981,10 +977,10 @@ export default function OrderTrackingContent({ id }: { id: string }) {
                   const st  = ev.status ?? 'pending';
                   const dot = st === 'done'   ? 'bg-emerald-500'
                              : st === 'active' ? 'bg-brand ring-4 ring-brand/20'
-                             : 'bg-background border-2 border-borderBg';
+                             : 'bg-background border-2 border-[var(--border-bg)]';
                   return (
                     <li key={ev.id ?? i}
-                      className={`flex items-start gap-4 py-3 ${i < timeline.length - 1 ? 'border-b border-borderBg/30' : ''}`}>
+                      className={`flex items-start gap-4 py-3 ${i < timeline.length - 1 ? 'border-b border-[var(--border-bg)]/30' : ''}`}>
                       <div className={`flex-shrink-0 w-3 h-3 rounded-full mt-1.5 ${dot}`} />
                       <div className="flex-1 min-w-0">
                         <p className={`text-sm font-semibold ${st === 'pending' ? 'text-gray-500' : 'text-white'}`}>{ev.label}</p>
@@ -1001,17 +997,17 @@ export default function OrderTrackingContent({ id }: { id: string }) {
 
           {/* ══ ORDER ACTIONS ══════════════════════════════════════════════ */}
           {!isCancelled && (
-            <div className="bg-cardBg border border-borderBg rounded-2xl overflow-hidden">
+            <div className="bg-[var(--card-bg)] border border-[var(--border-bg)] rounded-2xl overflow-hidden">
 
               {/* ── Header ── */}
-              <div className="flex items-center justify-between px-6 py-4 border-b border-borderBg">
+              <div className="flex items-center justify-between px-6 py-4 border-b border-[var(--border-bg)]">
                 <div className="flex items-center gap-2">
                   <SendHorizonal className="w-4 h-4 text-brand" />
                   <h3 className="font-bold text-white text-sm">Order Actions</h3>
                 </div>
                 {/* Seller tab switcher — only show when accepted + PAID/IN_PROGRESS */}
                 {isSeller && order.status === 'PAID' && order.acceptedAt && (
-                  <div className="flex gap-1 bg-background border border-borderBg rounded-xl p-1">
+                  <div className="flex gap-1 bg-black/30 border border-[var(--border-bg)] rounded-xl p-1">
                     {([
                       { key: 'deliver', label: 'Deliver' },
                       { key: 'details', label: 'Preview' },
@@ -1025,7 +1021,7 @@ export default function OrderTrackingContent({ id }: { id: string }) {
                   </div>
                 )}
                 {isSeller && order.status === 'IN_PROGRESS' && (
-                  <div className="flex gap-1 bg-background border border-borderBg rounded-xl p-1">
+                  <div className="flex gap-1 bg-black/30 border border-[var(--border-bg)] rounded-xl p-1">
                     {([
                       { key: 'details', label: 'Delivery' },
                       { key: 'request', label: 'Release' },
@@ -1058,7 +1054,7 @@ export default function OrderTrackingContent({ id }: { id: string }) {
                           </p>
                         </div>
                       </div>
-                      <div className="grid grid-cols-3 divide-x divide-borderBg border-t border-borderBg text-center">
+                      <div className="grid grid-cols-3 divide-x divide-borderBg border-t border-[var(--border-bg)] text-center">
                         <div className="px-3 py-3">
                           <p className="text-[10px] text-gray-500 uppercase font-bold tracking-widest">Window</p>
                           <p className="text-sm font-black text-white mt-0.5">1h 30m</p>
@@ -1109,7 +1105,7 @@ export default function OrderTrackingContent({ id }: { id: string }) {
                       <form onSubmit={handleMarkDelivered} className="space-y-4">
 
                         {/* Section header */}
-                        <div className="flex items-center gap-2 pb-1 border-b border-borderBg">
+                        <div className="flex items-center gap-2 pb-1 border-b border-[var(--border-bg)]">
                           <FileText className="w-4 h-4 text-brand" />
                           <p className="text-xs font-black text-white uppercase tracking-widest">Account Credentials</p>
                           <span className="ml-auto text-[10px] text-gray-500">Fields marked <span className="text-brand">*</span> required</span>
@@ -1125,7 +1121,7 @@ export default function OrderTrackingContent({ id }: { id: string }) {
                               value={deliveryEmail}
                               onChange={e => setDeliveryEmail(e.target.value)}
                               placeholder="user@example.com or Player UID"
-                              className="w-full bg-background border border-borderBg rounded-xl px-3 py-2.5 text-sm text-white font-mono focus:outline-none focus:border-brand transition placeholder:text-gray-600"
+                              className="w-full bg-black/30 border border-[var(--border-bg)] rounded-xl px-3 py-2.5 text-sm text-white font-mono focus:outline-none focus:border-brand transition placeholder:text-gray-600"
                             />
                           </div>
                           <div>
@@ -1137,7 +1133,7 @@ export default function OrderTrackingContent({ id }: { id: string }) {
                               value={deliveryPass}
                               onChange={e => setDeliveryPass(e.target.value)}
                               placeholder="Account password"
-                              className="w-full bg-background border border-borderBg rounded-xl px-3 py-2.5 text-sm text-white font-mono focus:outline-none focus:border-brand transition placeholder:text-gray-600"
+                              className="w-full bg-black/30 border border-[var(--border-bg)] rounded-xl px-3 py-2.5 text-sm text-white font-mono focus:outline-none focus:border-brand transition placeholder:text-gray-600"
                             />
                           </div>
                           <div>
@@ -1149,7 +1145,7 @@ export default function OrderTrackingContent({ id }: { id: string }) {
                               value={deliveryExtra}
                               onChange={e => setDeliveryExtra(e.target.value)}
                               placeholder="In-game name or recovery email"
-                              className="w-full bg-background border border-borderBg rounded-xl px-3 py-2.5 text-sm text-white font-mono focus:outline-none focus:border-brand transition placeholder:text-gray-600"
+                              className="w-full bg-black/30 border border-[var(--border-bg)] rounded-xl px-3 py-2.5 text-sm text-white font-mono focus:outline-none focus:border-brand transition placeholder:text-gray-600"
                             />
                           </div>
                           <div>
@@ -1159,7 +1155,7 @@ export default function OrderTrackingContent({ id }: { id: string }) {
                             <select
                               value={deliveryLoginMethod}
                               onChange={e => setDeliveryLoginMethod(e.target.value)}
-                              className="w-full bg-background border border-borderBg rounded-xl px-3 py-2.5 text-sm text-white focus:outline-none focus:border-brand transition"
+                              className="w-full bg-black/30 border border-[var(--border-bg)] rounded-xl px-3 py-2.5 text-sm text-white focus:outline-none focus:border-brand transition"
                             >
                               <option value="">Select…</option>
                               <option value="Email &amp; Password">Email &amp; Password</option>
@@ -1187,7 +1183,7 @@ export default function OrderTrackingContent({ id }: { id: string }) {
                             rows={3}
                             required
                             placeholder="e.g. Log in via Facebook · Do not change the email · 2FA sent to +234..."
-                            className="w-full bg-background border border-borderBg rounded-xl px-3 py-2.5 text-sm text-white focus:outline-none focus:border-brand resize-none transition placeholder:text-gray-600"
+                            className="w-full bg-black/30 border border-[var(--border-bg)] rounded-xl px-3 py-2.5 text-sm text-white focus:outline-none focus:border-brand resize-none transition placeholder:text-gray-600"
                           />
                         </div>
 
@@ -1219,13 +1215,13 @@ export default function OrderTrackingContent({ id }: { id: string }) {
                           This is a live preview of the credentials as the buyer will see them.
                           Switch back to <strong className="text-white">Deliver</strong> to edit before submitting.
                         </p>
-                        <div className="bg-background border border-borderBg rounded-xl p-4 space-y-0">
+                        <div className="bg-black/30 border border-[var(--border-bg)] rounded-xl p-4 space-y-0">
                           {deliveryEmail && <CopyRow label="Email / UID" value={deliveryEmail} />}
                           {deliveryPass  && <CopyRow label="Password"   value={deliveryPass} />}
                           {deliveryExtra && <CopyRow label="Username"   value={deliveryExtra} />}
                           {deliveryLoginMethod && <CopyRow label="Login Method" value={deliveryLoginMethod} />}
                           {deliveryNotes && (
-                            <div className="pt-2.5 border-t border-borderBg/40 mt-1">
+                            <div className="pt-2.5 border-t border-[var(--border-bg)]/40 mt-1">
                               <p className="text-[10px] font-black text-gray-500 uppercase tracking-widest mb-1">Notes</p>
                               <pre className="text-sm text-gray-300 font-mono whitespace-pre-wrap">{deliveryNotes}</pre>
                             </div>
@@ -1264,7 +1260,7 @@ export default function OrderTrackingContent({ id }: { id: string }) {
                         </div>
                         {/* Credentials preview */}
                         <p className="text-[10px] font-black text-gray-500 uppercase tracking-widest">What you sent the buyer</p>
-                        <div className="bg-background border border-borderBg rounded-xl p-4 space-y-0">
+                        <div className="bg-black/30 border border-[var(--border-bg)] rounded-xl p-4 space-y-0">
                           {(() => {
                             const dc = order.deliveryData?.credentials ?? {};
                             const dn = order.deliveryData?.notes ?? order.deliveryData?.message ?? '';
@@ -1273,7 +1269,7 @@ export default function OrderTrackingContent({ id }: { id: string }) {
                               <>
                                 {entries.map(([k, v]) => <CopyRow key={k} label={k} value={String(v)} />)}
                                 {dn && (
-                                  <div className="pt-2.5 border-t border-borderBg/40 mt-1">
+                                  <div className="pt-2.5 border-t border-[var(--border-bg)]/40 mt-1">
                                     <p className="text-[10px] font-black text-gray-500 uppercase tracking-widest mb-1">Notes</p>
                                     <pre className="text-sm text-gray-300 font-mono whitespace-pre-wrap">{dn}</pre>
                                   </div>
@@ -1393,7 +1389,7 @@ export default function OrderTrackingContent({ id }: { id: string }) {
                 {/* ── BUYER: Cancel PENDING ── */}
                 {isBuyer && order.status === 'PENDING' && (
                   <button onClick={() => setShowCancelConfirm(true)}
-                    className="w-full flex items-center justify-center gap-2 bg-background border border-borderBg hover:border-red-500/40 py-3 rounded-xl text-sm font-semibold text-gray-400 hover:text-red-400 transition">
+                    className="w-full flex items-center justify-center gap-2 bg-black/30 border border-[var(--border-bg)] hover:border-red-500/40 py-3 rounded-xl text-sm font-semibold text-gray-400 hover:text-red-400 transition">
                     <XCircle className="w-4 h-4" /> Cancel Order
                   </button>
                 )}
@@ -1406,7 +1402,7 @@ export default function OrderTrackingContent({ id }: { id: string }) {
                       <StarRow rating={reviewRating} setRating={setReviewRating} />
                       <textarea value={reviewComment} onChange={e => setReviewComment(e.target.value)} rows={2}
                         placeholder="How was your experience with this seller?"
-                        className="w-full bg-background border border-borderBg rounded-xl px-3 py-2.5 text-sm text-white focus:outline-none focus:border-brand resize-none transition" />
+                        className="w-full bg-black/30 border border-[var(--border-bg)] rounded-xl px-3 py-2.5 text-sm text-white focus:outline-none focus:border-brand resize-none transition" />
                       <button type="submit" disabled={!reviewRating || submittingReview}
                         className="w-full flex items-center justify-center gap-2 bg-brand hover:opacity-90 py-3 rounded-xl font-bold text-white text-sm disabled:opacity-40 transition">
                         {submittingReview ? <Loader2 className="w-4 h-4 animate-spin" /> : <Star className="w-4 h-4" />}
@@ -1432,8 +1428,8 @@ export default function OrderTrackingContent({ id }: { id: string }) {
         <div className="space-y-4">
 
           {/* Counterparty card */}
-          <div className="bg-cardBg border border-borderBg rounded-2xl overflow-hidden">
-            <div className="flex items-center gap-2 px-5 py-4 border-b border-borderBg">
+          <div className="bg-[var(--card-bg)] border border-[var(--border-bg)] rounded-2xl overflow-hidden">
+            <div className="flex items-center gap-2 px-5 py-4 border-b border-[var(--border-bg)]">
               <UserCheck className="w-4 h-4 text-brand" />
               <h3 className="text-sm font-bold text-white">{isBuyer ? 'Seller' : 'Buyer'}</h3>
               {order.seller?.isOnline && isBuyer && (
@@ -1473,7 +1469,7 @@ export default function OrderTrackingContent({ id }: { id: string }) {
               <div className="flex flex-col gap-2 pt-1">
                 {isBuyer && order.seller && (
                   <Link href={`/seller/${order.sellerId}`}
-                    className="flex items-center justify-center gap-2 py-2.5 bg-hoverBg/40 hover:bg-hoverBg border border-borderBg rounded-xl text-xs font-semibold text-gray-300 hover:text-white transition">
+                    className="flex items-center justify-center gap-2 py-2.5 bg-[var(--hover-bg)]/40 hover:bg-[var(--hover-bg)] border border-[var(--border-bg)] rounded-xl text-xs font-semibold text-gray-300 hover:text-white transition">
                     <UserCheck className="w-3.5 h-3.5" /> View Seller Profile
                   </Link>
                 )}
@@ -1486,8 +1482,8 @@ export default function OrderTrackingContent({ id }: { id: string }) {
           </div>
 
           {/* Order summary */}
-          <div className="bg-cardBg border border-borderBg rounded-2xl overflow-hidden">
-            <div className="flex items-center gap-2 px-5 py-4 border-b border-borderBg">
+          <div className="bg-[var(--card-bg)] border border-[var(--border-bg)] rounded-2xl overflow-hidden">
+            <div className="flex items-center gap-2 px-5 py-4 border-b border-[var(--border-bg)]">
               <FileText className="w-4 h-4 text-brand" />
               <h3 className="text-sm font-bold text-white">Order Summary</h3>
             </div>
@@ -1498,7 +1494,7 @@ export default function OrderTrackingContent({ id }: { id: string }) {
               {order.acceptedAt && <InfoRow label="Accepted" value={new Date(order.acceptedAt).toLocaleDateString('en-GB', { day: 'numeric', month: 'short' })} />}
               {order.deliveredAt && <InfoRow label="Delivered" value={new Date(order.deliveredAt).toLocaleDateString('en-GB', { day: 'numeric', month: 'short' })} />}
               {order.completedAt && <InfoRow label="Completed" value={new Date(order.completedAt).toLocaleDateString('en-GB', { day: 'numeric', month: 'short' })} valueClass="text-emerald-400" />}
-              <div className="pt-3 mt-1 border-t border-borderBg/40 flex items-center justify-between">
+              <div className="pt-3 mt-1 border-t border-[var(--border-bg)]/40 flex items-center justify-between">
                 <span className="text-sm font-bold text-gray-300">Total</span>
                 <span className="text-base font-black text-white">{fmtOrder(escrowAmt)}</span>
               </div>
@@ -1507,7 +1503,7 @@ export default function OrderTrackingContent({ id }: { id: string }) {
 
           {/* Buyer note */}
           {order.buyerNote && (
-            <div className="bg-cardBg border border-borderBg rounded-2xl px-5 py-4 space-y-1">
+            <div className="bg-[var(--card-bg)] border border-[var(--border-bg)] rounded-2xl px-5 py-4 space-y-1">
               <p className="text-[10px] font-black text-gray-500 uppercase tracking-widest">Buyer Note</p>
               <p className="text-sm text-gray-300">{order.buyerNote}</p>
             </div>
@@ -1523,7 +1519,7 @@ export default function OrderTrackingContent({ id }: { id: string }) {
       {/* Cancel confirm */}
       {showCancelConfirm && (
         <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/70 backdrop-blur-sm px-4">
-          <div className="bg-cardBg border border-red-500/30 rounded-2xl p-6 w-full max-w-sm space-y-4 shadow-2xl">
+          <div className="bg-[var(--card-bg)] border border-red-500/30 rounded-2xl p-6 w-full max-w-sm space-y-4 shadow-2xl">
             <div className="flex items-center gap-3">
               <div className="p-2.5 bg-red-500/10 rounded-xl"><XCircle className="w-5 h-5 text-red-400" /></div>
               <h3 className="font-bold text-white">
@@ -1537,7 +1533,7 @@ export default function OrderTrackingContent({ id }: { id: string }) {
             </p>
             <div className="flex gap-3">
               <button onClick={() => setShowCancelConfirm(false)}
-                className="flex-1 py-2.5 rounded-xl text-sm font-semibold text-gray-400 hover:text-white border border-borderBg transition">
+                className="flex-1 py-2.5 rounded-xl text-sm font-semibold text-gray-400 hover:text-white border border-[var(--border-bg)] transition">
                 Keep Order
               </button>
               <button onClick={handleCancel} disabled={cancelling}
@@ -1552,7 +1548,7 @@ export default function OrderTrackingContent({ id }: { id: string }) {
       {/* Dispute modal */}
       {showDispute && (
         <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/70 backdrop-blur-sm px-4">
-          <div className="bg-cardBg border border-red-500/20 rounded-2xl p-6 w-full max-w-md space-y-4 shadow-2xl">
+          <div className="bg-[var(--card-bg)] border border-red-500/20 rounded-2xl p-6 w-full max-w-md space-y-4 shadow-2xl">
             <div className="flex items-center justify-between">
               <div className="flex items-center gap-3">
                 <div className="p-2.5 bg-red-500/10 rounded-xl"><AlertTriangle className="w-5 h-5 text-red-400" /></div>
@@ -1566,7 +1562,7 @@ export default function OrderTrackingContent({ id }: { id: string }) {
               </button>
             </div>
 
-            <div className="bg-background border border-borderBg rounded-xl px-4 py-3 flex items-start gap-2">
+            <div className="bg-black/30 border border-[var(--border-bg)] rounded-xl px-4 py-3 flex items-start gap-2">
               <Shield className="w-4 h-4 text-brand flex-shrink-0 mt-0.5" />
               <p className="text-xs text-gray-400">
                 Funds remain locked in escrow throughout the dispute. Be as detailed as possible — screenshots and evidence can be added from the dispute page after submission.
@@ -1577,7 +1573,7 @@ export default function OrderTrackingContent({ id }: { id: string }) {
               <div>
                 <label className="text-[10px] font-black text-gray-500 uppercase tracking-widest block mb-1.5">Reason</label>
                 <select value={disputeReason} onChange={e => setDisputeReason(e.target.value)} required
-                  className="w-full bg-background border border-borderBg rounded-xl px-4 py-2.5 text-sm text-white focus:outline-none focus:border-brand transition">
+                  className="w-full bg-black/30 border border-[var(--border-bg)] rounded-xl px-4 py-2.5 text-sm text-white focus:outline-none focus:border-brand transition">
                   <option value="">Select a reason…</option>
                   {isBuyer && <>
                     <option value="ITEM_NOT_RECEIVED">Item not received / no credentials</option>
@@ -1600,12 +1596,12 @@ export default function OrderTrackingContent({ id }: { id: string }) {
                 <textarea value={disputeDesc} onChange={e => setDisputeDesc(e.target.value)}
                   rows={4} required minLength={20}
                   placeholder="Describe the issue in detail. Include what happened, when it happened, and any steps you've taken to resolve it."
-                  className="w-full bg-background border border-borderBg rounded-xl px-4 py-2.5 text-sm text-white focus:outline-none focus:border-brand resize-none transition" />
+                  className="w-full bg-black/30 border border-[var(--border-bg)] rounded-xl px-4 py-2.5 text-sm text-white focus:outline-none focus:border-brand resize-none transition" />
                 <p className="text-[10px] text-gray-600 mt-1">Minimum 20 characters. You can add screenshots after submitting.</p>
               </div>
               <div className="flex gap-3 pt-1">
                 <button type="button" onClick={() => setShowDispute(false)}
-                  className="flex-1 py-3 rounded-xl text-sm font-semibold text-gray-400 hover:text-white border border-borderBg transition">
+                  className="flex-1 py-3 rounded-xl text-sm font-semibold text-gray-400 hover:text-white border border-[var(--border-bg)] transition">
                   Cancel
                 </button>
                 <button type="submit" disabled={submittingDispute || !disputeReason}

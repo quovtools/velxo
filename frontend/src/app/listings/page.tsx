@@ -38,7 +38,7 @@ const SORT_OPTIONS = [
 /* Skeleton card for loading */
 function SkeletonCard() {
   return (
-    <div className="bg-cardBg border border-borderBg rounded-2xl overflow-hidden animate-pulse">
+    <div className="bg-[var(--card-bg)] border border-[var(--border-bg)] rounded-2xl overflow-hidden animate-pulse">
       <div className="h-48 bg-gray-700/50" />
       <div className="p-4 space-y-2">
         <div className="h-3 bg-gray-700 rounded w-1/2" />
@@ -62,7 +62,7 @@ function ListingCardGrid({ item }: { item: Listing }) {
   return (
     <Link
       href={`/listings/${item.id}`}
-      className="bg-cardBg border border-borderBg hover:border-brand/50 rounded-2xl overflow-hidden flex flex-col transition-all duration-300 hover:shadow-xl hover:shadow-brand/10 hover:-translate-y-0.5 group"
+      className="bg-[var(--card-bg)] border border-[var(--border-bg)] hover:border-brand/50 rounded-2xl overflow-hidden flex flex-col transition-all duration-300 hover:shadow-xl hover:shadow-brand/10 hover:-translate-y-0.5 group"
     >
       <div className="h-48 relative overflow-hidden bg-gradient-to-br from-background to-cardBg">
         {img && !imgErr ? (
@@ -110,7 +110,7 @@ function ListingCardGrid({ item }: { item: Listing }) {
             {item.seller?.storeName || 'piyrox seller'}
           </p>
         </div>
-        <div className="flex items-center justify-between border-t border-borderBg pt-3">
+        <div className="flex items-center justify-between border-t border-[var(--border-bg)] pt-3">
           <span className="text-lg font-black text-white">{fmt(item.price)}</span>
           <span className="bg-gradient-to-r from-brand to-brand-dark px-3 py-1.5 rounded-lg text-xs font-bold text-white">
             Buy Now
@@ -131,7 +131,7 @@ function ListingCardList({ item }: { item: Listing }) {
   return (
     <Link
       href={`/listings/${item.id}`}
-      className="bg-cardBg border border-borderBg hover:border-brand/50 rounded-xl overflow-hidden flex transition-all duration-300 hover:shadow-lg hover:shadow-brand/10 group"
+      className="bg-[var(--card-bg)] border border-[var(--border-bg)] hover:border-brand/50 rounded-xl overflow-hidden flex transition-all duration-300 hover:shadow-lg hover:shadow-brand/10 group"
     >
       <div className="w-32 h-32 flex-shrink-0 relative overflow-hidden bg-gradient-to-br from-background to-cardBg">
         {img && !imgErr ? (
@@ -268,7 +268,7 @@ function ListingsPageContent() {
       <div className="flex items-center gap-3 mb-2">
         <button
           onClick={() => router.back()}
-          className="p-2 hover:bg-cardBg rounded-lg transition"
+          className="p-2 hover:bg-[var(--card-bg)] rounded-lg transition"
         >
           <ArrowLeft className="w-5 h-5 text-gray-400" />
         </button>
@@ -290,7 +290,7 @@ function ListingsPageContent() {
           { icon: <Check className="w-3.5 h-3.5 text-purple-400" />, label: 'Verified Sellers' },
           { icon: <Zap className="w-3.5 h-3.5 text-orange-400" />, label: 'Fast Delivery' },
         ].map(({ icon, label }) => (
-          <div key={label} className="flex items-center gap-1.5 bg-hoverBg/30 px-3 py-1 rounded-lg border border-borderBg/50">
+          <div key={label} className="flex items-center gap-1.5 bg-[var(--hover-bg)]/30 px-3 py-1 rounded-lg border border-[var(--border-bg)]/50">
             {icon} {label}
           </div>
         ))}
@@ -303,7 +303,7 @@ function ListingsPageContent() {
           <input
             type="text"
             placeholder="Search listings..."
-            className="w-full bg-cardBg border border-borderBg rounded-xl pl-10 pr-4 py-2.5 text-sm text-white focus:outline-none focus:border-brand transition"
+            className="w-full bg-[var(--card-bg)] border border-[var(--border-bg)] rounded-xl pl-10 pr-4 py-2.5 text-sm text-white focus:outline-none focus:border-brand transition"
             value={search}
             onChange={(e) => { setSearch(e.target.value); setPage(1); }}
             onKeyDown={(e) => e.key === 'Enter' && fetchListings()}
@@ -314,14 +314,14 @@ function ListingsPageContent() {
           className={`flex items-center gap-2 px-4 py-2.5 rounded-xl border text-sm font-semibold transition ${
             showFilters || hasFilters
               ? 'bg-brand/10 border-brand/40 text-brand-light'
-              : 'bg-cardBg border-borderBg text-gray-300 hover:border-brand/30'
+              : 'bg-[var(--card-bg)] border-[var(--border-bg)] text-gray-300 hover:border-brand/30'
           }`}
         >
           <SlidersHorizontal className="w-4 h-4" />
           Filters
           {hasFilters && <span className="w-2 h-2 rounded-full bg-brand" />}
         </button>
-        <div className="flex gap-1 bg-cardBg border border-borderBg rounded-xl p-1">
+        <div className="flex gap-1 bg-[var(--card-bg)] border border-[var(--border-bg)] rounded-xl p-1">
           <button
             onClick={() => setViewMode('grid')}
             className={`p-2 rounded-lg transition ${
@@ -347,18 +347,18 @@ function ListingsPageContent() {
 
       {/* Filter panel */}
       {showFilters && (
-        <div className="bg-cardBg border border-borderBg rounded-2xl p-4 grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-6 gap-3">
-          <select className="bg-background border border-borderBg rounded-xl px-3 py-2 text-sm text-white focus:outline-none focus:border-brand" value={platform} onChange={(e) => { setPlatform(e.target.value); setPage(1); }}>
+        <div className="bg-[var(--card-bg)] border border-[var(--border-bg)] rounded-2xl p-4 grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-6 gap-3">
+          <select className="bg-background border border-[var(--border-bg)] rounded-xl px-3 py-2 text-sm text-white focus:outline-none focus:border-brand" value={platform} onChange={(e) => { setPlatform(e.target.value); setPage(1); }}>
             <option value="">All Platforms</option>
             {['PC', 'Android', 'iOS', 'PlayStation', 'Xbox', 'Nintendo'].map((p) => <option key={p} value={p}>{p}</option>)}
           </select>
-          <select className="bg-background border border-borderBg rounded-xl px-3 py-2 text-sm text-white focus:outline-none focus:border-brand" value={region} onChange={(e) => { setRegion(e.target.value); setPage(1); }}>
+          <select className="bg-background border border-[var(--border-bg)] rounded-xl px-3 py-2 text-sm text-white focus:outline-none focus:border-brand" value={region} onChange={(e) => { setRegion(e.target.value); setPage(1); }}>
             <option value="">All Regions</option>
             {['Africa', 'Europe', 'North America', 'Asia', 'Middle East'].map((r) => <option key={r} value={r}>{r}</option>)}
           </select>
-          <input type="number" placeholder="Min Price $" className="bg-background border border-borderBg rounded-xl px-3 py-2 text-sm text-white focus:outline-none focus:border-brand" value={minPrice} onChange={(e) => { setMinPrice(e.target.value); setPage(1); }} />
-          <input type="number" placeholder="Max Price $" className="bg-background border border-borderBg rounded-xl px-3 py-2 text-sm text-white focus:outline-none focus:border-brand" value={maxPrice} onChange={(e) => { setMaxPrice(e.target.value); setPage(1); }} />
-          <select className="bg-background border border-borderBg rounded-xl px-3 py-2 text-sm text-white focus:outline-none focus:border-brand" value={sort} onChange={(e) => setSort(e.target.value)}>
+          <input type="number" placeholder="Min Price $" className="bg-background border border-[var(--border-bg)] rounded-xl px-3 py-2 text-sm text-white focus:outline-none focus:border-brand" value={minPrice} onChange={(e) => { setMinPrice(e.target.value); setPage(1); }} />
+          <input type="number" placeholder="Max Price $" className="bg-background border border-[var(--border-bg)] rounded-xl px-3 py-2 text-sm text-white focus:outline-none focus:border-brand" value={maxPrice} onChange={(e) => { setMaxPrice(e.target.value); setPage(1); }} />
+          <select className="bg-background border border-[var(--border-bg)] rounded-xl px-3 py-2 text-sm text-white focus:outline-none focus:border-brand" value={sort} onChange={(e) => setSort(e.target.value)}>
             {SORT_OPTIONS.map((o) => <option key={o.value} value={o.value}>{o.label}</option>)}
           </select>
           {hasFilters && (
@@ -374,7 +374,7 @@ function ListingsPageContent() {
         <button
           onClick={() => { setActiveGame(''); setPage(1); }}
           className={`flex-shrink-0 flex items-center gap-2 px-3 py-2 rounded-xl border text-xs font-bold transition ${
-            activeGame === '' ? 'bg-brand border-brand text-white' : 'bg-cardBg border-borderBg text-gray-400 hover:text-white'
+            activeGame === '' ? 'bg-brand border-brand text-white' : 'bg-[var(--card-bg)] border-[var(--border-bg)] text-gray-400 hover:text-white'
           }`}
         >
           <Gamepad2 className="w-3.5 h-3.5" /> All
@@ -384,7 +384,7 @@ function ListingsPageContent() {
             key={g.slug}
             onClick={() => { setActiveGame(activeGame === g.name ? '' : g.name); setPage(1); }}
             className={`flex-shrink-0 flex items-center gap-2 px-3 py-2 rounded-xl border text-xs font-bold transition ${
-              activeGame === g.name ? 'bg-brand border-brand text-white' : 'bg-cardBg border-borderBg text-gray-400 hover:text-white'
+              activeGame === g.name ? 'bg-brand border-brand text-white' : 'bg-[var(--card-bg)] border-[var(--border-bg)] text-gray-400 hover:text-white'
             }`}
           >
             <GameIcon game={g.slug} className="w-4 h-4 rounded" />
@@ -426,7 +426,7 @@ function ListingsPageContent() {
           <button
             onClick={() => setPage(Math.max(1, page - 1))}
             disabled={page === 1}
-            className="px-4 py-2 rounded-lg border border-borderBg text-sm font-semibold disabled:opacity-50 disabled:cursor-not-allowed hover:bg-cardBg transition"
+            className="px-4 py-2 rounded-lg border border-[var(--border-bg)] text-sm font-semibold disabled:opacity-50 disabled:cursor-not-allowed hover:bg-[var(--card-bg)] transition"
           >
             Previous
           </button>
@@ -434,7 +434,7 @@ function ListingsPageContent() {
           <button
             onClick={() => setPage(page + 1)}
             disabled={page * 50 >= total}
-            className="px-4 py-2 rounded-lg border border-borderBg text-sm font-semibold disabled:opacity-50 disabled:cursor-not-allowed hover:bg-cardBg transition"
+            className="px-4 py-2 rounded-lg border border-[var(--border-bg)] text-sm font-semibold disabled:opacity-50 disabled:cursor-not-allowed hover:bg-[var(--card-bg)] transition"
           >
             Next
           </button>
@@ -449,10 +449,10 @@ export default function ListingsPage() {
     <Suspense
       fallback={
         <div className="space-y-4">
-          <div className="h-12 bg-cardBg rounded-lg animate-pulse" />
+          <div className="h-12 bg-[var(--card-bg)] rounded-lg animate-pulse" />
           <div className="grid gap-4 grid-cols-1 sm:grid-cols-2 lg:grid-cols-3">
             {Array.from({ length: 6 }).map((_, i) => (
-              <div key={i} className="h-64 bg-cardBg rounded-lg animate-pulse" />
+              <div key={i} className="h-64 bg-[var(--card-bg)] rounded-lg animate-pulse" />
             ))}
           </div>
         </div>

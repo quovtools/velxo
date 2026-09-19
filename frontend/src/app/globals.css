@@ -89,6 +89,11 @@ body {
   animation-play-state: paused;
 }
 
+/* ── Legacy class aliases ── */
+.bg-cardBg  { background-color: var(--card-bg); }
+.bg-hoverBg { background-color: var(--hover-bg); }
+.border-borderBg { border-color: var(--border-bg); }
+
 /* Helpers */
 .safe-area-pb { padding-bottom: env(safe-area-inset-bottom, 0px); }
 .scrollbar-none::-webkit-scrollbar { display: none; }

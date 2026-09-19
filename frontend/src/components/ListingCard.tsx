@@ -2,7 +2,7 @@
 
 import { useState } from 'react'
 import Link from 'next/link'
-import { Gamepad2, Star, Flame, Clock, ShieldCheck } from 'lucide-react'
+import { Gamepad2, Star, Flame, Clock, ShieldCheck, Zap } from 'lucide-react'
 import { useCurrency } from '@/lib/useCurrency'
 
 export interface ListingCardData {
@@ -31,14 +31,15 @@ export default function ListingCard({ item }: { item: ListingCardData }) {
   const img = item.images?.[0]
   const sold = item.isSold || item.status === 'SOLD'
   const rating = Number(item.seller?.averageRating || 0).toFixed(1)
+  const isInstant = item.seller?.responseTime != null && item.seller.responseTime <= 10
 
   return (
-    <div className="group relative bg-cardBg border border-borderBg hover:border-brand/50 rounded-2xl overflow-hidden transition-all duration-300 flex flex-col hover:shadow-xl hover:shadow-brand/10 hover:-translate-y-0.5">
-      {/* Full-card navigation overlay */}
+    <div className={`group relative bg-[var(--card-bg)] border border-[var(--border-bg)] hover:border-brand/40 rounded-2xl overflow-hidden transition-all duration-300 flex flex-col hover:shadow-xl hover:shadow-brand/8 hover:-translate-y-0.5 ${sold ? 'opacity-70' : ''}`}>
+      {/* Full-card link */}
       <Link href={`/listings/${item.id}`} aria-label={item.title} className="absolute inset-0 z-0" />
 
-      {/* Image area */}
-      <div className="h-44 bg-gradient-to-br from-background to-cardBg relative overflow-hidden">
+      {/* Image */}
+      <div className="h-44 bg-black relative overflow-hidden">
         {img && !imgError ? (
           // eslint-disable-next-line @next/next/no-img-element
           <img
@@ -46,91 +47,98 @@ export default function ListingCard({ item }: { item: ListingCardData }) {
             alt={item.title}
             loading="lazy"
             referrerPolicy="no-referrer"
-            className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-300"
+            className="w-full h-full object-cover group-hover:scale-[1.03] transition-transform duration-500"
             onError={() => setImgError(true)}
           />
         ) : (
-          <div className="w-full h-full bg-gradient-to-br from-brand/10 via-cardBg to-background flex flex-col items-center justify-center gap-1">
-            <Gamepad2 className="w-10 h-10 text-brand/30" />
-            <span className="text-[10px] text-gray-500">No image</span>
+          <div className="w-full h-full bg-gradient-to-br from-brand/8 via-black to-black flex flex-col items-center justify-center gap-1">
+            <Gamepad2 className="w-10 h-10 text-brand/20" />
           </div>
         )}
-        <div className="absolute inset-0 bg-gradient-to-t from-black/70 via-black/5 to-transparent pointer-events-none" />
+        {/* Gradient overlay */}
+        <div className="absolute inset-0 bg-gradient-to-t from-black/80 via-black/10 to-transparent pointer-events-none" />
 
-        {item.isFeatured && (
-          <span className="flex items-center gap-0.5 text-[10px] font-bold text-black absolute top-2 right-2 bg-brand px-1.5 py-0.5 rounded-full shadow-md">
+        {/* Badges */}
+        {item.isFeatured && !sold && (
+          <span className="flex items-center gap-0.5 text-[10px] font-bold text-black absolute top-2 right-2 bg-brand px-2 py-0.5 rounded-full shadow">
             <Flame className="w-3 h-3" /> Hot
           </span>
         )}
         {sold && (
-          <span className="absolute top-2 left-2 bg-black/70 text-gray-300 text-[10px] font-bold px-2 py-0.5 rounded backdrop-blur-sm border border-white/10">
+          <span className="absolute top-2 left-2 bg-black/80 text-gray-400 text-[10px] font-bold px-2 py-0.5 rounded border border-white/10">
             Sold
           </span>
         )}
+        {isInstant && !sold && (
+          <span className="absolute bottom-2 left-2 flex items-center gap-0.5 text-[9px] font-bold text-black bg-brand/90 px-1.5 py-0.5 rounded">
+            <Zap className="w-2.5 h-2.5" /> Instant
+          </span>
+        )}
         {item.platform && (
-          <span className="absolute bottom-2 left-2 text-[10px] font-semibold text-white/90 bg-black/50 px-2 py-0.5 rounded backdrop-blur-sm">
+          <span className="absolute bottom-2 right-2 text-[9px] font-semibold text-white/80 bg-black/60 px-1.5 py-0.5 rounded backdrop-blur-sm">
             {item.platform}
           </span>
         )}
       </div>
 
       {/* Body */}
-      <div className="p-4 flex-1 flex flex-col justify-between space-y-3">
+      <div className="p-3.5 flex-1 flex flex-col justify-between gap-2.5">
         <div>
           {/* Game tag */}
-          <span className="inline-block bg-brand/10 text-brand text-[10px] font-bold px-2 py-0.5 rounded border border-brand/20 uppercase tracking-wide truncate max-w-full mb-2">
+          <span className="inline-block bg-brand/8 text-brand text-[10px] font-bold px-2 py-0.5 rounded-full border border-brand/15 uppercase tracking-wide truncate max-w-full mb-2">
             {item.gameName}
           </span>
-          <h3 className="font-bold text-sm text-white line-clamp-2 leading-snug group-hover:text-brand transition">
+          <h3 className="font-bold text-sm text-white line-clamp-2 leading-snug group-hover:text-brand transition-colors">
             {item.title}
           </h3>
-          <div className="flex items-center justify-between text-[11px] text-gray-500 mt-2">
-            {item.seller?.storeName ? (
+
+          {/* Seller row */}
+          {item.seller?.storeName && (
+            <div className="flex items-center justify-between text-[11px] text-gray-500 mt-1.5">
               <Link
                 href={`/seller/${item.seller.id}`}
                 onClick={(e) => e.stopPropagation()}
-                className="relative z-10 flex items-center gap-1 truncate hover:text-brand transition max-w-[70%]"
+                className="relative z-10 flex items-center gap-1 truncate hover:text-brand transition max-w-[65%]"
               >
                 {item.seller.storeName}
                 {item.seller.verified && (
-                  /* Gold verified badge */
-                  <ShieldCheck className="w-3 h-3 text-brand flex-shrink-0" aria-label="Verified" />
+                  <ShieldCheck className="w-3 h-3 text-brand flex-shrink-0" />
                 )}
               </Link>
-            ) : (
-              <span className="truncate">{item.seller?.storeName || 'Seller'}</span>
-            )}
-            <span className="flex items-center gap-0.5 flex-shrink-0 font-semibold text-gray-400">
-              <Star className="w-3 h-3 text-amber-400 fill-amber-400" />
-              {rating}
-            </span>
-          </div>
-          {/* Slow-responder badge — only shown when avg response > 2 hours */}
-          {item.seller?.responseTime != null && item.seller.responseTime > 120 && (
-            <div className="flex items-center gap-1 mt-1.5 text-[10px] text-yellow-500/80">
-              <Clock className="w-2.5 h-2.5" />
-              <span>
-                ~{item.seller.responseTime > 1440
-                  ? `${Math.round(item.seller.responseTime / 1440)}d`
-                  : `${Math.round(item.seller.responseTime / 60)}h`} response
+              <span className="flex items-center gap-0.5 flex-shrink-0 font-semibold">
+                <Star className="w-3 h-3 text-brand fill-brand" />
+                {rating}
               </span>
+            </div>
+          )}
+
+          {/* Slow response badge */}
+          {item.seller?.responseTime != null && item.seller.responseTime > 120 && (
+            <div className="flex items-center gap-1 mt-1 text-[10px] text-gray-600">
+              <Clock className="w-2.5 h-2.5" />
+              ~{item.seller.responseTime > 1440
+                ? `${Math.round(item.seller.responseTime / 1440)}d`
+                : `${Math.round(item.seller.responseTime / 60)}h`} response
             </div>
           )}
         </div>
 
         {/* Price + CTA */}
-        <div className="flex items-center justify-between border-t border-borderBg pt-3">
-          <div className="flex flex-col">
-            <span className="text-[10px] text-gray-500 font-medium leading-none">Price</span>
-            <span className="text-lg font-black text-white tracking-tight leading-tight">{fmt(item.price)}</span>
+        <div className="flex items-center justify-between border-t border-[var(--border-bg)] pt-3">
+          <div>
+            <span className="text-[10px] text-gray-600 block leading-none mb-0.5">Price</span>
+            <span className="text-lg font-black text-white tracking-tight leading-none">{fmt(item.price)}</span>
           </div>
-          {/* Gold CTA — black bg, gold text */}
           <Link
             href={`/listings/${item.id}`}
             onClick={(e) => e.stopPropagation()}
-            className="relative z-10 bg-brand hover:bg-brand-light px-3.5 py-1.5 rounded-lg text-xs font-bold text-black transition group-hover:shadow-md group-hover:shadow-brand/30 group-hover:scale-[1.03]"
+            className={`relative z-10 px-3.5 py-2 rounded-xl text-xs font-bold transition ${
+              sold
+                ? 'bg-white/5 text-gray-500 border border-[var(--border-bg)] cursor-not-allowed'
+                : 'bg-brand hover:bg-brand-light text-black group-hover:shadow-md group-hover:shadow-brand/25'
+            }`}
           >
-            Buy Now
+            {sold ? 'Sold' : 'Buy Now'}
           </Link>
         </div>
       </div>

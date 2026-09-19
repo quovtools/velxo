@@ -18,7 +18,7 @@ export default function SectionNav() {
     href === '/' ? pathname === '/' : pathname.startsWith(href);
 
   return (
-    <div className="bg-cardBg border-b border-borderBg">
+    <div className="bg-[var(--card-bg)] border-b border-[var(--border-bg)]">
       <style>{`.section-nav-scroll::-webkit-scrollbar{display:none;}`}</style>
       <div
         className="section-nav-scroll max-w-7xl mx-auto px-4 flex gap-1 overflow-x-auto whitespace-nowrap"

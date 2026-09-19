@@ -123,7 +123,7 @@ function CreatorRegisterModal({
 
   return (
     <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/70 backdrop-blur-sm">
-      <div className="bg-cardBg border border-borderBg rounded-2xl p-6 w-full max-w-md space-y-5 shadow-2xl">
+      <div className="bg-[var(--card-bg)] border border-[var(--border-bg)] rounded-2xl p-6 w-full max-w-md space-y-5 shadow-2xl">
         <div className="flex items-center gap-3">
           <div className="p-2 bg-brand/10 rounded-xl"><Crown className="w-6 h-6 text-brand" /></div>
           <div>
@@ -145,7 +145,7 @@ function CreatorRegisterModal({
                 return (
                   <button key={p.value} type="button" onClick={() => setPlatform(p.value)}
                     className={`flex flex-col items-center gap-1 p-3 rounded-xl border text-xs font-semibold transition ${
-                      platform === p.value ? 'bg-brand/20 border-brand text-white' : 'border-borderBg text-gray-400 hover:border-brand/40 hover:text-white'
+                      platform === p.value ? 'bg-brand/20 border-brand text-white' : 'border-[var(--border-bg)] text-gray-400 hover:border-brand/40 hover:text-white'
                     }`}>
                     <Icon className="w-5 h-5" />{p.label}
                   </button>
@@ -156,24 +156,24 @@ function CreatorRegisterModal({
           <div>
             <label className="block text-xs font-semibold text-gray-400 mb-1.5 uppercase tracking-wide">Your Handle / Channel Name</label>
             <input value={handle} onChange={e => setHandle(e.target.value)} placeholder="@yourchannel"
-              className="w-full bg-background border border-borderBg rounded-xl px-4 py-3 text-sm focus:outline-none focus:border-brand transition" />
+              className="w-full bg-background border border-[var(--border-bg)] rounded-xl px-4 py-3 text-sm focus:outline-none focus:border-brand transition" />
           </div>
           <div>
             <label className="block text-xs font-semibold text-gray-400 mb-1.5 uppercase tracking-wide">Follower / Subscriber Count *</label>
             <input type="number" value={followerCount} onChange={e => setFollowerCount(e.target.value)}
               placeholder="e.g. 15000" min={0}
-              className="w-full bg-background border border-borderBg rounded-xl px-4 py-3 text-sm focus:outline-none focus:border-brand transition" />
+              className="w-full bg-background border border-[var(--border-bg)] rounded-xl px-4 py-3 text-sm focus:outline-none focus:border-brand transition" />
             <p className="text-xs text-gray-500 mt-1">Minimum 10,000 followers required</p>
           </div>
           <div>
             <label className="block text-xs font-semibold text-gray-400 mb-1.5 uppercase tracking-wide">Short Bio</label>
             <textarea value={bio} onChange={e => setBio(e.target.value)} placeholder="Tell us about your content..."
               rows={3}
-              className="w-full bg-background border border-borderBg rounded-xl px-4 py-3 text-sm focus:outline-none focus:border-brand transition resize-none" />
+              className="w-full bg-background border border-[var(--border-bg)] rounded-xl px-4 py-3 text-sm focus:outline-none focus:border-brand transition resize-none" />
           </div>
           <div className="flex gap-3 pt-1">
             <button type="button" onClick={onClose}
-              className="flex-1 py-3 border border-borderBg text-gray-300 hover:bg-hoverBg rounded-xl text-sm font-bold transition">
+              className="flex-1 py-3 border border-[var(--border-bg)] text-gray-300 hover:bg-[var(--hover-bg)] rounded-xl text-sm font-bold transition">
               Cancel
             </button>
             <button type="submit" disabled={saving}
@@ -289,7 +289,7 @@ export default function AffiliateDashboardPage() {
               <Copy className="w-3.5 h-3.5" /> {copied ? 'Copied!' : 'Copy Link'}
             </button>
           </div>
-          <div className="bg-background border border-borderBg rounded-xl px-4 py-3 overflow-hidden">
+          <div className="bg-background border border-[var(--border-bg)] rounded-xl px-4 py-3 overflow-hidden">
             <p className="text-sm font-mono font-bold text-white truncate">
               {typeof window !== 'undefined' ? `${window.location.origin}/?ref=${referral.referralCode}` : `piyrox.shop/?ref=${referral.referralCode}`}
             </p>
@@ -300,22 +300,22 @@ export default function AffiliateDashboardPage() {
 
       {/* ── Stats Row ── */}
       <div className="grid grid-cols-2 sm:grid-cols-4 gap-3">
-        <div className="bg-cardBg border border-borderBg rounded-2xl p-4 space-y-1">
+        <div className="bg-[var(--card-bg)] border border-[var(--border-bg)] rounded-2xl p-4 space-y-1">
           <MousePointerClick className="w-4 h-4 text-cyan-400 mb-1" />
           <p className="text-2xl font-black text-white">{stats?.totalClicks ?? 0}</p>
           <p className="text-[11px] text-gray-500 font-medium uppercase tracking-wide">Clicks</p>
         </div>
-        <div className="bg-cardBg border border-borderBg rounded-2xl p-4 space-y-1">
+        <div className="bg-[var(--card-bg)] border border-[var(--border-bg)] rounded-2xl p-4 space-y-1">
           <Users className="w-4 h-4 text-violet-400 mb-1" />
           <p className="text-2xl font-black text-white">{stats?.totalSignups ?? 0}</p>
           <p className="text-[11px] text-gray-500 font-medium uppercase tracking-wide">Signups</p>
         </div>
-        <div className="bg-cardBg border border-borderBg rounded-2xl p-4 space-y-1">
+        <div className="bg-[var(--card-bg)] border border-[var(--border-bg)] rounded-2xl p-4 space-y-1">
           <TrendingUp className="w-4 h-4 text-emerald-400 mb-1" />
           <p className="text-2xl font-black text-white">{stats?.totalTrades ?? 0}</p>
           <p className="text-[11px] text-gray-500 font-medium uppercase tracking-wide">Trades</p>
         </div>
-        <div className="bg-cardBg border border-borderBg rounded-2xl p-4 space-y-1">
+        <div className="bg-[var(--card-bg)] border border-[var(--border-bg)] rounded-2xl p-4 space-y-1">
           <DollarSign className="w-4 h-4 text-amber-400 mb-1" />
           <p className="text-2xl font-black text-white">₦{(stats?.totalSignupRewards ?? 0).toLocaleString()}</p>
           <p className="text-[11px] text-gray-500 font-medium uppercase tracking-wide">Signup Rewards</p>
@@ -323,7 +323,7 @@ export default function AffiliateDashboardPage() {
       </div>
 
       {/* ── Tab Switch: User / Creator ── */}
-      <div className="flex gap-2 p-1 bg-cardBg border border-borderBg rounded-xl">
+      <div className="flex gap-2 p-1 bg-[var(--card-bg)] border border-[var(--border-bg)] rounded-xl">
         <button onClick={() => setTab('user')}
           className={`flex-1 flex items-center justify-center gap-2 py-2.5 rounded-lg text-sm font-bold transition ${
             tab === 'user' ? 'bg-brand text-white' : 'text-gray-400 hover:text-white'
@@ -344,7 +344,7 @@ export default function AffiliateDashboardPage() {
         <div className="space-y-5">
           {/* Tier Card */}
           {tierInfo && !stats?.isCreator && (
-            <div className={`rounded-2xl border p-5 space-y-4 ${TIER_BG[tierInfo.current] || 'bg-cardBg border-borderBg'}`}>
+            <div className={`rounded-2xl border p-5 space-y-4 ${TIER_BG[tierInfo.current] || 'bg-[var(--card-bg)] border-[var(--border-bg)]'}`}>
               <div className="flex items-center justify-between">
                 <div className="flex items-center gap-3">
                   <Trophy className={`w-6 h-6 ${TIER_COLORS[tierInfo.current] || 'text-gray-400'}`} />
@@ -374,7 +374,7 @@ export default function AffiliateDashboardPage() {
           )}
 
           {/* Tiers Info */}
-          <div className="bg-cardBg border border-borderBg rounded-2xl p-5 space-y-4">
+          <div className="bg-[var(--card-bg)] border border-[var(--border-bg)] rounded-2xl p-5 space-y-4">
             <h3 className="text-base font-bold text-white flex items-center gap-2"><Target className="w-4 h-4 text-brand" /> User Tier Rewards</h3>
             <div className="space-y-2">
               {[
@@ -383,7 +383,7 @@ export default function AffiliateDashboardPage() {
                 { tier: 'POWER', label: '1,000+ signups', reward: '₦30 / signup', color: 'text-purple-400' },
               ].map(t => (
                 <div key={t.tier} className={`flex items-center justify-between p-3 rounded-xl border ${
-                  tierInfo?.current === t.tier && !stats?.isCreator ? 'bg-brand/10 border-brand/30' : 'bg-hoverBg/20 border-borderBg/50'
+                  tierInfo?.current === t.tier && !stats?.isCreator ? 'bg-brand/10 border-brand/30' : 'bg-[var(--hover-bg)]/20 border-[var(--border-bg)]/50'
                 }`}>
                   <div className="flex items-center gap-3">
                     <Trophy className={`w-4 h-4 ${t.color}`} />
@@ -503,7 +503,7 @@ export default function AffiliateDashboardPage() {
                   ].map((b, i) => {
                     const Icon = b.icon;
                     return (
-                      <div key={i} className="flex items-start gap-3 p-3 bg-hoverBg/30 rounded-xl border border-borderBg/50">
+                      <div key={i} className="flex items-start gap-3 p-3 bg-[var(--hover-bg)]/30 rounded-xl border border-[var(--border-bg)]/50">
                         <div className={`p-2 rounded-lg ${b.color}`}><Icon className="w-4 h-4" /></div>
                         <div>
                           <p className="text-sm font-bold text-white">{b.title}</p>
@@ -524,7 +524,7 @@ export default function AffiliateDashboardPage() {
 
           {/* Creator Tiers */}
           {(creatorProfile?.status === 'APPROVED' || !creatorProfile) && (
-            <div className="bg-cardBg border border-borderBg rounded-2xl p-5 space-y-4">
+            <div className="bg-[var(--card-bg)] border border-[var(--border-bg)] rounded-2xl p-5 space-y-4">
               <h3 className="text-base font-bold text-white flex items-center gap-2"><Trophy className="w-4 h-4 text-yellow-400" /> Creator Tiers</h3>
               <div className="space-y-2">
                 {[
@@ -563,18 +563,18 @@ export default function AffiliateDashboardPage() {
 
       {/* ── Referral History ── */}
       {stats && stats.referrals && stats.referrals.filter((r: any) => r.referredUserId).length > 0 && (
-        <div className="bg-cardBg border border-borderBg rounded-2xl p-5 space-y-4">
+        <div className="bg-[var(--card-bg)] border border-[var(--border-bg)] rounded-2xl p-5 space-y-4">
           <div className="flex items-center gap-2">
             <Activity className="w-5 h-5 text-brand" />
             <h3 className="text-base font-bold text-white">Recent Referrals</h3>
-            <span className="bg-background px-2 py-0.5 rounded-full text-xs text-gray-500 border border-borderBg">
+            <span className="bg-background px-2 py-0.5 rounded-full text-xs text-gray-500 border border-[var(--border-bg)]">
               {stats.referrals.filter((r: any) => r.referredUserId).length}
             </span>
           </div>
           <div className="overflow-x-auto">
             <table className="w-full text-left text-sm">
               <thead>
-                <tr className="border-b border-borderBg">
+                <tr className="border-b border-[var(--border-bg)]">
                   <th className="py-2.5 text-xs text-gray-400 font-medium">Referred</th>
                   <th className="py-2.5 text-xs text-gray-400 font-medium">Status</th>
                   <th className="py-2.5 text-xs text-gray-400 font-medium">Joined</th>
@@ -583,7 +583,7 @@ export default function AffiliateDashboardPage() {
               </thead>
               <tbody>
                 {stats.referrals.filter((r: any) => r.referredUserId).slice(0, 15).map((r: any) => (
-                  <tr key={r.id} className="border-b border-borderBg/50 hover:bg-hoverBg/20">
+                  <tr key={r.id} className="border-b border-[var(--border-bg)]/50 hover:bg-[var(--hover-bg)]/20">
                     <td className="py-2.5">
                       <div className="flex items-center gap-2">
                         <div className="w-7 h-7 bg-gradient-to-br from-brand to-purple-600 rounded-full flex items-center justify-center text-white text-[10px] font-bold">
@@ -635,7 +635,7 @@ export default function AffiliateDashboardPage() {
       </div>
 
       {/* ── How It Works ── */}
-      <div className="bg-cardBg border border-borderBg rounded-2xl p-5 space-y-4">
+      <div className="bg-[var(--card-bg)] border border-[var(--border-bg)] rounded-2xl p-5 space-y-4">
         <h3 className="text-base font-bold text-white flex items-center gap-2"><Target className="w-4 h-4 text-brand" /> How It Works</h3>
         <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
           {[
@@ -643,7 +643,7 @@ export default function AffiliateDashboardPage() {
             { step: '2', title: 'They Sign Up', desc: 'When someone joins Piyrox through your link, they become your referral instantly.' },
             { step: '3', title: 'Earn Rewards', desc: 'Get ₦10–₦50 per signup (wallet credited immediately) plus commission on every trade.' },
           ].map(s => (
-            <div key={s.step} className="space-y-3 p-4 bg-hoverBg/20 rounded-xl border border-borderBg/50">
+            <div key={s.step} className="space-y-3 p-4 bg-[var(--hover-bg)]/20 rounded-xl border border-[var(--border-bg)]/50">
               <div className="w-9 h-9 bg-brand/10 rounded-full flex items-center justify-center text-brand font-black text-sm">{s.step}</div>
               <p className="text-sm font-bold text-white">{s.title}</p>
               <p className="text-xs text-gray-400">{s.desc}</p>

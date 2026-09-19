@@ -14,6 +14,10 @@ const config: Config = {
         foreground: "var(--foreground)",
         surface: "var(--surface)",
         border: "var(--border)",
+        // Legacy aliases
+        cardBg: "var(--card-bg)",
+        borderBg: "var(--border-bg)",
+        hoverBg: "var(--hover-bg)",
         brand: {
           DEFAULT: "rgb(var(--brand-rgb) / <alpha-value>)",
           light: "rgb(var(--brand-light-rgb) / <alpha-value>)",

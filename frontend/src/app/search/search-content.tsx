@@ -187,7 +187,7 @@ function SearchContent() {
       <div className="space-y-2">
         <label className="text-xs font-bold text-gray-400 uppercase tracking-wider">Sort By</label>
         <select value={sortBy} onChange={e => setSortBy(e.target.value)}
-          className="w-full bg-background border border-borderBg rounded-xl px-4 py-2.5 text-sm text-white focus:outline-none focus:border-brand">
+          className="w-full bg-background border border-[var(--border-bg)] rounded-xl px-4 py-2.5 text-sm text-white focus:outline-none focus:border-brand">
           <option value="newest">Newest</option>
           <option value="price_asc">Price: Low to High</option>
           <option value="price_desc">Price: High to Low</option>
@@ -203,7 +203,7 @@ function SearchContent() {
           <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-3.5 h-3.5 text-gray-500" />
           <input type="text" value={search} onChange={e => setSearch(e.target.value)}
             placeholder="e.g. heroic, bundle, coins"
-            className="w-full bg-background border border-borderBg rounded-xl pl-9 pr-4 py-2.5 text-sm text-white focus:outline-none focus:border-brand" />
+            className="w-full bg-background border border-[var(--border-bg)] rounded-xl pl-9 pr-4 py-2.5 text-sm text-white focus:outline-none focus:border-brand" />
         </div>
       </div>
 
@@ -211,7 +211,7 @@ function SearchContent() {
       <div className="space-y-2">
         <label className="text-xs font-bold text-gray-400 uppercase tracking-wider">Game</label>
         <select value={gameName} onChange={e => { setGameName(e.target.value); setRank(''); }}
-          className="w-full bg-background border border-borderBg rounded-xl px-4 py-2.5 text-sm text-white focus:outline-none focus:border-brand">
+          className="w-full bg-background border border-[var(--border-bg)] rounded-xl px-4 py-2.5 text-sm text-white focus:outline-none focus:border-brand">
           <option value="">All Games</option>
           {GAMES.map(g => <option key={g} value={g}>{g}</option>)}
         </select>
@@ -222,7 +222,7 @@ function SearchContent() {
         <div className="space-y-2">
           <label className="text-xs font-bold text-gray-400 uppercase tracking-wider">Min Rank</label>
           <select value={rank} onChange={e => setRank(e.target.value)}
-            className="w-full bg-background border border-borderBg rounded-xl px-4 py-2.5 text-sm text-white focus:outline-none focus:border-brand">
+            className="w-full bg-background border border-[var(--border-bg)] rounded-xl px-4 py-2.5 text-sm text-white focus:outline-none focus:border-brand">
             <option value="">Any Rank</option>
             {rankOptions.map(r => <option key={r} value={r}>{r}</option>)}
           </select>
@@ -233,7 +233,7 @@ function SearchContent() {
       <div className="space-y-2">
         <label className="text-xs font-bold text-gray-400 uppercase tracking-wider">Platform</label>
         <select value={platform} onChange={e => setPlatform(e.target.value)}
-          className="w-full bg-background border border-borderBg rounded-xl px-4 py-2.5 text-sm text-white focus:outline-none focus:border-brand">
+          className="w-full bg-background border border-[var(--border-bg)] rounded-xl px-4 py-2.5 text-sm text-white focus:outline-none focus:border-brand">
           <option value="">All Platforms</option>
           {['Android','iOS','PC','PlayStation','Xbox'].map(p => <option key={p} value={p}>{p}</option>)}
         </select>
@@ -243,7 +243,7 @@ function SearchContent() {
       <div className="space-y-2">
         <label className="text-xs font-bold text-gray-400 uppercase tracking-wider">Region</label>
         <select value={region} onChange={e => setRegion(e.target.value)}
-          className="w-full bg-background border border-borderBg rounded-xl px-4 py-2.5 text-sm text-white focus:outline-none focus:border-brand">
+          className="w-full bg-background border border-[var(--border-bg)] rounded-xl px-4 py-2.5 text-sm text-white focus:outline-none focus:border-brand">
           <option value="">All Regions</option>
           {['Africa','Europe','North America','Asia','Middle East'].map(r => <option key={r} value={r}>{r}</option>)}
         </select>
@@ -254,9 +254,9 @@ function SearchContent() {
         <label className="text-xs font-bold text-gray-400 uppercase tracking-wider">Price Range (USD)</label>
         <div className="grid grid-cols-2 gap-2">
           <input type="number" placeholder="Min" value={minPrice} onChange={e => setMinPrice(e.target.value)}
-            className="w-full bg-background border border-borderBg rounded-xl px-3 py-2.5 text-sm text-white focus:outline-none focus:border-brand" />
+            className="w-full bg-background border border-[var(--border-bg)] rounded-xl px-3 py-2.5 text-sm text-white focus:outline-none focus:border-brand" />
           <input type="number" placeholder="Max" value={maxPrice} onChange={e => setMaxPrice(e.target.value)}
-            className="w-full bg-background border border-borderBg rounded-xl px-3 py-2.5 text-sm text-white focus:outline-none focus:border-brand" />
+            className="w-full bg-background border border-[var(--border-bg)] rounded-xl px-3 py-2.5 text-sm text-white focus:outline-none focus:border-brand" />
         </div>
         <button onClick={() => fetchResults(true)}
           className="w-full bg-brand/10 hover:bg-brand/20 text-brand-light font-bold py-2 rounded-xl text-xs border border-brand/20 transition">
@@ -270,11 +270,11 @@ function SearchContent() {
         <div className="space-y-2">
           <label className="flex items-center gap-2.5 cursor-pointer">
             <input type="checkbox" checked={isVerified} onChange={e => setIsVerified(e.target.checked)}
-              className="w-4 h-4 rounded border-borderBg text-brand focus:ring-brand" />
+              className="w-4 h-4 rounded border-[var(--border-bg)] text-brand focus:ring-brand" />
             <span className="text-sm text-gray-300">Verified sellers only</span>
           </label>
           <select value={sellerLevel} onChange={e => setSellerLevel(e.target.value)}
-            className="w-full bg-background border border-borderBg rounded-xl px-4 py-2.5 text-sm text-white focus:outline-none focus:border-brand">
+            className="w-full bg-background border border-[var(--border-bg)] rounded-xl px-4 py-2.5 text-sm text-white focus:outline-none focus:border-brand">
             <option value="">Any seller level</option>
             <option value="BRONZE">Bronze+</option>
             <option value="SILVER">Silver+</option>
@@ -315,14 +315,14 @@ function SearchContent() {
           {/* Saved searches dropdown */}
           {user && savedSearches.length > 0 && (
             <div className="relative group">
-              <button className="flex items-center gap-1.5 px-3 py-2 bg-cardBg border border-borderBg rounded-xl text-sm font-semibold text-gray-300 hover:border-brand/40 transition">
+              <button className="flex items-center gap-1.5 px-3 py-2 bg-[var(--card-bg)] border border-[var(--border-bg)] rounded-xl text-sm font-semibold text-gray-300 hover:border-brand/40 transition">
                 <BookmarkCheck className="w-4 h-4 text-brand" />
                 Saved Searches
                 <ChevronDown className="w-3.5 h-3.5 text-gray-500" />
               </button>
-              <div className="absolute right-0 top-full mt-1 w-56 bg-cardBg border border-borderBg rounded-xl shadow-2xl z-30 hidden group-hover:block">
+              <div className="absolute right-0 top-full mt-1 w-56 bg-[var(--card-bg)] border border-[var(--border-bg)] rounded-xl shadow-2xl z-30 hidden group-hover:block">
                 {savedSearches.map(s => (
-                  <div key={s.id} className="flex items-center gap-2 px-3 py-2.5 hover:bg-hoverBg/40 transition group/item">
+                  <div key={s.id} className="flex items-center gap-2 px-3 py-2.5 hover:bg-[var(--hover-bg)]/40 transition group/item">
                     <button onClick={() => applySearch(s.params as Record<string, string>)}
                       className="flex-1 text-sm text-left text-gray-200 truncate">
                       {s.name}
@@ -339,7 +339,7 @@ function SearchContent() {
           {/* Save current search */}
           {user && (
             <button onClick={() => setSaveModalOpen(true)}
-              className="flex items-center gap-1.5 px-3 py-2 bg-cardBg border border-borderBg rounded-xl text-sm font-semibold text-gray-300 hover:border-brand/40 transition">
+              className="flex items-center gap-1.5 px-3 py-2 bg-[var(--card-bg)] border border-[var(--border-bg)] rounded-xl text-sm font-semibold text-gray-300 hover:border-brand/40 transition">
               <Bookmark className="w-4 h-4" /> Save Search
             </button>
           )}
@@ -355,7 +355,7 @@ function SearchContent() {
 
       <div className="grid grid-cols-1 lg:grid-cols-4 gap-6">
         {/* Desktop sidebar */}
-        <div className="hidden lg:block bg-cardBg border border-borderBg rounded-2xl p-5 h-fit space-y-1">
+        <div className="hidden lg:block bg-[var(--card-bg)] border border-[var(--border-bg)] rounded-2xl p-5 h-fit space-y-1">
           <div className="flex items-center justify-between mb-4">
             <h2 className="font-bold flex items-center gap-2"><SlidersHorizontal className="w-4 h-4 text-brand" /> Filters</h2>
             {activeFilterCount > 0 && (
@@ -372,7 +372,7 @@ function SearchContent() {
               {[...Array(6)].map((_, i) => <div key={i} className="h-52 skeleton rounded-2xl" />)}
             </div>
           ) : listings.length === 0 ? (
-            <div className="text-center py-20 bg-cardBg border border-borderBg rounded-2xl space-y-3">
+            <div className="text-center py-20 bg-[var(--card-bg)] border border-[var(--border-bg)] rounded-2xl space-y-3">
               <AlertCircle className="w-12 h-12 text-gray-700 mx-auto" />
               <p className="text-gray-400 font-semibold">No listings match your filters</p>
               <p className="text-xs text-gray-600">Try removing some filters or browsing by game.</p>
@@ -383,7 +383,7 @@ function SearchContent() {
               <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-4">
                 {listings.map(item => (
                   <div key={item.id}
-                    className="group bg-cardBg border border-borderBg hover:border-brand/40 hover:-translate-y-0.5 transition rounded-2xl p-5 flex flex-col gap-3 shadow-sm hover:shadow-xl hover:shadow-brand/10">
+                    className="group bg-[var(--card-bg)] border border-[var(--border-bg)] hover:border-brand/40 hover:-translate-y-0.5 transition rounded-2xl p-5 flex flex-col gap-3 shadow-sm hover:shadow-xl hover:shadow-brand/10">
                     <div className="flex items-start justify-between gap-2">
                       <span className="bg-brand/10 text-brand-light text-xs font-semibold px-2 py-0.5 rounded border border-brand/20 shrink-0">{item.gameName}</span>
                       <div className="flex items-center gap-1 flex-wrap justify-end">
@@ -400,7 +400,7 @@ function SearchContent() {
                         <SellerLevelBadge level={item.seller.sellerLevel} size="xs" showLabel={false} />
                       )}
                     </div>
-                    <div className="flex items-center justify-between border-t border-borderBg pt-3 mt-auto">
+                    <div className="flex items-center justify-between border-t border-[var(--border-bg)] pt-3 mt-auto">
                       <span className="text-xl font-black text-white">{fmt(item.price)}</span>
                       <Link href={`/listings/${item.id}`}
                         className="bg-gradient-to-r from-brand to-brand-dark hover:shadow-md hover:shadow-brand/30 px-3 py-1.5 rounded-lg text-xs font-semibold transition text-white">
@@ -415,7 +415,7 @@ function SearchContent() {
                 <div className="text-center pt-2">
                   <button onClick={() => { setPage(p => p + 1); fetchResults(false); }}
                     disabled={loading}
-                    className="px-8 py-3 bg-cardBg border border-borderBg hover:border-brand/40 rounded-xl text-sm font-semibold transition disabled:opacity-50">
+                    className="px-8 py-3 bg-[var(--card-bg)] border border-[var(--border-bg)] hover:border-brand/40 rounded-xl text-sm font-semibold transition disabled:opacity-50">
                     {loading ? 'Loading...' : `Load More (${total - listings.length} remaining)`}
                   </button>
                 </div>
@@ -429,10 +429,10 @@ function SearchContent() {
       {mobileOpen && (
         <div className="fixed inset-0 z-50 lg:hidden">
           <div className="absolute inset-0 bg-black/70 backdrop-blur-sm" onClick={() => setMobileOpen(false)} />
-          <div className="absolute bottom-0 left-0 right-0 bg-cardBg border-t border-borderBg rounded-t-3xl p-5 max-h-[85vh] overflow-y-auto space-y-4">
+          <div className="absolute bottom-0 left-0 right-0 bg-[var(--card-bg)] border-t border-[var(--border-bg)] rounded-t-3xl p-5 max-h-[85vh] overflow-y-auto space-y-4">
             <div className="flex items-center justify-between">
               <h3 className="font-bold text-lg">Filters {activeFilterCount > 0 && <span className="text-brand text-sm">({activeFilterCount})</span>}</h3>
-              <button onClick={() => setMobileOpen(false)} className="p-2 hover:bg-hoverBg rounded-lg"><X className="w-4 h-4" /></button>
+              <button onClick={() => setMobileOpen(false)} className="p-2 hover:bg-[var(--hover-bg)] rounded-lg"><X className="w-4 h-4" /></button>
             </div>
             <FilterPanel />
             <button onClick={() => setMobileOpen(false)}
@@ -447,16 +447,16 @@ function SearchContent() {
       {saveModalOpen && (
         <div className="fixed inset-0 z-50 flex items-center justify-center p-4">
           <div className="absolute inset-0 bg-black/70 backdrop-blur-sm" onClick={() => setSaveModalOpen(false)} />
-          <div className="relative bg-cardBg border border-borderBg rounded-2xl p-6 w-full max-w-sm space-y-4 shadow-2xl">
+          <div className="relative bg-[var(--card-bg)] border border-[var(--border-bg)] rounded-2xl p-6 w-full max-w-sm space-y-4 shadow-2xl">
             <h3 className="font-bold text-lg">Save Current Search</h3>
             <input type="text" value={saveName} onChange={e => setSaveName(e.target.value)}
               placeholder="e.g. Free Fire Heroic accounts"
-              className="w-full bg-background border border-borderBg rounded-xl px-4 py-3 text-sm focus:outline-none focus:border-brand"
+              className="w-full bg-background border border-[var(--border-bg)] rounded-xl px-4 py-3 text-sm focus:outline-none focus:border-brand"
               autoFocus
               onKeyDown={e => { if (e.key === 'Enter') handleSaveSearch(); }} />
             <div className="flex gap-3">
               <button onClick={() => setSaveModalOpen(false)}
-                className="flex-1 border border-borderBg py-2.5 rounded-xl text-sm font-semibold hover:bg-hoverBg transition">Cancel</button>
+                className="flex-1 border border-[var(--border-bg)] py-2.5 rounded-xl text-sm font-semibold hover:bg-[var(--hover-bg)] transition">Cancel</button>
               <button onClick={handleSaveSearch} disabled={savingSearch || !saveName.trim()}
                 className="flex-1 bg-brand hover:bg-brand-dark py-2.5 rounded-xl text-sm font-bold text-white transition disabled:opacity-50">
                 {savingSearch ? 'Saving…' : 'Save'}

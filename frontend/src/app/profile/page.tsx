@@ -198,10 +198,10 @@ export default function ProfilePage() {
   };
 
   if (loading) return (
-    <div className="max-w-3xl mx-auto space-y-4 py-6">
-      <div className="h-28 bg-cardBg border border-borderBg rounded-2xl animate-pulse" />
-      <div className="h-12 bg-cardBg border border-borderBg rounded-xl animate-pulse w-64" />
-      <div className="h-64 bg-cardBg border border-borderBg rounded-2xl animate-pulse" />
+    <div className="max-w-2xl mx-auto space-y-4 py-6">
+      <div className="h-28 skeleton rounded-2xl" />
+      <div className="h-12 skeleton rounded-xl w-64" />
+      <div className="h-64 skeleton rounded-2xl" />
     </div>
   );
 
@@ -209,105 +209,119 @@ export default function ProfilePage() {
   const memberSince = profile?.createdAt ? new Date(profile.createdAt).toLocaleDateString('en', { month: 'short', year: 'numeric' }) : '';
 
   return (
-    <div className="max-w-3xl mx-auto space-y-5 py-4 fade-in">
+    <div className="max-w-2xl mx-auto space-y-5 py-4 fade-in">
       {toast && <Toast msg={toast.msg} ok={toast.ok} onClose={() => setToast(null)} />}
 
-      {/* Profile header */}
-      <div className="bg-cardBg border border-borderBg rounded-2xl p-5 md:p-6">
-        <div className="flex items-start gap-4">
+      {/* Page title */}
+      <div className="flex items-center justify-between">
+        <div>
+          <h1 className="text-xl font-black text-white flex items-center gap-2"><Settings className="w-5 h-5 text-brand" /> Profile Settings</h1>
+          <p className="text-gray-500 text-sm mt-0.5">Manage your account information, security and preferences.</p>
+        </div>
+        <button onClick={logout}
+          className="flex items-center gap-1.5 px-3 py-2 text-xs text-red-400 hover:bg-red-900/20 border border-red-500/20 rounded-xl transition">
+          <LogOut className="w-3.5 h-3.5" /> Sign out
+        </button>
+      </div>
+
+      {/* Profile card */}
+      <div className="bg-[var(--card-bg)] border border-[var(--border-bg)] rounded-2xl p-5">
+        <div className="flex items-center gap-4">
           <div className="relative flex-shrink-0">
             {avatarUrl ? (
-              <img src={avatarUrl} alt={initials} className="w-16 h-16 md:w-20 md:h-20 rounded-2xl object-cover border-2 border-borderBg" />
+              <img src={avatarUrl} alt={initials} className="w-16 h-16 rounded-2xl object-cover border-2 border-[var(--border-bg)]" />
             ) : (
-              <div className="w-16 h-16 md:w-20 md:h-20 rounded-2xl bg-gradient-to-br from-brand to-purple-600 flex items-center justify-center">
-                <span className="text-2xl font-black text-white">{initials}</span>
+              <div className="w-16 h-16 rounded-2xl bg-brand/15 border border-brand/25 flex items-center justify-center">
+                <span className="text-2xl font-black text-brand">{initials}</span>
               </div>
             )}
+            <label className="absolute -bottom-1 -right-1 w-6 h-6 bg-brand rounded-full flex items-center justify-center cursor-pointer hover:bg-brand-light transition shadow-lg">
+              <Camera className="w-3 h-3 text-black" />
+              <input type="file" accept="image/*" className="sr-only" onChange={async e => {
+                const file = e.target.files?.[0];
+                if (!file) return;
+                try {
+                  const url = await uploadAvatar(file);
+                  setAvatar(url);
+                } catch {
+                  const dataUrl = await fileToDataUrl(file);
+                  setAvatar(dataUrl);
+                }
+              }} />
+            </label>
           </div>
           <div className="flex-1 min-w-0">
-            <div className="flex items-start justify-between gap-2">
-              <div>
-                <h1 className="text-xl font-black truncate">{profile?.firstName} {profile?.lastName}</h1>
-                <p className="text-gray-500 text-sm truncate">{profile?.email}</p>
-                <p className="text-gray-600 text-xs mt-1">Member since {memberSince}</p>
-              </div>
-              <button onClick={logout}
-                className="flex-shrink-0 flex items-center gap-1.5 px-3 py-1.5 text-xs text-red-400 hover:bg-red-900/20 border border-red-500/20 rounded-xl transition">
-                <LogOut className="w-3.5 h-3.5" />
-                <span className="hidden sm:inline">Sign out</span>
-              </button>
-            </div>
-            <div className="flex items-center gap-2 mt-2 flex-wrap">
-              <span className={`text-xs font-bold px-2 py-0.5 rounded-full border ${
-                profile?.role === 'SELLER' ? 'bg-yellow-500/10 text-yellow-400 border-yellow-500/20' :
-                profile?.role === 'ADMIN' ? 'bg-red-500/10 text-red-400 border-red-500/20' :
-                'bg-brand/10 text-brand border-brand/20'
-              }`}>{profile?.role}</span>
-              {creatorProfile?.status === 'APPROVED' && (
-                <span className="text-xs font-bold px-2 py-0.5 rounded-full border bg-gradient-to-r from-yellow-500/20 to-amber-500/20 text-yellow-400 border-yellow-500/30 flex items-center gap-1">
-                  <Crown className="w-3 h-3" /> Creator
-                </span>
-              )}
-              {creatorProfile?.status === 'PENDING' && (
-                <Link href="/affiliate" className="text-xs font-medium px-2 py-0.5 rounded-full border bg-orange-500/10 text-orange-400 border-orange-500/20 flex items-center gap-1 hover:bg-orange-500/20 transition">
-                  <Crown className="w-3 h-3" /> Creator (Pending)
-                </Link>
-              )}
+            <h2 className="font-black text-white">{profile?.firstName} {profile?.lastName}</h2>
+            <p className="text-gray-500 text-sm truncate">{profile?.email}</p>
+            <div className="flex items-center gap-2 mt-1.5 flex-wrap">
+              <span className="text-[10px] text-gray-500">Member since {memberSince}</span>
               {profile?.emailVerified ? (
-                <span className="text-xs text-emerald-400 flex items-center gap-1 bg-emerald-900/20 px-2 py-0.5 rounded-full border border-emerald-500/20">
-                  <Check className="w-3 h-3" /> Verified
+                <span className="text-[10px] text-brand flex items-center gap-0.5 bg-brand/10 px-2 py-0.5 rounded-full border border-brand/20">
+                  <Check className="w-2.5 h-2.5" /> Verified
                 </span>
               ) : (
                 <button onClick={resendVerification}
-                  className="text-xs text-yellow-400 flex items-center gap-1 bg-yellow-900/20 px-2 py-0.5 rounded-full border border-yellow-500/20 hover:bg-yellow-900/30 transition">
-                  <AlertTriangle className="w-3 h-3" /> Verify email
+                  className="text-[10px] text-yellow-400 flex items-center gap-0.5 bg-yellow-900/20 px-2 py-0.5 rounded-full border border-yellow-500/20 hover:bg-yellow-900/30 transition">
+                  <AlertTriangle className="w-2.5 h-2.5" /> Verify email
                 </button>
               )}
+              <span className={`text-[10px] font-bold px-2 py-0.5 rounded-full border ${
+                profile?.role === 'SELLER' ? 'bg-brand/10 text-brand border-brand/20' :
+                profile?.role === 'ADMIN' || profile?.role === 'SUPER_ADMIN' ? 'bg-red-500/10 text-red-400 border-red-500/20' :
+                'bg-white/5 text-gray-400 border-white/10'
+              }`}>{profile?.role}</span>
             </div>
+          </div>
+          <div className="hidden sm:flex flex-col gap-2">
+            <Link href="/sell" className="flex items-center gap-1.5 bg-brand hover:bg-brand-light text-black font-bold text-xs px-4 py-2 rounded-xl transition">
+              Sell on Piyrox
+            </Link>
           </div>
         </div>
 
         {/* Quick links */}
-        <div className="grid grid-cols-4 gap-3 mt-5 pt-4 border-t border-borderBg">
-          <Link href="/orders" className="relative flex flex-col items-center gap-1 p-3 bg-hoverBg/40 rounded-xl hover:bg-hoverBg transition">
-            <Package className="w-5 h-5 text-brand" />
-            <span className="text-xs text-gray-400">Orders</span>
+        <div className="grid grid-cols-4 gap-2 mt-4 pt-4 border-t border-[var(--border-bg)]">
+          <Link href="/orders" className="relative flex flex-col items-center gap-1 p-3 bg-black/20 rounded-xl hover:bg-brand/10 hover:border-brand/20 border border-transparent transition">
+            <Package className="w-4 h-4 text-brand" />
+            <span className="text-[10px] text-gray-400">Orders</span>
             {activeOrderCount != null && activeOrderCount > 0 && (
-              <span className="absolute -top-1 -right-1 min-w-[18px] h-[18px] px-1 rounded-full bg-red-500 text-white text-[10px] font-bold flex items-center justify-center">
+              <span className="absolute -top-1 -right-1 min-w-[16px] h-4 px-1 rounded-full bg-brand text-black text-[9px] font-bold flex items-center justify-center">
                 {activeOrderCount > 9 ? '9+' : activeOrderCount}
               </span>
             )}
           </Link>
-          <Link href="/wallet" className="flex flex-col items-center gap-1 p-3 bg-hoverBg/40 rounded-xl hover:bg-hoverBg transition">
-            <Wallet className="w-5 h-5 text-brand" />
-            <span className="text-xs text-gray-400">Wallet</span>
+          <Link href="/wallet" className="flex flex-col items-center gap-1 p-3 bg-black/20 rounded-xl hover:bg-brand/10 hover:border-brand/20 border border-transparent transition">
+            <Wallet className="w-4 h-4 text-brand" />
+            <span className="text-[10px] text-gray-400">Wallet</span>
           </Link>
           {profile?.role === 'SELLER' ? (
-            <Link href="/seller/dashboard" className="flex flex-col items-center gap-1 p-3 bg-hoverBg/40 rounded-xl hover:bg-hoverBg transition">
-              <Settings className="w-5 h-5 text-brand" />
-              <span className="text-xs text-gray-400">Store</span>
+            <Link href="/seller/dashboard" className="flex flex-col items-center gap-1 p-3 bg-black/20 rounded-xl hover:bg-brand/10 hover:border-brand/20 border border-transparent transition">
+              <Settings className="w-4 h-4 text-brand" />
+              <span className="text-[10px] text-gray-400">Store</span>
             </Link>
           ) : (
-            <Link href="/sell" className="flex flex-col items-center gap-1 p-3 bg-hoverBg/40 rounded-xl hover:bg-hoverBg transition">
-              <Star className="w-5 h-5 text-brand" />
-              <span className="text-xs text-gray-400">Sell</span>
+            <Link href="/sell" className="flex flex-col items-center gap-1 p-3 bg-black/20 rounded-xl hover:bg-brand/10 hover:border-brand/20 border border-transparent transition">
+              <Star className="w-4 h-4 text-brand" />
+              <span className="text-[10px] text-gray-400">Sell</span>
             </Link>
           )}
-          <Link href="/affiliate" className="flex flex-col items-center gap-1 p-3 bg-hoverBg/40 rounded-xl hover:bg-hoverBg transition">
-            <Crown className={`w-5 h-5 ${creatorProfile?.status === 'APPROVED' ? 'text-yellow-400' : 'text-brand'}`} />
-            <span className="text-xs text-gray-400">{creatorProfile?.status === 'APPROVED' ? 'Creator' : 'Affiliate'}</span>
+          <Link href="/affiliate" className="flex flex-col items-center gap-1 p-3 bg-black/20 rounded-xl hover:bg-brand/10 hover:border-brand/20 border border-transparent transition">
+            <Crown className={`w-4 h-4 ${creatorProfile?.status === 'APPROVED' ? 'text-brand' : 'text-gray-500'}`} />
+            <span className="text-[10px] text-gray-400">{creatorProfile?.status === 'APPROVED' ? 'Creator' : 'Affiliate'}</span>
           </Link>
         </div>
       </div>
 
       {/* Tabs */}
-      <div className="flex overflow-x-auto scrollbar-none gap-1 bg-cardBg border border-borderBg rounded-xl p-1">
+      <div className="flex overflow-x-auto scrollbar-none gap-1 bg-[var(--card-bg)] border border-[var(--border-bg)] rounded-xl p-1">
         {TABS.map(t => {
           const Icon = t.icon;
           return (
             <button key={t.id} onClick={() => setTab(t.id)}
               className={`flex items-center gap-2 px-4 py-2.5 rounded-lg text-sm font-semibold transition whitespace-nowrap flex-1 justify-center ${
-                tab === t.id ? 'bg-brand text-white shadow-sm' : 'text-gray-400 hover:text-white hover:bg-hoverBg/50'
+                tab === t.id
+                  ? 'bg-brand text-black shadow-sm shadow-brand/30'
+                  : 'text-gray-400 hover:text-white hover:bg-white/5'
               }`}>
               <Icon className="w-4 h-4" />
               <span className="hidden sm:inline">{t.label}</span>
@@ -318,19 +332,19 @@ export default function ProfilePage() {
 
       {/* Tab: Account */}
       {tab === 'account' && (
-        <div className="bg-cardBg border border-borderBg rounded-2xl p-5 md:p-6 space-y-5">
-          <h2 className="text-lg font-bold flex items-center gap-2"><User className="w-5 h-5 text-brand" /> Personal Info</h2>
+        <div className="bg-[var(--card-bg)] border border-[var(--border-bg)] rounded-2xl p-5 md:p-6 space-y-5">
+          <h2 className="text-base font-black text-white flex items-center gap-2"><User className="w-5 h-5 text-brand" /> Personal Info</h2>
           <form onSubmit={saveProfile} className="space-y-4">
             <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
               <div>
                 <label className="block text-xs font-semibold text-gray-400 mb-1.5 uppercase tracking-wide">First Name</label>
                 <input type="text" value={firstName} onChange={e => setFirstName(e.target.value)}
-                  className="w-full bg-background border border-borderBg rounded-xl px-4 py-3 text-sm focus:outline-none focus:border-brand transition" />
+                  className="w-full bg-black/30 border border-[var(--border-bg)] rounded-xl px-4 py-3 text-sm focus:outline-none focus:border-brand transition" />
               </div>
               <div>
                 <label className="block text-xs font-semibold text-gray-400 mb-1.5 uppercase tracking-wide">Last Name</label>
                 <input type="text" value={lastName} onChange={e => setLastName(e.target.value)}
-                  className="w-full bg-background border border-borderBg rounded-xl px-4 py-3 text-sm focus:outline-none focus:border-brand transition" />
+                  className="w-full bg-black/30 border border-[var(--border-bg)] rounded-xl px-4 py-3 text-sm focus:outline-none focus:border-brand transition" />
               </div>
             </div>
             <div>
@@ -338,7 +352,7 @@ export default function ProfilePage() {
               <div className="relative">
                 <Mail className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-gray-500" />
                 <input type="email" value={profile?.email || ''} disabled
-                  className="w-full bg-hoverBg/40 border border-borderBg rounded-xl pl-10 pr-4 py-3 text-sm text-gray-500 cursor-not-allowed" />
+                  className="w-full bg-[var(--hover-bg)]/40 border border-[var(--border-bg)] rounded-xl pl-10 pr-4 py-3 text-sm text-gray-500 cursor-not-allowed" />
               </div>
             </div>
             <div>
@@ -347,12 +361,12 @@ export default function ProfilePage() {
                 <Phone className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-gray-500" />
                 <input type="tel" value={phone} onChange={e => setPhone(e.target.value)}
                   placeholder="+234 800 000 0000"
-                  className="w-full bg-background border border-borderBg rounded-xl pl-10 pr-4 py-3 text-sm focus:outline-none focus:border-brand transition" />
+                  className="w-full bg-background border border-[var(--border-bg)] rounded-xl pl-10 pr-4 py-3 text-sm focus:outline-none focus:border-brand transition" />
               </div>
             </div>
             <div>
               <label className="block text-xs font-semibold text-gray-400 mb-1.5 uppercase tracking-wide">Profile Picture</label>
-              <label className="flex items-center gap-2 cursor-pointer bg-background border border-borderBg rounded-xl px-4 py-3 text-sm text-gray-400 focus-within:border-brand transition overflow-hidden">
+              <label className="flex items-center gap-2 cursor-pointer bg-black/30 border border-[var(--border-bg)] rounded-xl px-4 py-3 text-sm text-gray-400 focus-within:border-brand transition overflow-hidden">
                 {avatarUrl ? <span className="truncate text-white">Image selected</span> : <span>Choose a photo…</span>}
                 <input type="file" accept="image/*" className="hidden"
                   onChange={async e => {
@@ -370,8 +384,8 @@ export default function ProfilePage() {
               <p className="text-xs text-gray-500 mt-1">Upload a photo from your device</p>
             </div>
             {avatarUrl && (
-              <div className="flex items-center gap-3 p-3 bg-hoverBg/40 rounded-xl border border-borderBg">
-                <img src={avatarUrl} alt="Preview" className="w-12 h-12 rounded-xl object-cover border border-borderBg" onError={e => { (e.target as HTMLImageElement).style.display = 'none' }} />
+              <div className="flex items-center gap-3 p-3 bg-[var(--hover-bg)]/40 rounded-xl border border-[var(--border-bg)]">
+                <img src={avatarUrl} alt="Preview" className="w-12 h-12 rounded-xl object-cover border border-[var(--border-bg)]" onError={e => { (e.target as HTMLImageElement).style.display = 'none' }} />
                 <span className="text-xs text-gray-400">Preview</span>
               </div>
             )}
@@ -385,21 +399,21 @@ export default function ProfilePage() {
 
       {/* Tab: Security */}
       {tab === 'security' && (
-        <div className="bg-cardBg border border-borderBg rounded-2xl p-5 md:p-6 space-y-5">
-          <h2 className="text-lg font-bold flex items-center gap-2"><Lock className="w-5 h-5 text-brand" /> Change Password</h2>
+        <div className="bg-[var(--card-bg)] border border-[var(--border-bg)] rounded-2xl p-5 md:p-6 space-y-5">
+          <h2 className="text-base font-black text-white flex items-center gap-2"><Lock className="w-5 h-5 text-brand" /> Change Password</h2>
           <form onSubmit={changePassword} className="space-y-4">
             <div>
               <label className="block text-xs font-semibold text-gray-400 mb-1.5 uppercase tracking-wide">Current Password</label>
               <input type="password" value={currentPw} onChange={e => setCurrentPw(e.target.value)}
                 placeholder="Your current password"
-                className="w-full bg-background border border-borderBg rounded-xl px-4 py-3 text-sm focus:outline-none focus:border-brand transition" />
+                className="w-full bg-black/30 border border-[var(--border-bg)] rounded-xl px-4 py-3 text-sm focus:outline-none focus:border-brand transition" />
             </div>
             <div>
               <label className="block text-xs font-semibold text-gray-400 mb-1.5 uppercase tracking-wide">New Password</label>
               <div className="relative">
                 <input type={showNewPw ? 'text' : 'password'} value={newPw} onChange={e => setNewPw(e.target.value)}
                   placeholder="Min. 8 characters"
-                  className="w-full bg-background border border-borderBg rounded-xl px-4 py-3 pr-11 text-sm focus:outline-none focus:border-brand transition" />
+                  className="w-full bg-black/30 border border-[var(--border-bg)] rounded-xl px-4 py-3 pr-11 text-sm focus:outline-none focus:border-brand transition" />
                 <button type="button" onClick={() => setShowNewPw(!showNewPw)}
                   className="absolute right-3 top-1/2 -translate-y-1/2 text-gray-500">
                   {showNewPw ? <EyeOff className="w-4 h-4" /> : <Eye className="w-4 h-4" />}
@@ -410,7 +424,7 @@ export default function ProfilePage() {
               <label className="block text-xs font-semibold text-gray-400 mb-1.5 uppercase tracking-wide">Confirm New Password</label>
               <input type="password" value={confirmPw} onChange={e => setConfirmPw(e.target.value)}
                 placeholder="Repeat new password"
-                className="w-full bg-background border border-borderBg rounded-xl px-4 py-3 text-sm focus:outline-none focus:border-brand transition" />
+                className="w-full bg-black/30 border border-[var(--border-bg)] rounded-xl px-4 py-3 text-sm focus:outline-none focus:border-brand transition" />
               {confirmPw && newPw !== confirmPw && (
                 <p className="text-xs text-red-400 mt-1 flex items-center gap-1"><AlertCircle className="w-3 h-3" /> Passwords don&apos;t match</p>
               )}
@@ -421,11 +435,11 @@ export default function ProfilePage() {
             </button>
           </form>
 
-          <div className="border-t border-borderBg pt-5">
+          <div className="border-t border-[var(--border-bg)] pt-5">
             <h3 className="text-sm font-bold text-white mb-3">Danger Zone</h3>
             <div className="space-y-3">
               <button onClick={logout}
-                className="flex items-center gap-2 px-4 py-2.5 border border-borderBg text-gray-300 hover:bg-hoverBg rounded-xl text-sm font-medium transition">
+                className="flex items-center gap-2 px-4 py-2.5 border border-[var(--border-bg)] text-gray-300 hover:bg-[var(--hover-bg)] rounded-xl text-sm font-medium transition">
                 <LogOut className="w-4 h-4" /> Sign Out
               </button>
               {!confirmDelete ? (
@@ -442,7 +456,7 @@ export default function ProfilePage() {
                       {saving ? <><Loader2 className="w-4 h-4 animate-spin" /> Deleting...</> : 'Confirm Delete'}
                     </button>
                     <button onClick={() => setConfirmDelete(false)}
-                      className="px-4 py-2 border border-borderBg text-gray-300 hover:bg-hoverBg rounded-xl text-sm font-medium transition">
+                      className="px-4 py-2 border border-[var(--border-bg)] text-gray-300 hover:bg-[var(--hover-bg)] rounded-xl text-sm font-medium transition">
                       Cancel
                     </button>
                   </div>
@@ -455,8 +469,8 @@ export default function ProfilePage() {
 
       {/* Tab: Notifications */}
       {tab === 'notifications' && (
-        <div className="bg-cardBg border border-borderBg rounded-2xl p-5 md:p-6 space-y-4">
-          <h2 className="text-lg font-bold flex items-center gap-2"><Bell className="w-5 h-5 text-brand" /> Notification Preferences</h2>
+        <div className="bg-[var(--card-bg)] border border-[var(--border-bg)] rounded-2xl p-5 md:p-6 space-y-4">
+          <h2 className="text-base font-black text-white flex items-center gap-2"><Bell className="w-5 h-5 text-brand" /> Notification Preferences</h2>
           <p className="text-xs text-gray-500">Manage how you receive notifications from Piyrox. Changes are saved automatically via the button below.</p>
           <div className="space-y-3">
             {[
@@ -466,7 +480,7 @@ export default function ProfilePage() {
               { key: 'payments', label: 'Payment Notifications', desc: 'When money hits your wallet' },
               { key: 'promotions', label: 'Promotions', desc: 'Special offers and new features' },
             ].map((item) => (
-              <div key={item.key} className="flex items-center justify-between p-4 bg-hoverBg/30 rounded-xl border border-borderBg/50">
+              <div key={item.key} className="flex items-center justify-between p-4 bg-[var(--hover-bg)]/30 rounded-xl border border-[var(--border-bg)]/50">
                 <div>
                   <p className="text-sm font-semibold text-white">{item.label}</p>
                   <p className="text-xs text-gray-500 mt-0.5">{item.desc}</p>
@@ -489,11 +503,11 @@ export default function ProfilePage() {
 
       {/* Tab: Verification */}
       {tab === 'verification' && (
-        <div className="bg-cardBg border border-borderBg rounded-2xl p-5 md:p-6 space-y-5">
-          <h2 className="text-lg font-bold flex items-center gap-2"><ShieldCheck className="w-5 h-5 text-brand" /> Account Verification</h2>
+        <div className="bg-[var(--card-bg)] border border-[var(--border-bg)] rounded-2xl p-5 md:p-6 space-y-5">
+          <h2 className="text-base font-black text-white flex items-center gap-2"><ShieldCheck className="w-5 h-5 text-brand" /> Account Verification</h2>
           <div className="space-y-3">
             {/* Email */}
-            <div className="flex items-center justify-between p-4 bg-hoverBg/30 rounded-xl border border-borderBg/50">
+            <div className="flex items-center justify-between p-4 bg-[var(--hover-bg)]/30 rounded-xl border border-[var(--border-bg)]/50">
               <div className="flex items-center gap-3">
                 <div className={`p-2 rounded-lg ${profile?.emailVerified ? 'bg-emerald-500/10' : 'bg-yellow-500/10'}`}>
                   <Mail className={`w-5 h-5 ${profile?.emailVerified ? 'text-emerald-400' : 'text-yellow-400'}`} />
@@ -521,7 +535,7 @@ export default function ProfilePage() {
             </div>
 
             {/* Phone */}
-            <div className="flex items-center justify-between p-4 bg-hoverBg/30 rounded-xl border border-borderBg/50">
+            <div className="flex items-center justify-between p-4 bg-[var(--hover-bg)]/30 rounded-xl border border-[var(--border-bg)]/50">
               <div className="flex items-center gap-3">
                 <div className="p-2 bg-gray-500/10 rounded-lg">
                   <Phone className="w-5 h-5 text-gray-400" />
@@ -538,7 +552,7 @@ export default function ProfilePage() {
             </div>
 
             {/* KYC */}
-            <div className="flex items-center justify-between p-4 bg-hoverBg/30 rounded-xl border border-borderBg/50">
+            <div className="flex items-center justify-between p-4 bg-[var(--hover-bg)]/30 rounded-xl border border-[var(--border-bg)]/50">
               <div className="flex items-center gap-3">
                 <div className="p-2 bg-gray-500/10 rounded-lg">
                   <ShieldCheck className="w-5 h-5 text-gray-400" />

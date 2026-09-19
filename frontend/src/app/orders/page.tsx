@@ -34,8 +34,8 @@ const STATUS_META: Record<string, { label: string; badge: string; icon: any; act
   IN_PROGRESS: { label: 'Confirm Receipt',    badge: 'bg-brand/10 text-brand-light border-brand/30',         icon: AlertTriangle, action: 'Confirm', urgent: true },
   COMPLETED:   { label: 'Completed',          badge: 'bg-emerald-950/40 text-emerald-400 border-emerald-500/25', icon: CheckCircle },
   DISPUTED:    { label: 'In Dispute',         badge: 'bg-red-950/40 text-red-400 border-red-500/25',         icon: AlertTriangle, action: 'View' },
-  CANCELLED:   { label: 'Cancelled',          badge: 'bg-gray-800/60 text-gray-400 border-borderBg',         icon: Package },
-  REFUNDED:    { label: 'Refunded',           badge: 'bg-gray-800/60 text-gray-400 border-borderBg',         icon: Package },
+  CANCELLED:   { label: 'Cancelled',          badge: 'bg-gray-800/60 text-gray-400 border-[var(--border-bg)]',         icon: Package },
+  REFUNDED:    { label: 'Refunded',           badge: 'bg-gray-800/60 text-gray-400 border-[var(--border-bg)]',         icon: Package },
 };
 
 function fmtCountdown(deadline: string | undefined): string | null {
@@ -99,7 +99,7 @@ export default function OrdersPage() {
   return (
     <div className="space-y-5 fade-in">
       {/* Header */}
-      <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 pb-5 border-b border-borderBg">
+      <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 pb-5 border-b border-[var(--border-bg)]">
         <div>
           <h1 className="text-3xl font-black text-white">Your Orders</h1>
           <p className="text-gray-400 mt-1 text-sm">Track deliveries, release escrow, and view receipts.</p>
@@ -119,7 +119,7 @@ export default function OrdersPage() {
           <div className="flex gap-2">
             {(['buyer', 'seller'] as const).map(mode => (
               <button key={mode} onClick={() => setViewMode(mode)}
-                className={`px-4 py-2 rounded-xl text-sm font-bold transition capitalize ${viewMode === mode ? 'bg-brand text-white shadow-lg shadow-brand/20' : 'bg-cardBg border border-borderBg text-gray-400 hover:text-white'}`}>
+                className={`px-4 py-2 rounded-xl text-sm font-bold transition capitalize ${viewMode === mode ? 'bg-brand text-white shadow-lg shadow-brand/20' : 'bg-[var(--card-bg)] border border-[var(--border-bg)] text-gray-400 hover:text-white'}`}>
                 {mode === 'buyer' ? '🛒 My Purchases' : '💰 My Sales'}
               </button>
             ))}
@@ -134,10 +134,10 @@ export default function OrdersPage() {
             return (
               <button key={s} onClick={() => setStatusFilter(s === 'All' ? '' : s)}
                 className={`px-3 py-1.5 rounded-lg text-xs font-bold border transition ${
-                  isActive ? 'bg-brand border-brand text-white' : 'bg-cardBg border-borderBg text-gray-400 hover:border-brand/40'
+                  isActive ? 'bg-brand border-brand text-white' : 'bg-[var(--card-bg)] border-[var(--border-bg)] text-gray-400 hover:border-brand/40'
                 }`}>
                 {s === 'All' ? 'All' : s.replace('_', ' ')}
-                {count > 0 && <span className={`ml-1.5 px-1.5 py-0.5 rounded text-[10px] ${isActive ? 'bg-white/20' : 'bg-hoverBg'}`}>{count}</span>}
+                {count > 0 && <span className={`ml-1.5 px-1.5 py-0.5 rounded text-[10px] ${isActive ? 'bg-white/20' : 'bg-[var(--hover-bg)]'}`}>{count}</span>}
               </button>
             );
           })}
@@ -148,10 +148,10 @@ export default function OrdersPage() {
           <div className="relative flex-1">
             <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-3.5 h-3.5 text-gray-500" />
             <input value={search} onChange={e => setSearch(e.target.value)} placeholder="Search orders..."
-              className="w-full bg-cardBg border border-borderBg rounded-xl pl-9 pr-4 py-2 text-sm focus:outline-none focus:border-brand transition" />
+              className="w-full bg-[var(--card-bg)] border border-[var(--border-bg)] rounded-xl pl-9 pr-4 py-2 text-sm focus:outline-none focus:border-brand transition" />
           </div>
           <select value={gameFilter} onChange={e => setGameFilter(e.target.value)}
-            className="bg-cardBg border border-borderBg rounded-xl px-3 py-2 text-sm text-white focus:outline-none focus:border-brand">
+            className="bg-[var(--card-bg)] border border-[var(--border-bg)] rounded-xl px-3 py-2 text-sm text-white focus:outline-none focus:border-brand">
             <option value="">All Games</option>
             {['Free Fire', 'PUBG Mobile', 'COD Mobile', 'Mobile Legends', 'Blood Strike'].map(g => (
               <option key={g} value={g}>{g}</option>
@@ -176,7 +176,7 @@ export default function OrdersPage() {
 
       {/* Orders list */}
       {filtered.length === 0 ? (
-        <div className="text-center py-20 bg-cardBg border border-borderBg rounded-3xl">
+        <div className="text-center py-20 bg-[var(--card-bg)] border border-[var(--border-bg)] rounded-3xl">
           <Package className="w-12 h-12 text-gray-700 mx-auto mb-3" />
           <p className="text-gray-400 font-semibold">{search ? 'No results found' : tab === 'active' ? 'No active orders' : "You haven't placed any orders yet."}</p>
           {!search && tab !== 'active' && viewMode === 'buyer' && (
@@ -188,7 +188,7 @@ export default function OrdersPage() {
       ) : (
         <div className="space-y-3">
           {filtered.map(order => {
-            const meta = STATUS_META[order.status] || { label: order.status, badge: 'bg-gray-800 text-gray-400 border-borderBg', icon: Package };
+            const meta = STATUS_META[order.status] || { label: order.status, badge: 'bg-gray-800 text-gray-400 border-[var(--border-bg)]', icon: Package };
             const Icon = meta.icon;
             const item = order.orderItems?.[0];
             const title = item?.listing?.title || (item as any)?.metadata?.title || 'Gaming Assets';
@@ -206,9 +206,9 @@ export default function OrdersPage() {
 
             return (
               <div key={order.id}
-                className={`bg-cardBg border rounded-2xl p-4 flex flex-col md:flex-row items-start md:items-center gap-4 transition ${needsUserAction ? 'border-brand/40 shadow-brand/8 shadow-sm' : 'border-borderBg hover:border-brand/20'}`}>
+                className={`bg-[var(--card-bg)] border rounded-2xl p-4 flex flex-col md:flex-row items-start md:items-center gap-4 transition ${needsUserAction ? 'border-brand/40 shadow-brand/8 shadow-sm' : 'border-[var(--border-bg)] hover:border-brand/20'}`}>
                 {/* Image */}
-                <div className={`w-12 h-12 rounded-xl overflow-hidden flex-shrink-0 flex items-center justify-center ${needsUserAction ? 'bg-brand/15' : 'bg-background border border-borderBg'}`}>
+                <div className={`w-12 h-12 rounded-xl overflow-hidden flex-shrink-0 flex items-center justify-center ${needsUserAction ? 'bg-brand/15' : 'bg-background border border-[var(--border-bg)]'}`}>
                   {img ? (
                     // eslint-disable-next-line @next/next/no-img-element
                     <img src={img} alt={title} className="w-full h-full object-cover" />
@@ -241,7 +241,7 @@ export default function OrdersPage() {
                 </div>
 
                 {/* Amount + actions */}
-                <div className="flex items-center gap-3 w-full md:w-auto justify-between border-t border-borderBg md:border-0 pt-3 md:pt-0">
+                <div className="flex items-center gap-3 w-full md:w-auto justify-between border-t border-[var(--border-bg)] md:border-0 pt-3 md:pt-0">
                   <div className="text-right">
                     <p className="text-xs text-gray-500">Amount</p>
                     <p className="text-lg font-black text-white">{fmt(order.totalAmount)}</p>

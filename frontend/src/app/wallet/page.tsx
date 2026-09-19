@@ -41,10 +41,10 @@ function StatCard({ label, value, sub, icon, highlight }: {
   label: string; value: string; sub?: string; icon: React.ReactNode; highlight?: boolean;
 }) {
   return (
-    <div className={`bg-cardBg border rounded-2xl p-5 space-y-3 ${highlight ? 'border-brand/30' : 'border-borderBg'}`}>
+    <div className={`bg-[var(--card-bg)] border rounded-2xl p-5 space-y-3 ${highlight ? 'border-brand/30' : 'border-[var(--border-bg)]'}`}>
       <div className="flex items-center justify-between">
         <p className="text-xs font-semibold text-gray-500 uppercase tracking-wider">{label}</p>
-        <div className={`w-8 h-8 rounded-lg flex items-center justify-center ${highlight ? 'bg-brand/10' : 'bg-hoverBg'}`}>
+        <div className={`w-8 h-8 rounded-lg flex items-center justify-center ${highlight ? 'bg-brand/10' : 'bg-[var(--hover-bg)]'}`}>
           {icon}
         </div>
       </div>
@@ -196,8 +196,8 @@ export default function WalletPage() {
       </div>
 
       {/* Transactions */}
-      <div className="bg-cardBg border border-borderBg rounded-2xl overflow-hidden">
-        <div className="flex items-center justify-between px-6 py-4 border-b border-borderBg">
+      <div className="bg-[var(--card-bg)] border border-[var(--border-bg)] rounded-2xl overflow-hidden">
+        <div className="flex items-center justify-between px-6 py-4 border-b border-[var(--border-bg)]">
           <h3 className="font-bold">Transaction History</h3>
           <span className="text-xs text-gray-500">{transactions.length} records</span>
         </div>
@@ -213,7 +213,7 @@ export default function WalletPage() {
               const cfg = TYPE_CONFIG[t.type] || TYPE_CONFIG.DEBIT;
               const isCredit = ['CREDIT', 'RELEASE', 'REFUND'].includes(t.type);
               return (
-                <div key={t.id} className="flex items-center gap-4 px-6 py-4 hover:bg-hoverBg/30 transition">
+                <div key={t.id} className="flex items-center gap-4 px-6 py-4 hover:bg-[var(--hover-bg)]/30 transition">
                   <div className={`w-9 h-9 rounded-xl flex items-center justify-center border ${cfg.bg} flex-shrink-0`}>
                     {isCredit
                       ? <ArrowDownLeft className={`w-4 h-4 ${cfg.color}`} />
@@ -240,12 +240,12 @@ export default function WalletPage() {
       {/* Topup Modal */}
       {showTopupModal && (
         <div className="fixed inset-0 bg-black/70 backdrop-blur-sm flex items-center justify-center z-50 p-4">
-          <div className="bg-cardBg border border-borderBg rounded-2xl w-full max-w-md p-6 space-y-5 shadow-2xl fade-in">
+          <div className="bg-[var(--card-bg)] border border-[var(--border-bg)] rounded-2xl w-full max-w-md p-6 space-y-5 shadow-2xl fade-in">
             <div className="flex items-center justify-between">
               <h3 className="text-lg font-bold flex items-center gap-2">
                 <CreditCard className="w-5 h-5 text-emerald-400" /> Add Funds
               </h3>
-              <button onClick={() => setTopupModal(false)} className="p-2 hover:bg-hoverBg rounded-lg transition">
+              <button onClick={() => setTopupModal(false)} className="p-2 hover:bg-[var(--hover-bg)] rounded-lg transition">
                 <X className="w-4 h-4" />
               </button>
             </div>
@@ -260,7 +260,7 @@ export default function WalletPage() {
                   const display = fmt(usd);
                   return (
                     <button key={usd} onClick={() => setTopupAmount(String(localAmt))}
-                      className={`py-2 rounded-xl text-sm font-bold border transition ${topupAmount === String(localAmt) ? 'bg-brand border-brand text-white' : 'bg-background border-borderBg text-gray-300 hover:border-brand/40'}`}>
+                      className={`py-2 rounded-xl text-sm font-bold border transition ${topupAmount === String(localAmt) ? 'bg-brand border-brand text-white' : 'bg-black/30 border-[var(--border-bg)] text-gray-300 hover:border-brand/40'}`}>
                       {display}
                     </button>
                   );
@@ -275,7 +275,7 @@ export default function WalletPage() {
                 </label>
                 <input type="number" required min="1" step="0.01"
                   value={topupAmount} onChange={e => setTopupAmount(e.target.value)}
-                  className="w-full bg-background border border-borderBg rounded-xl px-4 py-3 text-sm focus:outline-none focus:border-brand"
+                  className="w-full bg-black/30 border border-[var(--border-bg)] rounded-xl px-4 py-3 text-sm focus:outline-none focus:border-brand"
                   placeholder={`Enter amount in ${currencyCode}`} />
               </div>
               <div>
@@ -283,7 +283,7 @@ export default function WalletPage() {
                 <div className="space-y-2">
                   {([['FLUTTERWAVE', 'Card / Mobile Money', 'Via Flutterwave'], ['PAYMENT_IO', 'Crypto (USDT)', 'Via Paymento']] as const).map(([val, label, sub]) => (
                     <button key={val} type="button" onClick={() => setTopupProvider(val)}
-                      className={`w-full flex items-center gap-3 p-3 rounded-xl border transition ${topupProvider === val ? 'border-brand bg-brand/5' : 'border-borderBg bg-background hover:border-brand/30'}`}>
+                      className={`w-full flex items-center gap-3 p-3 rounded-xl border transition ${topupProvider === val ? 'border-brand bg-brand/5' : 'border-[var(--border-bg)] bg-black/30 hover:border-brand/30'}`}>
                       <div className={`w-4 h-4 rounded-full border-2 flex items-center justify-center flex-shrink-0 ${topupProvider === val ? 'border-brand' : 'border-gray-600'}`}>
                         {topupProvider === val && <div className="w-2 h-2 rounded-full bg-brand" />}
                       </div>
@@ -298,7 +298,7 @@ export default function WalletPage() {
 
               <div className="flex gap-3 pt-1">
                 <button type="button" onClick={() => setTopupModal(false)}
-                  className="flex-1 border border-borderBg py-3 rounded-xl text-sm font-semibold hover:bg-hoverBg transition">
+                  className="flex-1 border border-[var(--border-bg)] py-3 rounded-xl text-sm font-semibold hover:bg-[var(--hover-bg)] transition">
                   Cancel
                 </button>
                 <button type="submit" disabled={topupPending || !topupAmount}
@@ -314,15 +314,15 @@ export default function WalletPage() {
       {/* Withdrawal Modal */}
       {showModal && (
         <div className="fixed inset-0 bg-black/70 backdrop-blur-sm flex items-center justify-center z-50 p-4">
-          <div className="bg-cardBg border border-borderBg rounded-2xl w-full max-w-md p-6 space-y-5 shadow-2xl fade-in">
+          <div className="bg-[var(--card-bg)] border border-[var(--border-bg)] rounded-2xl w-full max-w-md p-6 space-y-5 shadow-2xl fade-in">
             <div className="flex items-center justify-between">
               <h3 className="text-lg font-bold">Withdraw Funds</h3>
-              <button onClick={() => setShowModal(false)} className="p-2 hover:bg-hoverBg rounded-lg transition">
+              <button onClick={() => setShowModal(false)} className="p-2 hover:bg-[var(--hover-bg)] rounded-lg transition">
                 <X className="w-4 h-4" />
               </button>
             </div>
 
-            <div className="bg-hoverBg/40 border border-borderBg rounded-xl px-4 py-3 flex items-center justify-between">
+            <div className="bg-[var(--hover-bg)]/40 border border-[var(--border-bg)] rounded-xl px-4 py-3 flex items-center justify-between">
               <span className="text-xs text-gray-500">Available balance</span>
               <span className="font-black text-lg">{fmt(wallet?.balance || 0)}</span>
             </div>
@@ -331,7 +331,7 @@ export default function WalletPage() {
               <div>
                 <label className="block text-xs font-semibold text-gray-400 mb-1.5 uppercase tracking-wide">Method</label>
                 <select value={method} onChange={e => setMethod(e.target.value)} required
-                  className="w-full bg-background border border-borderBg rounded-xl px-4 py-3 text-sm focus:outline-none focus:border-brand">
+                  className="w-full bg-black/30 border border-[var(--border-bg)] rounded-xl px-4 py-3 text-sm focus:outline-none focus:border-brand">
                   <option value="bank">Bank Transfer (NGN / GHS)</option>
                   <option value="crypto">USDT — TRC-20</option>
                   <option value="paypal">PayPal</option>
@@ -340,24 +340,24 @@ export default function WalletPage() {
               <div>
                 <label className="block text-xs font-semibold text-gray-400 mb-1.5 uppercase tracking-wide">Amount ({currencyCode})</label>
                 <input type="number" required min="1" step="0.01" value={withdrawAmount} onChange={e => setAmount(e.target.value)}
-                  className="w-full bg-background border border-borderBg rounded-xl px-4 py-3 text-sm focus:outline-none focus:border-brand"
+                  className="w-full bg-black/30 border border-[var(--border-bg)] rounded-xl px-4 py-3 text-sm focus:outline-none focus:border-brand"
                   placeholder="0.00" />
               </div>
               <div>
                 <label className="block text-xs font-semibold text-gray-400 mb-1.5 uppercase tracking-wide">Destination</label>
                 <input type="text" required value={destination} onChange={e => setDest(e.target.value)}
-                  className="w-full bg-background border border-borderBg rounded-xl px-4 py-3 text-sm focus:outline-none focus:border-brand"
+                  className="w-full bg-black/30 border border-[var(--border-bg)] rounded-xl px-4 py-3 text-sm focus:outline-none focus:border-brand"
                   placeholder={method === 'crypto' ? 'USDT wallet address' : 'Account number & bank name'} />
               </div>
 
-              <div className="flex items-start gap-2 bg-background border border-borderBg rounded-xl px-4 py-3 text-xs text-gray-500">
+              <div className="flex items-start gap-2 bg-black/30 border border-[var(--border-bg)] rounded-xl px-4 py-3 text-xs text-gray-500">
                 <Clock className="w-4 h-4 text-brand flex-shrink-0 mt-0.5" />
                 <span>Requests are processed within 24–48 hours after security review.</span>
               </div>
 
               <div className="flex gap-3 pt-1">
                 <button type="button" onClick={() => setShowModal(false)}
-                  className="flex-1 border border-borderBg py-3 rounded-xl text-sm font-semibold hover:bg-hoverBg transition">
+                  className="flex-1 border border-[var(--border-bg)] py-3 rounded-xl text-sm font-semibold hover:bg-[var(--hover-bg)] transition">
                   Cancel
                 </button>
                 <button type="submit" disabled={submitting}

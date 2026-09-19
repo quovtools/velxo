@@ -240,7 +240,7 @@ export default function RootLayout({
             <AppLoader />
             <NavigationWrapper />
             <ActiveOrderBanner />
-            <main className="flex-1 w-full max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-6 pb-24 sm:pb-6">
+            <main className="flex-1 w-full max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-6 pb-24 sm:pb-6 [&:has([data-fullscreen])]:p-0 [&:has([data-fullscreen])]:max-w-none">
               {children}
             </main>
             <InstallPrompt />
