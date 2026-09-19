@@ -367,18 +367,7 @@ export default function ListingDetailsContent({ id, initialData }: { id: string;
               onClose={() => setReportOpen(false)}
               sellerId={listing.seller?.id || ''}
               sellerName={listing.seller?.storeName || ''}
-                <button
-                  onClick={() => setMediaTab('video')}
-                  className={`flex items-center gap-1.5 px-5 py-3 text-xs font-bold transition border-b-2 ${
-                    mediaTab === 'video'
-                      ? 'border-brand text-white'
-                      : 'border-transparent text-gray-500 hover:text-gray-300'
-                  }`}
-                >
-                  <Video className="w-3.5 h-3.5" /> Video
-                </button>
-              </div>
-            )}
+            />
 
             {/* Video player */}
             {mediaTab === 'video' && hasVideo && (
