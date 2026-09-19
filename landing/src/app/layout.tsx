@@ -246,17 +246,14 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
     <html lang="en" className={inter.variable}>
       <head>
         {/* ── Google Analytics ── */}
-        {/* FIX S6: GA ID read from env var — never hardcoded in source. */}
-        {process.env.NEXT_PUBLIC_GA_MEASUREMENT_ID && (
-          <>
-            <script async src={`https://www.googletagmanager.com/gtag/js?id=${process.env.NEXT_PUBLIC_GA_MEASUREMENT_ID}`} />
-            <script
-              dangerouslySetInnerHTML={{
-                __html: `window.dataLayer=window.dataLayer||[];function gtag(){dataLayer.push(arguments);}gtag('js',new Date());gtag('config','${process.env.NEXT_PUBLIC_GA_MEASUREMENT_ID}');`,
-              }}
-            />
-          </>
-        )}
+        <script async src="https://www.googletagmanager.com/gtag/js?id=G-45XXFLG13T" />
+        <script
+          dangerouslySetInnerHTML={{
+            __html: `window.dataLayer=window.dataLayer||[];function gtag(){dataLayer.push(arguments);}gtag('js',new Date());gtag('config','G-45XXFLG13T');`,
+          }}
+        />
+        {/* ── Ahrefs Analytics ── */}
+        <script src="https://analytics.ahrefs.com/analytics.js" data-key="ZEtZDUg+ngOI9yfVW9Ff6w" async />
         <link rel="icon" href="/favicon.png" />
         <link rel="apple-touch-icon" href="/favicon.png" />
         {/* Inline theme script prevents flash-of-wrong-theme */}

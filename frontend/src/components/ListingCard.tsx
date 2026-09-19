@@ -2,7 +2,7 @@
 
 import { useState } from 'react'
 import Link from 'next/link'
-import { Gamepad2, Star, Flame, Clock } from 'lucide-react'
+import { Gamepad2, Star, Flame, Clock, ShieldCheck } from 'lucide-react'
 import { useCurrency } from '@/lib/useCurrency'
 
 export interface ListingCardData {
@@ -37,6 +37,7 @@ export default function ListingCard({ item }: { item: ListingCardData }) {
       {/* Full-card navigation overlay */}
       <Link href={`/listings/${item.id}`} aria-label={item.title} className="absolute inset-0 z-0" />
 
+      {/* Image area */}
       <div className="h-44 bg-gradient-to-br from-background to-cardBg relative overflow-hidden">
         {img && !imgError ? (
           // eslint-disable-next-line @next/next/no-img-element
@@ -49,32 +50,35 @@ export default function ListingCard({ item }: { item: ListingCardData }) {
             onError={() => setImgError(true)}
           />
         ) : (
-          <div className="w-full h-full bg-gradient-to-br from-brand/20 via-cardBg to-background flex flex-col items-center justify-center gap-1">
-            <Gamepad2 className="w-10 h-10 text-brand/40" />
+          <div className="w-full h-full bg-gradient-to-br from-brand/10 via-cardBg to-background flex flex-col items-center justify-center gap-1">
+            <Gamepad2 className="w-10 h-10 text-brand/30" />
             <span className="text-[10px] text-gray-500">No image</span>
           </div>
         )}
         <div className="absolute inset-0 bg-gradient-to-t from-black/70 via-black/5 to-transparent pointer-events-none" />
+
         {item.isFeatured && (
-          <span className="flex items-center gap-0.5 text-[10px] font-bold text-white absolute top-2 right-2 bg-gradient-to-r from-orange-500 to-amber-500 px-1.5 py-0.5 rounded-full shadow-md">
+          <span className="flex items-center gap-0.5 text-[10px] font-bold text-black absolute top-2 right-2 bg-brand px-1.5 py-0.5 rounded-full shadow-md">
             <Flame className="w-3 h-3" /> Hot
           </span>
         )}
         {sold && (
-          <span className="absolute top-2 left-2 bg-black/60 text-gray-200 text-[10px] font-bold px-2 py-0.5 rounded backdrop-blur-sm">
+          <span className="absolute top-2 left-2 bg-black/70 text-gray-300 text-[10px] font-bold px-2 py-0.5 rounded backdrop-blur-sm border border-white/10">
             Sold
           </span>
         )}
         {item.platform && (
-          <span className="absolute bottom-2 left-2 text-[10px] font-semibold text-white/90 bg-black/40 px-2 py-0.5 rounded backdrop-blur-sm">
+          <span className="absolute bottom-2 left-2 text-[10px] font-semibold text-white/90 bg-black/50 px-2 py-0.5 rounded backdrop-blur-sm">
             {item.platform}
           </span>
         )}
       </div>
 
+      {/* Body */}
       <div className="p-4 flex-1 flex flex-col justify-between space-y-3">
         <div>
-          <span className="inline-block bg-brand/10 text-brand-light text-[10px] font-bold px-2 py-0.5 rounded border border-brand/20 uppercase tracking-wide truncate max-w-full mb-2">
+          {/* Game tag */}
+          <span className="inline-block bg-brand/10 text-brand text-[10px] font-bold px-2 py-0.5 rounded border border-brand/20 uppercase tracking-wide truncate max-w-full mb-2">
             {item.gameName}
           </span>
           <h3 className="font-bold text-sm text-white line-clamp-2 leading-snug group-hover:text-brand transition">
@@ -89,10 +93,8 @@ export default function ListingCard({ item }: { item: ListingCardData }) {
               >
                 {item.seller.storeName}
                 {item.seller.verified && (
-                  <svg viewBox="0 0 24 24" className="w-3 h-3 text-brand fill-brand flex-shrink-0" aria-label="Verified">
-                    <path d="M12 2l2.4 1.8 3 .1 1 2.8 2.4 1.8-1 2.8 1 2.8-2.4 1.8-1 2.8-3 .1L12 22l-2.4-1.8-3-.1-1-2.8L3.2 15.5l1-2.8-1-2.8 2.4-1.8 1-2.8 3-.1z" />
-                    <path d="M10.5 14.6l-2.1-2.1 1.1-1.1 1 1 3-3 1.1 1.1z" fill="#fff" />
-                  </svg>
+                  /* Gold verified badge */
+                  <ShieldCheck className="w-3 h-3 text-brand flex-shrink-0" aria-label="Verified" />
                 )}
               </Link>
             ) : (
@@ -115,15 +117,18 @@ export default function ListingCard({ item }: { item: ListingCardData }) {
             </div>
           )}
         </div>
+
+        {/* Price + CTA */}
         <div className="flex items-center justify-between border-t border-borderBg pt-3">
           <div className="flex flex-col">
             <span className="text-[10px] text-gray-500 font-medium leading-none">Price</span>
             <span className="text-lg font-black text-white tracking-tight leading-tight">{fmt(item.price)}</span>
           </div>
+          {/* Gold CTA — black bg, gold text */}
           <Link
             href={`/listings/${item.id}`}
             onClick={(e) => e.stopPropagation()}
-            className="relative z-10 bg-gradient-to-r from-brand to-brand-dark px-3.5 py-1.5 rounded-lg text-xs font-bold text-white transition group-hover:shadow-md group-hover:shadow-brand/40 group-hover:scale-[1.03]"
+            className="relative z-10 bg-brand hover:bg-brand-light px-3.5 py-1.5 rounded-lg text-xs font-bold text-black transition group-hover:shadow-md group-hover:shadow-brand/30 group-hover:scale-[1.03]"
           >
             Buy Now
           </Link>

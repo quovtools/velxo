@@ -6,8 +6,7 @@ import { useState } from 'react';
 import {
   MessageSquare, Wallet, User, PlusCircle, LayoutDashboard,
   ShieldCheck, LogOut, Menu, X, Search, Home, Users,
-  ShoppingBag, Bell, Award, Sun, Moon, Check, Gamepad2,
-  Zap,
+  ShoppingBag, Bell, Award, Sun, Moon, Gamepad2,
 } from 'lucide-react';
 import Marquee from '@/components/Marquee';
 import SectionNav from '@/components/SectionNav';
@@ -21,35 +20,35 @@ export default function NavigationWrapper() {
   const [mobileOpen, setMobileOpen] = useState(false);
   const { unread: unreadNotifications } = useNotifications();
 
-  // Sellers get the seller dashboard (orders, store, payouts, create listing)
-  // from the Sell entry point; everyone else is taken to create a listing.
   const sellHref = role === 'SELLER' ? '/seller/dashboard' : '/sell';
 
   return (
     <>
       {/* ── Desktop / Top Nav ── */}
-      <header className="border-b border-borderBg bg-cardBg sticky top-0 z-50 backdrop-blur-md bg-opacity-90">
+      <header className="border-b border-borderBg bg-cardBg sticky top-0 z-50 backdrop-blur-md bg-opacity-95">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 h-14 md:h-16 flex items-center justify-between">
+
           {/* Logo */}
           <div className="flex items-center gap-4 md:gap-8">
-            <Link href="/" className="flex items-center gap-2" onClick={() => setMobileOpen(false)}>
+            <Link href="/" className="flex items-center gap-2.5" onClick={() => setMobileOpen(false)}>
               <img src="/logo-new.png" alt="Piyrox" className="w-8 h-8 rounded-xl object-contain" />
-              <span className="text-xl md:text-2xl font-black tracking-wider">PIYROX</span>
+              <span className="text-xl md:text-2xl font-black tracking-widest text-white">PIYROX</span>
             </Link>
+
             {/* Desktop nav links */}
-            <nav className="hidden md:flex items-center gap-6 text-sm font-medium text-gray-300">
-              <Link href="/" className="hover:text-brand transition">Browse</Link>
-              <Link href="/sell" className="hover:text-brand transition flex items-center gap-1.5">
+            <nav className="hidden md:flex items-center gap-6 text-sm font-medium text-gray-400">
+              <Link href="/" className="hover:text-brand transition-colors">Browse</Link>
+              <Link href="/sell" className="hover:text-brand transition-colors flex items-center gap-1.5">
                 <PlusCircle className="w-4 h-4" />
                 Sell
               </Link>
-              <Link href="/escrow" className="hover:text-brand transition">How it Works</Link>
-              <Link href="/boosting" className="hover:text-brand transition flex items-center gap-1.5">
+              <Link href="/escrow" className="hover:text-brand transition-colors">How it Works</Link>
+              <Link href="/boosting" className="hover:text-brand transition-colors flex items-center gap-1.5">
                 <Gamepad2 className="w-4 h-4" />
                 Boosting
               </Link>
-              <Link href="/pricing" className="hover:text-brand transition">Pricing</Link>
-              <Link href="/affiliate" className="hover:text-brand transition flex items-center gap-1.5">
+              <Link href="/pricing" className="hover:text-brand transition-colors">Pricing</Link>
+              <Link href="/affiliate" className="hover:text-brand transition-colors flex items-center gap-1.5">
                 <Users className="w-4 h-4" />
                 Refer
               </Link>
@@ -58,10 +57,9 @@ export default function NavigationWrapper() {
 
           {/* Right side */}
           <div className="flex items-center gap-2 md:gap-3">
-            {/* Currency selector — always visible */}
             <CurrencySelector />
 
-            {/* Theme toggle - always visible on the nav bar */}
+            {/* Theme toggle */}
             <button
               onClick={toggleTheme}
               className="p-2 text-gray-500 hover:text-brand transition rounded-lg hover:bg-brand/10"
@@ -74,35 +72,36 @@ export default function NavigationWrapper() {
             {user ? (
               <>
                 <NotificationBell />
-                <Link href="/messages" className="hidden sm:flex text-gray-300 hover:text-brand p-2 transition" title="Messages">
+                <Link href="/messages" className="hidden sm:flex text-gray-400 hover:text-brand p-2 transition" title="Messages">
                   <MessageSquare className="w-5 h-5" />
                 </Link>
-                <Link href="/wallet" className="hidden sm:flex text-gray-300 hover:text-brand p-2 transition" title="Wallet">
+                <Link href="/wallet" className="hidden sm:flex text-gray-400 hover:text-brand p-2 transition" title="Wallet">
                   <Wallet className="w-5 h-5" />
                 </Link>
                 {role === 'SELLER' && (
-                  <Link href="/seller/dashboard" className="hidden sm:flex text-gray-300 hover:text-brand p-2 transition" title="Seller Dashboard">
+                  <Link href="/seller/dashboard" className="hidden sm:flex text-gray-400 hover:text-brand p-2 transition" title="Seller Dashboard">
                     <LayoutDashboard className="w-5 h-5" />
                   </Link>
                 )}
                 {(role === 'ADMIN' || role === 'SUPER_ADMIN') && (
-                  <Link href="/admin" className="hidden sm:flex text-red-400 hover:text-red-300 p-2 transition" title="Admin">
+                  <Link href="/admin" className="hidden sm:flex text-gray-500 hover:text-white p-2 transition" title="Admin">
                     <ShieldCheck className="w-5 h-5" />
                   </Link>
                 )}
-                <Link href="/profile" className="hidden sm:flex text-gray-300 hover:text-brand p-2 transition" title="Profile">
+                <Link href="/profile" className="hidden sm:flex text-gray-400 hover:text-brand p-2 transition" title="Profile">
                   <User className="w-5 h-5" />
                 </Link>
-                <button onClick={logout} className="hidden sm:flex text-gray-400 hover:text-red-400 p-2 transition" title="Logout">
+                <button onClick={logout} className="hidden sm:flex text-gray-500 hover:text-white p-2 transition" title="Logout">
                   <LogOut className="w-5 h-5" />
                 </button>
               </>
             ) : (
               <div className="hidden sm:flex items-center gap-2">
-                <Link href="/auth/login" className="text-sm font-medium text-gray-300 hover:text-brand transition px-3 py-2">
+                <Link href="/auth/login" className="text-sm font-medium text-gray-400 hover:text-white transition px-3 py-2">
                   Sign In
                 </Link>
-                <Link href="/auth/register" className="bg-brand hover:bg-brand-dark px-4 py-2 rounded-lg text-sm font-semibold transition shadow-lg shadow-brand/20 text-white">
+                {/* Gold CTA */}
+                <Link href="/auth/register" className="bg-brand hover:bg-brand-light px-4 py-2 rounded-lg text-sm font-bold transition shadow-lg shadow-brand/20 text-black">
                   Register
                 </Link>
               </div>
@@ -131,23 +130,23 @@ export default function NavigationWrapper() {
             <Link href={sellHref} onClick={() => setMobileOpen(false)} className="flex items-center gap-3 px-3 py-3 rounded-xl text-gray-300 hover:bg-background hover:text-white transition text-sm font-medium">
               <PlusCircle className="w-4 h-4" /> {role === 'SELLER' ? 'Seller Dashboard' : 'Sell a Product'}
             </Link>
-             <Link href="/escrow" onClick={() => setMobileOpen(false)} className="flex items-center gap-3 px-3 py-3 rounded-xl text-gray-300 hover:bg-background hover:text-white transition text-sm font-medium">
-               <ShieldCheck className="w-4 h-4" /> How Escrow Works
-             </Link>
-             <Link href="/pricing" onClick={() => setMobileOpen(false)} className="flex items-center gap-3 px-3 py-3 rounded-xl text-gray-300 hover:bg-background hover:text-white transition text-sm font-medium">
-               <Wallet className="w-4 h-4" /> Pricing & Fees
-             </Link>
-              <Link href="/affiliate" onClick={() => setMobileOpen(false)} className="flex items-center gap-3 px-3 py-3 rounded-xl text-gray-300 hover:bg-background hover:text-white transition text-sm font-medium">
-                <Users className="w-4 h-4" /> Refer & Earn
-              </Link>
+            <Link href="/escrow" onClick={() => setMobileOpen(false)} className="flex items-center gap-3 px-3 py-3 rounded-xl text-gray-300 hover:bg-background hover:text-white transition text-sm font-medium">
+              <ShieldCheck className="w-4 h-4" /> How Escrow Works
+            </Link>
+            <Link href="/pricing" onClick={() => setMobileOpen(false)} className="flex items-center gap-3 px-3 py-3 rounded-xl text-gray-300 hover:bg-background hover:text-white transition text-sm font-medium">
+              <Wallet className="w-4 h-4" /> Pricing & Fees
+            </Link>
+            <Link href="/affiliate" onClick={() => setMobileOpen(false)} className="flex items-center gap-3 px-3 py-3 rounded-xl text-gray-300 hover:bg-background hover:text-white transition text-sm font-medium">
+              <Users className="w-4 h-4" /> Refer & Earn
+            </Link>
 
-              {/* Currency selector in mobile menu */}
-              <div className="flex items-center gap-3 px-3 py-2.5">
-                <span className="text-xs text-gray-500 font-semibold uppercase tracking-wide">Currency</span>
-                <CurrencySelector />
-              </div>
+            {/* Currency selector in mobile menu */}
+            <div className="flex items-center gap-3 px-3 py-2.5">
+              <span className="text-xs text-gray-500 font-semibold uppercase tracking-wide">Currency</span>
+              <CurrencySelector />
+            </div>
 
-              {user ? (
+            {user ? (
               <>
                 <div className="border-t border-borderBg my-2" />
                 <Link href="/messages" onClick={() => setMobileOpen(false)} className="flex items-center gap-3 px-3 py-3 rounded-xl text-gray-300 hover:bg-background hover:text-white transition text-sm font-medium">
@@ -165,14 +164,14 @@ export default function NavigationWrapper() {
                   </Link>
                 )}
                 {(role === 'ADMIN' || role === 'SUPER_ADMIN') && (
-                  <Link href="/admin" onClick={() => setMobileOpen(false)} className="flex items-center gap-3 px-3 py-3 rounded-xl text-red-400 hover:bg-background transition text-sm font-medium">
+                  <Link href="/admin" onClick={() => setMobileOpen(false)} className="flex items-center gap-3 px-3 py-3 rounded-xl text-gray-400 hover:bg-background hover:text-white transition text-sm font-medium">
                     <ShieldCheck className="w-4 h-4" /> Admin Panel
                   </Link>
                 )}
                 <div className="border-t border-borderBg my-2" />
                 <button
                   onClick={() => { logout(); setMobileOpen(false); }}
-                  className="w-full flex items-center gap-3 px-3 py-3 rounded-xl text-red-400 hover:bg-background transition text-sm font-medium"
+                  className="w-full flex items-center gap-3 px-3 py-3 rounded-xl text-gray-400 hover:bg-background hover:text-white transition text-sm font-medium"
                 >
                   <LogOut className="w-4 h-4" /> Sign Out
                 </button>
@@ -180,10 +179,11 @@ export default function NavigationWrapper() {
             ) : (
               <>
                 <div className="border-t border-borderBg my-2" />
-                <Link href="/auth/login" onClick={() => setMobileOpen(false)} className="flex items-center justify-center gap-2 px-4 py-3 rounded-xl border border-borderBg text-gray-300 hover:border-brand/40 transition text-sm font-semibold">
+                <Link href="/auth/login" onClick={() => setMobileOpen(false)} className="flex items-center justify-center gap-2 px-4 py-3 rounded-xl border border-borderBg text-gray-300 hover:border-brand/40 hover:text-white transition text-sm font-semibold">
                   Sign In
                 </Link>
-                <Link href="/auth/register" onClick={() => setMobileOpen(false)} className="flex items-center justify-center gap-2 px-4 py-3 rounded-xl bg-brand hover:bg-brand-dark text-white transition text-sm font-semibold shadow-lg shadow-brand/20">
+                {/* Gold register CTA */}
+                <Link href="/auth/register" onClick={() => setMobileOpen(false)} className="flex items-center justify-center gap-2 px-4 py-3 rounded-xl bg-brand hover:bg-brand-light text-black transition text-sm font-bold shadow-lg shadow-brand/20">
                   Create Account
                 </Link>
               </>
@@ -207,15 +207,16 @@ export default function NavigationWrapper() {
         <Link href="/notifications" className="relative flex flex-col items-center gap-0.5 p-2 text-gray-400 hover:text-white transition" onClick={() => setMobileOpen(false)}>
           <Bell className="w-5 h-5" />
           {unreadNotifications > 0 && (
-            <span className="absolute top-1 right-3 min-w-[16px] h-[16px] px-1 rounded-full bg-red-500 text-white text-[9px] font-bold flex items-center justify-center">
+            <span className="absolute top-1 right-3 min-w-[16px] h-[16px] px-1 rounded-full bg-brand text-black text-[9px] font-bold flex items-center justify-center">
               {unreadNotifications > 9 ? '9+' : unreadNotifications}
             </span>
           )}
           <span className="text-[9px] font-semibold">Alerts</span>
         </Link>
+        {/* Gold center FAB */}
         <Link href="/messages" className="flex flex-col items-center gap-0.5 p-2 -mt-5" onClick={() => setMobileOpen(false)}>
-          <div className="w-12 h-12 bg-brand rounded-full flex items-center justify-center shadow-lg shadow-brand/40 border-4 border-background">
-            <MessageSquare className="w-5 h-5 text-background" />
+          <div className="w-12 h-12 bg-brand rounded-full flex items-center justify-center shadow-lg shadow-brand/30 border-4 border-background">
+            <MessageSquare className="w-5 h-5 text-black" />
           </div>
           <span className="text-[9px] font-semibold text-brand">Messages</span>
         </Link>
@@ -225,7 +226,7 @@ export default function NavigationWrapper() {
         </Link>
         <Link href={sellHref} className="flex flex-col items-center gap-0.5 p-2 text-gray-400 hover:text-white transition" onClick={() => setMobileOpen(false)}>
           <PlusCircle className="w-5 h-5" />
-          <span className="text-[9px] font-semibold">{role === 'SELLER' ? 'Sell' : 'Sell'}</span>
+          <span className="text-[9px] font-semibold">Sell</span>
         </Link>
         <Link href={user ? "/profile" : "/auth/login"} className="flex flex-col items-center gap-0.5 p-2 text-gray-400 hover:text-white transition" onClick={() => setMobileOpen(false)}>
           <User className="w-5 h-5" />

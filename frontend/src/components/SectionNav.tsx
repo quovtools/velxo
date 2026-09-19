@@ -21,7 +21,7 @@ export default function SectionNav() {
     <div className="bg-cardBg border-b border-borderBg">
       <style>{`.section-nav-scroll::-webkit-scrollbar{display:none;}`}</style>
       <div
-        className="section-nav-scroll max-w-7xl mx-auto px-4 flex gap-2 overflow-x-auto whitespace-nowrap"
+        className="section-nav-scroll max-w-7xl mx-auto px-4 flex gap-1 overflow-x-auto whitespace-nowrap"
         style={{ scrollbarWidth: 'none', msOverflowStyle: 'none', WebkitOverflowScrolling: 'touch' }}
       >
         {SECTIONS.map((section) => {
@@ -30,10 +30,10 @@ export default function SectionNav() {
             <Link
               key={section.href}
               href={section.href}
-              className={`px-4 py-2.5 text-sm font-semibold rounded-full transition whitespace-nowrap ${
+              className={`px-4 py-2.5 text-sm font-semibold transition whitespace-nowrap border-b-2 ${
                 active
-                  ? 'text-white bg-brand shadow-sm shadow-brand/30'
-                  : 'text-gray-400 hover:text-white hover:bg-hoverBg/50'
+                  ? 'text-brand border-brand'
+                  : 'text-gray-400 border-transparent hover:text-white hover:border-white/20'
               }`}
             >
               {section.label}

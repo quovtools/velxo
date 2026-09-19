@@ -1,7 +1,7 @@
 import type { Config } from "tailwindcss";
 
 const config: Config = {
-  darkMode: "class",
+  darkMode: 'class',
   content: [
     "./src/pages/**/*.{js,ts,jsx,tsx,mdx}",
     "./src/components/**/*.{js,ts,jsx,tsx,mdx}",
@@ -16,7 +16,7 @@ const config: Config = {
         border: "var(--border)",
         brand: {
           DEFAULT: "rgb(var(--brand-rgb) / <alpha-value>)",
-          50: "rgb(var(--brand-50-rgb) / <alpha-value>)",
+          50:  "rgb(var(--brand-50-rgb) / <alpha-value>)",
           100: "rgb(var(--brand-100-rgb) / <alpha-value>)",
           200: "rgb(var(--brand-200-rgb) / <alpha-value>)",
           300: "rgb(var(--brand-300-rgb) / <alpha-value>)",
@@ -33,20 +33,20 @@ const config: Config = {
           DEFAULT: "rgb(var(--accent-rgb) / <alpha-value>)",
           emerald: "#10b981",
         },
-        card: "var(--surface)",
       },
       fontFamily: {
         sans: ['Inter', 'system-ui', 'sans-serif'],
       },
       boxShadow: {
-        glow: "0 0 40px rgba(0,0,0,0.35)",
+        glow: "0 0 40px rgba(212,160,23,0.22)",
+        "glow-gold": "0 0 40px rgba(212,160,23,0.35)",
         "glow-emerald": "0 0 40px rgba(16,185,129,0.25)",
-        card: "0 20px 50px -20px rgba(0,0,0,0.6)",
+        card: "0 20px 50px -20px rgba(0,0,0,0.60)",
       },
       backgroundImage: {
-        "brand-gradient": "linear-gradient(135deg, rgb(var(--brand-rgb)) 0%, rgb(var(--accent-rgb)) 100%)",
+        "brand-gradient": "linear-gradient(135deg, rgb(var(--brand-rgb)) 0%, rgb(var(--brand-dark-rgb)) 100%)",
         "brand-radial":
-          "radial-gradient(900px 500px at 50% -10%, rgba(120,120,120,0.18), transparent 60%)",
+          "radial-gradient(900px 500px at 50% -10%, rgba(212,160,23,0.10), transparent 60%)",
         "grid-faint":
           "linear-gradient(to right, rgba(128,128,128,0.08) 1px, transparent 1px), linear-gradient(to bottom, rgba(128,128,128,0.08) 1px, transparent 1px)",
       },
@@ -56,8 +56,8 @@ const config: Config = {
           "50%": { transform: "translateY(-20px)" },
         },
         glow: {
-          from: { boxShadow: "0 0 20px rgba(0,0,0,0.25)" },
-          to: { boxShadow: "0 0 40px rgba(0,0,0,0.45)" },
+          from: { boxShadow: "0 0 20px rgba(212,160,23,0.15)" },
+          to: { boxShadow: "0 0 40px rgba(212,160,23,0.30)" },
         },
         slideUp: {
           from: { opacity: "0", transform: "translateY(30px)" },

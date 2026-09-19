@@ -2,28 +2,35 @@
 @tailwind components;
 @tailwind utilities;
 
+/* ── Gold token reference
+   Gold:         #D4A017  (rich gold — primary brand)
+   Gold light:   #F0C040  (bright highlight)
+   Gold dark:    #A87800  (deep gold / pressed state)
+   Gold muted:   #B8860B  (dark goldenrod — subtle accents)
+────────────────────────────────────────────── */
+
 /* ── Light mode (default) ── */
 :root {
   --background: #ffffff;
   --foreground: #0a0a0a;
   --surface: #f5f5f5;
   --border: #e5e5e5;
-  --nav-bg: rgba(255, 255, 255, 0.8);
+  --nav-bg: rgba(255, 255, 255, 0.88);
 
-  /* Cyber violet brand */
-  --brand-rgb: 139 92 246;
-  --brand-50-rgb: 244 238 255;
-  --brand-100-rgb: 234 225 255;
-  --brand-200-rgb: 216 180 254;
-  --brand-300-rgb: 192 132 252;
-  --brand-400-rgb: 167 139 250;
-  --brand-500-rgb: 139 92 246;
-  --brand-600-rgb: 124 58 237;
-  --brand-700-rgb: 109 40 217;
-  --brand-800-rgb: 91 33 182;
-  --brand-light-rgb: 167 139 250;
-  --brand-dark-rgb: 124 58 237;
-  --accent-rgb: 217 70 239;
+  /* Gold brand */
+  --brand-rgb: 212 160 23;
+  --brand-50-rgb: 254 249 235;
+  --brand-100-rgb: 253 243 210;
+  --brand-200-rgb: 250 227 153;
+  --brand-300-rgb: 247 207 89;
+  --brand-400-rgb: 240 192 64;
+  --brand-500-rgb: 212 160 23;
+  --brand-600-rgb: 168 120 0;
+  --brand-700-rgb: 128 90 0;
+  --brand-800-rgb: 96 68 0;
+  --brand-light-rgb: 240 192 64;
+  --brand-dark-rgb: 168 120 0;
+  --accent-rgb: 212 160 23;
 }
 
 /* ── Dark mode — toggled by adding .dark to <html> ── */
@@ -31,23 +38,23 @@
   --background: #000000;
   --foreground: #f8fafc;
   --surface: #0a0a0a;
-  --border: #1f1f1f;
-  --nav-bg: rgba(0, 0, 0, 0.8);
+  --border: #222222;
+  --nav-bg: rgba(0, 0, 0, 0.88);
 
-  /* Cyber violet brand */
-  --brand-rgb: 167 139 250;
-  --brand-50-rgb: 91 33 182;
-  --brand-100-rgb: 109 40 217;
-  --brand-200-rgb: 124 58 237;
-  --brand-300-rgb: 139 92 246;
-  --brand-400-rgb: 167 139 250;
-  --brand-500-rgb: 167 139 250;
-  --brand-600-rgb: 139 92 246;
-  --brand-700-rgb: 124 58 237;
-  --brand-800-rgb: 109 40 217;
-  --brand-light-rgb: 192 132 252;
-  --brand-dark-rgb: 139 92 246;
-  --accent-rgb: 217 70 239;
+  /* Gold brand */
+  --brand-rgb: 212 160 23;
+  --brand-50-rgb: 96 68 0;
+  --brand-100-rgb: 128 90 0;
+  --brand-200-rgb: 168 120 0;
+  --brand-300-rgb: 212 160 23;
+  --brand-400-rgb: 240 192 64;
+  --brand-500-rgb: 212 160 23;
+  --brand-600-rgb: 168 120 0;
+  --brand-700-rgb: 128 90 0;
+  --brand-800-rgb: 96 68 0;
+  --brand-light-rgb: 240 192 64;
+  --brand-dark-rgb: 168 120 0;
+  --accent-rgb: 212 160 23;
 }
 
 * {
@@ -69,11 +76,11 @@ body {
 }
 
 ::selection {
-  background: rgba(0, 0, 0, 0.18);
+  background: rgba(212, 160, 23, 0.22);
   color: var(--foreground);
 }
 :root.dark ::selection {
-  background: rgba(255, 255, 255, 0.22);
+  background: rgba(212, 160, 23, 0.28);
 }
 
 ::-webkit-scrollbar { width: 8px; }
@@ -83,7 +90,7 @@ body {
   border-radius: 999px;
 }
 :root.dark ::-webkit-scrollbar-thumb {
-  background: linear-gradient(180deg, #ffffff, #737373);
+  background: linear-gradient(180deg, #444444, #888888);
 }
 
 /* ── Text colour overrides so the (dark-first) markup reads in both modes ── */
@@ -110,19 +117,21 @@ body {
     @apply py-20 lg:py-28;
   }
 
-  /* Eyebrow / pill label */
+  /* Eyebrow / pill label — gold on dark bg */
   .eyebrow {
-    @apply inline-flex items-center gap-2 rounded-full border border-brand/25 bg-brand/10 px-4 py-1.5 text-xs font-bold uppercase tracking-widest text-brand-light;
+    @apply inline-flex items-center gap-2 rounded-full border border-brand/30 bg-brand/10 px-4 py-1.5 text-xs font-bold uppercase tracking-widest text-brand-light;
   }
 
-  /* Buttons */
+  /* Primary CTA — black bg, gold text; hover inverts to gold bg, black text */
   .btn-primary {
-    @apply inline-flex items-center justify-center gap-2 rounded-2xl bg-gradient-to-r from-brand-500 to-accent px-7 py-3.5 text-sm font-bold shadow-lg shadow-brand/30 transition duration-300 hover:-translate-y-0.5 hover:shadow-glow;
-    color: #ffffff;
+    @apply inline-flex items-center justify-center gap-2 rounded-2xl bg-brand px-7 py-3.5 text-sm font-bold shadow-md transition duration-300 hover:-translate-y-0.5 hover:bg-brand-light hover:shadow-glow;
+    color: #000000;
   }
-  .btn-primary:hover { color: #ffffff; }
+  .btn-primary:hover { color: #000000; }
+
+  /* Secondary CTA — transparent with neutral border */
   .btn-secondary {
-    @apply inline-flex items-center justify-center gap-2 rounded-2xl border border-white/10 bg-white/[0.04] px-7 py-3.5 text-sm font-semibold transition duration-300 hover:-translate-y-0.5 hover:border-brand/40 hover:bg-white/[0.07];
+    @apply inline-flex items-center justify-center gap-2 rounded-2xl border border-white/15 bg-white/[0.04] px-7 py-3.5 text-sm font-semibold transition duration-300 hover:-translate-y-0.5 hover:border-brand/40 hover:bg-white/[0.07];
   }
   .btn-ghost {
     @apply inline-flex items-center justify-center gap-2 rounded-xl px-4 py-2 text-sm font-semibold text-gray-300 transition hover:text-white;
@@ -130,10 +139,10 @@ body {
 
   /* Cards & surfaces */
   .card-surface {
-    @apply relative overflow-hidden rounded-3xl border border-white/[0.08] bg-white/[0.03] p-6 backdrop-blur-sm transition duration-300 hover:-translate-y-1 hover:border-brand/40 hover:bg-white/[0.05] hover:shadow-card;
+    @apply relative overflow-hidden rounded-3xl border border-white/[0.08] bg-white/[0.03] p-6 backdrop-blur-sm transition duration-300 hover:-translate-y-1 hover:border-brand/30 hover:bg-white/[0.05] hover:shadow-card;
   }
   .card-highlight {
-    @apply relative rounded-3xl border border-brand/40 bg-gradient-to-b from-brand/[0.08] to-transparent p-6 ring-1 ring-brand/20 transition duration-300 hover:-translate-y-1 hover:shadow-glow;
+    @apply relative rounded-3xl border border-brand/35 bg-brand/[0.06] p-6 ring-1 ring-brand/15 transition duration-300 hover:-translate-y-1 hover:shadow-glow;
   }
 
   /* Section heading helpers */
@@ -148,37 +157,32 @@ body {
 }
 
 @layer utilities {
+  /* Gold gradient text */
   .text-gradient {
-    @apply bg-gradient-to-r from-brand-400 via-brand-500 to-accent bg-clip-text text-transparent;
+    @apply bg-gradient-to-r from-brand-300 via-brand-400 to-brand-500 bg-clip-text text-transparent;
   }
   .text-gradient-gold {
     @apply bg-gradient-to-r from-yellow-200 via-yellow-400 to-amber-500 bg-clip-text text-transparent;
   }
   .bg-dotgrid {
-    background-image: radial-gradient(rgba(128,128,128,0.10) 1px, transparent 1px);
+    background-image: radial-gradient(rgba(212,160,23,0.08) 1px, transparent 1px);
     background-size: 24px 24px;
   }
 }
 
 .card-glow:hover {
-  box-shadow: 0 0 30px rgba(0, 0, 0, 0.18);
+  box-shadow: 0 0 30px rgba(212, 160, 23, 0.12);
   transform: translateY(-3px);
   transition: all 0.3s ease;
 }
 :root.dark .card-glow:hover {
-  box-shadow: 0 0 30px rgba(255, 255, 255, 0.12);
+  box-shadow: 0 0 30px rgba(212, 160, 23, 0.18);
+  transform: translateY(-3px);
 }
 
+/* Noise texture overlay helper */
 .noise-bg {
-  background-image: url("data:image/svg+xml,%3Csvg viewBox='0 0 256 256' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='noise'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.9' numOctaves='4' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23noise)' opacity='0.03'/%3E%3C/svg%3E");
+  background-image: url("data:image/svg+xml,%3Csvg viewBox='0 0 256 256' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='noise'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.9' numOctaves='4' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23noise)' opacity='0.04'/%3E%3C/svg%3E");
+  background-repeat: repeat;
+  background-size: 256px 256px;
 }
-
-.animate-marquee { animation: marquee 28s linear infinite; }
-
-/* ── Brand = blue: keep text readable on solid/gradient brand fills ── */
-:root.dark .bg-brand,
-:root.dark .from-brand,
-:root.dark .to-brand { color: #ffffff !important; }
-:root:not(.dark) .bg-brand,
-:root:not(.dark) .from-brand,
-:root:not(.dark) .to-brand { color: #ffffff !important; }

@@ -87,36 +87,34 @@ function useBanners() {
 function SkeletonCard({ wide = false }: { wide?: boolean }) {
   return (
     <div className={`flex-shrink-0 ${wide ? 'w-64' : 'w-52'} bg-cardBg border border-borderBg rounded-2xl overflow-hidden animate-pulse`}>
-      <div className="h-36 bg-gray-700/50" />
+      <div className="h-36 bg-neutral-800/60" />
       <div className="p-3 space-y-2">
-        <div className="h-3 bg-gray-700 rounded w-1/2" />
-        <div className="h-4 bg-gray-700 rounded w-4/5" />
+        <div className="h-3 bg-neutral-700 rounded w-1/2" />
+        <div className="h-4 bg-neutral-700 rounded w-4/5" />
         <div className="flex justify-between mt-2">
-          <div className="h-5 bg-gray-700 rounded w-16" />
-          <div className="h-7 bg-gray-700 rounded-lg w-20" />
+          <div className="h-5 bg-neutral-700 rounded w-16" />
+          <div className="h-7 bg-neutral-700 rounded-lg w-20" />
         </div>
       </div>
     </div>
   );
 }
 
-/* ─────────────────────────── Listing Card ───────────────────────────── */
-// Uses the admin-uploaded game banner as the card image.
-// Falls back to game-colored gradient if no banner is set.
+/* ─────────────────────────── Listing Card (horizontal) ─────────────── */
 function ListingCardH({ item, banner }: { item: Listing; banner?: GameBanner }) {
   const { fmt } = useCurrency();
   const sold = item.isSold || item.status === 'SOLD';
-  const accentColor = banner?.color ?? '#6366f1';
+  const accentColor = banner?.color ?? '#888888';
 
   return (
     <Link
       href={`/listings/${item.id}`}
       className="flex-shrink-0 w-52 bg-cardBg border border-borderBg hover:border-brand/50 rounded-2xl overflow-hidden flex flex-col transition-all duration-300 hover:shadow-xl hover:shadow-brand/10 hover:-translate-y-0.5 group"
     >
-      {/* Banner image (game-level, not per-listing) */}
+      {/* Banner image */}
       <div
         className="h-32 relative overflow-hidden"
-        style={{ background: `linear-gradient(135deg, ${accentColor}33, var(--color-background))` }}
+        style={{ background: `linear-gradient(135deg, ${accentColor}22, var(--color-background))` }}
       >
         {banner?.bannerUrl ? (
           <Image
@@ -130,17 +128,17 @@ function ListingCardH({ item, banner }: { item: Listing; banner?: GameBanner }) 
           />
         ) : (
           <div className="w-full h-full flex items-center justify-center">
-            <GameIcon game={item.gameSlug ?? item.gameName.toLowerCase().replace(/\s+/g, '-')} className="w-10 h-10 opacity-60" />
+            <GameIcon game={item.gameSlug ?? item.gameName.toLowerCase().replace(/\s+/g, '-')} className="w-10 h-10 opacity-50" />
           </div>
         )}
         <div className="absolute inset-0 bg-gradient-to-t from-black/80 via-black/20 to-transparent pointer-events-none" />
         {item.isFeatured && (
-          <span className="absolute top-2 right-2 flex items-center gap-0.5 text-[9px] font-bold text-white bg-gradient-to-r from-orange-500 to-amber-500 px-1.5 py-0.5 rounded-full">
+          <span className="absolute top-2 right-2 flex items-center gap-0.5 text-[9px] font-bold text-black bg-brand px-1.5 py-0.5 rounded-full">
             <Flame className="w-2.5 h-2.5" /> Hot
           </span>
         )}
         {sold && (
-          <span className="absolute top-2 left-2 bg-black/60 text-gray-200 text-[9px] font-bold px-2 py-0.5 rounded backdrop-blur-sm">Sold</span>
+          <span className="absolute top-2 left-2 bg-black/70 text-gray-300 text-[9px] font-bold px-2 py-0.5 rounded backdrop-blur-sm border border-white/10">Sold</span>
         )}
         {item.rank && (
           <span className="absolute bottom-2 left-2 text-[9px] font-semibold text-white/90 bg-black/40 px-1.5 py-0.5 rounded backdrop-blur-sm">
@@ -153,11 +151,12 @@ function ListingCardH({ item, banner }: { item: Listing; banner?: GameBanner }) 
           </span>
         )}
       </div>
+
       <div className="p-3 flex-1 flex flex-col justify-between gap-2">
         <div>
           <span
             className="inline-block text-[9px] font-bold px-1.5 py-0.5 rounded border uppercase tracking-wide truncate max-w-full mb-1"
-            style={{ color: accentColor, background: `${accentColor}1a`, borderColor: `${accentColor}33` }}
+            style={{ color: accentColor, background: `${accentColor}18`, borderColor: `${accentColor}30` }}
           >
             {item.gameName}
           </span>
@@ -165,14 +164,15 @@ function ListingCardH({ item, banner }: { item: Listing; banner?: GameBanner }) 
             {item.title}
           </h3>
           {item.seller?.isVerified && (
-            <span className="flex items-center gap-1 text-[9px] text-emerald-400 mt-0.5">
+            <span className="flex items-center gap-1 text-[9px] text-brand mt-0.5">
               <ShieldCheck className="w-2.5 h-2.5" /> Verified Seller
             </span>
           )}
         </div>
         <div className="flex items-center justify-between border-t border-borderBg pt-2">
           <span className="text-base font-black text-white">{fmt(item.price)}</span>
-          <span className="bg-gradient-to-r from-brand to-brand-dark px-2.5 py-1 rounded-lg text-[10px] font-bold text-white">Buy</span>
+          {/* Gold CTA */}
+          <span className="bg-brand hover:bg-brand-light px-2.5 py-1 rounded-lg text-[10px] font-bold text-black">Buy</span>
         </div>
       </div>
     </Link>
@@ -180,7 +180,6 @@ function ListingCardH({ item, banner }: { item: Listing; banner?: GameBanner }) 
 }
 
 /* ─────────────────── Game Banner Cards ─────────────────────────────── */
-// Large clickable banner cards for each game — shown below the slideshow.
 function GameBannerCards({ onSelectGame, banners }: {
   onSelectGame: (name: string) => void;
   banners: Record<string, GameBanner>;
@@ -195,13 +194,13 @@ function GameBannerCards({ onSelectGame, banners }: {
       <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 gap-3">
         {GAMES.map(game => {
           const banner = banners[game.name];
-          const color = banner?.color ?? game.color ?? '#6366f1';
+          const color = banner?.color ?? game.color ?? '#888888';
           return (
             <button
               key={game.slug}
               onClick={() => onSelectGame(game.name)}
               className="relative rounded-2xl overflow-hidden border border-borderBg hover:border-brand/40 transition-all duration-300 hover:shadow-lg hover:-translate-y-0.5 group aspect-video flex items-end"
-              style={{ background: `linear-gradient(135deg, ${color}44, var(--color-background))` }}
+              style={{ background: `linear-gradient(135deg, ${color}33, var(--color-background))` }}
             >
               {banner?.bannerUrl ? (
                 <Image
@@ -342,7 +341,7 @@ function PostRequestModal({ onClose, onSuccess }: { onClose: () => void; onSucce
   const STEP_LABELS = ['Type & Game', 'Details & Budget', 'Review'];
 
   return (
-    <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/70 backdrop-blur-sm" onClick={e => { if (e.target === e.currentTarget) onClose(); }}>
+    <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/75 backdrop-blur-sm" onClick={e => { if (e.target === e.currentTarget) onClose(); }}>
       <div className="bg-cardBg border border-borderBg rounded-2xl w-full max-w-lg shadow-2xl overflow-hidden">
         {/* Header */}
         <div className="flex items-center justify-between px-6 pt-5 pb-4 border-b border-borderBg">
@@ -370,9 +369,10 @@ function PostRequestModal({ onClose, onSuccess }: { onClose: () => void; onSucce
           {violations.length > 0 && (
             <div className="bg-red-900/20 border border-red-500/30 text-red-300 text-xs px-3 py-2 rounded-xl flex items-start gap-2">
               <Flag className="w-3.5 h-3.5 flex-shrink-0 mt-0.5" />
-              External contact detected ({violations.join(', ')}). Remove it or your request will be flagged and you may be suspended.
+              External contact detected ({violations.join(', ')}). Remove it or your request will be flagged.
             </div>
           )}
+
           {/* Step 1: Type + Game */}
           {step === 1 && (
             <div className="space-y-4">
@@ -415,6 +415,7 @@ function PostRequestModal({ onClose, onSuccess }: { onClose: () => void; onSucce
               </div>
             </div>
           )}
+
           {/* Step 2: Details + Budget */}
           {step === 2 && (
             <div className="space-y-4">
@@ -482,6 +483,7 @@ function PostRequestModal({ onClose, onSuccess }: { onClose: () => void; onSucce
               )}
             </div>
           )}
+
           {/* Step 3: Review */}
           {step === 3 && (
             <div className="space-y-3">
@@ -507,6 +509,7 @@ function PostRequestModal({ onClose, onSuccess }: { onClose: () => void; onSucce
             </div>
           )}
         </div>
+
         {/* Footer */}
         <div className="flex gap-3 px-6 py-4 border-t border-borderBg">
           {step > 1 && (
@@ -516,7 +519,7 @@ function PostRequestModal({ onClose, onSuccess }: { onClose: () => void; onSucce
             </button>
           )}
           {step < 3 && (
-            <button type="button" className="flex-1 flex items-center justify-center gap-1.5 bg-brand hover:bg-brand-dark text-white text-sm font-bold py-2.5 rounded-xl transition"
+            <button type="button" className="flex-1 flex items-center justify-center gap-1.5 bg-brand hover:bg-brand-light text-black text-sm font-bold py-2.5 rounded-xl transition"
               onClick={() => {
                 if (step === 2 && (!form.title.trim() || !descValid)) { setError(!form.title.trim() ? 'Title is required.' : 'Description must be 50–500 characters.'); return; }
                 setError(''); setStep(s => s + 1);
@@ -526,7 +529,7 @@ function PostRequestModal({ onClose, onSuccess }: { onClose: () => void; onSucce
           )}
           {step === 3 && (
             <button type="button" disabled={submitting || !descValid} onClick={handleSubmit}
-              className="flex-1 flex items-center justify-center gap-2 bg-brand hover:bg-brand-dark text-white text-sm font-bold py-2.5 rounded-xl transition disabled:opacity-50">
+              className="flex-1 flex items-center justify-center gap-2 bg-brand hover:bg-brand-light text-black text-sm font-bold py-2.5 rounded-xl transition disabled:opacity-50">
               <Send className="w-4 h-4" />{submitting ? 'Posting…' : 'Post Request'}
             </button>
           )}
@@ -564,7 +567,7 @@ function BuyerRequestsSection({ onPostClick }: { onPostClick: () => void }) {
     <div className="space-y-3">
       <div className="flex items-center justify-between">
         <h2 className="text-base font-bold text-white flex items-center gap-2">
-          <MessageSquarePlus className="w-4 h-4 text-violet-400" /> Buyer Requests
+          <MessageSquarePlus className="w-4 h-4 text-brand" /> Buyer Requests
           <span className="text-xs text-gray-500 bg-background px-2 py-0.5 rounded-full border border-borderBg">
             {loading ? '…' : requests.length}
           </span>
@@ -575,7 +578,6 @@ function BuyerRequestsSection({ onPostClick }: { onPostClick: () => void }) {
         </button>
       </div>
 
-      {/* Platform protection notice */}
       <ExternalContactWarningBanner />
 
       {loading ? (
@@ -598,21 +600,22 @@ function BuyerRequestsSection({ onPostClick }: { onPostClick: () => void }) {
               const name = [req.buyer?.firstName, req.buyer?.lastName].filter(Boolean).join(' ') || 'Buyer';
               const initials = name.slice(0, 2).toUpperCase();
               return (
-                <div key={req.id} className="bg-cardBg border border-borderBg hover:border-violet-500/30 rounded-xl p-4 flex items-start gap-3 transition group">
-                  <div className="w-8 h-8 rounded-full bg-violet-500/20 flex items-center justify-center text-xs font-bold text-violet-300 flex-shrink-0">
+                /* Gold-tinted buyer request card */
+                <div key={req.id} className="bg-cardBg border border-borderBg hover:border-brand/30 rounded-xl p-4 flex items-start gap-3 transition group">
+                  <div className="w-8 h-8 rounded-full bg-brand/15 flex items-center justify-center text-xs font-bold text-brand flex-shrink-0">
                     {initials}
                   </div>
                   <div className="flex-1 min-w-0">
                     <div className="flex flex-wrap items-center gap-2 mb-0.5">
-                      <span className="text-xs font-extrabold text-white group-hover:text-violet-300 transition truncate">{req.title}</span>
-                      <span className="text-[9px] font-bold text-violet-300 bg-violet-500/10 border border-violet-500/20 px-1.5 py-0.5 rounded-full whitespace-nowrap">{req.gameName}</span>
+                      <span className="text-xs font-extrabold text-white group-hover:text-brand transition truncate">{req.title}</span>
+                      <span className="text-[9px] font-bold text-brand bg-brand/10 border border-brand/20 px-1.5 py-0.5 rounded-full whitespace-nowrap">{req.gameName}</span>
                     </div>
                     <p className="text-xs text-gray-400 line-clamp-1">{req.description}</p>
                     <div className="flex flex-wrap items-center gap-3 mt-1.5 text-[10px] text-gray-500">
                       {req.budget && <span className="flex items-center gap-0.5 text-emerald-400 font-bold"><DollarSign className="w-3 h-3" />{fmt(req.budget)}</span>}
                       {req.region && <span className="flex items-center gap-0.5"><MapPin className="w-3 h-3" />{req.region}</span>}
                       {req.platform && <span>{req.platform}</span>}
-                      {req.rank && <span className="text-yellow-400">{req.rank}</span>}
+                      {req.rank && <span className="text-brand">{req.rank}</span>}
                       <span className="ml-auto">{new Date(req.createdAt).toLocaleDateString()}</span>
                     </div>
                   </div>
@@ -637,7 +640,7 @@ function StarRating({ rating }: { rating: number }) {
   return (
     <span className="flex items-center gap-0.5">
       {[1,2,3,4,5].map(i => (
-        <Star key={i} className={`w-2.5 h-2.5 ${i <= Math.round(rating) ? 'text-yellow-400 fill-yellow-400' : 'text-gray-600'}`} />
+        <Star key={i} className={`w-2.5 h-2.5 ${i <= Math.round(rating) ? 'text-amber-400 fill-amber-400' : 'text-gray-600'}`} />
       ))}
       <span className="text-[9px] text-gray-400 ml-0.5">{rating > 0 ? rating.toFixed(1) : 'New'}</span>
     </span>
@@ -646,27 +649,33 @@ function StarRating({ rating }: { rating: number }) {
 
 function FeaturedListingCard({ item, banner }: { item: Listing; banner?: GameBanner }) {
   const { fmt } = useCurrency();
-  const accentColor = banner?.color ?? '#8b5cf6';
+  const accentColor = banner?.color ?? '#888888';
   const isVerified = item.seller?.isVerified;
   const sellerLevel = (item.seller as any)?.sellerLevel as string | undefined;
-  const levelColors: Record<string, string> = { BRONZE: 'text-amber-600', SILVER: 'text-gray-300', GOLD: 'text-yellow-400', ELITE: 'text-purple-400' };
+  /* Gold-aligned level colours — no purple */
+  const levelColors: Record<string, string> = {
+    BRONZE: 'text-amber-600',
+    SILVER: 'text-gray-300',
+    GOLD:   'text-brand',
+    ELITE:  'text-brand-light',
+  };
 
   return (
     <Link href={`/listings/${item.id}`}
       className="group bg-cardBg border border-borderBg hover:border-brand/50 rounded-2xl overflow-hidden flex flex-col transition-all duration-300 hover:shadow-xl hover:shadow-brand/10 hover:-translate-y-1">
       {/* Image */}
-      <div className="relative h-40 overflow-hidden" style={{ background: `linear-gradient(135deg, ${accentColor}33, var(--color-background))` }}>
+      <div className="relative h-40 overflow-hidden" style={{ background: `linear-gradient(135deg, ${accentColor}22, var(--color-background))` }}>
         {banner?.bannerUrl ? (
           <Image src={banner.bannerUrl} alt={item.gameName} fill sizes="(max-width:640px) 100vw, 25vw"
             className="object-cover group-hover:scale-105 transition-transform duration-500" loading="lazy" unoptimized />
         ) : (
           <div className="absolute inset-0 flex items-center justify-center">
-            <GameIcon game={item.gameSlug ?? item.gameName.toLowerCase().replace(/\s+/g,'-')} className="w-14 h-14 opacity-50" />
+            <GameIcon game={item.gameSlug ?? item.gameName.toLowerCase().replace(/\s+/g,'-')} className="w-14 h-14 opacity-40" />
           </div>
         )}
         <div className="absolute inset-0 bg-gradient-to-t from-black/80 via-black/20 to-transparent pointer-events-none" />
-        {/* Featured badge */}
-        <span className="absolute top-2.5 left-2.5 flex items-center gap-1 text-[10px] font-bold text-white bg-gradient-to-r from-orange-500 to-amber-500 px-2 py-0.5 rounded-full shadow">
+        {/* Gold featured badge */}
+        <span className="absolute top-2.5 left-2.5 flex items-center gap-1 text-[10px] font-bold text-black bg-brand px-2 py-0.5 rounded-full shadow">
           <Flame className="w-3 h-3" /> Featured
         </span>
         {item.rank && (
@@ -680,24 +689,22 @@ function FeaturedListingCard({ item, banner }: { item: Listing; banner?: GameBan
           </span>
         )}
       </div>
+
       {/* Body */}
       <div className="p-3.5 flex-1 flex flex-col gap-2">
-        {/* Game tag + item type */}
         <div className="flex items-center gap-1.5 flex-wrap">
           <span className="text-[10px] font-bold px-2 py-0.5 rounded border uppercase tracking-wide"
-            style={{ color: accentColor, background: `${accentColor}1a`, borderColor: `${accentColor}33` }}>
+            style={{ color: accentColor, background: `${accentColor}18`, borderColor: `${accentColor}30` }}>
             {item.gameName}
           </span>
         </div>
-        {/* Title */}
         <h3 className="text-sm font-bold text-white line-clamp-2 leading-snug group-hover:text-brand transition">
           {item.title}
         </h3>
-        {/* Seller info */}
         <div className="flex items-center justify-between mt-auto pt-1">
           <div className="min-w-0">
             <p className="text-[10px] text-gray-400 truncate flex items-center gap-1">
-              {isVerified && <BadgeCheck className="w-3 h-3 text-emerald-400 flex-shrink-0" />}
+              {isVerified && <BadgeCheck className="w-3 h-3 text-brand flex-shrink-0" />}
               <span className="truncate">{item.seller?.storeName || 'Seller'}</span>
               {sellerLevel && <span className={`text-[9px] font-bold ml-1 ${levelColors[sellerLevel] ?? ''}`}>{sellerLevel}</span>}
             </p>
@@ -707,15 +714,16 @@ function FeaturedListingCard({ item, banner }: { item: Listing; banner?: GameBan
         {/* Price row */}
         <div className="flex items-center justify-between border-t border-borderBg pt-2.5 mt-1">
           <span className="text-lg font-black text-white">{fmt(item.price)}</span>
-          <span className="flex items-center gap-1 bg-gradient-to-r from-brand to-brand-dark px-3 py-1.5 rounded-xl text-[11px] font-bold text-white shadow-sm shadow-brand/20">
+          {/* Gold CTA */}
+          <span className="flex items-center gap-1 bg-brand hover:bg-brand-light px-3 py-1.5 rounded-xl text-[11px] font-bold text-black shadow-sm shadow-brand/20">
             View Details <ArrowRight className="w-3 h-3" />
           </span>
         </div>
         {/* Trust badge */}
         {isVerified && (
-          <div className="flex items-center gap-1.5 bg-emerald-500/8 border border-emerald-500/20 rounded-lg px-2.5 py-1.5">
-            <ShieldCheck className="w-3 h-3 text-emerald-400 flex-shrink-0" />
-            <span className="text-[10px] text-emerald-400 font-semibold">Verified Seller · Buyer Protected</span>
+          <div className="flex items-center gap-1.5 bg-brand/6 border border-brand/20 rounded-lg px-2.5 py-1.5">
+            <ShieldCheck className="w-3 h-3 text-brand flex-shrink-0" />
+            <span className="text-[10px] text-brand font-semibold">Verified Seller · Buyer Protected</span>
           </div>
         )}
       </div>
@@ -726,12 +734,12 @@ function FeaturedListingCard({ item, banner }: { item: Listing; banner?: GameBan
 function FeaturedListingCardSkeleton() {
   return (
     <div className="bg-cardBg border border-borderBg rounded-2xl overflow-hidden animate-pulse">
-      <div className="h-40 bg-gray-800/50" />
+      <div className="h-40 bg-neutral-800/60" />
       <div className="p-3.5 space-y-2.5">
-        <div className="h-3 bg-gray-700 rounded w-1/3" />
-        <div className="h-4 bg-gray-700 rounded w-4/5" />
-        <div className="h-4 bg-gray-700 rounded w-3/5" />
-        <div className="h-8 bg-gray-700 rounded-xl mt-3" />
+        <div className="h-3 bg-neutral-700 rounded w-1/3" />
+        <div className="h-4 bg-neutral-700 rounded w-4/5" />
+        <div className="h-4 bg-neutral-700 rounded w-3/5" />
+        <div className="h-8 bg-neutral-700 rounded-xl mt-3" />
       </div>
     </div>
   );
@@ -752,17 +760,13 @@ function FeaturedListingsSection({ banners }: { banners: Record<string, GameBann
 
   if (!loading && items.length === 0) return null;
 
-  // Mobile carousel helpers
-  const mobileItems = items.slice(carouselIdx, carouselIdx + 1);
-
   return (
     <div className="space-y-4">
       <div className="flex items-center justify-between">
         <h2 className="text-base font-bold text-white flex items-center gap-2">
-          <Flame className="w-4 h-4 text-orange-400" /> Featured Listings
+          <Flame className="w-4 h-4 text-brand" /> Featured Listings
         </h2>
         <div className="flex items-center gap-2">
-          {/* Mobile carousel controls */}
           {items.length > 1 && (
             <div className="flex items-center gap-1 sm:hidden">
               <button onClick={() => setCarouselIdx(i => Math.max(0, i - 1))} disabled={carouselIdx === 0}
@@ -876,7 +880,7 @@ function GigServicesSection() {
     <div className="space-y-3">
       <div className="flex items-center justify-between">
         <h2 className="text-base font-bold text-white flex items-center gap-2">
-          <Award className="w-4 h-4 text-purple-400" /> GIG Services
+          <Award className="w-4 h-4 text-brand" /> GIG Services
         </h2>
         <Link href="/boosting" className="text-xs font-medium text-brand hover:text-brand-light flex items-center gap-1 transition">
           View All <ArrowRight className="w-3 h-3" />
@@ -887,15 +891,16 @@ function GigServicesSection() {
           ? Array.from({ length: 6 }).map((_, i) => <SkeletonCard key={i} wide />)
           : items.slice(0, 16).map(g => (
             <Link key={g.id} href="/boosting"
-              className="flex-shrink-0 w-60 bg-cardBg border border-borderBg hover:border-purple-500/50 rounded-2xl overflow-hidden flex flex-col transition-all duration-300 hover:shadow-xl hover:shadow-purple-500/10 hover:-translate-y-0.5 group">
-              <div className="h-32 bg-gradient-to-br from-purple-600/30 to-background relative overflow-hidden flex items-center justify-center">
+              className="flex-shrink-0 w-60 bg-cardBg border border-borderBg hover:border-brand/40 rounded-2xl overflow-hidden flex flex-col transition-all duration-300 hover:shadow-xl hover:shadow-brand/10 hover:-translate-y-0.5 group">
+              <div className="h-32 bg-gradient-to-br from-brand/15 to-background relative overflow-hidden flex items-center justify-center">
                 {g.imageUrl ? (
                   <Image src={g.imageUrl} alt={g.title} fill sizes="240px" className="object-cover group-hover:scale-105 transition-transform duration-300" loading="lazy" unoptimized />
                 ) : (
-                  <Gamepad2 className="w-8 h-8 text-purple-400/50" />
+                  <Gamepad2 className="w-8 h-8 text-brand/30" />
                 )}
                 <div className="absolute inset-0 bg-gradient-to-t from-black/70 via-transparent to-transparent pointer-events-none" />
-                <span className="absolute top-2 left-2 text-[9px] font-bold uppercase bg-purple-500 text-white px-1.5 py-0.5 rounded">{g.accountType || 'Boost'}</span>
+                {/* Gold account-type badge */}
+                <span className="absolute top-2 left-2 text-[9px] font-bold uppercase bg-brand text-black px-1.5 py-0.5 rounded">{g.accountType || 'Boost'}</span>
                 {g.deliveryTime && (
                   <span className="absolute bottom-2 right-2 flex items-center gap-0.5 text-[9px] text-white/80 bg-black/40 px-1.5 py-0.5 rounded backdrop-blur-sm">
                     <Clock className="w-2.5 h-2.5" /> {g.deliveryTime}h
@@ -904,16 +909,17 @@ function GigServicesSection() {
               </div>
               <div className="p-3 flex-1 flex flex-col justify-between gap-2">
                 <div>
-                  <span className="text-[9px] text-purple-300 font-bold uppercase">{g.gameName}</span>
-                  <h3 className="text-xs font-bold text-white line-clamp-2 leading-snug group-hover:text-purple-300 transition mt-0.5">{g.title}</h3>
-                  {(g.rankFrom || g.rankTo) && <p className="text-[10px] text-purple-400 font-semibold mt-1">{g.rankFrom || '?'} → {g.rankTo || '?'}</p>}
+                  <span className="text-[9px] text-brand font-bold uppercase">{g.gameName}</span>
+                  <h3 className="text-xs font-bold text-white line-clamp-2 leading-snug group-hover:text-brand transition mt-0.5">{g.title}</h3>
+                  {(g.rankFrom || g.rankTo) && <p className="text-[10px] text-brand font-semibold mt-1">{g.rankFrom || '?'} → {g.rankTo || '?'}</p>}
                   <p className="text-[10px] text-gray-500 mt-1 flex items-center gap-1">
                     <ShieldCheck className="w-3 h-3 text-emerald-400" />{g.seller?.storeName || 'piyrox seller'}
                   </p>
                 </div>
                 <div className="flex items-center justify-between border-t border-borderBg pt-2">
                   <span className="text-base font-black text-white">{fmt(g.price)}</span>
-                  <span className="bg-gradient-to-r from-purple-600 to-brand px-2.5 py-1 rounded-lg text-[10px] font-bold text-white">Hire</span>
+                  {/* Gold Hire button */}
+                  <span className="bg-brand hover:bg-brand-light px-2.5 py-1 rounded-lg text-[10px] font-bold text-black">Hire</span>
                 </div>
               </div>
             </Link>
@@ -955,14 +961,14 @@ function TopUpDealsSection() {
           : items.slice(0, 16).map(t => (
             <Link key={t.id} href="/topups"
               className="flex-shrink-0 w-48 bg-cardBg border border-borderBg hover:border-brand/50 rounded-2xl overflow-hidden flex flex-col transition-all duration-300 hover:shadow-xl hover:shadow-brand/10 hover:-translate-y-0.5 group">
-              <div className="h-28 bg-gradient-to-br from-brand/30 to-background relative overflow-hidden flex items-center justify-center">
+              <div className="h-28 bg-gradient-to-br from-brand/20 to-background relative overflow-hidden flex items-center justify-center">
                 {t.imageUrl ? (
                   <Image src={t.imageUrl} alt={t.title} fill sizes="192px" className="object-cover group-hover:scale-105 transition-transform duration-300" loading="lazy" unoptimized />
                 ) : (
-                  <Zap className="w-8 h-8 text-brand/50" />
+                  <Zap className="w-8 h-8 text-brand/40" />
                 )}
                 <div className="absolute inset-0 bg-gradient-to-t from-black/60 via-transparent to-transparent pointer-events-none" />
-                <span className="absolute top-2 left-2 text-[9px] font-bold uppercase bg-brand text-white px-1.5 py-0.5 rounded">Official</span>
+                <span className="absolute top-2 left-2 text-[9px] font-bold uppercase bg-brand text-black px-1.5 py-0.5 rounded">Official</span>
               </div>
               <div className="p-3 flex-1 flex flex-col justify-between gap-2">
                 <div>
@@ -975,8 +981,8 @@ function TopUpDealsSection() {
                   )}
                 </div>
                 <div className="flex items-center justify-between border-t border-borderBg pt-2">
-                  <span className="text-base font-black text-brand-light">{fmt(t.price)}</span>
-                  <span className="bg-gradient-to-r from-brand to-purple-600 px-2.5 py-1 rounded-lg text-[10px] font-bold text-white">Buy</span>
+                  <span className="text-base font-black text-brand">{fmt(t.price)}</span>
+                  <span className="bg-brand hover:bg-brand-light px-2.5 py-1 rounded-lg text-[10px] font-bold text-black">Buy</span>
                 </div>
               </div>
             </Link>
@@ -990,16 +996,16 @@ function TopUpDealsSection() {
 function TrustBadges() {
   const badges = [
     { icon: <ShieldCheck className="w-4 h-4 text-emerald-400" />, label: 'Buyer Protection' },
-    { icon: <Lock className="w-4 h-4 text-violet-400" />, label: 'Escrow Protected' },
-    { icon: <Check className="w-4 h-4 text-purple-400" />, label: 'Verified Sellers' },
-    { icon: <Zap className="w-4 h-4 text-orange-400" />, label: 'Fast Delivery' },
-    { icon: <Star className="w-4 h-4 text-yellow-400" />, label: 'Rated Marketplace' },
-    { icon: <TrendingUp className="w-4 h-4 text-brand" />, label: 'AI Dispute Resolution' },
+    { icon: <Lock className="w-4 h-4 text-brand" />,             label: 'Escrow Protected' },
+    { icon: <Check className="w-4 h-4 text-brand" />,            label: 'Verified Sellers' },
+    { icon: <Zap className="w-4 h-4 text-amber-400" />,          label: 'Fast Delivery' },
+    { icon: <Star className="w-4 h-4 text-brand" />,             label: 'Rated Marketplace' },
+    { icon: <TrendingUp className="w-4 h-4 text-brand" />,       label: 'AI Dispute Resolution' },
   ];
   return (
     <div className="flex flex-wrap items-center justify-center gap-2 md:gap-3">
       {badges.map(({ icon, label }) => (
-        <div key={label} className="flex items-center gap-2 bg-hoverBg/30 px-3 py-1.5 rounded-xl border border-borderBg/50 text-xs text-gray-400">
+        <div key={label} className="flex items-center gap-2 bg-cardBg/60 px-3 py-1.5 rounded-xl border border-borderBg text-xs text-gray-400">
           {icon} <span>{label}</span>
         </div>
       ))}
@@ -1017,12 +1023,12 @@ function GameTabBar({ activeGame, onSelect, banners }: {
     <div className="flex gap-2 overflow-x-auto pb-1 scrollbar-none -mx-1 px-1">
       <button
         onClick={() => onSelect('')}
-        className={`flex-shrink-0 flex items-center gap-2 px-4 py-2 rounded-xl border text-xs font-bold transition ${activeGame === '' ? 'bg-brand border-brand text-white' : 'bg-cardBg border-borderBg text-gray-400 hover:text-white hover:border-brand/30'}`}
+        className={`flex-shrink-0 flex items-center gap-2 px-4 py-2 rounded-xl border text-xs font-bold transition ${activeGame === '' ? 'bg-brand border-brand text-black' : 'bg-cardBg border-borderBg text-gray-400 hover:text-white hover:border-brand/30'}`}
       >
         <Gamepad2 className="w-3.5 h-3.5" /> All Games
       </button>
       {GAMES.map(g => {
-        const color = banners[g.name]?.color ?? g.color ?? '#6366f1';
+        const color = banners[g.name]?.color ?? g.color ?? '#888888';
         const isActive = activeGame === g.name;
         return (
           <button
@@ -1053,7 +1059,7 @@ function MarketplaceContent() {
   const [showFilters, setShowFilters] = useState(false);
   const [showRequestModal, setShowRequestModal] = useState(false);
   const [requestSuccess, setRequestSuccess] = useState(false);
-  const [requestKey, setRequestKey] = useState(0); // bump to re-fetch requests
+  const [requestKey, setRequestKey] = useState(0);
 
   const [search, setSearch] = useState(searchParams.get('query') || '');
   const [activeGame, setActiveGame] = useState(searchParams.get('game') || '');
@@ -1064,7 +1070,6 @@ function MarketplaceContent() {
   const [maxPrice, setMaxPrice] = useState('');
   const [sort, setSort] = useState('newest');
 
-  // Capture affiliate referral code
   useEffect(() => {
     const ref = searchParams.get('ref');
     if (ref) { storeReferralCode(ref); trackReferralClick(ref); }
@@ -1133,14 +1138,15 @@ function MarketplaceContent() {
         </div>
         <button
           onClick={() => setShowFilters(!showFilters)}
-          className={`flex items-center gap-2 px-4 py-3 rounded-xl border text-sm font-semibold transition ${showFilters || hasFilters ? 'bg-brand/10 border-brand/40 text-brand-light' : 'bg-cardBg border-borderBg text-gray-300 hover:border-brand/30'}`}
+          className={`flex items-center gap-2 px-4 py-3 rounded-xl border text-sm font-semibold transition ${showFilters || hasFilters ? 'bg-brand/10 border-brand/40 text-brand' : 'bg-cardBg border-borderBg text-gray-300 hover:border-brand/30'}`}
         >
           <SlidersHorizontal className="w-4 h-4" />
           <span className="hidden sm:inline">Filters</span>
           {hasFilters && <span className="w-2 h-2 rounded-full bg-brand flex-shrink-0" />}
         </button>
+        {/* Gold Sell CTA */}
         <Link href="/sell"
-          className="flex items-center gap-2 bg-gradient-to-r from-brand to-purple-600 hover:from-brand-dark hover:to-purple-700 px-4 py-3 rounded-xl text-sm font-bold text-white transition shadow-lg shadow-brand/20 whitespace-nowrap">
+          className="flex items-center gap-2 bg-brand hover:bg-brand-light px-4 py-3 rounded-xl text-sm font-bold text-black transition shadow-lg shadow-brand/20 whitespace-nowrap">
           <PlusCircle className="w-4 h-4" /><span className="hidden sm:inline">Sell</span>
         </Link>
       </div>
@@ -1170,7 +1176,7 @@ function MarketplaceContent() {
             {SORT_OPTIONS.map(o => <option key={o.value} value={o.value}>{o.label}</option>)}
           </select>
           {hasFilters && (
-            <button onClick={clearFilters} className="col-span-2 sm:col-span-3 lg:col-span-6 flex items-center justify-center gap-1.5 text-xs text-red-400 hover:text-red-300 transition py-1">
+            <button onClick={clearFilters} className="col-span-2 sm:col-span-3 lg:col-span-6 flex items-center justify-center gap-1.5 text-xs text-gray-400 hover:text-white transition py-1">
               <X className="w-3.5 h-3.5" /> Clear all filters
             </button>
           )}
@@ -1194,7 +1200,7 @@ function MarketplaceContent() {
         loading={loading}
         total={total || listings.length}
         title={activeGame ? `${activeGame} Listings` : 'All Listings'}
-        icon={<Flame className="w-4 h-4 text-orange-400" />}
+        icon={<Flame className="w-4 h-4 text-brand" />}
         banners={banners}
       />
 
@@ -1207,15 +1213,15 @@ function MarketplaceContent() {
       {/* ── Top Up Deals ── */}
       <TopUpDealsSection />
 
-      {/* ── Bottom sell CTA ── */}
+      {/* ── Bottom sell CTA — clean black + gold ── */}
       {!hasFilters && (
-        <div className="bg-gradient-to-r from-brand/10 via-purple-500/10 to-brand/10 border border-brand/20 rounded-2xl p-6 flex flex-col sm:flex-row items-center justify-between gap-4 text-center sm:text-left">
+        <div className="bg-cardBg border border-borderBg rounded-2xl p-6 flex flex-col sm:flex-row items-center justify-between gap-4 text-center sm:text-left">
           <div>
             <p className="text-white font-bold text-base">Have something to sell?</p>
             <p className="text-gray-400 text-sm mt-0.5">List your account, coins, or boosting service in minutes.</p>
           </div>
           <Link href="/sell"
-            className="flex-shrink-0 flex items-center gap-2 bg-gradient-to-r from-brand to-purple-600 hover:from-brand-dark hover:to-purple-700 px-5 py-2.5 rounded-xl text-sm font-bold text-white transition shadow-lg shadow-brand/20">
+            className="flex-shrink-0 flex items-center gap-2 bg-brand hover:bg-brand-light px-5 py-2.5 rounded-xl text-sm font-bold text-black transition shadow-lg shadow-brand/20">
             <PlusCircle className="w-4 h-4" /> Start Selling
           </Link>
         </div>
@@ -1231,7 +1237,7 @@ function MarketplaceContent() {
 
       {/* ── Request success toast ── */}
       {requestSuccess && (
-        <div className="fixed bottom-6 left-1/2 -translate-x-1/2 z-50 bg-emerald-500 text-white text-sm font-bold px-5 py-3 rounded-xl shadow-xl flex items-center gap-2 animate-bounce-in">
+        <div className="fixed bottom-6 left-1/2 -translate-x-1/2 z-50 bg-emerald-500 text-white text-sm font-bold px-5 py-3 rounded-xl shadow-xl flex items-center gap-2">
           <Check className="w-4 h-4" /> Request posted! Sellers will reach out via messages.
         </div>
       )}
