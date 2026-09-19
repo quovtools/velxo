@@ -10,7 +10,13 @@ const GAME_SLUGS = GAME_LIST.map((g) => g.slug);
 
 async function fetchBlogSlugs(): Promise<string[]> {
   try {
-    const res = await fetch(`${API_BASE}/blog`, { next: { revalidate: 3600 } });
+    const controller = new AbortController();
+    const timeout = setTimeout(() => controller.abort(), 5000);
+    const res = await fetch(`${API_BASE}/blog`, {
+      next: { revalidate: 3600 },
+      signal: controller.signal,
+    });
+    clearTimeout(timeout);
     if (!res.ok) return [];
     const data = await res.json();
     return (data.data ?? []).map((p: { slug: string }) => p.slug).filter(Boolean);
@@ -21,9 +27,13 @@ async function fetchBlogSlugs(): Promise<string[]> {
 
 async function fetchTopSellerUsernames(): Promise<string[]> {
   try {
+    const controller = new AbortController();
+    const timeout = setTimeout(() => controller.abort(), 5000);
     const res = await fetch(`${API_BASE}/sellers?limit=50`, {
       next: { revalidate: 3600 },
+      signal: controller.signal,
     });
+    clearTimeout(timeout);
     if (!res.ok) return [];
     const data = await res.json();
     const sellers: Array<{ username?: string; storeName?: string }> = data.data ?? [];
