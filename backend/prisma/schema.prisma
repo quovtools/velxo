@@ -3,12 +3,9 @@ generator client {
 }
 
 datasource db {
-  provider  = "postgresql"
-  // DATABASE_URL  — use the NeonDB POOLED connection string (pgBouncer) for runtime
-  //                 to avoid waking compute on every query.
-  // DIRECT_URL    — use the NeonDB DIRECT (non-pooled) URL for Prisma migrations only.
-  url       = env("DATABASE_URL")
-  directUrl = env("DIRECT_URL")
+  provider = "postgresql"
+  // DATABASE_URL — Railway PostgreSQL public proxy URL
+  url      = env("DATABASE_URL")
 }
 
 enum Role {
