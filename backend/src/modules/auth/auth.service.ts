@@ -427,7 +427,9 @@ export class AuthService {
       async (tx) => {
         const record = await tx.sessionCodes.findUnique({ where: { code } })
         if (!record) return null
-        await tx.sessionCodes.delete({ where: { code } })
+        // Use deleteMany instead of delete to avoid "record not found" errors
+        // in case of concurrent requests racing to delete the same code.
+        await tx.sessionCodes.deleteMany({ where: { code } })
         return record
       },
       {
