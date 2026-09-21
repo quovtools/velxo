@@ -423,12 +423,18 @@ export class AuthService {
     // second concurrent request (e.g. React StrictMode double-invoke) from
     // racing past the findUnique check and hitting "Invalid or expired" on
     // a code that was actually valid but already consumed by the first call.
-    const entry = await this.prisma.$transaction(async (tx) => {
-      const record = await tx.sessionCodes.findUnique({ where: { code } })
-      if (!record) return null
-      await tx.sessionCodes.delete({ where: { code } })
-      return record
-    })
+    const entry = await this.prisma.$transaction(
+      async (tx) => {
+        const record = await tx.sessionCodes.findUnique({ where: { code } })
+        if (!record) return null
+        await tx.sessionCodes.delete({ where: { code } })
+        return record
+      },
+      {
+        timeout: 10000, // 10 second timeout for transaction
+        maxWait: 5000, // max 5 seconds waiting for a slot
+      },
+    )
 
     if (!entry) throw new UnauthorizedException('Invalid or expired session code')
 
