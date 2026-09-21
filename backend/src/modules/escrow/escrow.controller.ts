@@ -59,9 +59,9 @@ export class EscrowController {
 
   @Get('history')
   @UseGuards(SupabaseJwtGuard)
-  async getEscrowHistory() {
+  async getEscrowHistory(@CurrentUserId() userId: string) {
     try {
-      const history = await this.escrowService.getEscrowHistory()
+      const history = await this.escrowService.getEscrowHistory(userId)
       return ApiResponseDto.ok(history, 'Escrow history retrieved')
     } catch (error) {
       logError(this.logger, 'getEscrowHistory', error)

@@ -11,9 +11,21 @@ import {
 } from '@nestjs/common'
 import { SupportService } from './support.service'
 import { SupabaseJwtGuard } from '@/common/guards/jwt.guard'
-import { CurrentUserId } from '@/common/decorators/current-user.decorator'
+import { RolesGuard } from '@/common/guards/roles.guard'
+import { RequireRoles } from '@/common/decorators/roles.decorator'
+import { CurrentUserId, CurrentUserRole } from '@/common/decorators/current-user.decorator'
 import { ApiResponseDto } from '@/common/dto/api-response.dto'
-import { SupportTicketCategory } from '@prisma/client'
+import { SupportTicketCategory, Role } from '@prisma/client'
+
+const STAFF_ROLES = [Role.MODERATOR, Role.ADMIN, Role.SUPER_ADMIN]
+
+/** Maps the caller's actual account role to the ticket-message author role —
+ *  clients must never be trusted to self-report AGENT/ADMIN. */
+function toAuthorRole(userRole: Role | undefined): 'USER' | 'AGENT' | 'ADMIN' {
+  if (userRole === Role.ADMIN || userRole === Role.SUPER_ADMIN) return 'ADMIN'
+  if (userRole === Role.MODERATOR) return 'AGENT'
+  return 'USER'
+}
 
 @Controller('support')
 export class SupportController {
@@ -74,9 +86,14 @@ export class SupportController {
 
   @Get('tickets/:id')
   @UseGuards(SupabaseJwtGuard)
-  async getTicket(@Param('id') ticketId: string, @CurrentUserId() userId: string) {
+  async getTicket(
+    @Param('id') ticketId: string,
+    @CurrentUserId() userId: string,
+    @CurrentUserRole() userRole: Role,
+  ) {
     try {
-      const ticket = await this.supportService.getTicketById(ticketId)
+      const isStaff = STAFF_ROLES.includes(userRole)
+      const ticket = await this.supportService.getTicketById(ticketId, isStaff ? undefined : userId)
       return ApiResponseDto.ok(ticket, 'Ticket retrieved')
     } catch (error) {
       this.logger.error('Error fetching ticket:', error)
@@ -85,7 +102,8 @@ export class SupportController {
   }
 
   @Get('tickets')
-  @UseGuards(SupabaseJwtGuard)
+  @UseGuards(SupabaseJwtGuard, RolesGuard)
+  @RequireRoles(...STAFF_ROLES)
   async getOpenTickets(@Query('limit') limit?: number) {
     try {
       const tickets = await this.supportService.getOpenTickets(limit)
@@ -97,7 +115,8 @@ export class SupportController {
   }
 
   @Patch('tickets/:id/assign')
-  @UseGuards(SupabaseJwtGuard)
+  @UseGuards(SupabaseJwtGuard, RolesGuard)
+  @RequireRoles(...STAFF_ROLES)
   async assignTicket(
     @Param('id') ticketId: string,
     @Body('assigneeId') assigneeId: string,
@@ -112,7 +131,8 @@ export class SupportController {
   }
 
   @Patch('tickets/:id/resolve')
-  @UseGuards(SupabaseJwtGuard)
+  @UseGuards(SupabaseJwtGuard, RolesGuard)
+  @RequireRoles(...STAFF_ROLES)
   async resolveTicket(
     @Param('id') ticketId: string,
     @Body('resolutionNotes') resolutionNotes: string,
@@ -127,7 +147,8 @@ export class SupportController {
   }
 
   @Get('stats')
-  @UseGuards(SupabaseJwtGuard)
+  @UseGuards(SupabaseJwtGuard, RolesGuard)
+  @RequireRoles(...STAFF_ROLES)
   async getStats() {
     try {
       const stats = await this.supportService.getTicketStats()
@@ -144,14 +165,18 @@ export class SupportController {
   async addTicketMessage(
     @Param('id') ticketId: string,
     @CurrentUserId() userId: string,
+    @CurrentUserRole() userRole: Role,
     @Body('message') message: string,
-    @Body('role') role?: 'USER' | 'AGENT' | 'ADMIN',
   ) {
     try {
+      const authorRole = toAuthorRole(userRole)
+      const isStaff = STAFF_ROLES.includes(userRole)
+      // Non-staff can only reply to their own tickets; staff can reply to any.
+      await this.supportService.getTicketById(ticketId, isStaff ? undefined : userId)
       const ticket = await this.supportService.addTicketMessage(
         ticketId,
         userId,
-        role || 'USER',
+        authorRole,
         message,
       )
       return ApiResponseDto.ok(ticket, 'Message added')
@@ -167,9 +192,11 @@ export class SupportController {
   async getTicketMessages(
     @Param('id') ticketId: string,
     @CurrentUserId() userId: string,
+    @CurrentUserRole() userRole: Role,
   ) {
     try {
-      const messages = await this.supportService.getTicketMessages(ticketId, userId)
+      const isStaff = STAFF_ROLES.includes(userRole)
+      const messages = await this.supportService.getTicketMessages(ticketId, isStaff ? undefined : userId)
       return ApiResponseDto.ok(messages, 'Ticket messages retrieved')
     } catch (error) {
       this.logger.error('Error fetching ticket messages:', error)

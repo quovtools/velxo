@@ -2,46 +2,32 @@
 
 import React, { useState, useEffect } from 'react';
 import Link from 'next/link';
-import { ChevronDown, ChevronUp, ShieldCheck, Zap, TrendingUp, Star } from 'lucide-react';
+import { ChevronDown, ChevronUp, ShieldCheck, Zap, TrendingUp, Star, ArrowRight, Search, SlidersHorizontal, X } from 'lucide-react';
 import { slugToGameName, getGameConfig } from '@/lib/games';
 import { getGameSEOContent } from '@/lib/seo-content';
 import { useCurrency } from '@/lib/useCurrency';
+import ListingCard from '@/components/ListingCard';
 
-const API_BASE = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:3001/api/v1';
+const API = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:3001/api/v1';
 
-interface Listing {
-  id: string;
-  title: string;
-  price: string;
-  gameName: string;
-  platform: string;
-  region: string;
-  rank: string;
-  seller: {
-    storeName: string;
-    averageRating: number;
-  };
-}
+const SORT_OPTIONS = [
+  { value: 'newest', label: 'Newest' },
+  { value: 'price_asc', label: 'Price ↑' },
+  { value: 'price_desc', label: 'Price ↓' },
+  { value: 'rating', label: 'Top Rated' },
+];
 
-// ── FAQ accordion item ────────────────────────────────────────────────────────
 function FAQItem({ question, answer }: { question: string; answer: string }) {
   const [open, setOpen] = useState(false);
   return (
-    <div className="border border-borderBg rounded-xl overflow-hidden">
-      <button
-        onClick={() => setOpen((o) => !o)}
-        className="w-full flex items-center justify-between px-4 py-3 text-left text-sm font-semibold text-white hover:bg-cardBg/60 transition"
-        aria-expanded={open}
-      >
+    <div className="border border-[var(--border-bg)] rounded-xl overflow-hidden">
+      <button onClick={() => setOpen(o => !o)} aria-expanded={open}
+        className="w-full flex items-center justify-between px-5 py-4 text-left text-sm font-semibold text-white hover:bg-[var(--hover-bg)] transition">
         <span>{question}</span>
-        {open ? (
-          <ChevronUp className="w-4 h-4 text-gray-400 flex-shrink-0" />
-        ) : (
-          <ChevronDown className="w-4 h-4 text-gray-400 flex-shrink-0" />
-        )}
+        {open ? <ChevronUp className="w-4 h-4 text-gray-500 flex-shrink-0" /> : <ChevronDown className="w-4 h-4 text-gray-500 flex-shrink-0" />}
       </button>
       {open && (
-        <div className="px-4 pb-4 text-sm text-gray-400 leading-relaxed border-t border-borderBg pt-3">
+        <div className="px-5 pb-5 text-sm text-gray-400 leading-relaxed border-t border-[var(--border-bg)] pt-4">
           {answer}
         </div>
       )}
@@ -49,222 +35,195 @@ function FAQItem({ question, answer }: { question: string; answer: string }) {
   );
 }
 
-export default function GameCatalogContent({ slug }: { slug: string }) {
-  const { fmt } = useCurrency();
-  const [listings, setListings] = useState<Listing[]>([]);
-  const [loading, setLoading] = useState(true);
+function SkeletonCard() {
+  return (
+    <div className="bg-[var(--card-bg)] border border-[var(--border-bg)] rounded-2xl overflow-hidden">
+      <div className="h-44 skeleton" />
+      <div className="p-4 space-y-2">
+        <div className="h-2.5 skeleton rounded w-1/2" />
+        <div className="h-3.5 skeleton rounded w-4/5" />
+        <div className="flex justify-between mt-3">
+          <div className="h-5 skeleton rounded w-16" />
+          <div className="h-8 skeleton rounded-xl w-20" />
+        </div>
+      </div>
+    </div>
+  );
+}
 
+export default function GameCatalogContent({ slug }: { slug: string }) {
   const gameName = slugToGameName(slug);
   const cfg = getGameConfig(gameName);
   const seo = getGameSEOContent(slug);
 
+  const [listings, setListings] = useState<any[]>([]);
+  const [loading, setLoading] = useState(true);
+  const [query, setQuery] = useState('');
+  const [sort, setSort] = useState('newest');
+  const [type, setType] = useState('');
+  const [total, setTotal] = useState(0);
+  const [bannerUrl, setBannerUrl] = useState('');
+
   useEffect(() => {
-    async function loadListings() {
-      try {
-        const response = await fetch(`${API_BASE}/listings?gameName=${encodeURIComponent(gameName)}`);
-        if (response.ok) {
-          const result = await response.json();
-          setListings(result.data?.listings || []);
-        }
-      } catch (e) {
-        console.error(e);
-      } finally {
-        setLoading(false);
-      }
-    }
-    loadListings();
+    // Fetch game banner
+    fetch(`${API}/game-banners`)
+      .then(r => r.ok ? r.json() : { data: [] })
+      .then(d => {
+        const b = (d.data || []).find((x: any) => x.gameName === gameName);
+        if (b?.bannerUrl) setBannerUrl(b.bannerUrl);
+      }).catch(() => {});
   }, [gameName]);
 
+  useEffect(() => {
+    setLoading(true);
+    const p = new URLSearchParams({ gameName, limit: '20', sortBy: sort });
+    if (query) p.set('query', query);
+    if (type) p.set('category', type);
+
+    fetch(`${API}/listings?${p}`)
+      .then(r => r.ok ? r.json() : { data: [] })
+      .then(d => {
+        setListings(d.data?.listings || d.data || []);
+        setTotal(d.total || 0);
+        setLoading(false);
+      }).catch(() => setLoading(false));
+  }, [gameName, sort, query, type]);
+
+  const color = cfg?.color || '#D4A017';
+  const currency = cfg?.currency?.plural || 'in-game currency';
+  const topRank = cfg?.ranks?.[cfg.ranks.length - 1] || '';
+
+  const SERVICE_TYPES = [
+    { value: '', label: 'All' },
+    { value: 'ACCOUNT', label: 'Accounts' },
+    { value: 'TOPUP', label: `${currency} Top-Up` },
+    { value: 'BOOST', label: 'Boosting' },
+  ];
+
   return (
-    <div className="space-y-10">
+    <div className="space-y-8 fade-in pb-24 sm:pb-6">
 
-      {/* ── Breadcrumb ── */}
-      <nav aria-label="Breadcrumb" className="text-xs text-gray-500 flex items-center gap-1.5">
-        <Link href="/" className="hover:text-white transition">Home</Link>
-        <span>/</span>
-        <Link href="/games" className="hover:text-white transition">Games</Link>
-        <span>/</span>
-        <span className="text-gray-300">{gameName}</span>
-      </nav>
-
-      {/* ── Hero / intro ── */}
-      <div className="space-y-3 border-b border-borderBg pb-6">
-        <div className="flex items-center gap-3">
-          <h1 className="text-3xl sm:text-4xl font-extrabold text-white">{gameName} Marketplace</h1>
-          {cfg?.hasRanked && (
-            <span className="text-xs font-bold bg-brand/10 text-brand border border-brand/20 px-2 py-0.5 rounded-full">
-              Ranked
-            </span>
-          )}
-        </div>
-        <p className="text-gray-400 max-w-2xl leading-relaxed">
-          {seo?.shortDescription ??
-            `Browse active ${gameName} accounts and boosting services${cfg?.currency ? ` — ${cfg.currency.plural}` : ''}`}
-        </p>
-        {seo?.buyerGuide && (
-          <p className="text-sm text-gray-500 max-w-2xl leading-relaxed">{seo.buyerGuide}</p>
+      {/* ── Hero banner ── */}
+      <div className="relative -mx-4 sm:-mx-6 lg:-mx-8 overflow-hidden"
+        style={{ minHeight: 220, background: `linear-gradient(135deg,${color}18,#000)` }}>
+        {bannerUrl && (
+          // eslint-disable-next-line @next/next/no-img-element
+          <img src={bannerUrl} alt={gameName} className="absolute inset-0 w-full h-full object-cover opacity-30" />
         )}
-
-        {/* Quick service links */}
-        <div className="flex flex-wrap gap-2 pt-1">
-          <Link
-            href={`/games/${slug}?type=account`}
-            className="inline-flex items-center gap-1.5 text-xs font-semibold bg-cardBg border border-borderBg hover:border-brand/50 text-gray-300 px-3 py-1.5 rounded-lg transition"
-          >
-            <Star className="w-3.5 h-3.5 text-brand" /> Accounts
-          </Link>
-          <Link
-            href={`/topups?game=${encodeURIComponent(gameName)}`}
-            className="inline-flex items-center gap-1.5 text-xs font-semibold bg-cardBg border border-borderBg hover:border-brand/50 text-gray-300 px-3 py-1.5 rounded-lg transition"
-          >
-            <Zap className="w-3.5 h-3.5 text-brand" />
-            {cfg?.currency.plural ?? 'Top-Ups'}
-          </Link>
-          <Link
-            href={`/boosting?game=${encodeURIComponent(gameName)}`}
-            className="inline-flex items-center gap-1.5 text-xs font-semibold bg-cardBg border border-borderBg hover:border-brand/50 text-gray-300 px-3 py-1.5 rounded-lg transition"
-          >
-            <TrendingUp className="w-3.5 h-3.5 text-brand" /> Rank Boosting
-          </Link>
+        <div className="absolute inset-0" style={{ background: 'linear-gradient(to right,rgba(0,0,0,0.85) 40%,rgba(0,0,0,0.3) 100%)' }} />
+        <div className="relative z-10 px-4 sm:px-6 lg:px-8 py-10">
+          <div className="flex items-center gap-2 mb-3">
+            <Link href="/games" className="text-xs text-gray-500 hover:text-brand transition">Games</Link>
+            <span className="text-gray-700">/</span>
+            <span className="text-xs text-gray-300">{gameName}</span>
+          </div>
+          <h1 className="text-3xl md:text-4xl font-black text-white mb-2">
+            {gameName} <span className="text-gradient">Marketplace</span>
+          </h1>
+          <p className="text-gray-400 text-sm max-w-lg leading-relaxed">
+            Buy and sell verified {gameName} accounts, {currency} top-ups and boosting services.
+            {topRank && ` Find ${topRank} and starter accounts.`} All trades escrow-protected.
+          </p>
+          <div className="flex flex-wrap gap-2 mt-5">
+            {[
+              { icon: ShieldCheck, text: 'Escrow Protected' },
+              { icon: Zap, text: 'Instant Delivery' },
+              { icon: Star, text: 'Verified Sellers' },
+            ].map(({ icon: Icon, text }) => (
+              <span key={text} className="inline-flex items-center gap-1.5 bg-white/8 border border-white/12 px-3 py-1.5 rounded-full text-xs font-medium text-gray-300">
+                <Icon className="w-3.5 h-3.5 text-brand" /> {text}
+              </span>
+            ))}
+          </div>
         </div>
       </div>
 
-      {/* ── Listing grid ── */}
-      {loading ? (
-        <div className="grid grid-cols-1 md:grid-cols-4 gap-6">
-          {[1, 2, 3, 4].map((i) => (
-            <div key={i} className="bg-cardBg border border-borderBg rounded-2xl p-6 h-60 animate-pulse space-y-4">
-              <div className="h-4 bg-gray-700 rounded w-1/3" />
-              <div className="h-6 bg-gray-700 rounded w-3/4" />
-              <div className="h-4 bg-gray-700 rounded w-1/2" />
-              <div className="h-10 bg-gray-700 rounded mt-auto" />
-            </div>
-          ))}
-        </div>
-      ) : listings.length === 0 ? (
-        <div className="text-center py-20 bg-cardBg border border-borderBg rounded-2xl">
-          <p className="text-gray-400 text-lg">No active listings found for {gameName}.</p>
-          <Link
-            href="/sell"
-            className="mt-4 inline-block bg-brand hover:bg-brand-dark px-6 py-3 rounded-xl font-bold transition text-white"
-          >
-            Create first listing
-          </Link>
-        </div>
-      ) : (
-        <div className="grid grid-cols-1 md:grid-cols-4 gap-6">
-          {listings.map((item) => (
-            <div key={item.id} className="glow-card border border-borderBg p-6 flex flex-col justify-between h-full">
-              <div>
-                <div className="flex justify-between items-start gap-2 mb-2">
-                  <span className="bg-brand/10 text-brand-light text-xs font-semibold px-2 py-0.5 rounded border border-brand/20">
-                    {item.gameName}
-                  </span>
-                  <span className="text-xs text-gray-500 font-medium">
-                    {item.platform} · {item.region}
-                  </span>
-                </div>
-                <h3 className="font-bold text-lg text-white line-clamp-2 mb-2 hover:text-brand transition">
-                  <Link href={`/listings/${item.id}`}>{item.title}</Link>
-                </h3>
-                <div className="text-xs text-gray-400 space-y-1 mb-4">
-                  <p>Rank: <span className="text-gray-200">{item.rank || 'N/A'}</span></p>
-                  <p>
-                    Seller:{' '}
-                    <span className="text-brand-light">{item.seller?.storeName}</span>{' '}
-                    ({item.seller?.averageRating?.toFixed(1) || '0.0'} ★)
-                  </p>
-                </div>
-              </div>
-              <div className="flex items-center justify-between border-t border-borderBg pt-4 mt-auto">
-                <span className="text-2xl font-black text-white">{fmt(item.price)}</span>
-                <Link
-                  href={`/listings/${item.id}`}
-                  className="bg-brand hover:bg-brand-dark px-4 py-2 rounded-lg text-xs font-semibold transition text-white"
-                >
-                  View Offer
-                </Link>
-              </div>
-            </div>
-          ))}
-        </div>
-      )}
+      {/* ── Service type tabs ── */}
+      <div className="flex gap-2 overflow-x-auto pb-1 scrollbar-none">
+        {SERVICE_TYPES.map(st => (
+          <button key={st.value} onClick={() => setType(st.value)}
+            className={`flex-shrink-0 px-4 py-2 rounded-xl text-sm font-semibold border transition ${
+              type === st.value
+                ? 'bg-brand/10 border-brand/25 text-brand'
+                : 'border-[var(--border-bg)] text-gray-400 hover:text-white hover:border-[var(--border-strong)]'
+            }`}>
+            {st.label}
+          </button>
+        ))}
+      </div>
 
-      {/* ── Value drivers (what makes an account valuable) ── */}
-      {seo?.valueDrivers && seo.valueDrivers.length > 0 && (
-        <section className="space-y-3">
-          <h2 className="text-xl font-black text-white">What makes a {gameName} account valuable?</h2>
-          <ul className="grid grid-cols-1 sm:grid-cols-2 gap-2">
-            {seo.valueDrivers.map((v) => (
-              <li key={v} className="flex items-center gap-2 text-sm text-gray-400">
-                <span className="w-1.5 h-1.5 rounded-full bg-brand flex-shrink-0" />
-                {v}
-              </li>
-            ))}
-          </ul>
-        </section>
-      )}
+      {/* ── Search + sort ── */}
+      <div className="flex gap-2">
+        <div className="relative flex-1">
+          <Search className="absolute left-3.5 top-1/2 -translate-y-1/2 w-4 h-4 text-gray-500" />
+          <input value={query} onChange={e => setQuery(e.target.value)}
+            placeholder={`Search ${gameName} listings...`}
+            className="input pl-10" />
+        </div>
+        <select value={sort} onChange={e => setSort(e.target.value)} className="select min-w-[130px]">
+          {SORT_OPTIONS.map(o => <option key={o.value} value={o.value}>{o.label}</option>)}
+        </select>
+      </div>
 
-      {/* ── Rank guide ── */}
-      {seo?.rankGuide && (
-        <section className="bg-cardBg border border-borderBg rounded-2xl p-6 space-y-4">
-          <h2 className="text-xl font-black text-white">{seo.rankGuide.title}</h2>
-          <p className="text-sm text-gray-400 leading-relaxed">{seo.rankGuide.summary}</p>
-          <div className="space-y-2">
-            {seo.rankGuide.tiers.map((tier, i) => (
-              <div key={tier.name} className="flex items-start gap-3">
-                <span className="flex-shrink-0 w-6 h-6 rounded-full bg-brand/10 border border-brand/20 text-brand text-xs font-bold flex items-center justify-center mt-0.5">
-                  {i + 1}
-                </span>
-                <div>
-                  <span className="text-sm font-bold text-white">{tier.name}</span>
-                  <span className="text-sm text-gray-400"> — {tier.description}</span>
-                </div>
-              </div>
-            ))}
+      {/* ── Results ── */}
+      <div>
+        <p className="text-sm text-gray-500 mb-4">
+          {loading ? 'Loading...' : `${total || listings.length} listings`}
+        </p>
+        {loading ? (
+          <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-4 gap-4">
+            {Array.from({ length: 8 }).map((_, i) => <SkeletonCard key={i} />)}
           </div>
-        </section>
-      )}
-
-      {/* ── Trust points ── */}
-      {seo?.trustPoints && seo.trustPoints.length > 0 && (
-        <section className="grid grid-cols-1 sm:grid-cols-2 gap-3">
-          {seo.trustPoints.map((point) => (
-            <div key={point} className="flex items-center gap-2 bg-cardBg border border-borderBg rounded-xl px-4 py-3">
-              <ShieldCheck className="w-4 h-4 text-emerald-400 flex-shrink-0" />
-              <span className="text-sm text-gray-300">{point}</span>
+        ) : listings.length === 0 ? (
+          <div className="flex flex-col items-center justify-center py-20 border border-dashed border-[var(--border-bg)] rounded-2xl text-center">
+            <div className="w-14 h-14 rounded-2xl bg-brand/10 flex items-center justify-center mb-4">
+              <TrendingUp className="w-6 h-6 text-brand/50" />
             </div>
-          ))}
-        </section>
+            <p className="text-gray-400 font-semibold mb-2">No listings yet</p>
+            <p className="text-sm text-gray-600 mb-5 max-w-xs">Be the first to sell {gameName} accounts on Piyrox.</p>
+            <Link href="/sell" className="btn-primary rounded-xl">Start Selling</Link>
+          </div>
+        ) : (
+          <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-4 gap-4">
+            {listings.map(item => <ListingCard key={item.id} item={item} />)}
+          </div>
+        )}
+      </div>
+
+      {/* ── Game info panel ── */}
+      {cfg && (
+        <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+          <div className="bg-[var(--card-bg)] border border-[var(--border-bg)] rounded-2xl p-5 space-y-4">
+            <h3 className="font-bold text-white text-sm">About {gameName}</h3>
+            <div className="space-y-2 text-sm">
+              {cfg.genre && <div className="flex justify-between"><span className="text-gray-500">Genre</span><span className="text-white font-semibold">{cfg.genre}</span></div>}
+              {cfg.currency?.plural && <div className="flex justify-between"><span className="text-gray-500">Currency</span><span className="text-white font-semibold">{cfg.currency.plural}</span></div>}
+              {cfg.platforms?.length > 0 && <div className="flex justify-between"><span className="text-gray-500">Platforms</span><span className="text-white font-semibold">{cfg.platforms.join(', ')}</span></div>}
+            </div>
+          </div>
+
+          {cfg.ranks?.length > 0 && (
+            <div className="bg-[var(--card-bg)] border border-[var(--border-bg)] rounded-2xl p-5 space-y-3">
+              <h3 className="font-bold text-white text-sm">Rank Tiers</h3>
+              <div className="flex flex-wrap gap-1.5">
+                {cfg.ranks.map((r: string) => (
+                  <span key={r} className="px-2.5 py-1 rounded-lg bg-brand/8 border border-brand/15 text-brand text-xs font-semibold">{r}</span>
+                ))}
+              </div>
+            </div>
+          )}
+        </div>
       )}
 
       {/* ── FAQ ── */}
       {seo?.faqs && seo.faqs.length > 0 && (
-        <section className="space-y-3">
-          <h2 className="text-xl font-black text-white">{gameName} Account FAQ</h2>
-          <div className="space-y-2">
-            {seo.faqs.map((faq) => (
-              <FAQItem key={faq.question} question={faq.question} answer={faq.answer} />
-            ))}
-          </div>
-        </section>
-      )}
-
-      {/* ── CTA ── */}
-      <section className="bg-brand/5 border border-brand/20 rounded-2xl p-6 flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4">
-        <div>
-          <p className="text-white font-bold">Have a {gameName} account to sell?</p>
-          <p className="text-sm text-gray-400 mt-0.5">
-            List it on Piyrox and reach thousands of verified buyers. Free to list — we only charge on successful sales.
-          </p>
+        <div className="space-y-3">
+          <h2 className="text-lg font-black text-white">Frequently Asked Questions</h2>
+          {seo.faqs.map((faq: { question: string; answer: string }) => (
+            <FAQItem key={faq.question} question={faq.question} answer={faq.answer} />
+          ))}
         </div>
-        <Link
-          href="/sell"
-          className="flex-shrink-0 bg-brand hover:bg-brand-dark text-white text-sm font-bold px-5 py-2.5 rounded-xl transition"
-        >
-          Sell your account
-        </Link>
-      </section>
+      )}
     </div>
   );
 }

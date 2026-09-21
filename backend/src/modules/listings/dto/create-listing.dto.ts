@@ -1,6 +1,7 @@
-import { IsString, IsNumber, IsOptional, IsArray, IsEnum, Min, MaxLength, ValidateIf } from 'class-validator'
+import { IsString, IsNumber, IsOptional, IsArray, IsEnum, IsIn, Min, MaxLength, ValidateIf } from 'class-validator'
 import { ListingStatus } from '@prisma/client'
 import { getGameRules } from '../game-rules'
+import { GAME_SLUGS } from '../../games/games.config'
 
 export enum ListingTypeEnum {
   ACCOUNT = 'account',
@@ -29,6 +30,7 @@ export class CreateListingDto {
 
   @IsString()
   @IsOptional()
+  @IsIn(GAME_SLUGS, { message: `gameSlug must be one of: ${GAME_SLUGS.join(', ')}` })
   gameSlug?: string
 
   @IsString()
@@ -46,8 +48,11 @@ export class CreateListingDto {
   @IsOptional()
   region?: string
 
+  @ValidateIf(o => {
+    const rules = getGameRules(o.gameSlug || o.gameName || '')
+    return rules.requiresRank
+  })
   @IsString()
-  @IsOptional()
   rank?: string
 
   @IsNumber()
@@ -82,7 +87,7 @@ export class CreateListingDto {
   isFeatured?: boolean
 
   @ValidateIf(o => {
-    const rules = getGameRules(o.gameSlug || '')
+    const rules = getGameRules(o.gameSlug || o.gameName || '')
     return rules.requiresPlayerId
   })
   @IsString()

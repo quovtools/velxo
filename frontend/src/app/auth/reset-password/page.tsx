@@ -62,7 +62,7 @@ function ResetPasswordContent() {
           <div className="w-20 h-20 bg-emerald-500/20 rounded-full flex items-center justify-center mx-auto">
             <ShieldCheck className="w-10 h-10 text-emerald-400" />
           </div>
-          <h2 className="text-2xl font-bold text-white">Password Updated!</h2>
+          <h2 className="text-2xl font-black text-white">Password Updated!</h2>
           <p className="text-gray-400 text-sm">Redirecting to login...</p>
         </div>
       </div>
@@ -76,16 +76,18 @@ function ResetPasswordContent() {
         <div className="w-full max-w-md space-y-6">
           <div className="text-center">
             <Link href="/" className="inline-flex items-center gap-2 mb-5">
-              <img src="/logo.png" alt="Piyrox" className="w-9 h-9 rounded-xl object-contain" />
-              <span className="text-xl font-black tracking-wider">PIYROX</span>
+              <div className="w-9 h-9 rounded-xl bg-brand/10 border border-brand/20 flex items-center justify-center overflow-hidden">
+                <img src="/logo-new.png" alt="Piyrox" className="w-7 h-7 object-contain" />
+              </div>
+              <span className="text-xl font-black tracking-widest text-white">PIYROX</span>
             </Link>
-            <h1 className="text-2xl font-bold">Set New Password</h1>
+            <h1 className="text-2xl font-black text-white">Set New Password</h1>
             <p className="text-gray-400 text-sm mt-1">Choose a strong password for your account</p>
           </div>
 
-          <div className="bg-cardBg border border-borderBg rounded-2xl p-8 space-y-5">
+          <div className="bg-[var(--card-bg)] border border-[var(--border-bg)] rounded-2xl p-8 space-y-5">
             {error && (
-              <div className="bg-red-900/20 border border-red-500/40 text-red-300 text-sm px-4 py-3 rounded-xl">{error}</div>
+              <div className="bg-[var(--error-bg)] border border-red-500/30 text-red-400 text-sm px-4 py-3 rounded-xl">{error}</div>
             )}
 
             <form onSubmit={handleResetPassword} className="space-y-4">
@@ -96,7 +98,7 @@ function ResetPasswordContent() {
                     type={showPw ? 'text' : 'password'} required minLength={8}
                     value={newPw} onChange={e => setNewPw(e.target.value)}
                     placeholder="Min. 8 characters"
-                    className="w-full bg-background border border-borderBg rounded-xl px-4 py-3 pr-11 text-sm focus:outline-none focus:border-brand transition"
+                    className="input pr-11"
                   />
                   <button type="button" onClick={() => setShowPw(!showPw)}
                     className="absolute right-3 top-1/2 -translate-y-1/2 text-gray-500">
@@ -110,11 +112,11 @@ function ResetPasswordContent() {
                   type="password" required
                   value={confirmPw} onChange={e => setConfirmPw(e.target.value)}
                   placeholder="Repeat new password"
-                  className="w-full bg-background border border-borderBg rounded-xl px-4 py-3 text-sm focus:outline-none focus:border-brand transition"
+                  className="input"
                 />
               </div>
               <button type="submit" disabled={loading}
-                className="w-full flex items-center justify-center gap-2 bg-brand hover:bg-brand-dark py-3.5 rounded-xl font-bold text-white transition disabled:opacity-50">
+                className="btn-primary w-full justify-center !py-3.5 disabled:opacity-50">
                 {loading ? <><Loader2 className="w-4 h-4 animate-spin" /> Updating...</> : <><Check className="w-4 h-4" /> Update Password</>}
               </button>
             </form>
@@ -130,14 +132,16 @@ function ResetPasswordContent() {
       <div className="w-full max-w-md space-y-6">
         <div className="text-center">
           <Link href="/" className="inline-flex items-center gap-2 mb-5">
-            <img src="/logo.png" alt="Piyrox" className="w-9 h-9 rounded-xl object-contain" />
-            <span className="text-xl font-black tracking-wider">PIYROX</span>
+            <div className="w-9 h-9 rounded-xl bg-brand/10 border border-brand/20 flex items-center justify-center overflow-hidden">
+              <img src="/logo-new.png" alt="Piyrox" className="w-7 h-7 object-contain" />
+            </div>
+            <span className="text-xl font-black tracking-widest text-white">PIYROX</span>
           </Link>
-          <h1 className="text-2xl font-bold">Forgot Password</h1>
+          <h1 className="text-2xl font-black text-white">Forgot Password</h1>
           <p className="text-gray-400 text-sm mt-1">We'll send a reset link to your email</p>
         </div>
 
-        <div className="bg-cardBg border border-borderBg rounded-2xl p-8 space-y-5">
+        <div className="bg-[var(--card-bg)] border border-[var(--border-bg)] rounded-2xl p-8 space-y-5">
           {requestSent ? (
             <div className="text-center space-y-3 py-4">
               <div className="w-14 h-14 bg-emerald-500/20 rounded-full flex items-center justify-center mx-auto">
@@ -150,7 +154,7 @@ function ResetPasswordContent() {
           ) : (
             <>
               {error && (
-                <div className="bg-red-900/20 border border-red-500/40 text-red-300 text-sm px-4 py-3 rounded-xl">{error}</div>
+                <div className="bg-[var(--error-bg)] border border-red-500/30 text-red-400 text-sm px-4 py-3 rounded-xl">{error}</div>
               )}
               <form onSubmit={handleRequestReset} className="space-y-4">
                 <div>
@@ -159,11 +163,11 @@ function ResetPasswordContent() {
                     type="email" required
                     value={email} onChange={e => setEmail(e.target.value)}
                     placeholder="gaming@piyrox.shop"
-                    className="w-full bg-background border border-borderBg rounded-xl px-4 py-3 text-sm focus:outline-none focus:border-brand transition"
+                    className="input"
                   />
                 </div>
                 <button type="submit" disabled={loading}
-                  className="w-full flex items-center justify-center gap-2 bg-brand hover:bg-brand-dark py-3.5 rounded-xl font-bold text-white transition disabled:opacity-50">
+                  className="btn-primary w-full justify-center !py-3.5 disabled:opacity-50">
                   {loading ? <><Loader2 className="w-4 h-4 animate-spin" /> Sending...</> : 'Send Reset Link'}
                 </button>
               </form>

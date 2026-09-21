@@ -1,14 +1,30 @@
-export const GAME_RULES: Record<string, { requiresPlayerId: boolean; requiresRank: boolean }> = {
-  'free-fire':     { requiresPlayerId: true,  requiresRank: true },
-  'pubg-mobile':   { requiresPlayerId: true,  requiresRank: true },
-  'cod-mobile':    { requiresPlayerId: false, requiresRank: true },
-  'blood-strike':  { requiresPlayerId: false, requiresRank: false },
-  'efootball':     { requiresPlayerId: false, requiresRank: false },
-  'mobile-legends':{ requiresPlayerId: true,  requiresRank: true },
-  'valorant':      { requiresPlayerId: false, requiresRank: true },
-  'roblox':        { requiresPlayerId: true,  requiresRank: false },
+import { GAMES_CONFIG, resolveGame } from '../games/games.config'
+
+export interface GameRules {
+  requiresPlayerId: boolean
+  requiresRank: boolean
 }
 
-export function getGameRules(gameSlug: string) {
-  return GAME_RULES[gameSlug] || { requiresPlayerId: false, requiresRank: false }
+/** Derived from the canonical games config so the rules can never drift from
+ *  the live game info served by GET /games. */
+export const GAME_RULES: Record<string, GameRules> = GAMES_CONFIG.reduce(
+  (acc, g) => {
+    acc[g.slug] = {
+      requiresPlayerId: g.requiresPlayerId,
+      requiresRank: g.requiresRank,
+    }
+    return acc
+  },
+  {} as Record<string, GameRules>,
+)
+
+const DEFAULT_RULES: GameRules = { requiresPlayerId: false, requiresRank: false }
+
+/** Accepts a slug or display name; unknown games fall back to no requirements. */
+export function getGameRules(gameSlugOrName: string): GameRules {
+  const game = resolveGame(gameSlugOrName)
+  if (game) {
+    return { requiresPlayerId: game.requiresPlayerId, requiresRank: game.requiresRank }
+  }
+  return GAME_RULES[gameSlugOrName] || DEFAULT_RULES
 }

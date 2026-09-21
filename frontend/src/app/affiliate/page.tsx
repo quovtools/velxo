@@ -61,27 +61,27 @@ const PLATFORMS = [
 
 const TIER_COLORS: Record<string, string> = {
   STARTER: 'text-gray-400',
-  RISING: 'text-violet-400',
-  ELITE: 'text-yellow-400',
+  RISING: 'text-brand-light',
+  ELITE: 'text-brand',
   BASIC: 'text-gray-400',
-  ACTIVE: 'text-cyan-400',
-  POWER: 'text-purple-400',
+  ACTIVE: 'text-brand-light',
+  POWER: 'text-brand',
 };
 
 const TIER_BG: Record<string, string> = {
   STARTER: 'bg-gray-500/10 border-gray-500/20',
-  RISING: 'bg-violet-500/10 border-violet-500/20',
-  ELITE: 'bg-yellow-500/10 border-yellow-500/20',
+  RISING: 'bg-brand/10 border-brand/20',
+  ELITE: 'bg-brand/15 border-brand/30',
   BASIC: 'bg-gray-500/10 border-gray-500/20',
-  ACTIVE: 'bg-cyan-500/10 border-cyan-500/20',
-  POWER: 'bg-purple-500/10 border-purple-500/20',
+  ACTIVE: 'bg-brand/10 border-brand/20',
+  POWER: 'bg-brand/15 border-brand/30',
 };
 
 const STATUS_BADGE: Record<string, string> = {
-  PENDING: 'bg-yellow-500/10 text-yellow-400 border-yellow-500/20',
-  APPROVED: 'bg-emerald-500/10 text-emerald-400 border-emerald-500/20',
-  REJECTED: 'bg-red-500/10 text-red-400 border-red-500/20',
-  SUSPENDED: 'bg-orange-500/10 text-orange-400 border-orange-500/20',
+  PENDING: 'badge-warning',
+  APPROVED: 'badge-success',
+  REJECTED: 'badge-error',
+  SUSPENDED: 'badge-warning',
 };
 
 // ─── Creator Registration Modal ──────────────────────────────────────────────
@@ -145,7 +145,7 @@ function CreatorRegisterModal({
                 return (
                   <button key={p.value} type="button" onClick={() => setPlatform(p.value)}
                     className={`flex flex-col items-center gap-1 p-3 rounded-xl border text-xs font-semibold transition ${
-                      platform === p.value ? 'bg-brand/20 border-brand text-white' : 'border-[var(--border-bg)] text-gray-400 hover:border-brand/40 hover:text-white'
+                      platform === p.value ? 'bg-brand border-brand text-black' : 'border-[var(--border-bg)] text-gray-400 hover:border-brand/40 hover:text-white'
                     }`}>
                     <Icon className="w-5 h-5" />{p.label}
                   </button>
@@ -156,20 +156,20 @@ function CreatorRegisterModal({
           <div>
             <label className="block text-xs font-semibold text-gray-400 mb-1.5 uppercase tracking-wide">Your Handle / Channel Name</label>
             <input value={handle} onChange={e => setHandle(e.target.value)} placeholder="@yourchannel"
-              className="w-full bg-background border border-[var(--border-bg)] rounded-xl px-4 py-3 text-sm focus:outline-none focus:border-brand transition" />
+              className="input" />
           </div>
           <div>
             <label className="block text-xs font-semibold text-gray-400 mb-1.5 uppercase tracking-wide">Follower / Subscriber Count *</label>
             <input type="number" value={followerCount} onChange={e => setFollowerCount(e.target.value)}
               placeholder="e.g. 15000" min={0}
-              className="w-full bg-background border border-[var(--border-bg)] rounded-xl px-4 py-3 text-sm focus:outline-none focus:border-brand transition" />
+              className="input" />
             <p className="text-xs text-gray-500 mt-1">Minimum 10,000 followers required</p>
           </div>
           <div>
             <label className="block text-xs font-semibold text-gray-400 mb-1.5 uppercase tracking-wide">Short Bio</label>
             <textarea value={bio} onChange={e => setBio(e.target.value)} placeholder="Tell us about your content..."
               rows={3}
-              className="w-full bg-background border border-[var(--border-bg)] rounded-xl px-4 py-3 text-sm focus:outline-none focus:border-brand transition resize-none" />
+              className="input resize-none" />
           </div>
           <div className="flex gap-3 pt-1">
             <button type="button" onClick={onClose}
@@ -177,7 +177,7 @@ function CreatorRegisterModal({
               Cancel
             </button>
             <button type="submit" disabled={saving}
-              className="flex-1 py-3 bg-brand hover:bg-brand-dark text-white rounded-xl text-sm font-bold transition disabled:opacity-50 flex items-center justify-center gap-2">
+              className="flex-1 btn-primary disabled:opacity-50">
               {saving ? <><Loader2 className="w-4 h-4 animate-spin" /> Submitting...</> : <><Crown className="w-4 h-4" /> Apply Now</>}
             </button>
           </div>
@@ -230,7 +230,7 @@ export default function AffiliateDashboardPage() {
         </div>
         <h1 className="text-3xl font-black text-white">Piyrox Affiliate Program</h1>
         <p className="text-gray-400 text-sm">Earn rewards for every signup and trade. Creators earn even more — 20% of Piyrox's profit, free Premium, and tournament slots.</p>
-        <a href="/auth/login" className="inline-flex items-center justify-center gap-2 bg-brand hover:bg-brand-dark px-6 py-3 rounded-xl text-white font-bold transition shadow-lg shadow-brand/20">
+        <a href="/auth/login" className="btn-primary shadow-lg shadow-brand/20">
           Sign In to Start Earning
         </a>
       </div>
@@ -266,7 +266,7 @@ export default function AffiliateDashboardPage() {
         <div className="flex items-center gap-3">
           <h1 className="text-3xl md:text-4xl font-black text-white">Affiliate</h1>
           {stats?.isCreator && (
-            <span className="flex items-center gap-1.5 px-3 py-1 bg-gradient-to-r from-yellow-500/20 to-amber-500/20 border border-yellow-500/30 rounded-full text-xs font-bold text-yellow-400">
+            <span className="badge badge-gold">
               <Crown className="w-3.5 h-3.5" /> Creator
             </span>
           )}
@@ -276,7 +276,7 @@ export default function AffiliateDashboardPage() {
 
       {/* ── Referral Link Card ── */}
       {referral && (
-        <div className="bg-gradient-to-r from-brand/15 to-purple-900/15 border border-brand/25 rounded-2xl p-5 space-y-3">
+        <div className="glass-brand rounded-2xl p-5 space-y-3">
           <div className="flex items-center justify-between">
             <div className="flex items-center gap-2">
               <Share2 className="w-5 h-5 text-brand" />
@@ -289,7 +289,7 @@ export default function AffiliateDashboardPage() {
               <Copy className="w-3.5 h-3.5" /> {copied ? 'Copied!' : 'Copy Link'}
             </button>
           </div>
-          <div className="bg-background border border-[var(--border-bg)] rounded-xl px-4 py-3 overflow-hidden">
+          <div className="bg-black/40 border border-[var(--border-bg)] rounded-xl px-4 py-3 overflow-hidden">
             <p className="text-sm font-mono font-bold text-white truncate">
               {typeof window !== 'undefined' ? `${window.location.origin}/?ref=${referral.referralCode}` : `piyrox.shop/?ref=${referral.referralCode}`}
             </p>
@@ -300,39 +300,53 @@ export default function AffiliateDashboardPage() {
 
       {/* ── Stats Row ── */}
       <div className="grid grid-cols-2 sm:grid-cols-4 gap-3">
-        <div className="bg-[var(--card-bg)] border border-[var(--border-bg)] rounded-2xl p-4 space-y-1">
-          <MousePointerClick className="w-4 h-4 text-cyan-400 mb-1" />
+        <div className="stat-block space-y-1">
+          <MousePointerClick className="w-4 h-4 text-brand mb-1" />
           <p className="text-2xl font-black text-white">{stats?.totalClicks ?? 0}</p>
           <p className="text-[11px] text-gray-500 font-medium uppercase tracking-wide">Clicks</p>
         </div>
-        <div className="bg-[var(--card-bg)] border border-[var(--border-bg)] rounded-2xl p-4 space-y-1">
-          <Users className="w-4 h-4 text-violet-400 mb-1" />
+        <div className="stat-block space-y-1">
+          <Users className="w-4 h-4 text-brand mb-1" />
           <p className="text-2xl font-black text-white">{stats?.totalSignups ?? 0}</p>
           <p className="text-[11px] text-gray-500 font-medium uppercase tracking-wide">Signups</p>
         </div>
-        <div className="bg-[var(--card-bg)] border border-[var(--border-bg)] rounded-2xl p-4 space-y-1">
-          <TrendingUp className="w-4 h-4 text-emerald-400 mb-1" />
+        <div className="stat-block space-y-1">
+          <TrendingUp className="w-4 h-4 text-brand mb-1" />
           <p className="text-2xl font-black text-white">{stats?.totalTrades ?? 0}</p>
-          <p className="text-[11px] text-gray-500 font-medium uppercase tracking-wide">Trades</p>
+          <p className="text-[11px] text-gray-500 font-medium uppercase tracking-wide">Conversions</p>
         </div>
-        <div className="bg-[var(--card-bg)] border border-[var(--border-bg)] rounded-2xl p-4 space-y-1">
-          <DollarSign className="w-4 h-4 text-amber-400 mb-1" />
-          <p className="text-2xl font-black text-white">₦{(stats?.totalSignupRewards ?? 0).toLocaleString()}</p>
-          <p className="text-[11px] text-gray-500 font-medium uppercase tracking-wide">Signup Rewards</p>
+        <div className="stat-block-gold space-y-1">
+          <DollarSign className="w-4 h-4 text-brand mb-1" />
+          <p className="text-2xl font-black text-brand">₦{((stats?.totalEarned ?? 0) + (stats?.totalSignupRewards ?? 0)).toLocaleString()}</p>
+          <p className="text-[11px] text-gray-500 font-medium uppercase tracking-wide">Total Earnings</p>
         </div>
       </div>
+
+      {/* ── Earnings / Withdraw ── */}
+      {stats && (
+        <div className="card-gold p-5 flex flex-col sm:flex-row sm:items-center gap-4">
+          <div className="flex-1">
+            <p className="text-xs text-gray-400 uppercase tracking-wider font-semibold">Earnings · Available Balance</p>
+            <p className="text-3xl font-black text-brand mt-1">₦{((stats.totalEarned ?? 0) + (stats.totalSignupRewards ?? 0)).toLocaleString()}</p>
+            <p className="text-[11px] text-gray-500 mt-1">Rewards are credited to your Piyrox wallet automatically.</p>
+          </div>
+          <a href="/wallet" className="btn-primary flex-shrink-0">
+            <DollarSign className="w-4 h-4" /> Withdraw
+          </a>
+        </div>
+      )}
 
       {/* ── Tab Switch: User / Creator ── */}
       <div className="flex gap-2 p-1 bg-[var(--card-bg)] border border-[var(--border-bg)] rounded-xl">
         <button onClick={() => setTab('user')}
           className={`flex-1 flex items-center justify-center gap-2 py-2.5 rounded-lg text-sm font-bold transition ${
-            tab === 'user' ? 'bg-brand text-white' : 'text-gray-400 hover:text-white'
+            tab === 'user' ? 'bg-brand text-black' : 'text-gray-400 hover:text-white'
           }`}>
           <Users className="w-4 h-4" /> User Rewards
         </button>
         <button onClick={() => setTab('creator')}
           className={`flex-1 flex items-center justify-center gap-2 py-2.5 rounded-lg text-sm font-bold transition ${
-            tab === 'creator' ? 'bg-gradient-to-r from-yellow-500 to-amber-500 text-black' : 'text-gray-400 hover:text-white'
+            tab === 'creator' ? 'bg-brand text-black' : 'text-gray-400 hover:text-white'
           }`}>
           <Crown className="w-4 h-4" /> Creator Program
           {stats?.isCreator && <span className="w-2 h-2 rounded-full bg-emerald-400" />}
@@ -364,7 +378,7 @@ export default function AffiliateDashboardPage() {
                     <span>Progress to {nextTier}</span>
                     <span>{stats?.totalSignups ?? 0} / {(stats?.totalSignups ?? 0) + signupsToNext} signups</span>
                   </div>
-                  <div className="w-full bg-gray-700 rounded-full h-2">
+                  <div className="w-full bg-[var(--surface-3)] rounded-full h-2">
                     <div className="bg-brand h-2 rounded-full transition-all" style={{ width: `${progressPct}%` }} />
                   </div>
                   <p className="text-xs text-gray-500">{signupsToNext} more signups → ₦{tierInfo.nextReward} per signup</p>
@@ -401,14 +415,14 @@ export default function AffiliateDashboardPage() {
 
           {/* Want More? Creator CTA */}
           {!stats?.isCreator && !creatorProfile && (
-            <div className="bg-gradient-to-r from-yellow-900/20 to-amber-900/20 border border-yellow-500/20 rounded-2xl p-5 flex flex-col sm:flex-row items-start sm:items-center gap-4">
+            <div className="card-gold flex flex-col sm:flex-row items-start sm:items-center gap-4 p-5">
               <Crown className="w-10 h-10 text-yellow-400 flex-shrink-0" />
               <div className="flex-1 space-y-1">
                 <p className="text-base font-bold text-white">Want to earn 5× more?</p>
                 <p className="text-xs text-gray-400">Creators with 10k+ followers get ₦10–₦50 per signup, 20% commission on trades, free Seller Premium, and tournament slots.</p>
               </div>
               <button onClick={() => setTab('creator')}
-                className="flex-shrink-0 flex items-center gap-2 px-5 py-2.5 bg-gradient-to-r from-yellow-500 to-amber-500 text-black font-bold rounded-xl text-sm transition hover:opacity-90">
+                className="flex-shrink-0 btn-primary !py-2.5">
                 Become a Creator <ArrowRight className="w-4 h-4" />
               </button>
             </div>
@@ -421,17 +435,17 @@ export default function AffiliateDashboardPage() {
         <div className="space-y-5">
           {/* Creator Status Card */}
           {creatorProfile ? (
-            <div className="bg-gradient-to-r from-yellow-900/20 to-amber-900/20 border border-yellow-500/20 rounded-2xl p-5 space-y-4">
+            <div className="card-gold p-5 space-y-4">
               <div className="flex items-start justify-between gap-3">
                 <div className="flex items-center gap-3">
-                  <div className="p-2.5 bg-yellow-500/10 rounded-xl"><Crown className="w-7 h-7 text-yellow-400" /></div>
+                  <div className="p-2.5 bg-brand/10 rounded-xl"><Crown className="w-7 h-7 text-brand" /></div>
                   <div>
                     <p className="text-xs text-gray-400 uppercase tracking-wide">Creator Account</p>
                     <h3 className="text-xl font-black text-white">{creatorProfile.handle || user.firstName}</h3>
                     <p className="text-xs text-gray-400 capitalize">{creatorProfile.platform} · {creatorProfile.followerCount.toLocaleString()} followers</p>
                   </div>
                 </div>
-                <span className={`px-3 py-1 rounded-full text-xs font-bold border ${STATUS_BADGE[creatorProfile.status] || ''}`}>
+                <span className={`badge ${STATUS_BADGE[creatorProfile.status] || 'badge-neutral'}`}>
                   {creatorProfile.status}
                 </span>
               </div>
@@ -484,9 +498,9 @@ export default function AffiliateDashboardPage() {
           ) : (
             /* No creator profile yet — show the benefits and apply CTA */
             <div className="space-y-4">
-              <div className="bg-gradient-to-br from-yellow-900/20 via-amber-900/15 to-brand/10 border border-yellow-500/20 rounded-2xl p-6 space-y-4">
+              <div className="glass-brand rounded-2xl p-6 space-y-4">
                 <div className="flex items-center gap-3">
-                  <Crown className="w-8 h-8 text-yellow-400" />
+                  <Crown className="w-8 h-8 text-brand" />
                   <div>
                     <h3 className="text-xl font-black text-white">Creator Program</h3>
                     <p className="text-xs text-gray-400">For content creators with 10k+ followers</p>
@@ -514,7 +528,7 @@ export default function AffiliateDashboardPage() {
                   })}
                 </div>
                 <button onClick={() => setShowCreatorModal(true)}
-                  className="w-full py-3.5 bg-gradient-to-r from-yellow-500 to-amber-500 hover:opacity-90 text-black font-black rounded-xl text-sm transition flex items-center justify-center gap-2">
+                  className="w-full btn-primary !py-3.5 !font-black">
                   <Crown className="w-5 h-5" /> Apply to Creator Program
                 </button>
                 <p className="text-center text-xs text-gray-500">Requires 10,000+ followers. No new account needed.</p>
@@ -525,12 +539,12 @@ export default function AffiliateDashboardPage() {
           {/* Creator Tiers */}
           {(creatorProfile?.status === 'APPROVED' || !creatorProfile) && (
             <div className="bg-[var(--card-bg)] border border-[var(--border-bg)] rounded-2xl p-5 space-y-4">
-              <h3 className="text-base font-bold text-white flex items-center gap-2"><Trophy className="w-4 h-4 text-yellow-400" /> Creator Tiers</h3>
+              <h3 className="text-base font-bold text-white flex items-center gap-2"><Trophy className="w-4 h-4 text-brand" /> Creator Tiers</h3>
               <div className="space-y-2">
                 {[
                   { tier: 'STARTER', label: '0 – 99 referral signups', reward: '₦10 / signup', commission: '20% of Piyrox profit', color: 'text-gray-400', bg: 'bg-gray-500/10 border-gray-500/20' },
-                  { tier: 'RISING', label: '100 – 999 referral signups', reward: '₦25 / signup', commission: '20% of Piyrox profit', color: 'text-violet-400', bg: 'bg-violet-500/10 border-violet-500/20' },
-                  { tier: 'ELITE', label: '1,000+ referral signups', reward: '₦50 / signup', commission: '20% of Piyrox profit', color: 'text-yellow-400', bg: 'bg-yellow-500/10 border-yellow-500/20' },
+                  { tier: 'RISING', label: '100 – 999 referral signups', reward: '₦25 / signup', commission: '20% of Piyrox profit', color: 'text-brand-light', bg: 'bg-brand/10 border-brand/20' },
+                  { tier: 'ELITE', label: '1,000+ referral signups', reward: '₦50 / signup', commission: '20% of Piyrox profit', color: 'text-brand', bg: 'bg-brand/10 border-brand/20' },
                 ].map(t => {
                   const isCurrent = stats?.isCreator && tierInfo?.current === t.tier;
                   return (
@@ -567,7 +581,7 @@ export default function AffiliateDashboardPage() {
           <div className="flex items-center gap-2">
             <Activity className="w-5 h-5 text-brand" />
             <h3 className="text-base font-bold text-white">Recent Referrals</h3>
-            <span className="bg-background px-2 py-0.5 rounded-full text-xs text-gray-500 border border-[var(--border-bg)]">
+            <span className="bg-[var(--surface)] px-2 py-0.5 rounded-full text-xs text-gray-500 border border-[var(--border-bg)]">
               {stats.referrals.filter((r: any) => r.referredUserId).length}
             </span>
           </div>
@@ -586,16 +600,14 @@ export default function AffiliateDashboardPage() {
                   <tr key={r.id} className="border-b border-[var(--border-bg)]/50 hover:bg-[var(--hover-bg)]/20">
                     <td className="py-2.5">
                       <div className="flex items-center gap-2">
-                        <div className="w-7 h-7 bg-gradient-to-br from-brand to-purple-600 rounded-full flex items-center justify-center text-white text-[10px] font-bold">
+                        <div className="w-7 h-7 bg-brand/15 border border-brand/25 rounded-full flex items-center justify-center text-brand text-[10px] font-bold">
                           {r.referredUser?.email?.[0]?.toUpperCase() || '?'}
                         </div>
                         <span className="text-xs text-gray-300 truncate max-w-[120px]">{r.referredUser?.email || '—'}</span>
                       </div>
                     </td>
                     <td className="py-2.5">
-                      <span className={`px-2 py-0.5 rounded-full text-[11px] font-bold border ${
-                        r.status === 'CONVERTED' ? 'bg-emerald-500/10 text-emerald-400 border-emerald-500/20' : 'bg-yellow-500/10 text-yellow-400 border-yellow-500/20'
-                      }`}>{r.status}</span>
+                      <span className={`badge ${r.status === 'CONVERTED' ? 'badge-success' : 'badge-warning'}`}>{r.status}</span>
                     </td>
                     <td className="py-2.5 text-xs text-gray-400">
                       {r.createdAt ? new Date(r.createdAt).toLocaleDateString() : '—'}
@@ -610,16 +622,16 @@ export default function AffiliateDashboardPage() {
       )}
 
       {/* ── Tournament Banner ── */}
-      <div className="bg-gradient-to-r from-purple-900/30 to-red-900/20 border border-purple-500/20 rounded-2xl p-5 flex flex-col sm:flex-row items-start sm:items-center gap-4">
-        <div className="p-3 bg-purple-500/10 rounded-xl flex-shrink-0">
-          <Gamepad2 className="w-7 h-7 text-purple-400" />
+      <div className="bg-[var(--card-bg)] border border-[var(--border-bg)] rounded-2xl p-5 flex flex-col sm:flex-row items-start sm:items-center gap-4">
+        <div className="p-3 bg-brand/10 rounded-xl flex-shrink-0">
+          <Gamepad2 className="w-7 h-7 text-brand" />
         </div>
         <div className="flex-1 space-y-1">
           <h3 className="text-base font-bold text-white">Piyrox Weekly Tournament</h3>
           <p className="text-xs text-gray-400">Approved creators get a top slot in our weekly BloodStrike & Free Fire tournaments. Regular users can also participate — more details coming soon.</p>
           <div className="flex gap-2 mt-2 flex-wrap">
-            <span className="px-2.5 py-1 bg-red-500/10 border border-red-500/20 rounded-lg text-[11px] font-bold text-red-400">Free Fire</span>
-            <span className="px-2.5 py-1 bg-violet-500/10 border border-violet-500/20 rounded-lg text-[11px] font-bold text-violet-400">BloodStrike</span>
+            <span className="badge badge-error">Free Fire</span>
+            <span className="badge badge-gold">BloodStrike</span>
           </div>
         </div>
         {stats?.isCreator && creatorProfile?.hasTournamentSlot ? (
@@ -628,7 +640,7 @@ export default function AffiliateDashboardPage() {
           </span>
         ) : !creatorProfile ? (
           <button onClick={() => setTab('creator')}
-            className="flex-shrink-0 px-4 py-2 bg-purple-500/20 hover:bg-purple-500/30 border border-purple-500/30 rounded-xl text-xs font-bold text-purple-400 transition flex items-center gap-1.5">
+            className="flex-shrink-0 btn-secondary !py-2 !text-xs !font-bold !text-brand">
             Apply as Creator <ChevronRight className="w-3.5 h-3.5" />
           </button>
         ) : null}

@@ -1,48 +1,54 @@
 'use client';
 
 import React from 'react';
+import { getGameLogo } from '@/lib/games';
 
 interface GameIconProps {
+  /** Game slug or display name. Resolved to the canonical logo path. */
   game: string;
   className?: string;
+  /** Contain (default) shows the whole logo letterboxed; cover fills and crops. */
+  fit?: 'contain' | 'cover';
 }
 
-export default function GameIcon({ game, className = 'w-10 h-10' }: GameIconProps) {
-  const extOrder = ['png', 'jpg', 'svg'];
+// Tried in order when the canonical logo 404s. Extensions present in /public/games.
+const FALLBACK_EXTS = ['png', 'jpg', 'svg'];
+
+export default function GameIcon({ game, className = 'w-10 h-10', fit = 'contain' }: GameIconProps) {
+  const base = `/games/${(game || '').trim().toLowerCase().replace(/\s+/g, '-')}`;
+  const startSrc = getGameLogo(game);
+
   return (
-    <div className={`${className} relative rounded-xl overflow-hidden flex-shrink-0`}>
+    <div
+      className={`${className} relative rounded-xl overflow-hidden flex-shrink-0 bg-[#0d0d16] flex items-center justify-center`}
+    >
       {/* eslint-disable-next-line @next/next/no-img-element */}
       <img
-        src={`/games/${game}.png`}
+        src={startSrc}
         alt={game}
-        className="w-full h-full object-cover"
+        className={`w-full h-full ${fit === 'cover' ? 'object-cover' : 'object-contain p-[12%]'}`}
         draggable={false}
         onError={(e) => {
           const target = e.currentTarget;
           const tried = target.src;
-          const base = `/games/${game}`;
-          if (!tried.includes('.jpg')) {
-            target.src = `${base}.jpg`;
+          const nextExt = FALLBACK_EXTS.find((ext) => !tried.includes(`.${ext}`));
+          if (nextExt) {
+            target.src = `${base}.${nextExt}`;
             return;
           }
-          if (!tried.includes('.svg')) {
-            target.src = `${base}.svg`;
-            return;
-          }
+          // All asset extensions failed — hide the broken image and show the
+          // game's initial on the brand-tinted tile instead of a generic icon.
+          target.style.display = 'none';
           const el = target.parentElement;
-          if (el) {
-            el.innerHTML = `<svg viewBox="0 0 64 64" fill="none" xmlns="http://www.w3.org/2000/svg" class="w-full h-full">
-              <rect width="64" height="64" rx="14" fill="#1a1a2e"/>
-              <rect x="12" y="22" width="40" height="22" rx="6" fill="#2563EB"/>
-              <rect x="8" y="26" width="8" height="14" rx="4" fill="#2563EB"/>
-              <rect x="48" y="26" width="8" height="14" rx="4" fill="#2563EB"/>
-              <rect x="20" y="30" width="3" height="8" rx="1.5" fill="white"/>
-              <rect x="17" y="33" width="9" height="3" rx="1.5" fill="white"/>
-              <circle cx="40" cy="30" r="2" fill="white"/>
-              <circle cx="46" cy="34" r="2" fill="white"/>
-              <circle cx="40" cy="38" r="2" fill="white"/>
-              <circle cx="34" cy="34" r="2" fill="white"/>
-            </svg>`;
+          if (el && !el.querySelector('[data-game-fallback]')) {
+            const letter = (game || '?').trim().charAt(0).toUpperCase();
+            const span = document.createElement('span');
+            span.setAttribute('data-game-fallback', 'true');
+            span.className =
+              'absolute inset-0 flex items-center justify-center text-white font-black select-none';
+            span.style.fontSize = '45%';
+            span.textContent = letter;
+            el.appendChild(span);
           }
         }}
       />

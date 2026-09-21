@@ -29,6 +29,8 @@ export interface GameConfig {
   slug: string;
   genre: string;
   color: string;
+  /** Canonical logo path under /public (correct extension, pre-aligned). */
+  logo: string;
   currency: GameCurrency;
   /** Competitive ranks ordered lowest -> highest. Empty when the game has no ranked ladder. */
   ranks: string[];
@@ -42,11 +44,19 @@ export interface GameConfig {
     rank: boolean;
     level: boolean;
     loginMethod: boolean;
+    /** True when delivery needs the buyer's in-game player ID (Free Fire, PUBG). */
+    playerId: boolean;
     battlePass?: string; // e.g. "Elite Pass"
     extras: string[]; // suggested extra selling points, e.g. skins, pets
   };
   /** Suggested official top-up denominations for this game's currency. */
   topupPackages: { amount: number; label: string }[];
+  /** True when a listing must include the buyer's in-game player ID. */
+  requiresPlayerId?: boolean;
+  /** True when a listing must include a rank. */
+  requiresRank?: boolean;
+  /** Baseline account value used by the price estimator. */
+  baseValue?: number;
 }
 
 export const REGIONS = [
@@ -73,6 +83,7 @@ export const GAME_CONFIG: Record<string, GameConfig> = {
     slug: 'free-fire',
     genre: 'Battle Royale',
     color: '#FF4500',
+    logo: '/games/free-fire.png',
     currency: {
       name: 'Diamond',
       plural: 'Diamonds',
@@ -94,6 +105,7 @@ export const GAME_CONFIG: Record<string, GameConfig> = {
       rank: true,
       level: true,
       loginMethod: true,
+      playerId: true,
       battlePass: 'Elite Pass',
       extras: ['Skins', 'Pets', 'Characters', 'Weapon Skins', 'Emotes'],
     },
@@ -112,6 +124,7 @@ export const GAME_CONFIG: Record<string, GameConfig> = {
     slug: 'cod-mobile',
     genre: 'FPS Shooter',
     color: '#00CC66',
+    logo: '/games/cod-mobile.png',
     currency: {
       name: 'COD Point',
       plural: 'COD Points',
@@ -133,6 +146,7 @@ export const GAME_CONFIG: Record<string, GameConfig> = {
       rank: true,
       level: true,
       loginMethod: true,
+      playerId: false,
       battlePass: 'Battle Pass',
       extras: ['Blueprint Skins', 'Characters', 'Weapon Camos', 'Operator Skins'],
     },
@@ -151,6 +165,7 @@ export const GAME_CONFIG: Record<string, GameConfig> = {
     slug: 'blood-strike',
     genre: 'FPS Shooter',
     color: '#CC0000',
+    logo: '/games/blood-strike.jpg',
     currency: {
       name: 'Gold',
       plural: 'Golds',
@@ -172,6 +187,7 @@ export const GAME_CONFIG: Record<string, GameConfig> = {
       rank: true,
       level: true,
       loginMethod: true,
+      playerId: false,
       battlePass: 'Strike Pass',
       extras: ['Strikers', 'Weapon Skins', 'Mythic Skins', 'Gold Stash'],
     },
@@ -191,6 +207,7 @@ export const GAME_CONFIG: Record<string, GameConfig> = {
     slug: 'efootball',
     genre: 'Sports',
     color: '#00C8FF',
+    logo: '/games/efootball.png',
     currency: {
       name: 'eFootball Coin',
       plural: 'eFootball Coins',
@@ -213,6 +230,7 @@ export const GAME_CONFIG: Record<string, GameConfig> = {
       rank: true,
       level: true,
       loginMethod: true,
+      playerId: false,
       battlePass: 'Match Pass',
       extras: ['EPIC Players', 'Legend Players', 'Managers', 'Strips'],
     },
@@ -231,6 +249,7 @@ export const GAME_CONFIG: Record<string, GameConfig> = {
     slug: 'pubg-mobile',
     genre: 'Battle Royale',
     color: '#F5A623',
+    logo: '/games/pubg-mobile.png',
     currency: {
       name: 'UC',
       plural: 'UC',
@@ -252,6 +271,7 @@ export const GAME_CONFIG: Record<string, GameConfig> = {
       rank: true,
       level: true,
       loginMethod: true,
+      playerId: true,
       battlePass: 'Royale Pass',
       extras: ['Skins', 'Outfits', 'Weapon Skins', 'Crates'],
     },
@@ -271,12 +291,41 @@ export const GAME_LIST = Object.values(GAME_CONFIG).map((g) => ({
   slug: g.slug,
   genre: g.genre,
   color: g.color,
+  logo: g.logo,
 }));
 
 export const GAME_NAMES = Object.keys(GAME_CONFIG);
 
 export function getGameConfig(name: string): GameConfig | undefined {
   return GAME_CONFIG[name];
+}
+
+/** Resolve a game config from a slug OR a display name (case-insensitive). */
+export function resolveGame(slugOrName?: string | null): GameConfig | undefined {
+  if (!slugOrName) return undefined;
+  const key = slugOrName.trim().toLowerCase();
+  return Object.values(GAME_CONFIG).find(
+    (g) => g.slug.toLowerCase() === key || g.name.toLowerCase() === key,
+  );
+}
+
+/** Canonical logo path for a game (by slug or name). Falls back to the slug-based png. */
+export function getGameLogo(slugOrName?: string | null): string {
+  const game = resolveGame(slugOrName);
+  if (game) return game.logo;
+  const slug = (slugOrName || '').trim().toLowerCase().replace(/\s+/g, '-');
+  return `/games/${slug}.png`;
+}
+
+/** True when posting a listing for this game requires the buyer's player ID. */
+export function gameRequiresPlayerId(slugOrName?: string | null): boolean {
+  return resolveGame(slugOrName)?.accountFields.playerId ?? false;
+}
+
+/** True when posting a listing for this game requires a rank. */
+export function gameRequiresRank(slugOrName?: string | null): boolean {
+  const game = resolveGame(slugOrName);
+  return game ? game.hasRanked && game.accountFields.rank : false;
 }
 
 export function slugToGameName(slug: string): string {

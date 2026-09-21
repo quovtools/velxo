@@ -9,6 +9,7 @@ import { useAuth } from '@/app/providers';
 import { api } from '@/lib/api';
 import SellerLevelBadge from '@/components/SellerLevelBadge';
 import TrustBadge from '@/components/TrustBadge';
+import { GAME_NAMES, GAME_CONFIG, REGIONS } from '@/lib/games';
 import {
   Filter, SlidersHorizontal, X, ChevronDown, Bookmark, BookmarkCheck,
   Search, AlertCircle,
@@ -16,15 +17,17 @@ import {
 
 const API_BASE = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:3001/api/v1';
 
-const GAMES = ['Free Fire', 'PUBG Mobile', 'COD Mobile', 'Mobile Legends', 'Blood Strike', 'Valorant', 'Roblox', 'eFootball'];
-const RANKED_GAMES = ['Free Fire', 'PUBG Mobile', 'COD Mobile', 'Mobile Legends', 'Valorant'];
-const RANK_OPTIONS: Record<string, string[]> = {
-  'Free Fire':      ['Bronze','Silver','Gold','Platinum','Diamond','Heroic','Grandmaster'],
-  'PUBG Mobile':    ['Bronze','Silver','Gold','Platinum','Diamond','Crown','Ace','Conqueror'],
-  'COD Mobile':     ['Rookie','Veteran','Elite','Pro','Master','Legend','Grandmaster'],
-  'Mobile Legends': ['Warrior','Elite','Master','Grandmaster','Epic','Legend','Mythic','Mythical Glory'],
-  'Valorant':       ['Iron','Bronze','Silver','Gold','Platinum','Diamond','Ascendant','Immortal','Radiant'],
-};
+// Derived from the canonical game config so filters never drift from the
+// sell form / backend (previously this hardcoded a wrong COD Mobile ladder).
+const GAMES = GAME_NAMES;
+const RANKED_GAMES = GAME_NAMES.filter((g) => GAME_CONFIG[g].hasRanked);
+const RANK_OPTIONS: Record<string, string[]> = GAME_NAMES.reduce(
+  (acc, g) => { acc[g] = GAME_CONFIG[g].ranks; return acc; },
+  {} as Record<string, string[]>,
+);
+const PLATFORM_OPTIONS = Array.from(
+  new Set(GAME_NAMES.flatMap((g) => GAME_CONFIG[g].platforms)),
+);
 
 interface Listing {
   id: string;
@@ -235,7 +238,7 @@ function SearchContent() {
         <select value={platform} onChange={e => setPlatform(e.target.value)}
           className="w-full bg-background border border-[var(--border-bg)] rounded-xl px-4 py-2.5 text-sm text-white focus:outline-none focus:border-brand">
           <option value="">All Platforms</option>
-          {['Android','iOS','PC','PlayStation','Xbox'].map(p => <option key={p} value={p}>{p}</option>)}
+          {PLATFORM_OPTIONS.map(p => <option key={p} value={p}>{p}</option>)}
         </select>
       </div>
 
@@ -245,7 +248,7 @@ function SearchContent() {
         <select value={region} onChange={e => setRegion(e.target.value)}
           className="w-full bg-background border border-[var(--border-bg)] rounded-xl px-4 py-2.5 text-sm text-white focus:outline-none focus:border-brand">
           <option value="">All Regions</option>
-          {['Africa','Europe','North America','Asia','Middle East'].map(r => <option key={r} value={r}>{r}</option>)}
+          {REGIONS.map(r => <option key={r} value={r}>{r}</option>)}
         </select>
       </div>
 

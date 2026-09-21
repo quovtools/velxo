@@ -78,6 +78,7 @@ export default function ProfilePage() {
   const [savingNotif, setSavingNotif] = useState(false);
   const [confirmDelete, setConfirmDelete] = useState(false);
   const [activeOrderCount, setActiveOrderCount] = useState<number | null>(null);
+  const [completedCount, setCompletedCount] = useState<number | null>(null);
   const [creatorProfile, setCreatorProfile] = useState<CreatorProfile | null>(null);
 
   const [currentPw, setCurrentPw] = useState('');
@@ -127,6 +128,7 @@ export default function ProfilePage() {
             !['COMPLETED', 'CANCELLED', 'REFUNDED'].includes(o.status)
           );
           setActiveOrderCount(active.length);
+          setCompletedCount((res.data || []).filter((o: any) => o.status === 'COMPLETED').length);
         }
       })
       .catch(() => {});
@@ -272,6 +274,17 @@ export default function ProfilePage() {
               }`}>{profile?.role}</span>
             </div>
           </div>
+          <div className="hidden md:flex items-center gap-5 pr-2">
+            <div className="text-center">
+              <p className="text-lg font-black text-white leading-none">{completedCount ?? '–'}</p>
+              <p className="text-[10px] text-gray-500 uppercase tracking-wider font-semibold mt-1">Completed</p>
+            </div>
+            <div className="w-px h-8 bg-[var(--border-bg)]" />
+            <div className="text-center">
+              <p className="text-lg font-black text-brand leading-none">{activeOrderCount ?? '–'}</p>
+              <p className="text-[10px] text-gray-500 uppercase tracking-wider font-semibold mt-1">Active</p>
+            </div>
+          </div>
           <div className="hidden sm:flex flex-col gap-2">
             <Link href="/sell" className="flex items-center gap-1.5 bg-brand hover:bg-brand-light text-black font-bold text-xs px-4 py-2 rounded-xl transition">
               Sell on Piyrox
@@ -339,12 +352,12 @@ export default function ProfilePage() {
               <div>
                 <label className="block text-xs font-semibold text-gray-400 mb-1.5 uppercase tracking-wide">First Name</label>
                 <input type="text" value={firstName} onChange={e => setFirstName(e.target.value)}
-                  className="w-full bg-black/30 border border-[var(--border-bg)] rounded-xl px-4 py-3 text-sm focus:outline-none focus:border-brand transition" />
+                  className="input" />
               </div>
               <div>
                 <label className="block text-xs font-semibold text-gray-400 mb-1.5 uppercase tracking-wide">Last Name</label>
                 <input type="text" value={lastName} onChange={e => setLastName(e.target.value)}
-                  className="w-full bg-black/30 border border-[var(--border-bg)] rounded-xl px-4 py-3 text-sm focus:outline-none focus:border-brand transition" />
+                  className="input" />
               </div>
             </div>
             <div>
@@ -352,7 +365,7 @@ export default function ProfilePage() {
               <div className="relative">
                 <Mail className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-gray-500" />
                 <input type="email" value={profile?.email || ''} disabled
-                  className="w-full bg-[var(--hover-bg)]/40 border border-[var(--border-bg)] rounded-xl pl-10 pr-4 py-3 text-sm text-gray-500 cursor-not-allowed" />
+                  className="input pl-10 !text-gray-500 cursor-not-allowed" />
               </div>
             </div>
             <div>
@@ -361,12 +374,12 @@ export default function ProfilePage() {
                 <Phone className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-gray-500" />
                 <input type="tel" value={phone} onChange={e => setPhone(e.target.value)}
                   placeholder="+234 800 000 0000"
-                  className="w-full bg-background border border-[var(--border-bg)] rounded-xl pl-10 pr-4 py-3 text-sm focus:outline-none focus:border-brand transition" />
+                  className="input pl-10" />
               </div>
             </div>
             <div>
               <label className="block text-xs font-semibold text-gray-400 mb-1.5 uppercase tracking-wide">Profile Picture</label>
-              <label className="flex items-center gap-2 cursor-pointer bg-black/30 border border-[var(--border-bg)] rounded-xl px-4 py-3 text-sm text-gray-400 focus-within:border-brand transition overflow-hidden">
+              <label className="flex items-center gap-2 cursor-pointer bg-[var(--surface)] border border-[var(--border-bg)] rounded-xl px-4 py-3 text-sm text-gray-400 focus-within:border-brand transition overflow-hidden">
                 {avatarUrl ? <span className="truncate text-white">Image selected</span> : <span>Choose a photo…</span>}
                 <input type="file" accept="image/*" className="hidden"
                   onChange={async e => {
@@ -390,7 +403,7 @@ export default function ProfilePage() {
               </div>
             )}
             <button type="submit" disabled={saving}
-              className="flex items-center gap-2 bg-brand hover:bg-brand-dark px-6 py-3 rounded-xl text-sm font-bold text-white transition disabled:opacity-50">
+              className="btn-primary disabled:opacity-50">
               {saving ? <><Loader2 className="w-4 h-4 animate-spin" /> Saving...</> : <><Check className="w-4 h-4" /> Save Changes</>}
             </button>
           </form>
@@ -406,14 +419,14 @@ export default function ProfilePage() {
               <label className="block text-xs font-semibold text-gray-400 mb-1.5 uppercase tracking-wide">Current Password</label>
               <input type="password" value={currentPw} onChange={e => setCurrentPw(e.target.value)}
                 placeholder="Your current password"
-                className="w-full bg-black/30 border border-[var(--border-bg)] rounded-xl px-4 py-3 text-sm focus:outline-none focus:border-brand transition" />
+                className="input" />
             </div>
             <div>
               <label className="block text-xs font-semibold text-gray-400 mb-1.5 uppercase tracking-wide">New Password</label>
               <div className="relative">
                 <input type={showNewPw ? 'text' : 'password'} value={newPw} onChange={e => setNewPw(e.target.value)}
                   placeholder="Min. 8 characters"
-                  className="w-full bg-black/30 border border-[var(--border-bg)] rounded-xl px-4 py-3 pr-11 text-sm focus:outline-none focus:border-brand transition" />
+                  className="input pr-11" />
                 <button type="button" onClick={() => setShowNewPw(!showNewPw)}
                   className="absolute right-3 top-1/2 -translate-y-1/2 text-gray-500">
                   {showNewPw ? <EyeOff className="w-4 h-4" /> : <Eye className="w-4 h-4" />}
@@ -424,13 +437,13 @@ export default function ProfilePage() {
               <label className="block text-xs font-semibold text-gray-400 mb-1.5 uppercase tracking-wide">Confirm New Password</label>
               <input type="password" value={confirmPw} onChange={e => setConfirmPw(e.target.value)}
                 placeholder="Repeat new password"
-                className="w-full bg-black/30 border border-[var(--border-bg)] rounded-xl px-4 py-3 text-sm focus:outline-none focus:border-brand transition" />
+                className="input" />
               {confirmPw && newPw !== confirmPw && (
                 <p className="text-xs text-red-400 mt-1 flex items-center gap-1"><AlertCircle className="w-3 h-3" /> Passwords don&apos;t match</p>
               )}
             </div>
             <button type="submit" disabled={saving || !currentPw || !newPw || newPw !== confirmPw}
-              className="flex items-center gap-2 bg-brand hover:bg-brand-dark px-6 py-3 rounded-xl text-sm font-bold text-white transition disabled:opacity-50">
+              className="btn-primary disabled:opacity-50">
               {saving ? <><Loader2 className="w-4 h-4 animate-spin" /> Updating...</> : 'Update Password'}
             </button>
           </form>
@@ -568,11 +581,11 @@ export default function ProfilePage() {
             </div>
           </div>
 
-          <div className="bg-gradient-to-r from-brand/10 to-purple-600/10 border border-brand/20 rounded-xl p-4 space-y-2">
+          <div className="glass-brand rounded-xl p-4 space-y-2">
             <p className="text-sm font-semibold text-white">Get Verified Seller Status</p>
             <p className="text-xs text-gray-400">Complete identity verification to unlock higher limits, verified badge, and buyer trust.</p>
               <Link href="/seller/kyc"
-                className="inline-flex items-center gap-2 bg-brand hover:bg-brand-dark px-4 py-2 rounded-xl text-xs font-bold text-white transition mt-1">
+                className="btn-primary !px-4 !py-2 !text-xs mt-1">
                 <ShieldCheck className="w-3.5 h-3.5" /> Start KYC
               </Link>
           </div>

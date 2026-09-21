@@ -363,8 +363,14 @@ export class EscrowService {
     return updated
   }
 
-  async getEscrowHistory(limit: number = 50) {
+  async getEscrowHistory(userId: string, limit: number = 50) {
     return this.prisma.escrowTransactions.findMany({
+      where: {
+        OR: [
+          { order: { buyerId: userId } },
+          { order: { seller: { userId } } },
+        ],
+      },
       orderBy: { createdAt: 'desc' },
       take: limit,
       include: {

@@ -10,3 +10,8 @@ export const CurrentUserId = createParamDecorator((data: unknown, ctx: Execution
   const request: Request = ctx.switchToHttp().getRequest()
   return request['userId']
 })
+
+export const CurrentUserRole = createParamDecorator((data: unknown, ctx: ExecutionContext) => {
+  const request: Request = ctx.switchToHttp().getRequest()
+  return request['userRole']
+})

@@ -4,19 +4,16 @@ import React, { useState, useEffect, useCallback } from 'react';
 import { useRouter } from 'next/navigation';
 import { useAuth } from '@/app/providers';
 import { api } from '@/lib/api';
-import { GAME_NAMES, getGameConfig, REGIONS } from '@/lib/games';
+import { GAME_NAMES, getGameConfig, REGIONS, SERVICE_TYPE_LABELS } from '@/lib/games';
 import { Gamepad2, Loader2, Check, Search, ShieldCheck, Clock, X, AlertCircle, Plus, ArrowRight } from 'lucide-react';
 import { useCurrency } from '@/lib/useCurrency';
 
 const GAMES = GAME_NAMES;
 
+// Filter dropdown: "All Services" + every backend-allowed service type.
 const SERVICE_TYPES = [
   { value: '', label: 'All Services' },
-  { value: 'RANK_BOOST', label: 'Rank Boost' },
-  { value: 'ACCOUNT_LEVELING', label: 'Account Leveling' },
-  { value: 'SOLO', label: 'Solo Carry' },
-  { value: 'DUO', label: 'Duo Boost' },
-  { value: 'COACHING', label: 'Coaching' },
+  ...Object.entries(SERVICE_TYPE_LABELS).map(([value, label]) => ({ value, label })),
 ];
 
 const ALL_PLATFORMS = ['Android', 'iOS', 'PC', 'PlayStation', 'Xbox', 'Cross-Platform'];
@@ -80,13 +77,7 @@ export default function BoostingClient() {
   const gameCfg = getGameConfig(form.gameName);
   const platformOptions = gameCfg?.platforms ?? ALL_PLATFORMS;
   const rankOptions = gameCfg?.ranks ?? [];
-  const boostServiceTypes = gameCfg?.serviceTypes ?? [
-    { value: 'RANK_BOOST', label: 'Rank Boost' },
-    { value: 'ACCOUNT_LEVELING', label: 'Account Leveling' },
-    { value: 'SOLO', label: 'Solo Carry' },
-    { value: 'DUO', label: 'Duo Boost' },
-    { value: 'COACHING', label: 'Coaching' },
-  ];
+  const boostServiceTypes = gameCfg?.serviceTypes ?? SERVICE_TYPES.filter(t => t.value);
 
   const fetchGigs = useCallback(async () => {
     setLoading(true);

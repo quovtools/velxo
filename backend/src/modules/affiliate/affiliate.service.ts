@@ -23,6 +23,35 @@ const USER_TIER_THRESHOLDS = {
 // Minimum follower count to qualify as a creator
 const CREATOR_MIN_FOLLOWERS = 10_000
 
+// Creator trade commission (share of Piyrox profit on referral trades)
+const CREATOR_TRADE_COMMISSION_RATE = 0.20
+
+/** Public affiliate program configuration — single source of truth for
+ *  frontend and landing pages so tier tables never drift apart. */
+export function getAffiliatePublicConfig() {
+  return {
+    currency: 'NGN',
+    userTiers: Object.entries(USER_TIER_THRESHOLDS).map(([name, t]) => ({
+      name,
+      minSignups: t.minSignups,
+      rewardPerSignup: t.rewardPerSignup,
+    })),
+    creatorTiers: Object.entries(CREATOR_TIER_THRESHOLDS).map(([name, t]) => ({
+      name,
+      minSignups: t.minSignups,
+      rewardPerSignup: t.rewardPerSignup,
+    })),
+    creatorMinFollowers: CREATOR_MIN_FOLLOWERS,
+    creatorTradeCommissionRate: CREATOR_TRADE_COMMISSION_RATE,
+    creatorPerks: [
+      `${CREATOR_TRADE_COMMISSION_RATE * 100}% of Piyrox's profit on every trade from your referrals`,
+      `₦${CREATOR_TIER_THRESHOLDS.STARTER.rewardPerSignup}–₦${CREATOR_TIER_THRESHOLDS.ELITE.rewardPerSignup} per signup based on tier`,
+      'Free Seller Premium',
+      'Exclusive tournament slots',
+    ],
+  }
+}
+
 @Injectable()
 export class AffiliateService {
   private readonly logger = new Logger(AffiliateService.name)

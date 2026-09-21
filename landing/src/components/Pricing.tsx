@@ -12,7 +12,7 @@ const BUYER_FEATURES = [
 
 const SELLER_FEATURES = [
   'Create unlimited listings',
-  'Escrow-backed payments',
+  'Escrow-backed secure payments',
   'Seller dashboard & analytics',
   'Reputation & review system',
   'Instant wallet with withdrawals',
@@ -34,7 +34,7 @@ export default function Pricing() {
     <section id="pricing" aria-labelledby="pricing-heading" className="section container-x">
       <div className="mx-auto mb-16 max-w-2xl space-y-4 text-center">
         <span className="eyebrow">Pricing</span>
-        <h2 id="pricing-heading" className="heading-xl">
+        <h2 id="pricing-heading" className="heading-lg">
           Simple, <span className="text-gradient">transparent pricing</span>
         </h2>
         <p className="text-lg text-gray-400">
@@ -42,9 +42,10 @@ export default function Pricing() {
         </p>
       </div>
 
-      <div className="mx-auto grid max-w-4xl grid-cols-1 gap-6 md:grid-cols-2">
+      <div className="mx-auto grid max-w-4xl grid-cols-1 gap-5 md:grid-cols-2">
+        {/* Buyer card */}
         <div className="card-surface flex flex-col">
-          <p className="text-xs font-bold uppercase tracking-wider text-gray-500">For Buyers</p>
+          <p className="text-xs font-bold uppercase tracking-widest text-gray-500">For Buyers</p>
           <div className="mt-3 flex items-end gap-2">
             <span className="text-5xl font-black text-white">Free</span>
           </div>
@@ -52,21 +53,22 @@ export default function Pricing() {
           <ul className="mt-6 flex-1 space-y-3">
             {BUYER_FEATURES.map((f) => (
               <li key={f} className="flex items-center gap-2.5 text-sm text-gray-300">
-                <CheckCircle className="h-4 w-4 shrink-0 text-accent-emerald" />
+                <CheckCircle className="h-4 w-4 shrink-0 text-green-400" />
                 {f}
               </li>
             ))}
           </ul>
-          <a href="https://app.piyrox.shop/auth/register" className="btn-secondary mt-8 w-full">
+          <a href="https://app.piyrox.shop/auth/register" className="btn-secondary mt-8 w-full justify-center">
             Create Buyer Account
           </a>
         </div>
 
+        {/* Seller card */}
         <div className="card-highlight flex flex-col">
-          <span className="absolute -top-3 left-7 rounded-full bg-brand-500 px-4 py-1.5 text-xs font-black uppercase tracking-wide text-white shadow-glow">
+          <span className="absolute -top-3 left-6 rounded-full bg-brand px-4 py-1.5 text-[10px] font-black uppercase tracking-widest text-black shadow-glow">
             Sellers
           </span>
-          <p className="mt-2 text-xs font-bold uppercase tracking-wider text-gray-500">Per Sale</p>
+          <p className="mt-2 text-xs font-bold uppercase tracking-widest text-gray-500">Per Sale</p>
           <div className="mt-3 flex items-end gap-2">
             <span className="text-5xl font-black text-white">10%</span>
           </div>
@@ -74,35 +76,35 @@ export default function Pricing() {
           <ul className="mt-6 flex-1 space-y-3">
             {SELLER_FEATURES.map((f) => (
               <li key={f} className="flex items-center gap-2.5 text-sm text-gray-300">
-                <CheckCircle className="h-4 w-4 shrink-0 text-accent-emerald" />
+                <CheckCircle className="h-4 w-4 shrink-0 text-brand" />
                 {f}
               </li>
             ))}
           </ul>
-          <a href="https://app.piyrox.shop/sell" className="btn-primary mt-8 w-full">
-            Start Selling Today
-            <ArrowRight className="h-4 w-4 transition-transform group-hover:translate-x-1" />
+          <a href="https://app.piyrox.shop/sell" className="btn-primary mt-8 w-full justify-center">
+            Start Selling Today <ArrowRight className="h-4 w-4" />
           </a>
         </div>
       </div>
 
+      {/* Fee table */}
       <div className="mx-auto mt-12 max-w-2xl">
-        <h3 className="mb-4 text-center text-lg font-bold text-white">Fee Calculator</h3>
-        <div className="overflow-hidden rounded-2xl border border-white/10 bg-white/[0.03]">
+        <h3 className="mb-5 text-center text-lg font-bold text-white">Fee Calculator</h3>
+        <div className="overflow-hidden rounded-2xl border border-[var(--border)] bg-[var(--surface)]">
           <table className="w-full text-sm">
-            <thead className="border-b border-white/10">
-              <tr className="text-xs font-bold uppercase text-gray-500">
+            <thead className="border-b border-[var(--border)]">
+              <tr className="text-xs font-bold uppercase tracking-wider text-gray-500">
                 <th className="px-6 py-4 text-left">Sale Price</th>
                 <th className="px-6 py-4 text-left">Piyrox Fee (10%)</th>
-                <th className="px-6 py-4 text-left text-accent-emerald">You Receive</th>
+                <th className="px-6 py-4 text-left text-green-400">You Receive</th>
               </tr>
             </thead>
-            <tbody className="divide-y divide-white/5">
+            <tbody className="divide-y divide-[var(--border)]">
               {FEE_EXAMPLES.map((row) => (
-                <tr key={row.sale} className="transition hover:bg-white/[0.04]">
+                <tr key={row.sale} className="transition hover:bg-white/[0.03]">
                   <td className="px-6 py-4 font-bold text-white">{row.sale}</td>
                   <td className="px-6 py-4 text-gray-500">{row.fee}</td>
-                  <td className="px-6 py-4 font-bold text-accent-emerald">{row.payout}</td>
+                  <td className="px-6 py-4 font-bold text-green-400">{row.payout}</td>
                 </tr>
               ))}
             </tbody>

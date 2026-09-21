@@ -1369,3 +1369,76 @@ model sessionCodes {
   @@index([expiresAt])
   @@map("session_codes")
 }
+
+// ─────────────────────────── AI Assistant ───────────────────────────────────
+// Persistent chat threads for the admin AI assistant (analytics + strategy)
+// and the public account-value calculator.
+
+model aiConversations {
+  id        String   @id @default(cuid())
+  ownerKey  String   // admin console id ("admin-console") or "public"
+  scope     String   @default("admin") // "admin" | "valuation"
+  title     String   @default("New conversation")
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  messages  aiMessages[]
+  actions   aiPendingActions[]
+
+  @@index([ownerKey, scope, updatedAt])
+  @@map("ai_conversations")
+}
+
+model aiMessages {
+  id             String   @id @default(cuid())
+  conversationId String
+  role           String // "user" | "assistant" | "tool" | "system"
+  content        String
+  toolCalls      Json? // OpenAI-style tool_calls array emitted by the assistant
+  toolCallId     String?
+  toolName       String?
+  model          String?
+  tokensInput    Int?
+  tokensOutput   Int?
+  createdAt      DateTime @default(now())
+
+  conversation   aiConversations @relation(fields: [conversationId], references: [id], onDelete: Cascade)
+
+  @@index([conversationId, createdAt])
+  @@map("ai_messages")
+}
+
+// Two-phase execution gate for money-moving admin actions requested by the AI.
+model aiPendingActions {
+  id             String   @id @default(cuid())
+  conversationId String
+  toolName       String
+  toolCallId     String? // links back to the ai_messages row that stores the tool result
+  args           Json
+  summary        String // human-readable description shown in the confirm dialog
+  status         String   @default("PENDING") // PENDING | CONFIRMED | CANCELLED | EXPIRED
+  result         Json?
+  expiresAt      DateTime
+  createdAt      DateTime @default(now())
+
+  conversation   aiConversations @relation(fields: [conversationId], references: [id], onDelete: Cascade)
+
+  @@index([conversationId, status])
+  @@index([expiresAt])
+  @@map("ai_pending_actions")
+}
+
+// Public value-calculator feedback ("was this estimate helpful?"). The admin AI
+// can query this table via run_sql_query to track estimate quality per game.
+model valuationFeedback {
+  id             String   @id @default(cuid())
+  requestId      String   @unique // ai_messages.id of the stored valuation
+  gameName       String
+  verdict        String // "helpful" | "too_low" | "too_high"
+  estimatedValue Decimal? @db.Decimal(14, 2)
+  currency       String?
+  createdAt      DateTime @default(now())
+
+  @@index([gameName, createdAt])
+  @@map("valuation_feedback")
+}

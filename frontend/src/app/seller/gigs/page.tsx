@@ -5,28 +5,18 @@ import { useRouter } from 'next/navigation';
 import { api } from '@/lib/api';
 import { useAuth } from '@/app/providers';
 import { uploadGigImage } from '@/lib/upload';
-import { GAME_NAMES, getGameConfig } from '@/lib/games';
+import { GAME_NAMES, getGameConfig, REGIONS, SERVICE_TYPE_LABELS } from '@/lib/games';
 import { Gamepad2, Plus, Trash2, Loader2, Check, AlertCircle } from 'lucide-react';
 import { useCurrency } from '@/lib/useCurrency';
 
 const GAMES = [...GAME_NAMES, 'Other'];
 const ALL_PLATFORMS = ['Android', 'iOS', 'PC', 'PlayStation', 'Xbox', 'Cross-Platform'];
-const DEFAULT_SERVICE_TYPES = [
-  { value: 'RANK_BOOST', label: 'Rank Boost' },
-  { value: 'ACCOUNT_LEVELING', label: 'Account Leveling' },
-  { value: 'SOLO', label: 'Solo Carry' },
-  { value: 'DUO', label: 'Duo Boost' },
-  { value: 'COACHING', label: 'Coaching' },
-];
-const PLATFORMS = ['Android', 'iOS', 'PC', 'PlayStation', 'Xbox', 'Cross-Platform'];
-const REGIONS = ['Africa', 'Europe', 'North America', 'Asia', 'Middle East', 'Global'];
-const SERVICE_TYPES = [
-  { value: 'RANK_BOOST', label: 'Rank Boost' },
-  { value: 'ACCOUNT_LEVELING', label: 'Account Leveling' },
-  { value: 'SOLO', label: 'Solo Carry' },
-  { value: 'DUO', label: 'Duo Boost' },
-  { value: 'COACHING', label: 'Coaching' },
-];
+// Fallback service types derived from the shared label map (used only when a
+// game has no explicit serviceTypes in its config, e.g. "Other").
+const DEFAULT_SERVICE_TYPES = Object.entries(SERVICE_TYPE_LABELS).map(([value, label]) => ({
+  value: value as keyof typeof SERVICE_TYPE_LABELS,
+  label,
+}));
 
 export default function SellerGigsPage() {
   const router = useRouter();
@@ -42,7 +32,7 @@ export default function SellerGigsPage() {
   const [error, setError] = useState('');
 
   const [form, setForm] = useState({
-    title: '', description: '', gameName: 'Free Fire',
+    title: '', description: '', gameName: GAME_NAMES[0],
     rankFrom: '', rankTo: '', platform: 'Android', region: 'Africa',
     accountType: 'RANK_BOOST', price: '', deliveryTime: '24', imageUrl: '',
   });
@@ -102,7 +92,7 @@ export default function SellerGigsPage() {
       });
       if (res.success) {
         setShowForm(false);
-        setForm({ title: '', description: '', gameName: 'Free Fire', rankFrom: '', rankTo: '', platform: 'Android', region: 'Africa', accountType: 'RANK_BOOST', price: '', deliveryTime: '24', imageUrl: '' });
+        setForm({ title: '', description: '', gameName: GAME_NAMES[0], rankFrom: '', rankTo: '', platform: 'Android', region: 'Africa', accountType: 'RANK_BOOST', price: '', deliveryTime: '24', imageUrl: '' });
         loadGigs();
       }
     } catch (e: any) {

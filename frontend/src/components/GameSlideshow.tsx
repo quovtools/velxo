@@ -3,6 +3,7 @@
 import React, { useState, useEffect, useCallback } from 'react';
 import Link from 'next/link';
 import { ChevronLeft, ChevronRight, ShieldCheck } from 'lucide-react';
+import { GAME_LIST, GAME_CONFIG } from '@/lib/games';
 
 interface Slide {
   id: string;
@@ -13,40 +14,31 @@ interface Slide {
   badge?: string;
   isActive: boolean;
   sortOrder: number;
+  /** Optional game logo + colour used when imageUrl is empty (fallback slides). */
+  logo?: string;
+  color?: string;
 }
 
-const FALLBACK_SLIDES: Slide[] = [
-  {
-    id: 'f1',
-    title: 'Free Fire Accounts & Diamonds',
-    subtitle: 'Africa\'s most popular battle royale — buy ranked accounts, bundles, and top-ups with full escrow protection.',
+const SLIDE_BADGES = ['Most Popular', 'Top Seller', 'New Listings', 'Trending', 'Hot Deals'];
+
+// Fallback slides are derived from the canonical game list so every supported
+// game (Free Fire, COD Mobile, PUBG Mobile, eFootball, Blood Strike) is
+// represented with its real logo — no hardcoded 3-game subset.
+const FALLBACK_SLIDES: Slide[] = GAME_LIST.map((g, i) => {
+  const cfg = GAME_CONFIG[g.name];
+  return {
+    id: `f-${g.slug}`,
+    title: `${g.name} Accounts & ${cfg?.currency.plural ?? 'Top-Ups'}`,
+    subtitle: `Buy verified ${g.name} accounts, ${cfg?.currency.plural ?? 'currency'} top-ups and rank boosting. Every trade protected by Piyrox Escrow.`,
     imageUrl: '',
-    linkHref: '/games/free-fire',
-    badge: 'Most Popular',
+    linkHref: `/games/${g.slug}`,
+    badge: SLIDE_BADGES[i % SLIDE_BADGES.length],
     isActive: true,
-    sortOrder: 0,
-  },
-  {
-    id: 'f2',
-    title: 'COD Mobile — Gear Up',
-    subtitle: 'CP top-ups, rare operator skins, and high-ranked accounts. Safe trades, instant delivery.',
-    imageUrl: '',
-    linkHref: '/games/cod-mobile',
-    badge: 'Top Seller',
-    isActive: true,
-    sortOrder: 1,
-  },
-  {
-    id: 'f3',
-    title: 'PUBG Mobile Marketplace',
-    subtitle: 'UC top-ups, high-tier accounts, and season passes. All verified, all escrowed.',
-    imageUrl: '',
-    linkHref: '/games/pubg-mobile',
-    badge: 'New Listings',
-    isActive: true,
-    sortOrder: 2,
-  },
-];
+    sortOrder: i,
+    logo: g.logo,
+    color: g.color,
+  };
+});
 
   const GRADIENT_FALLBACKS = [
     'from-brand/80 via-brand-dark/60 to-background',
@@ -116,7 +108,18 @@ export default function GameSlideshow() {
           style={{ backgroundImage: `url(${slide.imageUrl})` }}
         />
       ) : (
-        <div className={`absolute inset-0 bg-gradient-to-r ${gradient}`} />
+        <div className={`absolute inset-0 bg-gradient-to-r ${gradient}`}>
+          {slide.logo && (
+            // eslint-disable-next-line @next/next/no-img-element
+            <img
+              src={slide.logo}
+              alt=""
+              aria-hidden="true"
+              className="absolute right-6 sm:right-10 top-1/2 -translate-y-1/2 w-28 h-28 sm:w-40 sm:h-40 object-contain opacity-25 drop-shadow-2xl pointer-events-none"
+              draggable={false}
+            />
+          )}
+        </div>
       )}
 
       {/* Dark overlay for readability */}

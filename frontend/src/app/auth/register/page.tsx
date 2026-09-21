@@ -7,6 +7,7 @@ import { useAuth } from '@/app/providers';
 import { api } from '@/lib/api';
 import { setSession } from '@/lib/auth';
 import { getStoredReferralCode } from '@/lib/referral';
+import { GAME_NAMES } from '@/lib/games';
 import {
   Eye, EyeOff, Loader2, ShieldCheck,
   Gamepad2, ShoppingCart, Users, ChevronRight
@@ -30,7 +31,7 @@ const ACCOUNT_TYPES = [
   },
 ];
 
-const GAME_OPTIONS = ['Free Fire', 'PUBG Mobile', 'COD Mobile', 'Mobile Legends', 'Blood Strike', 'Delta Force', 'Valorant', 'Roblox', 'eFootball', 'Other'];
+const GAME_OPTIONS = [...GAME_NAMES, 'Other'];
 const INTEREST_OPTIONS = ['Buy game accounts', 'Buy coins/top-ups', 'Sell my items', 'Find boosting services'];
 const REGION_OPTIONS = ['Africa', 'Europe', 'North America', 'Asia', 'Middle East', 'Global'];
 
@@ -98,10 +99,12 @@ export default function RegisterPage() {
         <div className="w-full max-w-lg space-y-6">
           <div className="text-center">
             <Link href="/" className="inline-flex items-center gap-2 mb-5">
-              <img src="/logo.png" alt="Piyrox" className="w-9 h-9 rounded-xl object-contain" />
-              <span className="text-xl font-black tracking-tighter">PIYROX</span>
+              <div className="w-9 h-9 rounded-xl bg-brand/10 border border-brand/20 flex items-center justify-center overflow-hidden">
+                <img src="/logo-new.png" alt="Piyrox" className="w-7 h-7 object-contain" />
+              </div>
+              <span className="text-xl font-black tracking-widest text-white">PIYROX</span>
             </Link>
-            <h1 className="text-2xl font-bold">Join Piyrox</h1>
+            <h1 className="text-2xl font-black text-white">Join Piyrox</h1>
             <p className="text-gray-400 text-sm mt-1">How will you be using Piyrox?</p>
           </div>
 
@@ -115,11 +118,11 @@ export default function RegisterPage() {
                   className={`p-6 rounded-2xl border-2 text-left transition-all duration-200 space-y-3 ${
                     accountType === type.value
                       ? 'border-brand bg-brand/5'
-                      : 'border-borderBg hover:border-brand/40 bg-cardBg'
+                      : 'border-[var(--border-bg)] hover:border-brand/40 bg-[var(--card-bg)]'
                   }`}
                 >
                   <div className={`w-12 h-12 rounded-xl flex items-center justify-center ${
-                    accountType === type.value ? 'bg-brand/20' : 'bg-hoverBg/50'
+                    accountType === type.value ? 'bg-brand/20' : 'bg-[var(--surface)]'
                   }`}>
                     <Icon className={`w-6 h-6 ${accountType === type.value ? 'text-brand' : 'text-gray-400'}`} />
                   </div>
@@ -130,8 +133,8 @@ export default function RegisterPage() {
                   {accountType === type.value && (
                     <div className="flex items-center gap-1 text-brand text-xs font-bold">
                       <div className="w-4 h-4 rounded-full bg-brand flex items-center justify-center">
-                        <svg className="w-2.5 h-2.5 text-white" fill="currentColor" viewBox="0 0 12 12">
-                          <path d="M10 3L5 8.5 2 5.5" stroke="white" strokeWidth="2" fill="none" strokeLinecap="round"/>
+                        <svg className="w-2.5 h-2.5 text-black" fill="currentColor" viewBox="0 0 12 12">
+                          <path d="M10 3L5 8.5 2 5.5" stroke="black" strokeWidth="2" fill="none" strokeLinecap="round"/>
                         </svg>
                       </div>
                       Selected
@@ -142,7 +145,7 @@ export default function RegisterPage() {
             })}
           </div>
 
-          <div className="bg-cardBg border border-borderBg rounded-2xl p-4 flex gap-3">
+          <div className="bg-[var(--card-bg)] border border-[var(--border-bg)] rounded-2xl p-4 flex gap-3">
             <Users className="w-5 h-5 text-brand flex-shrink-0 mt-0.5" />
             <p className="text-xs text-gray-400">
               You can always switch roles later. Sellers need to complete a quick store setup before listing items.
@@ -151,7 +154,7 @@ export default function RegisterPage() {
 
           <button
             onClick={() => setStep(1)}
-            className="w-full flex items-center justify-center gap-2 bg-brand hover:bg-brand-dark py-3.5 rounded-xl font-bold text-white transition shadow-lg shadow-brand/20"
+            className="btn-primary w-full justify-center !py-3.5 shadow-lg shadow-brand/20"
           >
             Continue <ChevronRight className="w-4 h-4" />
           </button>
@@ -188,7 +191,7 @@ export default function RegisterPage() {
           <div key={i} className="confetti-piece" style={{
             left: `${Math.random() * 100}%`,
             top: '-10px',
-            backgroundColor: ['#8b5cf6','#10b981','#f59e0b','#ef4444','#3b82f6'][i % 5],
+            backgroundColor: ['#D4A017','#F0C040','#A87800','#ffffff','#F5D060'][i % 5],
             animationDelay: `${Math.random() * 0.5}s`,
             animationDuration: `${2 + Math.random()}s`,
             borderRadius: Math.random() > 0.5 ? '50%' : '0',
@@ -200,7 +203,7 @@ export default function RegisterPage() {
             <div className="w-20 h-20 bg-emerald-500/20 rounded-full flex items-center justify-center mx-auto">
               <ShieldCheck className="w-10 h-10 text-emerald-400" />
             </div>
-            <h1 className="text-2xl font-bold text-white">Account Created!</h1>
+            <h1 className="text-2xl font-black text-white">Account Created!</h1>
             <p className="text-gray-400 text-sm">
               Welcome to Piyrox, <strong>{firstName}</strong>!
               {' '}A verification email was sent to <strong className="text-white">{email}</strong>.
@@ -212,7 +215,7 @@ export default function RegisterPage() {
               <div className="space-y-3">
                 <Link
                   href="/sell"
-                  className="w-full flex items-center justify-center gap-2 bg-brand hover:bg-brand-dark px-6 py-3.5 rounded-xl font-bold text-white transition shadow-lg shadow-brand/20"
+                  className="btn-primary w-full justify-center !py-3.5 shadow-lg shadow-brand/20"
                 >
                   <Gamepad2 className="w-4 h-4" /> Set Up My Store
                 </Link>
@@ -223,7 +226,7 @@ export default function RegisterPage() {
             ) : (
               <Link
                 href="/"
-                className="w-full flex items-center justify-center gap-2 bg-brand hover:bg-brand-dark px-6 py-3.5 rounded-xl font-bold text-white transition shadow-lg shadow-brand/20"
+                className="btn-primary w-full justify-center !py-3.5 shadow-lg shadow-brand/20"
               >
                 Start Browsing
               </Link>
@@ -241,22 +244,24 @@ export default function RegisterPage() {
         <div className="w-full max-w-md space-y-6">
           <div className="text-center">
             <Link href="/" className="inline-flex items-center gap-2 mb-5">
-              <img src="/logo.png" alt="Piyrox" className="w-9 h-9 rounded-xl object-contain" />
-              <span className="text-xl font-black tracking-tighter">PIYROX</span>
+              <div className="w-9 h-9 rounded-xl bg-brand/10 border border-brand/20 flex items-center justify-center overflow-hidden">
+                <img src="/logo-new.png" alt="Piyrox" className="w-7 h-7 object-contain" />
+              </div>
+              <span className="text-xl font-black tracking-widest text-white">PIYROX</span>
             </Link>
-            <h1 className="text-2xl font-bold">Create your account</h1>
+            <h1 className="text-2xl font-black text-white">Create your account</h1>
             <p className="text-gray-400 text-sm mt-1">
               Registering as a <span className="text-brand font-semibold">{accountType === 'SELLER' ? 'Seller' : 'Buyer'}</span>
             </p>
           </div>
 
-          <div className="bg-cardBg border border-borderBg rounded-2xl p-8 space-y-5 shadow-xl">
+          <div className="bg-[var(--card-bg)] border border-[var(--border-bg)] rounded-2xl p-8 space-y-5 shadow-xl">
             {/* Google OAuth */}
             <button
               type="button"
               onClick={() => { window.location.href = `${API_BASE}/auth/google`; }}
               aria-label="Continue with Google"
-              className="w-full flex items-center justify-center gap-3 border border-borderBg hover:border-brand/40 bg-hoverBg/40 hover:bg-hoverBg py-3 rounded-xl text-sm font-semibold transition"
+              className="w-full flex items-center justify-center gap-3 border border-[var(--border-bg)] hover:border-brand/40 bg-[var(--surface)] hover:bg-brand/5 py-3 rounded-xl text-sm font-semibold transition"
             >
               <svg className="w-4 h-4" viewBox="0 0 24 24">
                 <path fill="#4285F4" d="M22.56 12.25c0-.78-.07-1.53-.2-2.25H12v4.26h5.92c-.26 1.37-1.04 2.53-2.21 3.31v2.77h3.57c2.08-1.92 3.28-4.74 3.28-8.09z"/>
@@ -268,13 +273,13 @@ export default function RegisterPage() {
             </button>
 
             <div className="flex items-center gap-3">
-              <div className="flex-1 h-px bg-borderBg" />
+              <div className="flex-1 h-px bg-[var(--border-bg)]" />
               <span className="text-xs text-gray-500">or register with email</span>
-              <div className="flex-1 h-px bg-borderBg" />
+              <div className="flex-1 h-px bg-[var(--border-bg)]" />
             </div>
 
             {error && (
-              <div className="bg-red-900/20 border border-red-500/40 text-red-300 text-sm px-4 py-3 rounded-xl">{error}</div>
+              <div className="bg-[var(--error-bg)] border border-red-500/30 text-red-400 text-sm px-4 py-3 rounded-xl">{error}</div>
             )}
 
             <form onSubmit={handleDetailsContinue} className="space-y-4">
@@ -283,14 +288,14 @@ export default function RegisterPage() {
                   <label htmlFor="reg-first-name" className="block text-xs font-semibold text-gray-400 mb-1.5 uppercase tracking-wide">First Name</label>
                   <input id="reg-first-name" type="text" required autoComplete="given-name"
                     aria-label="First name"
-                    className="w-full bg-background border border-borderBg rounded-xl px-4 py-3 text-sm focus:outline-none focus:border-brand transition"
+                    className="input"
                     placeholder="John" value={firstName} onChange={e => setFirstName(e.target.value)} />
                 </div>
                 <div>
                   <label htmlFor="reg-last-name" className="block text-xs font-semibold text-gray-400 mb-1.5 uppercase tracking-wide">Last Name</label>
                   <input id="reg-last-name" type="text" required autoComplete="family-name"
                     aria-label="Last name"
-                    className="w-full bg-background border border-borderBg rounded-xl px-4 py-3 text-sm focus:outline-none focus:border-brand transition"
+                    className="input"
                     placeholder="Doe" value={lastName} onChange={e => setLastName(e.target.value)} />
                 </div>
               </div>
@@ -299,7 +304,7 @@ export default function RegisterPage() {
                 <label htmlFor="reg-email" className="block text-xs font-semibold text-gray-400 mb-1.5 uppercase tracking-wide">Email</label>
                 <input id="reg-email" type="email" required autoComplete="email"
                   aria-label="Email address"
-                  className="w-full bg-background border border-borderBg rounded-xl px-4 py-3 text-sm focus:outline-none focus:border-brand transition"
+                  className="input"
                   placeholder="gaming@piyrox.shop" value={email} onChange={e => setEmail(e.target.value)} />
               </div>
 
@@ -309,7 +314,7 @@ export default function RegisterPage() {
                 </label>
                 <input id="reg-phone" type="tel" autoComplete="tel"
                   aria-label="Phone number (optional)"
-                  className="w-full bg-background border border-borderBg rounded-xl px-4 py-3 text-sm placeholder-gray-600 focus:outline-none focus:border-brand transition"
+                  className="input placeholder-gray-600"
                   placeholder="+234 800 000 0000"
                   value={phone} onChange={(e) => setPhone(e.target.value)} />
               </div>
@@ -319,7 +324,7 @@ export default function RegisterPage() {
                 <div className="relative">
                   <input id="reg-password" type={showPw ? 'text' : 'password'} required minLength={8} autoComplete="new-password"
                     aria-label="Password"
-                    className="w-full bg-background border border-borderBg rounded-xl px-4 py-3 pr-11 text-sm focus:outline-none focus:border-brand transition"
+                    className="input pr-11"
                     placeholder="Min. 8 characters" value={password} onChange={e => setPassword(e.target.value)} />
                   <button type="button" onClick={() => setShowPw(!showPw)}
                     aria-label={showPw ? 'Hide password' : 'Show password'}
@@ -332,7 +337,7 @@ export default function RegisterPage() {
                     <div key={i} className={`h-1 flex-1 rounded-full transition-all ${
                       password.length >= len
                         ? i === 0 ? 'bg-red-400' : i === 1 ? 'bg-yellow-400' : 'bg-emerald-400'
-                        : 'bg-borderBg'
+                        : 'bg-[var(--border-bg)]'
                     }`} />
                   ))}
                 </div>
@@ -341,14 +346,14 @@ export default function RegisterPage() {
               {/* Terms acceptance */}
               <div className="flex items-start gap-3">
                 <input type="checkbox" id="terms" required checked={termsAccepted} onChange={e => setTermsAccepted(e.target.checked)}
-                  className="mt-0.5 w-4 h-4 rounded border-borderBg text-brand focus:ring-brand" />
+                  className="mt-0.5 w-4 h-4 rounded border-[var(--border-bg)] accent-[var(--brand)]" />
                 <label htmlFor="terms" className="text-xs text-gray-400">
                   I agree to the <Link href="/terms" className="text-brand hover:underline">Terms of Service</Link> and <Link href="/privacy" className="text-brand hover:underline">Privacy Policy</Link>
                 </label>
               </div>
 
               <button type="submit"
-                className="w-full flex items-center justify-center gap-2 bg-brand hover:bg-brand-dark py-3.5 rounded-xl font-bold text-white transition shadow-lg shadow-brand/20">
+                className="btn-primary w-full justify-center !py-3.5 shadow-lg shadow-brand/20">
                 Continue <ChevronRight className="w-4 h-4" />
               </button>
             </form>
@@ -373,16 +378,18 @@ export default function RegisterPage() {
       <div className="w-full max-w-lg space-y-6">
         <div className="text-center">
           <Link href="/" className="inline-flex items-center gap-2 mb-5">
-            <img src="/logo.png" alt="Piyrox" className="w-9 h-9 rounded-xl object-contain" />
-            <span className="text-xl font-black tracking-tighter">PIYROX</span>
+            <div className="w-9 h-9 rounded-xl bg-brand/10 border border-brand/20 flex items-center justify-center overflow-hidden">
+              <img src="/logo-new.png" alt="Piyrox" className="w-7 h-7 object-contain" />
+            </div>
+            <span className="text-xl font-black tracking-widest text-white">PIYROX</span>
           </Link>
-          <h1 className="text-2xl font-bold">Tell us about you</h1>
+          <h1 className="text-2xl font-black text-white">Tell us about you</h1>
           <p className="text-gray-400 text-sm mt-1">A few quick questions to personalize your experience</p>
         </div>
 
-        <div className="bg-cardBg border border-borderBg rounded-2xl p-8 space-y-7 shadow-xl">
+        <div className="bg-[var(--card-bg)] border border-[var(--border-bg)] rounded-2xl p-8 space-y-7 shadow-xl">
           {error && (
-            <div className="bg-red-900/20 border border-red-500/40 text-red-300 text-sm px-4 py-3 rounded-xl">{error}</div>
+            <div className="bg-[var(--error-bg)] border border-red-500/30 text-red-400 text-sm px-4 py-3 rounded-xl">{error}</div>
           )}
 
           <div className="space-y-3">
@@ -393,7 +400,7 @@ export default function RegisterPage() {
                   className={`px-3.5 py-2 rounded-xl border text-sm font-medium transition ${
                     games.includes(g)
                       ? 'border-brand bg-brand/10 text-brand'
-                      : 'border-borderBg bg-hoverBg/40 text-gray-300 hover:border-brand/40'
+                      : 'border-[var(--border-bg)] bg-[var(--surface)] text-gray-300 hover:border-brand/40'
                   }`}>
                   {g}
                 </button>
@@ -409,7 +416,7 @@ export default function RegisterPage() {
                   className={`px-3.5 py-2 rounded-xl border text-sm font-medium transition ${
                     interests.includes(it)
                       ? 'border-brand bg-brand/10 text-brand'
-                      : 'border-borderBg bg-hoverBg/40 text-gray-300 hover:border-brand/40'
+                      : 'border-[var(--border-bg)] bg-[var(--surface)] text-gray-300 hover:border-brand/40'
                   }`}>
                   {it}
                 </button>
@@ -425,7 +432,7 @@ export default function RegisterPage() {
                   className={`px-3.5 py-2.5 rounded-xl border text-sm font-medium transition ${
                     region === r
                       ? 'border-brand bg-brand/10 text-brand'
-                      : 'border-borderBg bg-hoverBg/40 text-gray-300 hover:border-brand/40'
+                      : 'border-[var(--border-bg)] bg-[var(--surface)] text-gray-300 hover:border-brand/40'
                   }`}>
                   {r}
                 </button>
@@ -436,7 +443,7 @@ export default function RegisterPage() {
           <button
             onClick={handleSubmit}
             disabled={loading}
-            className="w-full flex items-center justify-center gap-2 bg-brand hover:bg-brand-dark py-3.5 rounded-xl font-bold text-white transition disabled:opacity-50 shadow-lg shadow-brand/20"
+            className="btn-primary w-full justify-center !py-3.5 disabled:opacity-50 shadow-lg shadow-brand/20"
           >
             {loading ? <><Loader2 className="w-4 h-4 animate-spin" /> Creating Account...</> : <>Finish <ChevronRight className="w-4 h-4" /></>}
           </button>

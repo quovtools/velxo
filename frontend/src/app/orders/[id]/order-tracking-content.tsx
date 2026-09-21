@@ -65,27 +65,28 @@ const STATUS_LABELS: Record<string, string> = {
 };
 
 const STATUS_COLORS: Record<string, string> = {
-  PENDING:     'bg-yellow-500/10 text-yellow-300 border-yellow-500/30',
-  PAID:        'bg-brand/10 text-brand border-brand/30',
-  IN_PROGRESS: 'bg-brand/15 text-brand-light border-brand/40',
-  COMPLETED:   'bg-emerald-500/10 text-emerald-300 border-emerald-500/30',
-  DISPUTED:    'bg-red-500/10 text-red-300 border-red-500/30',
-  CANCELLED:   'bg-white/5 text-gray-400 border-white/10',
-  REFUNDED:    'bg-white/5 text-gray-400 border-white/10',
+  PENDING:     'badge-warning',
+  PAID:        'badge-gold',
+  IN_PROGRESS: 'badge-gold',
+  COMPLETED:   'badge-success',
+  DISPUTED:    'badge-error',
+  CANCELLED:   'badge-neutral',
+  REFUNDED:    'badge-neutral',
 };
+
+const TIMELINE_STEPS = [
+  { key: 'placed',    label: 'Order Placed',      field: 'createdAt' },
+  { key: 'paid',      label: 'Payment Secured',   field: 'paidAt' },
+  { key: 'accepted',  label: 'Seller Accepted',   field: 'acceptedAt' },
+  { key: 'delivered', label: 'Delivery Started',  field: 'deliveredAt' },
+  { key: 'completed', label: 'Order Completed',   field: 'completedAt' },
+] as const;
 
 const THREE_HOURS_MS    = 3 * 60 * 60 * 1000;       // seller can cancel unpaid order after 3h
 const SELLER_WINDOW_MS  = 90 * 60 * 1000;            // 1h 30m — seller delivery window
 const BUYER_WINDOW_MS   = 60 * 60 * 1000;            // 1h — buyer confirmation window
 const BUYER_DISPUTE_AFTER_MS  = 90 * 60 * 1000;      // 1h 30m — buyer can dispute if no delivery
 const SELLER_DISPUTE_AFTER_MS = 60 * 60 * 1000;      // 1h — seller can dispute if buyer didn't confirm
-
-const STEPS = [
-  { key: 'PENDING',     label: 'Order Placed',     sub: 'Awaiting secure payment',   icon: Package },
-  { key: 'PAID',        label: 'Funds in Escrow',  sub: 'Payment locked in escrow',  icon: Shield },
-  { key: 'IN_PROGRESS', label: 'Seller Delivered', sub: 'Delivery confirmed',        icon: Truck },
-  { key: 'COMPLETED',   label: 'Funds Released',   sub: 'Trade complete',            icon: CheckCircle },
-] as const;
 
 // ─── Helpers ──────────────────────────────────────────────────────────────────
 
@@ -108,17 +109,6 @@ function cdColor(ms: number | null): string {
   if (ms < 600_000) return 'text-red-400 animate-pulse';
   if (ms < 1_800_000) return 'text-yellow-400';
   return 'text-emerald-400';
-}
-
-function stepIndex(status: string, deliveredAt?: string | null): number {
-  switch (status) {
-    case 'PENDING':     return 0;
-    case 'PAID':        return 1;
-    case 'IN_PROGRESS': return 2;
-    case 'COMPLETED':   return 3;
-    case 'DISPUTED':    return deliveredAt ? 2 : 1;
-    default:            return 0;
-  }
 }
 
 // ─── Sub-components ───────────────────────────────────────────────────────────
@@ -165,7 +155,7 @@ function StarRow({ rating, setRating }: { rating: number; setRating: (v: number)
     <div className="flex gap-1">
       {[1,2,3,4,5].map(i => (
         <button key={i} type="button" onClick={() => setRating(i)}>
-          <Star className={`w-7 h-7 transition ${i <= rating ? 'fill-yellow-400 text-yellow-400' : 'text-gray-600 hover:text-yellow-400'}`} />
+          <Star className={`w-7 h-7 transition ${i <= rating ? 'fill-brand text-brand' : 'text-gray-600 hover:text-brand'}`} />
         </button>
       ))}
     </div>
@@ -336,7 +326,6 @@ export default function OrderTrackingContent({ id }: { id: string }) {
     }
   }, [order?.status, isSeller]);
 
-  const curIdx      = order ? stepIndex(order.status, order.deliveredAt) : 0;
   const isDisputed  = order?.status === 'DISPUTED';
   const isCancelled = order?.status === 'CANCELLED' || order?.status === 'REFUNDED';
   const isDone      = order?.status === 'COMPLETED' || isCancelled;
@@ -517,7 +506,7 @@ export default function OrderTrackingContent({ id }: { id: string }) {
             {order.paidAt && <> · Paid {new Date(order.paidAt).toLocaleDateString()}</>}
           </p>
         </div>
-        <span className={`self-start sm:self-auto px-4 py-1.5 rounded-full text-xs font-bold border ${STATUS_COLORS[order.status] ?? STATUS_COLORS.PENDING}`}>
+        <span className={`badge self-start sm:self-auto !px-4 !py-1.5 ${STATUS_COLORS[order.status] ?? STATUS_COLORS.PENDING}`}>
           {STATUS_LABELS[order.status] ?? order.status}
         </span>
       </div>
@@ -545,12 +534,12 @@ export default function OrderTrackingContent({ id }: { id: string }) {
           ) : paymentLink ? (
             <a href={paymentLink} target="_blank" rel="noopener noreferrer"
               onClick={() => setTimeout(() => load(), 4000)}
-              className="inline-flex items-center justify-center gap-2 w-full bg-brand hover:opacity-90 px-5 py-3.5 rounded-xl font-bold text-white shadow-lg shadow-brand/25 transition text-sm">
+              className="btn-primary w-full !py-3.5 shadow-lg shadow-brand/25">
               <ExternalLink className="w-4 h-4" /> Pay Now — Complete Payment
             </a>
           ) : (
             <button onClick={handleGeneratePayment} disabled={actionLoading}
-              className="inline-flex items-center justify-center gap-2 w-full bg-brand hover:opacity-90 px-5 py-3.5 rounded-xl font-bold text-white shadow-lg shadow-brand/25 disabled:opacity-50 transition text-sm">
+              className="btn-primary w-full !py-3.5 shadow-lg shadow-brand/25 disabled:opacity-50">
               {actionLoading ? <Loader2 className="w-4 h-4 animate-spin" /> : <ExternalLink className="w-4 h-4" />}
               Generate Payment Link
             </button>
@@ -718,7 +707,7 @@ export default function OrderTrackingContent({ id }: { id: string }) {
             <div className="flex items-center gap-2 px-6 py-4 border-b border-[var(--border-bg)]">
               <ShieldCheck className="w-4 h-4 text-brand" />
               <h3 className="font-bold text-white text-sm">Trust-Trade Escrow</h3>
-              <span className={`ml-auto text-[10px] font-bold px-2 py-0.5 rounded-full border ${STATUS_COLORS[order.escrow?.status ?? order.status] ?? 'text-gray-400 border-gray-700'}`}>
+              <span className={`badge ml-auto ${STATUS_COLORS[order.escrow?.status ?? order.status] ?? 'badge-neutral'}`}>
                 {order.escrow?.status ?? 'HELD'}
               </span>
             </div>
@@ -726,32 +715,31 @@ export default function OrderTrackingContent({ id }: { id: string }) {
             {/* Stepper */}
             {!isCancelled ? (
               <div className="px-6 py-5">
-                <div className="flex items-start justify-between relative">
-                  {/* connector line */}
-                  <div className="absolute top-[18px] left-[18px] right-[18px] h-0.5 bg-borderBg z-0" />
-                  <div
-                    className="absolute top-[18px] left-[18px] h-0.5 bg-brand z-0 transition-all duration-500"
-                    style={{ width: `${(curIdx / (STEPS.length - 1)) * (100 - (100 / STEPS.length))}%` }}
-                  />
-                  {STEPS.map((step, idx) => {
-                    const StepIcon = step.icon;
-                    const done   = idx < curIdx;
-                    const active = idx === curIdx && !isDisputed;
+                <div>
+                  {TIMELINE_STEPS.map((step, idx) => {
+                    const ts = (order as any)[step.field] as string | null | undefined;
+                    const done = !!ts;
+                    const isCurrent = !done && TIMELINE_STEPS.slice(0, idx).every(s => !!(order as any)[s.field]);
+                    const last = idx === TIMELINE_STEPS.length - 1;
                     return (
-                      <div key={step.key} className="flex flex-col items-center flex-1 relative z-10">
-                        <div className={`w-9 h-9 rounded-full flex items-center justify-center transition-all duration-300
-                          ${done   ? 'bg-emerald-500 shadow-lg shadow-emerald-500/30'
-                          : active ? 'bg-brand ring-4 ring-brand/20 shadow-lg shadow-brand/20'
-                          : 'bg-background border-2 border-[var(--border-bg)]'}`}>
-                          {done
-                            ? <CheckCircle className="w-4 h-4 text-white" />
-                            : <StepIcon className={`w-4 h-4 ${active ? 'text-white' : 'text-gray-600'}`} />}
+                      <div key={step.key} className="flex gap-4">
+                        <div className="flex flex-col items-center">
+                          <div className={`w-8 h-8 rounded-full flex items-center justify-center flex-shrink-0 transition
+                            ${done ? 'bg-brand text-black shadow-md shadow-brand/25'
+                              : isCurrent ? 'bg-brand/10 border-2 border-brand text-brand animate-pulse'
+                              : 'bg-[var(--surface)] border-2 border-[var(--border-bg)] text-gray-600'}`}>
+                            {done ? <CheckCircle className="w-4 h-4" /> : <span className="w-1.5 h-1.5 rounded-full bg-current" />}
+                          </div>
+                          {!last && <div className={`w-0.5 flex-1 min-h-[24px] my-1 ${done ? 'bg-brand/40' : 'bg-[var(--border-bg)]'}`} />}
                         </div>
-                        <p className={`text-[10px] font-bold mt-2 text-center leading-tight
-                          ${done || active ? 'text-white' : 'text-gray-600'}`}>
-                          {step.label}
-                        </p>
-                        <p className="text-[9px] text-gray-600 text-center mt-0.5 hidden sm:block">{step.sub}</p>
+                        <div className={last ? 'pb-1' : 'pb-6'}>
+                          <p className={`text-sm font-bold leading-8 ${done || isCurrent ? 'text-white' : 'text-gray-600'}`}>{step.label}</p>
+                          <p className="text-[11px] text-gray-500 -mt-1">
+                            {ts
+                              ? new Date(ts).toLocaleString('en-GB', { day: 'numeric', month: 'short', year: 'numeric', hour: '2-digit', minute: '2-digit' })
+                              : isCurrent ? 'In progress…' : 'Pending'}
+                          </p>
+                        </div>
                       </div>
                     );
                   })}
@@ -889,7 +877,7 @@ export default function OrderTrackingContent({ id }: { id: string }) {
               <div className="px-6 py-5 space-y-4">
                 {!showDelivery ? (
                   <button onClick={() => setShowDelivery(true)}
-                    className="w-full flex items-center justify-center gap-2 py-4 bg-background border border-dashed border-[var(--border-bg)] rounded-xl text-gray-500 text-sm hover:border-brand/40 hover:text-gray-300 transition">
+                    className="w-full flex items-center justify-center gap-2 py-4 bg-[var(--surface)] border border-dashed border-[var(--border-bg)] rounded-xl text-gray-500 text-sm hover:border-brand/40 hover:text-gray-300 transition">
                     <Eye className="w-4 h-4" /> Click Reveal to view account credentials
                   </button>
                 ) : (
@@ -898,7 +886,7 @@ export default function OrderTrackingContent({ id }: { id: string }) {
                       {(['credentials', 'notes', 'raw'] as const).map(t => (
                         <button key={t} onClick={() => setDeliveryTab(t)}
                           className={`flex-1 text-xs font-bold py-2 rounded-lg capitalize transition
-                            ${deliveryTab === t ? 'bg-brand text-white' : 'text-gray-400 hover:text-white'}`}>
+                            ${deliveryTab === t ? 'bg-brand text-black' : 'text-gray-400 hover:text-white'}`}>
                           {t}
                         </button>
                       ))}
@@ -977,7 +965,7 @@ export default function OrderTrackingContent({ id }: { id: string }) {
                   const st  = ev.status ?? 'pending';
                   const dot = st === 'done'   ? 'bg-emerald-500'
                              : st === 'active' ? 'bg-brand ring-4 ring-brand/20'
-                             : 'bg-background border-2 border-[var(--border-bg)]';
+                             : 'bg-[var(--surface)] border-2 border-[var(--border-bg)]';
                   return (
                     <li key={ev.id ?? i}
                       className={`flex items-start gap-4 py-3 ${i < timeline.length - 1 ? 'border-b border-[var(--border-bg)]/30' : ''}`}>
@@ -1014,7 +1002,7 @@ export default function OrderTrackingContent({ id }: { id: string }) {
                     ] as const).map(t => (
                       <button key={t.key} onClick={() => setActionTab(t.key)}
                         className={`px-3 py-1.5 rounded-lg text-xs font-bold transition
-                          ${actionTab === t.key ? 'bg-brand text-white' : 'text-gray-400 hover:text-white'}`}>
+                          ${actionTab === t.key ? 'bg-brand text-black' : 'text-gray-400 hover:text-white'}`}>
                         {t.label}
                       </button>
                     ))}
@@ -1028,7 +1016,7 @@ export default function OrderTrackingContent({ id }: { id: string }) {
                     ] as const).map(t => (
                       <button key={t.key} onClick={() => setActionTab(t.key as any)}
                         className={`px-3 py-1.5 rounded-lg text-xs font-bold transition
-                          ${actionTab === t.key ? 'bg-brand text-white' : 'text-gray-400 hover:text-white'}`}>
+                          ${actionTab === t.key ? 'bg-brand text-black' : 'text-gray-400 hover:text-white'}`}>
                         {t.label}
                       </button>
                     ))}
@@ -1054,7 +1042,7 @@ export default function OrderTrackingContent({ id }: { id: string }) {
                           </p>
                         </div>
                       </div>
-                      <div className="grid grid-cols-3 divide-x divide-borderBg border-t border-[var(--border-bg)] text-center">
+                      <div className="grid grid-cols-3 divide-x divide-[var(--border-bg)] border-t border-[var(--border-bg)] text-center">
                         <div className="px-3 py-3">
                           <p className="text-[10px] text-gray-500 uppercase font-bold tracking-widest">Window</p>
                           <p className="text-sm font-black text-white mt-0.5">1h 30m</p>
@@ -1070,7 +1058,7 @@ export default function OrderTrackingContent({ id }: { id: string }) {
                       </div>
                     </div>
                     <button onClick={handleAccept} disabled={actionLoading}
-                      className="w-full flex items-center justify-center gap-2 bg-brand hover:opacity-90 py-4 rounded-xl font-black text-white disabled:opacity-50 transition shadow-lg shadow-brand/20 text-sm">
+                      className="btn-primary w-full !py-4 !font-black disabled:opacity-50 shadow-lg shadow-brand/20">
                       {actionLoading ? <Loader2 className="w-5 h-5 animate-spin" /> : <CheckCircle className="w-5 h-5" />}
                       Accept Order &amp; Start Delivery Timer
                     </button>
@@ -1121,7 +1109,7 @@ export default function OrderTrackingContent({ id }: { id: string }) {
                               value={deliveryEmail}
                               onChange={e => setDeliveryEmail(e.target.value)}
                               placeholder="user@example.com or Player UID"
-                              className="w-full bg-black/30 border border-[var(--border-bg)] rounded-xl px-3 py-2.5 text-sm text-white font-mono focus:outline-none focus:border-brand transition placeholder:text-gray-600"
+                              className="input font-mono"
                             />
                           </div>
                           <div>
@@ -1133,7 +1121,7 @@ export default function OrderTrackingContent({ id }: { id: string }) {
                               value={deliveryPass}
                               onChange={e => setDeliveryPass(e.target.value)}
                               placeholder="Account password"
-                              className="w-full bg-black/30 border border-[var(--border-bg)] rounded-xl px-3 py-2.5 text-sm text-white font-mono focus:outline-none focus:border-brand transition placeholder:text-gray-600"
+                              className="input font-mono"
                             />
                           </div>
                           <div>
@@ -1145,7 +1133,7 @@ export default function OrderTrackingContent({ id }: { id: string }) {
                               value={deliveryExtra}
                               onChange={e => setDeliveryExtra(e.target.value)}
                               placeholder="In-game name or recovery email"
-                              className="w-full bg-black/30 border border-[var(--border-bg)] rounded-xl px-3 py-2.5 text-sm text-white font-mono focus:outline-none focus:border-brand transition placeholder:text-gray-600"
+                              className="input font-mono"
                             />
                           </div>
                           <div>
@@ -1155,7 +1143,7 @@ export default function OrderTrackingContent({ id }: { id: string }) {
                             <select
                               value={deliveryLoginMethod}
                               onChange={e => setDeliveryLoginMethod(e.target.value)}
-                              className="w-full bg-black/30 border border-[var(--border-bg)] rounded-xl px-3 py-2.5 text-sm text-white focus:outline-none focus:border-brand transition"
+                              className="select"
                             >
                               <option value="">Select…</option>
                               <option value="Email &amp; Password">Email &amp; Password</option>
@@ -1183,7 +1171,7 @@ export default function OrderTrackingContent({ id }: { id: string }) {
                             rows={3}
                             required
                             placeholder="e.g. Log in via Facebook · Do not change the email · 2FA sent to +234..."
-                            className="w-full bg-black/30 border border-[var(--border-bg)] rounded-xl px-3 py-2.5 text-sm text-white focus:outline-none focus:border-brand resize-none transition placeholder:text-gray-600"
+                            className="input resize-none"
                           />
                         </div>
 
@@ -1199,7 +1187,7 @@ export default function OrderTrackingContent({ id }: { id: string }) {
                         <button
                           type="submit"
                           disabled={submittingDelivery}
-                          className="w-full flex items-center justify-center gap-2 bg-brand hover:opacity-90 py-4 rounded-xl font-black text-white disabled:opacity-50 transition shadow-lg shadow-brand/20 text-sm"
+                          className="btn-primary w-full !py-4 !font-black disabled:opacity-50 shadow-lg shadow-brand/20"
                         >
                           {submittingDelivery
                             ? <><Loader2 className="w-5 h-5 animate-spin" /> Submitting delivery…</>
@@ -1402,9 +1390,9 @@ export default function OrderTrackingContent({ id }: { id: string }) {
                       <StarRow rating={reviewRating} setRating={setReviewRating} />
                       <textarea value={reviewComment} onChange={e => setReviewComment(e.target.value)} rows={2}
                         placeholder="How was your experience with this seller?"
-                        className="w-full bg-black/30 border border-[var(--border-bg)] rounded-xl px-3 py-2.5 text-sm text-white focus:outline-none focus:border-brand resize-none transition" />
+                        className="input resize-none" />
                       <button type="submit" disabled={!reviewRating || submittingReview}
-                        className="w-full flex items-center justify-center gap-2 bg-brand hover:opacity-90 py-3 rounded-xl font-bold text-white text-sm disabled:opacity-40 transition">
+                        className="btn-primary w-full !py-3 disabled:opacity-40">
                         {submittingReview ? <Loader2 className="w-4 h-4 animate-spin" /> : <Star className="w-4 h-4" />}
                         Submit Review
                       </button>
@@ -1441,7 +1429,7 @@ export default function OrderTrackingContent({ id }: { id: string }) {
             <div className="px-5 py-4 space-y-3">
               {/* Avatar */}
               <div className="flex items-center gap-3">
-                <div className="w-12 h-12 rounded-xl bg-gradient-to-br from-brand to-purple-600 flex items-center justify-center flex-shrink-0 font-black text-white text-lg">
+                <div className="w-12 h-12 rounded-xl bg-brand/15 border border-brand/25 flex items-center justify-center flex-shrink-0 font-black text-brand text-lg">
                   {otherName[0]?.toUpperCase() ?? '?'}
                 </div>
                 <div className="min-w-0">
@@ -1456,7 +1444,7 @@ export default function OrderTrackingContent({ id }: { id: string }) {
                 <div className="space-y-0 pt-1">
                   <InfoRow label="Rating"
                     value={order.seller.averageRating ? `${order.seller.averageRating.toFixed(1)} ★` : '—'}
-                    valueClass="text-yellow-400 font-bold" />
+                    valueClass="text-brand font-bold" />
                   <InfoRow label="Delivery"
                     value={`${order.seller.deliverySuccessRate ?? 100}%`}
                     valueClass="text-emerald-400 font-bold" />
@@ -1474,7 +1462,7 @@ export default function OrderTrackingContent({ id }: { id: string }) {
                   </Link>
                 )}
                 <Link href={`/messages?order=${id}`}
-                  className="flex items-center justify-center gap-2 py-2.5 bg-brand hover:opacity-90 rounded-xl text-xs font-bold text-white transition shadow-sm shadow-brand/20">
+                  className="btn-primary !py-2.5 !text-xs shadow-sm shadow-brand/20">
                   <MessageSquare className="w-3.5 h-3.5" /> Open Chat
                 </Link>
               </div>
@@ -1573,7 +1561,7 @@ export default function OrderTrackingContent({ id }: { id: string }) {
               <div>
                 <label className="text-[10px] font-black text-gray-500 uppercase tracking-widest block mb-1.5">Reason</label>
                 <select value={disputeReason} onChange={e => setDisputeReason(e.target.value)} required
-                  className="w-full bg-black/30 border border-[var(--border-bg)] rounded-xl px-4 py-2.5 text-sm text-white focus:outline-none focus:border-brand transition">
+                  className="select">
                   <option value="">Select a reason…</option>
                   {isBuyer && <>
                     <option value="ITEM_NOT_RECEIVED">Item not received / no credentials</option>
@@ -1596,7 +1584,7 @@ export default function OrderTrackingContent({ id }: { id: string }) {
                 <textarea value={disputeDesc} onChange={e => setDisputeDesc(e.target.value)}
                   rows={4} required minLength={20}
                   placeholder="Describe the issue in detail. Include what happened, when it happened, and any steps you've taken to resolve it."
-                  className="w-full bg-black/30 border border-[var(--border-bg)] rounded-xl px-4 py-2.5 text-sm text-white focus:outline-none focus:border-brand resize-none transition" />
+                  className="input resize-none" />
                 <p className="text-[10px] text-gray-600 mt-1">Minimum 20 characters. You can add screenshots after submitting.</p>
               </div>
               <div className="flex gap-3 pt-1">

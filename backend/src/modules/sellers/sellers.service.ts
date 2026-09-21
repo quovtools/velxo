@@ -677,6 +677,49 @@ export class SellersService {
   }
 
   /**
+   * Public seller profile for the /sellers/:username page. Resolves by id,
+   * store slug or store name and returns only display-safe fields. Unlike the
+   * storefront endpoint this works for any seller (verified or not) so the
+   * public profile page works for every seller with a shareable link.
+   */
+  async getPublicProfile(identifier: string) {
+    const seller = await this.prisma.sellers.findFirst({
+      where: {
+        OR: [
+          { id: identifier },
+          { storeSlug: identifier },
+          { storeName: { equals: identifier, mode: 'insensitive' } },
+        ],
+      },
+      include: {
+        user: { select: { avatarUrl: true } },
+        _count: { select: { reviews: true } },
+        listings: {
+          where: { status: 'ACTIVE' },
+          select: { gameName: true },
+          distinct: ['gameName'],
+          take: 10,
+        },
+      },
+    })
+    if (!seller) {
+      throw new NotFoundException('Seller')
+    }
+    return {
+      id: seller.id,
+      storeName: seller.storeName,
+      bio: seller.storeDescription,
+      avatarUrl: seller.user?.avatarUrl ?? null,
+      isVerified: seller.isVerified,
+      averageRating: seller.averageRating,
+      totalSales: seller.totalSales,
+      totalReviews: seller._count.reviews,
+      memberSince: seller.createdAt,
+      games: seller.listings.map((l) => l.gameName).filter(Boolean),
+    }
+  }
+
+  /**
    * Returns the current subscription state for the authenticated seller,
    * including plan benefits and the shareable store link. Also transparently
    * downgrades an expired subscription so the UI always reflects reality.

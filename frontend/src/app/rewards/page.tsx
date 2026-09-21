@@ -1,305 +1,275 @@
 'use client';
 
-import React, { useState, useEffect } from 'react';
-import { useAuth } from '@/app/providers';
+import React, { useState, useEffect, useCallback } from 'react';
+import { useRouter } from 'next/navigation';
 import { api } from '@/lib/api';
-import { Award, Users, TrendingUp, Coins, Gift, Trophy, Loader2, Copy, DollarSign, MousePointerClick } from 'lucide-react';
-import { useCurrency } from '@/lib/useCurrency';
+import { useAuth } from '@/app/providers';
+import { Coins, Gift, Loader2, X, History, CheckCircle } from 'lucide-react';
 
-interface AffiliateStats {
-  totalClicks: number;
-  totalSignups: number;
-  totalTrades: number;
-  totalEarned: string;
-  referrals: any[];
+interface CoinWallet {
+  id: string;
+  balance: number;
+  currency: string;
 }
 
-interface RewardTransaction {
+interface CatalogItem {
+  id: string;
+  name: string;
+  description?: string | null;
+  type: string;
+  coinCost: number;
+  imageUrl?: string | null;
+  isActive: boolean;
+}
+
+interface CoinTransaction {
   id: string;
   type: string;
   amount: number;
+  balanceAfter: number;
   description: string;
   createdAt: string;
-  relatedId?: string;
 }
 
+const TYPE_COLORS: Record<string, string> = {
+  GIFT_CARD: 'text-purple-400 bg-purple-500/10 border-purple-500/20',
+  TOP_UP: 'text-cyan-400 bg-cyan-500/10 border-cyan-500/20',
+  ITEM: 'text-emerald-400 bg-emerald-500/10 border-emerald-500/20',
+  COUPON: 'text-amber-400 bg-amber-500/10 border-amber-500/20',
+};
+
 export default function RewardsPage() {
-  const { user } = useAuth();
-  const { fmt } = useCurrency();
-  const [activeTab, setActiveTab] = useState<'overview' | 'affiliate' | 'piyrox-coins' | 'redeem'>('overview');
-  const [affiliateStats, setAffiliateStats] = useState<AffiliateStats | null>(null);
-  const [referral, setReferral] = useState<{ id: string; referralCode: string } | null>(null);
-  const [coinBalance, setCoinBalance] = useState<number>(0);
-  const [transactions, setTransactions] = useState<RewardTransaction[]>([]);
+  const router = useRouter();
+  const { user, loading: authLoading } = useAuth();
+
+  const [wallet, setWallet] = useState<CoinWallet | null>(null);
+  const [catalog, setCatalog] = useState<CatalogItem[]>([]);
+  const [transactions, setTransactions] = useState<CoinTransaction[]>([]);
   const [loading, setLoading] = useState(true);
-  const [copied, setCopied] = useState(false);
+  const [tab, setTab] = useState<'catalog' | 'history'>('catalog');
+
+  const [confirmItem, setConfirmItem] = useState<CatalogItem | null>(null);
+  const [redeeming, setRedeeming] = useState(false);
+  const [toast, setToast] = useState<{ msg: string; ok: boolean } | null>(null);
+
+  const showToast = (msg: string, ok: boolean) => {
+    setToast({ msg, ok });
+    setTimeout(() => setToast(null), 3500);
+  };
+
+  const load = useCallback(async () => {
+    try {
+      const [w, c, t] = await Promise.all([
+        api.get<{ success: boolean; data: CoinWallet }>('/rewards/coins'),
+        api.get<{ success: boolean; data: CatalogItem[] }>('/rewards/catalog'),
+        api.get<{ success: boolean; data: CoinTransaction[] }>('/rewards/transactions?limit=30'),
+      ]);
+      if (w?.data) setWallet(w.data);
+      if (c?.data) setCatalog(c.data);
+      if (t?.data) setTransactions(t.data);
+    } catch {
+      showToast('Could not load rewards', false);
+    } finally {
+      setLoading(false);
+    }
+  }, []);
 
   useEffect(() => {
-    async function load() {
-      if (!user) return;
-      setLoading(true);
-      try {
-        const [meRes, statsRes, coinsRes, txRes] = await Promise.all([
-          api.get<{ data: { id: string; referralCode: string } }>('/affiliate/me').catch(() => ({ data: null })),
-          api.get<{ data: AffiliateStats }>('/affiliate/me/stats').catch(() => ({ data: null })),
-          api.get<{ data: { coinBalance: number } }>('/rewards/coins').catch(() => ({ data: { coinBalance: 0 } })),
-          api.get<{ data: RewardTransaction[] }>('/rewards/transactions').catch(() => ({ data: [] })),
-        ]);
-        setReferral(meRes.data);
-        setAffiliateStats(statsRes.data);
-        setCoinBalance(coinsRes.data?.coinBalance || 0);
-        setTransactions(Array.isArray(txRes.data) ? txRes.data : []);
-      } catch (e) {
-        console.error(e);
-      } finally {
-        setLoading(false);
-      }
+    if (authLoading) return;
+    if (!user) {
+      router.replace('/auth/login?redirect=/rewards');
+      return;
     }
     load();
-  }, [user]);
+  }, [authLoading, user, router, load]);
 
-  function copyCode() {
-    if (!referral) return;
-    const url = `${window.location.origin}/?ref=${referral.referralCode}`;
-    navigator.clipboard.writeText(url).then(() => {
-      setCopied(true);
-      setTimeout(() => setCopied(false), 2000);
-    });
-  }
+  const redeem = async () => {
+    if (!confirmItem) return;
+    setRedeeming(true);
+    try {
+      await api.post('/rewards/redeem', { catalogId: confirmItem.id });
+      showToast(`Redeemed "${confirmItem.name}" — pending fulfilment`, true);
+      setConfirmItem(null);
+      await load();
+    } catch (e: any) {
+      showToast(e?.message || 'Redemption failed', false);
+    } finally {
+      setRedeeming(false);
+    }
+  };
 
-  if (!user) {
+  if (loading || authLoading) {
     return (
-      <div className="text-center py-20 space-y-4">
-        <p className="text-gray-400 font-semibold">Please sign in to view your rewards.</p>
-        <a href="/auth/login" className="inline-flex items-center gap-2 bg-brand hover:bg-brand-dark px-6 py-3 rounded-xl text-white font-bold transition">Sign In</a>
-      </div>
-    );
-  }
-
-  if (loading) {
-    return (
-      <div className="flex justify-center py-20">
+      <div className="flex items-center justify-center min-h-[60vh]">
         <Loader2 className="w-10 h-10 text-brand animate-spin" />
       </div>
     );
   }
 
+  const balance = wallet?.balance ?? 0;
+
   return (
-    <div className="max-w-5xl mx-auto space-y-6 my-6">
+    <div className="max-w-5xl mx-auto py-8 px-4 space-y-6">
       {/* Header */}
-      <div className="space-y-2">
-        <h1 className="text-3xl font-black text-white flex items-center gap-3">
-          <Award className="w-8 h-8 text-brand" />
-          Rewards Center
-        </h1>
-        <p className="text-gray-400 text-sm">Earn piyrox coins, affiliate commissions, and exclusive perks.</p>
+      <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4">
+        <div className="flex items-center gap-3">
+          <div className="w-12 h-12 rounded-2xl bg-brand/10 border border-brand/20 flex items-center justify-center">
+            <Coins className="w-6 h-6 text-brand" />
+          </div>
+          <div>
+            <h1 className="text-2xl font-black text-white">Piyrox Rewards</h1>
+            <p className="text-gray-400 text-sm">Earn coins for activity, redeem them for rewards.</p>
+          </div>
+        </div>
+        <div className="rounded-2xl bg-[var(--surface)] border border-[var(--border-bg)] px-5 py-3 flex items-center gap-3">
+          <Coins className="w-6 h-6 text-brand" />
+          <div>
+            <p className="text-[11px] text-gray-500 uppercase tracking-wide font-bold">Balance</p>
+            <p className="text-xl font-black text-white leading-tight">
+              {balance.toLocaleString()} <span className="text-brand text-sm">{wallet?.currency || 'VXC'}</span>
+            </p>
+          </div>
+        </div>
       </div>
 
-      {/* Coin Balance Card */}
-      <div className="bg-gradient-to-r from-brand/20 to-brand/5 border border-brand/30 rounded-2xl p-6 flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4">
-        <div className="space-y-1">
-          <p className="text-xs font-bold text-brand uppercase tracking-wider">Your Piyrox Coin Balance</p>
-          <div className="flex items-baseline gap-2">
-            <span className="text-4xl font-black text-white">{coinBalance.toLocaleString()}</span>
-            <span className="text-sm font-bold text-brand">VXC</span>
-          </div>
-          <p className="text-xs text-gray-400">Earn coins on every purchase and sale</p>
+      {toast && (
+        <div className={`px-4 py-3 rounded-xl text-sm font-medium border ${
+          toast.ok ? 'bg-emerald-500/10 text-emerald-400 border-emerald-500/20' : 'bg-red-500/10 text-red-400 border-red-500/20'
+        }`}>
+          {toast.msg}
         </div>
-        <div className="flex gap-2">
-          <button className="px-4 py-2 bg-brand hover:bg-brand-dark rounded-xl text-xs font-bold text-white transition">Redeem Coins</button>
-          <button className="px-4 py-2 bg-background border border-borderBg hover:border-brand/40 rounded-xl text-xs font-bold text-gray-300 transition">How to Earn</button>
-        </div>
-      </div>
+      )}
 
       {/* Tabs */}
-      <div className="flex gap-2 border-b border-borderBg">
-        {[
-          { key: 'overview', label: 'Overview' },
-          { key: 'affiliate', label: 'Affiliate' },
-          { key: 'piyrox-coins', label: 'piyrox coins' },
-          { key: 'redeem', label: 'Redeem' },
-        ].map((tab) => (
+      <div className="flex gap-2 border-b border-[var(--border-bg)]">
+        {([
+          ['catalog', 'Reward catalog', Gift],
+          ['history', 'Coin history', History],
+        ] as const).map(([key, label, Icon]) => (
           <button
-            key={tab.key}
-            onClick={() => setActiveTab(tab.key as any)}
-            className={`px-4 py-2.5 text-sm font-bold transition border-b-2 -mb-px ${
-              activeTab === tab.key
-                ? 'text-brand border-brand'
-                : 'text-gray-400 border-transparent hover:text-white'
+            key={key}
+            onClick={() => setTab(key)}
+            className={`flex items-center gap-2 px-4 py-2.5 text-sm font-bold border-b-2 -mb-px transition ${
+              tab === key ? 'text-brand border-brand' : 'text-gray-400 border-transparent hover:text-white'
             }`}
           >
-            {tab.label}
+            <Icon className="w-4 h-4" /> {label}
           </button>
         ))}
       </div>
 
-      {/* Tab Content */}
-      <div className="space-y-6">
-        {activeTab === 'overview' && (
-          <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
-            <div className="bg-cardBg border border-borderBg rounded-2xl p-5 space-y-2">
-              <Trophy className="w-5 h-5 text-yellow-400 mb-1" />
-              <p className="text-3xl font-black text-white">{coinBalance.toLocaleString()}</p>
-              <p className="text-xs text-gray-500 font-medium">piyrox coins</p>
+      {tab === 'catalog' && (
+        <>
+          {catalog.length === 0 ? (
+            <div className="text-center py-16 text-gray-500 text-sm">No rewards available right now — check back soon.</div>
+          ) : (
+            <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
+              {catalog.map((item) => {
+                const affordable = balance >= item.coinCost;
+                const typeStyle = TYPE_COLORS[item.type] || 'text-gray-400 bg-white/5 border-white/10';
+                return (
+                  <div key={item.id} className="bg-[var(--surface)] border border-[var(--border-bg)] rounded-2xl p-5 flex flex-col gap-3">
+                    <div className="flex items-start justify-between gap-2">
+                      <span className={`text-[10px] font-bold px-2 py-0.5 rounded-full border ${typeStyle}`}>{item.type.replace('_', ' ')}</span>
+                      <span className="flex items-center gap-1 text-brand font-black text-sm">
+                        <Coins className="w-4 h-4" /> {item.coinCost.toLocaleString()}
+                      </span>
+                    </div>
+                    {item.imageUrl ? (
+                      // eslint-disable-next-line @next/next/no-img-element
+                      <img src={item.imageUrl} alt={item.name} className="w-full h-28 object-cover rounded-xl" />
+                    ) : (
+                      <div className="w-full h-28 rounded-xl bg-brand/5 border border-brand/10 flex items-center justify-center">
+                        <Gift className="w-8 h-8 text-brand/50" />
+                      </div>
+                    )}
+                    <div className="flex-1">
+                      <p className="font-bold text-white text-sm">{item.name}</p>
+                      {item.description && <p className="text-gray-400 text-xs mt-1 leading-relaxed">{item.description}</p>}
+                    </div>
+                    <button
+                      disabled={!affordable}
+                      onClick={() => setConfirmItem(item)}
+                      className={`w-full py-2.5 rounded-xl text-sm font-bold transition ${
+                        affordable
+                          ? 'bg-brand text-black hover:opacity-90'
+                          : 'bg-white/5 text-gray-500 cursor-not-allowed border border-white/10'
+                      }`}
+                    >
+                      {affordable ? 'Redeem' : 'Not enough coins'}
+                    </button>
+                  </div>
+                );
+              })}
             </div>
-            <div className="bg-cardBg border border-borderBg rounded-2xl p-5 space-y-2">
-              <DollarSign className="w-5 h-5 text-emerald-400 mb-1" />
-              <p className="text-3xl font-black text-white">{fmt(affiliateStats?.totalEarned || 0)}</p>
-              <p className="text-xs text-gray-500 font-medium">Affiliate Earnings</p>
-            </div>
-            <div className="bg-cardBg border border-borderBg rounded-2xl p-5 space-y-2">
-              <Gift className="w-5 h-5 text-purple-400 mb-1" />
-              <p className="text-3xl font-black text-white">0</p>
-              <p className="text-xs text-gray-500 font-medium">Rewards Claimed</p>
-            </div>
-          </div>
-        )}
+          )}
+        </>
+      )}
 
-        {activeTab === 'affiliate' && (
-          <div className="space-y-6">
-            {referral && (
-              <div className="bg-cardBg border border-borderBg rounded-2xl p-6 space-y-4">
-                <div className="flex items-center justify-between">
-                  <p className="text-xs font-bold text-gray-400 uppercase tracking-wider">Your Referral Code</p>
-                  <button onClick={copyCode} className="flex items-center gap-2 text-xs font-bold text-brand hover:text-brand-light transition">
-                    <Copy className="w-3.5 h-3.5" /> {copied ? 'Copied!' : 'Copy Link'}
-                  </button>
-                </div>
-                <div className="flex items-center gap-3">
-                  <div className="flex-1 bg-background border border-borderBg rounded-xl px-4 py-3">
-                    <p className="text-sm font-mono font-bold text-white truncate">{referral.referralCode}</p>
+      {tab === 'history' && (
+        <>
+          {transactions.length === 0 ? (
+            <div className="text-center py-16 text-gray-500 text-sm">No coin activity yet.</div>
+          ) : (
+            <div className="bg-[var(--surface)] border border-[var(--border-bg)] rounded-2xl divide-y divide-[var(--border-bg)]">
+              {transactions.map((tx) => (
+                <div key={tx.id} className="flex items-center justify-between px-5 py-3.5">
+                  <div className="min-w-0">
+                    <p className="text-sm font-semibold text-white truncate">{tx.description}</p>
+                    <p className="text-xs text-gray-500">{new Date(tx.createdAt).toLocaleString()}</p>
+                  </div>
+                  <div className="text-right flex-shrink-0">
+                    <p className={`text-sm font-black ${tx.amount >= 0 ? 'text-emerald-400' : 'text-red-400'}`}>
+                      {tx.amount >= 0 ? '+' : ''}{tx.amount.toLocaleString()}
+                    </p>
+                    <p className="text-[11px] text-gray-500">bal {tx.balanceAfter.toLocaleString()}</p>
                   </div>
                 </div>
-                <p className="text-xs text-gray-500">Share your link and earn 2% commission on every trade your referrals make.</p>
-              </div>
-            )}
-
-            {affiliateStats && (
-              <div className="grid grid-cols-2 lg:grid-cols-4 gap-4">
-                <div className="bg-cardBg border border-borderBg rounded-2xl p-5 space-y-2">
-                  <MousePointerClick className="w-5 h-5 text-brand-accent mb-1" />
-                  <p className="text-3xl font-black text-white">{affiliateStats.totalClicks}</p>
-                  <p className="text-xs text-gray-500 font-medium">Total Clicks</p>
-                </div>
-                <div className="bg-cardBg border border-borderBg rounded-2xl p-5 space-y-2">
-                  <Users className="w-5 h-5 text-brand mb-1" />
-                  <p className="text-3xl font-black text-white">{affiliateStats.totalSignups}</p>
-                  <p className="text-xs text-gray-500 font-medium">Signups</p>
-                </div>
-                <div className="bg-cardBg border border-borderBg rounded-2xl p-5 space-y-2">
-                  <TrendingUp className="w-5 h-5 text-emerald-400 mb-1" />
-                  <p className="text-3xl font-black text-white">{affiliateStats.totalTrades}</p>
-                  <p className="text-xs text-gray-500 font-medium">Completed Trades</p>
-                </div>
-                <div className="bg-cardBg border border-borderBg rounded-2xl p-5 space-y-2">
-                  <DollarSign className="w-5 h-5 text-yellow-400 mb-1" />
-                  <p className="text-3xl font-black text-white">{fmt(affiliateStats.totalEarned)}</p>
-                  <p className="text-xs text-gray-500 font-medium">Total Earned</p>
-                </div>
-              </div>
-            )}
-
-            {affiliateStats && affiliateStats.referrals.length > 0 && (
-              <div className="bg-cardBg border border-borderBg rounded-2xl p-6 space-y-4">
-                <h3 className="text-lg font-bold text-white">Recent Referrals</h3>
-                <div className="space-y-3">
-                  {affiliateStats.referrals.slice(0, 10).map((r) => (
-                    <div key={r.id} className="flex items-center justify-between py-2 border-b border-borderBg last:border-0">
-                      <div>
-                        <p className="text-sm font-semibold text-white">{r.referredUser?.email || 'Pending signup'}</p>
-                        <p className="text-xs text-gray-600">Joined {r.createdAt ? new Date(r.createdAt).toLocaleDateString() : ''}</p>
-                      </div>
-                      <div className="text-right">
-                        <p className="text-sm font-bold text-emerald-400">{fmt(r.totalEarned)}</p>
-                        <p className="text-xs text-gray-600">{r.tradeCount} trades</p>
-                      </div>
-                    </div>
-                  ))}
-                </div>
-              </div>
-            )}
-          </div>
-        )}
-
-        {activeTab === 'piyrox-coins' && (
-          <div className="space-y-4">
-            <div className="bg-cardBg border border-borderBg rounded-2xl p-6 space-y-4">
-              <h3 className="text-lg font-bold text-white flex items-center gap-2">
-                <Coins className="w-5 h-5 text-yellow-400" />
-                How to Earn piyrox coins
-              </h3>
-              <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-                <div className="bg-background border border-borderBg rounded-xl p-4 space-y-2">
-                  <p className="text-sm font-bold text-white">Complete a Purchase</p>
-                  <p className="text-xs text-gray-400">Earn 1 coin for every $1 spent</p>
-                </div>
-                <div className="bg-background border border-borderBg rounded-xl p-4 space-y-2">
-                  <p className="text-sm font-bold text-white">Make a Sale</p>
-                  <p className="text-xs text-gray-400">Earn 2 coins for every $1 earned</p>
-                </div>
-                <div className="bg-background border border-borderBg rounded-xl p-4 space-y-2">
-                  <p className="text-sm font-bold text-white">Refer Friends</p>
-                  <p className="text-xs text-gray-400">Earn 50 coins for each successful referral</p>
-                </div>
-                <div className="bg-background border border-borderBg rounded-xl p-4 space-y-2">
-                  <p className="text-sm font-bold text-white">Leave Reviews</p>
-                  <p className="text-xs text-gray-400">Earn 10 coins per review</p>
-                </div>
-              </div>
+              ))}
             </div>
+          )}
+        </>
+      )}
 
-            <div className="bg-cardBg border border-borderBg rounded-2xl p-6 space-y-4">
-              <h3 className="text-lg font-bold text-white">Recent Coin Activity</h3>
-              {transactions.length === 0 ? (
-                <p className="text-sm text-gray-500">No coin transactions yet. Start trading to earn coins!</p>
-              ) : (
-                <div className="space-y-3">
-                  {transactions.slice(0, 20).map((tx) => (
-                    <div key={tx.id} className="flex items-center justify-between py-2 border-b border-borderBg last:border-0">
-                      <div>
-                        <p className="text-sm font-semibold text-white">{tx.description}</p>
-                        <p className="text-xs text-gray-600">{new Date(tx.createdAt).toLocaleDateString()}</p>
-                      </div>
-                      <div className="text-right">
-                        <p className={`text-sm font-bold ${tx.type === 'CREDIT' ? 'text-emerald-400' : 'text-red-400'}`}>
-                          {tx.type === 'CREDIT' ? '+' : '-'}{tx.amount.toLocaleString()} VXC
-                        </p>
-                      </div>
-                    </div>
-                  ))}
-                </div>
-              )}
+      {/* Confirm modal */}
+      {confirmItem && (
+        <div className="fixed inset-0 bg-black/70 backdrop-blur-sm flex items-end sm:items-center justify-center z-50 p-0 sm:p-4">
+          <div className="bg-[var(--surface)] border border-[var(--border-bg)] rounded-t-3xl sm:rounded-2xl w-full sm:max-w-md p-6 space-y-5 shadow-2xl fade-in">
+            <div className="flex items-center justify-between">
+              <h3 className="text-lg font-black text-white">Confirm redemption</h3>
+              <button onClick={() => setConfirmItem(null)} className="p-2 rounded-xl text-gray-400 hover:text-white hover:bg-white/5">
+                <X className="w-4 h-4" />
+              </button>
+            </div>
+            <div className="rounded-xl bg-white/5 border border-[var(--border-bg)] p-4 space-y-2">
+              <p className="font-bold text-white text-sm">{confirmItem.name}</p>
+              <p className="text-xs text-gray-400">{confirmItem.description}</p>
+              <p className="flex items-center gap-1.5 text-sm font-black text-brand pt-1">
+                <Coins className="w-4 h-4" /> {confirmItem.coinCost.toLocaleString()} coins
+              </p>
+              <p className="text-xs text-gray-500">
+                Balance after redemption: {(balance - confirmItem.coinCost).toLocaleString()} {wallet?.currency || 'VXC'}
+              </p>
+            </div>
+            <div className="flex gap-3">
+              <button
+                onClick={() => setConfirmItem(null)}
+                className="flex-1 py-3 rounded-xl text-sm font-bold bg-white/5 text-gray-300 hover:bg-white/10 transition"
+              >
+                Cancel
+              </button>
+              <button
+                onClick={redeem}
+                disabled={redeeming}
+                className="flex-1 flex items-center justify-center gap-2 py-3 rounded-xl text-sm font-bold bg-brand text-black hover:opacity-90 transition disabled:opacity-50"
+              >
+                {redeeming ? <Loader2 className="w-4 h-4 animate-spin" /> : <CheckCircle className="w-4 h-4" />}
+                {redeeming ? 'Redeeming…' : 'Redeem'}
+              </button>
             </div>
           </div>
-        )}
-
-        {activeTab === 'redeem' && (
-          <div className="space-y-4">
-            <div className="bg-cardBg border border-borderBg rounded-2xl p-6 space-y-4">
-              <h3 className="text-lg font-bold text-white">Redeem Your Coins</h3>
-              <p className="text-sm text-gray-400">Your current balance: <span className="text-brand font-bold">{coinBalance.toLocaleString()} VXC</span></p>
-              <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
-                <div className="bg-background border border-borderBg rounded-xl p-4 space-y-2 text-center">
-                  <Gift className="w-8 h-8 text-brand mx-auto" />
-                  <p className="text-sm font-bold text-white">Gift Cards</p>
-                  <p className="text-xs text-gray-400">From 500 VXC</p>
-                </div>
-                <div className="bg-background border border-borderBg rounded-xl p-4 space-y-2 text-center">
-                  <Coins className="w-8 h-8 text-yellow-400 mx-auto" />
-                  <p className="text-sm font-bold text-white">Account Top-Up</p>
-                  <p className="text-xs text-gray-400">From 100 VXC</p>
-                </div>
-                <div className="bg-background border border-borderBg rounded-xl p-4 space-y-2 text-center">
-                  <Trophy className="w-8 h-8 text-purple-400 mx-auto" />
-                  <p className="text-sm font-bold text-white">Exclusive Items</p>
-                  <p className="text-xs text-gray-400">From 1000 VXC</p>
-                </div>
-              </div>
-              <button className="w-full py-3 bg-brand hover:bg-brand-dark rounded-xl text-sm font-bold text-white transition">Browse Rewards Catalog</button>
-            </div>
-          </div>
-        )}
-      </div>
+        </div>
+      )}
     </div>
   );
 }

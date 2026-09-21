@@ -4,6 +4,7 @@ import { CreateListingDto } from './dto/create-listing.dto'
 import { SearchListingDto, SortByEnum } from './dto/search-listing.dto'
 import { NotFoundException, ForbiddenException } from '@/common/exceptions/custom-exceptions'
 import { ListingStatus } from '@prisma/client'
+import { resolveGame } from '../games/games.config'
 
 @Injectable()
 export class ListingsService {
@@ -46,13 +47,20 @@ export class ListingsService {
     // Only Seller Pro / Premium subscribers may feature listings.
     const isFeatured = wantsFeatured && isPro ? true : false
 
+    // Normalize the game identity from the canonical config so gameId always
+    // stores the slug and gameName always stores the official display name,
+    // regardless of which one the client sent.
+    const game = resolveGame(dto.gameSlug || dto.gameName)
+    const gameName = game?.name ?? dto.gameName
+    const gameId = game?.slug ?? (dto.gameSlug || dto.gameName)
+
     const listing = await this.prisma.listings.create({
       data: {
         title: dto.title,
         description: dto.description,
         price: dto.price,
-        gameName: dto.gameName,
-        gameId: dto.gameSlug || dto.gameName,
+        gameName,
+        gameId,
         categoryId,
         subcategoryId: dto.subcategoryId,
         sellerId: seller.id,
@@ -327,17 +335,6 @@ export class ListingsService {
   }) {
     const skinCount = Array.isArray(dto.skins) ? dto.skins.length : Number(dto.skins) || 0
     const skinValueBonus = Math.min(50, skinCount * 2)
-    const GAME_BASE: Record<string, number> = {
-      'free-fire': 25,
-      'cod-mobile': 30,
-      'pubg-mobile': 35,
-      'blood-strike': 20,
-      'delta-force': 25,
-      'valorant': 40,
-      'roblox': 15,
-      'mobile-legends': 20,
-      'efootball': 20,
-    }
 
     const RANK_MULTIPLIER: Record<string, number> = {
       Bronze: 0.5,
@@ -359,7 +356,10 @@ export class ListingsService {
       console: 1.2,
     }
 
-    let base = GAME_BASE[dto.gameSlug ?? ''] || 20
+    // Base value comes from the canonical games config (single source of truth)
+    // so it can never drift from the live game info served by GET /games.
+    const game = resolveGame(dto.gameSlug || dto.gameId)
+    let base = game?.baseValue ?? 20
     const rankMult = RANK_MULTIPLIER[dto.rank] || 1.0
     const platformMult = PLATFORM_MULTIPLIER[dto.platform] || 1.0
     const levelBonus = Math.max(0, (dto.level - 1)) * 0.5

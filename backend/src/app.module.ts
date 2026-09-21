@@ -31,10 +31,13 @@ import { GatewayModule } from './modules/gateways'
 import { UploadModule } from './modules/upload/upload.module'
 import { ForumModule } from './modules/forum/forum.module'
 import { GameBannersModule } from './modules/game-banners/game-banners.module'
+import { GamesModule } from './modules/games/games.module'
 import { BuyerRequestsModule } from './modules/buyer-requests/buyer-requests.module'
 import { LegalModule } from './modules/legal/legal.module'
 import { LiveChatModule } from './modules/live-chat/live-chat.module'
 import { CurrencyModule } from './modules/currency/currency.module'
+import { SearchModule } from './modules/search/search.module'
+import { StatsModule } from './modules/stats/stats.module'
 import { AllExceptionsFilter } from './common/filters/all-exceptions.filter'
 
 @Module({
@@ -82,10 +85,13 @@ import { AllExceptionsFilter } from './common/filters/all-exceptions.filter'
     UploadModule,
     ForumModule,
     GameBannersModule,
+    GamesModule,
     BuyerRequestsModule,
     LegalModule,
     LiveChatModule,
     CurrencyModule,
+    SearchModule,
+    StatsModule,
   ],
   providers: [
     {

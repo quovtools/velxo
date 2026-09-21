@@ -4,7 +4,8 @@ import React, { useState, useEffect, useCallback } from 'react';
 import { useRouter } from 'next/navigation';
 import { useAuth } from '@/app/providers';
 import { api } from '@/lib/api';
-import { GAME_NAMES } from '@/lib/games';
+import { GAME_LIST, GAME_NAMES } from '@/lib/games';
+import { useLiveGames } from '@/lib/games-live';
 import { Zap, ShieldCheck, Loader2, Check, X, Minus, Plus, AlertCircle, ArrowRight } from 'lucide-react';
 import { useCurrency } from '@/lib/useCurrency';
 
@@ -28,10 +29,15 @@ export default function TopupsClient() {
   const router = useRouter();
   const { user } = useAuth();
   const { fmt } = useCurrency();
+  const { getGame } = useLiveGames();
   const [products, setProducts] = useState<TopupProduct[]>([]);
   const [loading, setLoading] = useState(true);
   const [activeGame, setActiveGame] = useState('');
   const [error, setError] = useState<string | null>(null);
+
+  // Live currency labels from the game config (no hardcoded "diamonds").
+  const activeCfg = getGame(activeGame);
+  const allCurrencies = GAME_LIST.map((g) => getGame(g.name)?.currency.plural ?? g.name).join(', ');
 
   const [selected, setSelected] = useState<TopupProduct | null>(null);
   const [quantity, setQuantity] = useState(1);
@@ -102,7 +108,9 @@ export default function TopupsClient() {
           <Zap className="w-7 h-7 text-brand" /> Official piyrox top-ups
         </h1>
         <p className="text-sm text-gray-500 mt-1">
-          100% official, escrow-protected in-game currency &amp; diamonds — delivered by Piyrox.
+          {activeCfg
+            ? `100% official, escrow-protected ${activeCfg.currency.plural} for ${activeCfg.name} — delivered by Piyrox.`
+            : `100% official, escrow-protected in-game currency — ${allCurrencies} — delivered by Piyrox.`}
         </p>
       </div>
 

@@ -1,5 +1,5 @@
 import { Controller, Get, Post, Patch, Param, Query, Body, UseGuards } from '@nestjs/common'
-import { AffiliateService } from './affiliate.service'
+import { AffiliateService, getAffiliatePublicConfig } from './affiliate.service'
 import { SupabaseJwtGuard } from '@/common/guards/jwt.guard'
 import { RolesGuard } from '@/common/guards/roles.guard'
 import { RequireRoles } from '@/common/decorators/roles.decorator'
@@ -33,6 +33,12 @@ export class AffiliateController {
   // ─────────────────────────────────────────────────
   //  PUBLIC — Click Tracking
   // ─────────────────────────────────────────────────
+
+  /** Public affiliate program config (tiers, rewards, creator requirements). */
+  @Get('config')
+  async getPublicConfig() {
+    return ApiResponseDto.ok(getAffiliatePublicConfig(), 'Affiliate config retrieved')
+  }
 
   @Post('click/:code')
   async trackClick(@Param('code') code: string) {

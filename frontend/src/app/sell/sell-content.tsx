@@ -6,6 +6,8 @@ import { api } from '@/lib/api';
 import { useAuth } from '@/app/providers';
 import { getToken } from '@/lib/auth';
 import { GAME_NAMES, getGameConfig, REGIONS } from '@/lib/games';
+import { useLiveGames } from '@/lib/games-live';
+import GameIcon from '@/components/GameIcon';
 import { useCurrency } from '@/lib/useCurrency';
 import {
   Gamepad2, Package, ChevronRight, ChevronLeft,
@@ -51,17 +53,17 @@ function ProgressBar({ currentStep, labels, color = 'bg-brand border-brand' }: P
           <div className={`flex items-center gap-1.5 ${i < currentStep ? 'text-brand' : i === currentStep ? 'text-white' : 'text-gray-600'}`}>
             <div className={`w-7 h-7 rounded-full flex items-center justify-center text-xs font-bold border-2 transition-all duration-300 ${
               i < currentStep
-                ? 'bg-brand border-brand text-white'
+                ? 'bg-brand border-brand text-black'
                 : i === currentStep
-                  ? 'border-brand text-white bg-brand/10'
-                  : 'border-gray-700 text-gray-600'
+                  ? 'border-brand text-brand bg-brand/10'
+                  : 'border-[var(--border-strong)] text-gray-600'
             }`}>
               {i < currentStep ? <Check className="w-3.5 h-3.5" /> : i + 1}
             </div>
             <span className="text-[11px] font-semibold hidden sm:block whitespace-nowrap">{label}</span>
           </div>
           {i < labels.length - 1 && (
-            <div className={`flex-1 h-0.5 transition-all duration-300 ${i < currentStep ? 'bg-brand' : 'bg-gray-800'}`} />
+            <div className={`flex-1 h-0.5 transition-all duration-300 ${i < currentStep ? 'bg-brand' : 'bg-[var(--border-bg)]'}`} />
           )}
         </React.Fragment>
       ))}
@@ -106,7 +108,7 @@ export default function SellPage() {
 
   /* ── listing fields ── */
   const [category, setCategory] = useState('account');
-  const [gameName, setGameName] = useState('Free Fire');
+  const [gameName, setGameName] = useState(GAME_NAMES[0]);
   const [title, setTitle] = useState('');
   const [description, setDescription] = useState('');
   const [price, setPrice] = useState('');
@@ -115,6 +117,7 @@ export default function SellPage() {
   const [rank, setRank] = useState('');
   const [level, setLevel] = useState('');
   const [loginMethod, setLoginMethod] = useState('');
+  const [playerId, setPlayerId] = useState('');
   const [deliveryTime, setDeliveryTime] = useState('60');
 
   /* ── media fields ── */
@@ -124,12 +127,22 @@ export default function SellPage() {
   const [uploadingMedia, setUploadingMedia] = useState(false);
   const [uploadError, setUploadError]       = useState<string | null>(null);
 
-  const gameCfg = getGameConfig(gameName);
+  // Live game info (fetched from GET /games, falls back to the static config).
+  const { getGame } = useLiveGames();
+  const gameCfg = getGame(gameName) ?? getGameConfig(gameName);
+  const gameSlug = gameCfg?.slug;
   const platformOptions = gameCfg?.platforms ?? ALL_PLATFORMS;
   const rankOptions = gameCfg?.ranks ?? [];
   const loginOptions = gameCfg?.loginMethods ?? [];
   const currencyName = gameCfg?.currency.plural;
+  const battlePassLabel = gameCfg?.accountFields?.battlePass;
   const supportsRank = !gameCfg || gameCfg.hasRanked;
+  // Requirements come from live config so the form matches backend validation.
+  const requiresPlayerId = gameCfg?.requiresPlayerId ?? gameCfg?.accountFields?.playerId ?? false;
+  const requiresRank = gameCfg?.requiresRank ?? false;
+  // Highest tier in the live ladder — used only for illustrative placeholders.
+  const topRank = rankOptions[rankOptions.length - 1] ?? 'Diamond';
+  const lowRank = rankOptions[0] ?? 'Bronze';
 
   /* ── check seller status on mount ── */
   useEffect(() => {
@@ -246,16 +259,31 @@ export default function SellPage() {
 
   /* ── listing submit ── */
   const handleCreateListing = async () => {
-    setError(null); setSubmitting(true);
+    setError(null);
+
+    // Block submission when the live game config requires fields the backend
+    // will reject — keeps the UI in sync with server-side validation.
+    if (requiresPlayerId && !playerId.trim()) {
+      setError(`${gameName} listings require a Player ID.`);
+      return;
+    }
+    if (requiresRank && !rank.trim()) {
+      setError(`${gameName} listings require a rank.`);
+      return;
+    }
+
+    setSubmitting(true);
     try {
       const res = await api.post<{ success: boolean; data: any }>('/listings', {
         title: title.trim(),
         description: description.trim(),
         price: parseFloat(price),
         gameName,
+        gameSlug: gameSlug || undefined,
         platform,
         region,
         rank: rank || undefined,
+        playerId: playerId.trim() || undefined,
         level: level ? parseInt(level) : undefined,
         loginMethod: loginMethod || undefined,
         deliveryTime: parseInt(deliveryTime),
@@ -302,12 +330,12 @@ export default function SellPage() {
         <div className="flex flex-col sm:flex-row gap-3 justify-center">
           <button
             onClick={() => { setSuccess(false); setListStep(1); setTitle(''); setDescription(''); setPrice(''); setUploadedImages([]); setUploadedVideo(null); }}
-            className="px-6 py-3 bg-brand hover:bg-brand-dark rounded-xl font-bold text-white transition">
+            className="px-6 py-3 btn-primary">
             Create Another Listing
           </button>
           <button
             onClick={() => router.push('/seller/dashboard')}
-            className="px-6 py-3 bg-[var(--hover-bg)]/50 border border-[var(--border-bg)] hover:border-brand/30 rounded-xl font-bold text-white transition">
+            className="px-6 py-3 btn-secondary">
             View Dashboard
           </button>
         </div>
@@ -341,7 +369,7 @@ export default function SellPage() {
                 { icon: ShieldCheck, color: 'text-emerald-400', title: 'Escrow Protection', desc: 'Funds are held safely until delivery confirmed' },
                 { icon: TrendingUp, color: 'text-brand', title: 'Grow Your Store', desc: 'Reputation system with buyer reviews and ratings' },
                 { icon: Zap, color: 'text-orange-400', title: 'Fast Payouts', desc: 'Withdraw earnings to your wallet anytime' },
-                { icon: MessageCircle, color: 'text-violet-400', title: 'Direct Messaging', desc: 'Chat with buyers directly in the platform' },
+                { icon: MessageCircle, color: 'text-brand', title: 'Direct Messaging', desc: 'Chat with buyers directly in the platform' },
               ].map(({ icon: Icon, color, title, desc }) => (
                 <div key={title} className="bg-[var(--card-bg)] border border-[var(--border-bg)] rounded-xl p-4 flex gap-3 items-start">
                   <Icon className={`w-5 h-5 flex-shrink-0 mt-0.5 ${color}`} />
@@ -355,7 +383,7 @@ export default function SellPage() {
 
             <button
               onClick={() => setOnboardStep(1)}
-              className="w-full flex items-center justify-center gap-2 bg-brand hover:bg-brand-dark py-4 rounded-xl font-black text-white text-base transition shadow-xl shadow-brand/20">
+              className="btn-primary w-full !py-4 !font-black !text-base shadow-xl shadow-brand/20">
               Get Started <ArrowRight className="w-5 h-5" />
             </button>
             <p className="text-xs text-gray-600">Free to join · No hidden fees · Earn from day one</p>
@@ -386,7 +414,7 @@ export default function SellPage() {
                   required
                   maxLength={60}
                   autoFocus
-                  className={`w-full bg-background border rounded-xl px-4 py-3 text-sm text-white focus:outline-none focus:border-brand transition ${!storeName.trim() && error ? 'border-red-500/60' : 'border-[var(--border-bg)]'}`}
+                  className={`input ${!storeName.trim() && error ? '!border-red-500/60' : ''}`}
                   placeholder="e.g. GamePro Store, Apex Coins, DiamondDeals"
                   value={storeName}
                   onChange={e => setStoreName(e.target.value)}
@@ -398,7 +426,7 @@ export default function SellPage() {
                 <textarea
                   rows={3}
                   maxLength={300}
-                  className="w-full bg-background border border-[var(--border-bg)] rounded-xl px-4 py-3 text-sm text-white focus:outline-none focus:border-brand transition resize-none"
+                  className="input resize-none"
                   placeholder="Tell buyers what you specialise in — game accounts, Free Fire coins, boosting…"
                   value={storeDescription}
                   onChange={e => setStoreDescription(e.target.value)}
@@ -409,13 +437,13 @@ export default function SellPage() {
 
             <div className="flex gap-3">
               <button onClick={() => setOnboardStep(0)}
-                className="flex items-center gap-2 px-5 py-3 border border-[var(--border-bg)] hover:border-brand/40 rounded-xl text-gray-300 hover:text-white transition">
+                className="btn-secondary">
                 <ChevronLeft className="w-4 h-4" /> Back
               </button>
               <button
                 onClick={() => { if (!storeName.trim()) { setError('Store name is required.'); return; } setError(null); setOnboardStep(2); }}
                 disabled={!storeName.trim()}
-                className="flex-1 flex items-center justify-center gap-2 bg-brand hover:bg-brand-dark py-3 rounded-xl font-bold text-white transition disabled:opacity-50">
+                className="btn-primary flex-1 disabled:opacity-50">
                 Continue <ChevronRight className="w-4 h-4" />
               </button>
             </div>
@@ -450,7 +478,7 @@ export default function SellPage() {
                       : 'bg-[var(--card-bg)] border-[var(--border-bg)] hover:border-brand/30'
                   }`}
                 >
-                  <div className={`w-10 h-10 rounded-xl flex items-center justify-center flex-shrink-0 ${accountType === value ? 'bg-brand text-white' : 'bg-background text-gray-400'}`}>
+                  <div className={`w-10 h-10 rounded-xl flex items-center justify-center flex-shrink-0 ${accountType === value ? 'bg-brand text-black' : 'bg-[var(--surface)] text-gray-400'}`}>
                     <Icon className="w-5 h-5" />
                   </div>
                   <div className="flex-1">
@@ -464,13 +492,13 @@ export default function SellPage() {
 
             <div className="flex gap-3">
               <button onClick={() => setOnboardStep(1)}
-                className="flex items-center gap-2 px-5 py-3 border border-[var(--border-bg)] hover:border-brand/40 rounded-xl text-gray-300 hover:text-white transition">
+                className="btn-secondary">
                 <ChevronLeft className="w-4 h-4" /> Back
               </button>
               <button
                 onClick={handleOnboard}
                 disabled={submitting}
-                className="flex-1 flex items-center justify-center gap-2 bg-brand hover:bg-brand-dark py-3 rounded-xl font-bold text-white transition disabled:opacity-50">
+                className="btn-primary flex-1 disabled:opacity-50">
                 {submitting ? <><Loader2 className="w-4 h-4 animate-spin" /> Creating…</> : <>Create My Store <ChevronRight className="w-4 h-4" /></>}
               </button>
             </div>
@@ -505,12 +533,12 @@ export default function SellPage() {
             <div className="flex flex-col sm:flex-row gap-3">
               <button
                 onClick={() => { setIsSeller(true); setListStep(1); }}
-                className="flex-1 flex items-center justify-center gap-2 bg-brand hover:bg-brand-dark py-3.5 rounded-xl font-bold text-white transition shadow-lg shadow-brand/20">
+                className="btn-primary flex-1 shadow-lg shadow-brand/20">
                 Create First Listing <ArrowRight className="w-4 h-4" />
               </button>
               <button
                 onClick={() => router.push('/seller/dashboard')}
-                className="flex-1 py-3.5 rounded-xl font-bold text-white border border-[var(--border-bg)] hover:border-brand/30 transition">
+                className="btn-secondary flex-1">
                 Go to Dashboard
               </button>
             </div>
@@ -555,7 +583,7 @@ export default function SellPage() {
                   <button key={value} type="button" onClick={() => setCategory(value)}
                     className={`flex items-center gap-3 p-3.5 rounded-xl border text-left transition-all ${
                       category === value
-                        ? 'bg-brand/10 border-brand text-white'
+                        ? 'bg-brand/10 border-brand text-brand'
                         : 'border-[var(--border-bg)] text-gray-400 hover:border-brand/30 hover:text-white'
                     }`}>
                     <Icon className={`w-5 h-5 flex-shrink-0 ${category === value ? 'text-brand' : 'text-gray-500'}`} />
@@ -570,14 +598,36 @@ export default function SellPage() {
 
             <div>
               <label className="block text-xs font-semibold text-gray-400 mb-2 uppercase tracking-wide">Game *</label>
-              <select
-                value={gameName}
-                onChange={e => setGameName(e.target.value)}
-                className="w-full bg-background border border-[var(--border-bg)] rounded-xl px-4 py-3 text-sm text-white focus:outline-none focus:border-brand transition"
-              >
-                {GAMES.map(g => <option key={g}>{g}</option>)}
-              </select>
-              <p className="text-xs text-gray-500 mt-1.5 flex items-center gap-1.5">
+              <div className="flex items-center gap-3">
+                {gameSlug && (
+                  <GameIcon game={gameSlug} className="w-11 h-11 border border-[var(--border-bg)]" />
+                )}
+                <select
+                  value={gameName}
+                  onChange={e => {
+                    const next = e.target.value;
+                    const cfg = getGame(next) ?? getGameConfig(next);
+                    setGameName(next);
+                    // Reset game-dependent fields so stale values from the
+                    // previous game never get submitted.
+                    setRank('');
+                    setPlayerId('');
+                    setLoginMethod('');
+                    if (cfg?.platforms?.length) setPlatform(cfg.platforms[0]);
+                  }}
+                  className="select flex-1"
+                >
+                  {GAMES.map(g => <option key={g}>{g}</option>)}
+                </select>
+              </div>
+              {gameCfg && (
+                <p className="text-xs text-gray-500 mt-1.5">
+                  {gameCfg.genre} · Premium currency:{' '}
+                  <span className="text-gray-300 font-semibold">{gameCfg.currency.plural}</span>
+                  {battlePassLabel && <> · Pass: <span className="text-gray-300 font-semibold">{battlePassLabel}</span></>}
+                </p>
+              )}
+              <p className="text-xs text-gray-500 mt-1 flex items-center gap-1.5">
                 <Info className="w-3.5 h-3.5 text-brand" />
                 The game's official banner (set by our team) will be shown on your listing — no image upload needed.
               </p>
@@ -586,7 +636,7 @@ export default function SellPage() {
 
           <div className="flex justify-end">
             <button onClick={() => setListStep(2)} disabled={!category || !gameName}
-              className="flex items-center gap-2 bg-brand hover:bg-brand-dark px-6 py-3 rounded-xl font-bold text-white transition disabled:opacity-50 shadow-lg shadow-brand/10">
+              className="btn-primary shadow-lg shadow-brand/20 disabled:opacity-50">
               Next <ChevronRight className="w-4 h-4" />
             </button>
           </div>
@@ -609,12 +659,12 @@ export default function SellPage() {
                 value={title}
                 onChange={e => setTitle(e.target.value)}
                 placeholder={
-                  category === 'account' ? `e.g. ${gameName} Diamond Rank Account — 500+ Skins` :
+                  category === 'account' ? `e.g. ${gameName} ${topRank} Rank Account — 500+ Skins` :
                   category === 'coins'   ? `e.g. 5000 ${currencyName || 'Diamonds'} — ${gameName}` :
-                  category === 'boost'   ? `e.g. ${gameName} Bronze → Diamond Boost` :
+                  category === 'boost'   ? `e.g. ${gameName} ${lowRank} → ${topRank} Boost` :
                   `e.g. ${gameName} ${category}`
                 }
-                className="w-full bg-background border border-[var(--border-bg)] rounded-xl px-4 py-3 text-sm text-white focus:outline-none focus:border-brand transition"
+                className="input"
               />
               <p className="text-xs text-gray-500 mt-1">{title.length}/150 characters · Make it descriptive</p>
             </div>
@@ -634,7 +684,7 @@ export default function SellPage() {
                     ? 'Describe the service: which ranks you cover, estimated time, what you need from the buyer…'
                     : 'Describe exactly what the buyer receives — quantity, delivery method, any requirements…'
                 }
-                className="w-full bg-background border border-[var(--border-bg)] rounded-xl px-4 py-3 text-sm text-white focus:outline-none focus:border-brand transition resize-none"
+                className="input resize-none"
               />
               <p className="text-xs text-gray-500 mt-1">{description.length}/2000 · Clear descriptions convert better</p>
             </div>
@@ -652,23 +702,45 @@ export default function SellPage() {
               <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
                 {supportsRank && (
                   <div>
-                    <label className="block text-xs font-semibold text-gray-400 mb-2 uppercase tracking-wide">Rank <span className="text-gray-600 font-normal normal-case">(optional)</span></label>
+                    <label className="block text-xs font-semibold text-gray-400 mb-2 uppercase tracking-wide">
+                      Rank {requiresRank ? <span className="text-brand">*</span> : <span className="text-gray-600 font-normal normal-case">(optional)</span>}
+                    </label>
                     <input type="text" value={rank} onChange={e => setRank(e.target.value)} list="rank-options"
+                      required={requiresRank}
                       placeholder={rankOptions.length ? rankOptions[Math.floor(rankOptions.length / 2)] : 'e.g. Diamond'}
-                      className="w-full bg-background border border-[var(--border-bg)] rounded-xl px-4 py-3 text-sm text-white focus:outline-none focus:border-brand transition" />
+                      className="input" />
                     {rankOptions.length > 0 && <datalist id="rank-options">{rankOptions.map(o => <option key={o} value={o} />)}</datalist>}
+                    {rankOptions.length > 0 && (
+                      <p className="text-[11px] text-gray-600 mt-1">
+                        Ladder: {rankOptions[0]} → {rankOptions[rankOptions.length - 1]}
+                      </p>
+                    )}
                   </div>
                 )}
                 <div>
                   <label className="block text-xs font-semibold text-gray-400 mb-2 uppercase tracking-wide">Level <span className="text-gray-600 font-normal normal-case">(optional)</span></label>
                   <input type="number" value={level} onChange={e => setLevel(e.target.value)} placeholder="e.g. 70"
-                    className="w-full bg-background border border-[var(--border-bg)] rounded-xl px-4 py-3 text-sm text-white focus:outline-none focus:border-brand transition" />
+                    className="input" />
                 </div>
+                {requiresPlayerId && (
+                  <div className="sm:col-span-2">
+                    <label className="block text-xs font-semibold text-gray-400 mb-2 uppercase tracking-wide">
+                      Player ID <span className="text-brand">*</span>
+                    </label>
+                    <input type="text" value={playerId} onChange={e => setPlayerId(e.target.value)}
+                      required
+                      placeholder={`Your in-game ${gameName} ID (UID) — needed for delivery`}
+                      className="input" />
+                    <p className="text-[11px] text-gray-600 mt-1">
+                      {gameName} requires your in-game player ID so the buyer can verify and receive the account.
+                    </p>
+                  </div>
+                )}
                 <div className="sm:col-span-2">
                   <label className="block text-xs font-semibold text-gray-400 mb-2 uppercase tracking-wide">Login Method <span className="text-gray-600 font-normal normal-case">(optional)</span></label>
                   <input type="text" value={loginMethod} onChange={e => setLoginMethod(e.target.value)} list="login-options"
                     placeholder={loginOptions.length ? loginOptions.join(', ') : 'e.g. Google, Facebook'}
-                    className="w-full bg-background border border-[var(--border-bg)] rounded-xl px-4 py-3 text-sm text-white focus:outline-none focus:border-brand transition" />
+                    className="input" />
                   {loginOptions.length > 0 && <datalist id="login-options">{loginOptions.map(o => <option key={o} value={o} />)}</datalist>}
                 </div>
               </div>
@@ -678,11 +750,11 @@ export default function SellPage() {
 
           <div className="flex justify-between">
             <button onClick={() => setListStep(1)}
-              className="flex items-center gap-2 px-6 py-3 border border-[var(--border-bg)] hover:border-brand/40 rounded-xl text-gray-300 hover:text-white transition">
+              className="btn-secondary">
               <ChevronLeft className="w-4 h-4" /> Back
             </button>
             <button onClick={() => { setError(null); setListStep(3); }} disabled={!title.trim() || !description.trim()}
-              className="flex items-center gap-2 bg-brand hover:bg-brand-dark px-6 py-3 rounded-xl font-bold text-white transition disabled:opacity-50">
+              className="btn-primary disabled:opacity-50">
               Next <ChevronRight className="w-4 h-4" />
             </button>
           </div>
@@ -707,7 +779,7 @@ export default function SellPage() {
                 type="button"
                 onClick={() => { setMediaMode('images'); setUploadError(null); }}
                 className={`flex items-center gap-1.5 px-4 py-2 rounded-xl text-xs font-bold border transition ${
-                  mediaMode === 'images' ? 'bg-brand/10 border-brand text-white' : 'border-[var(--border-bg)] text-gray-400 hover:border-brand/30'
+                  mediaMode === 'images' ? 'bg-brand/10 border-brand text-brand' : 'border-[var(--border-bg)] text-gray-400 hover:border-brand/30'
                 }`}
               >
                 <Image className="w-3.5 h-3.5" /> Images ({uploadedImages.length}/8)
@@ -716,7 +788,7 @@ export default function SellPage() {
                 type="button"
                 onClick={() => { setMediaMode('video'); setUploadError(null); }}
                 className={`flex items-center gap-1.5 px-4 py-2 rounded-xl text-xs font-bold border transition ${
-                  mediaMode === 'video' ? 'bg-brand/10 border-brand text-white' : 'border-[var(--border-bg)] text-gray-400 hover:border-brand/30'
+                  mediaMode === 'video' ? 'bg-brand/10 border-brand text-brand' : 'border-[var(--border-bg)] text-gray-400 hover:border-brand/30'
                 }`}
               >
                 <Video className="w-3.5 h-3.5" /> Video {uploadedVideo ? '(1/1)' : '(0/1)'}
@@ -748,7 +820,7 @@ export default function SellPage() {
                           <X className="w-3 h-3 text-white" />
                         </button>
                         {idx === 0 && (
-                          <span className="absolute bottom-1 left-1 text-[9px] bg-brand/80 text-white px-1.5 py-0.5 rounded font-bold">Cover</span>
+                          <span className="absolute bottom-1 left-1 text-[9px] bg-brand text-black px-1.5 py-0.5 rounded font-bold">Cover</span>
                         )}
                       </div>
                     ))}
@@ -844,13 +916,13 @@ export default function SellPage() {
 
           <div className="flex justify-between">
             <button onClick={() => setListStep(2)}
-              className="flex items-center gap-2 px-6 py-3 border border-[var(--border-bg)] hover:border-brand/40 rounded-xl text-gray-300 hover:text-white transition">
+              className="btn-secondary">
               <ChevronLeft className="w-4 h-4" /> Back
             </button>
             <button
               onClick={() => { setUploadError(null); setListStep(4); }}
               disabled={uploadingMedia}
-              className="flex items-center gap-2 bg-brand hover:bg-brand-dark px-6 py-3 rounded-xl font-bold text-white transition disabled:opacity-50"
+              className="btn-primary disabled:opacity-50"
             >
               Next <ChevronRight className="w-4 h-4" />
             </button>
@@ -868,14 +940,14 @@ export default function SellPage() {
               <div>
                 <label className="block text-xs font-semibold text-gray-400 mb-2 uppercase tracking-wide">Platform *</label>
                 <select value={platform} onChange={e => setPlatform(e.target.value)}
-                  className="w-full bg-background border border-[var(--border-bg)] rounded-xl px-4 py-3 text-sm text-white focus:outline-none focus:border-brand transition">
+                  className="select">
                   {platformOptions.map(p => <option key={p}>{p}</option>)}
                 </select>
               </div>
               <div>
                 <label className="block text-xs font-semibold text-gray-400 mb-2 uppercase tracking-wide">Region *</label>
                 <select value={region} onChange={e => setRegion(e.target.value)}
-                  className="w-full bg-background border border-[var(--border-bg)] rounded-xl px-4 py-3 text-sm text-white focus:outline-none focus:border-brand transition">
+                  className="select">
                   {REGIONS.map(r => <option key={r}>{r}</option>)}
                 </select>
               </div>
@@ -887,13 +959,13 @@ export default function SellPage() {
                 <div className="relative">
                   <span className="absolute left-3.5 top-1/2 -translate-y-1/2 text-gray-400 font-bold text-sm">$</span>
                   <input type="number" required min="0.50" step="0.01" value={price} onChange={e => setPrice(e.target.value)} placeholder="0.00"
-                    className="w-full bg-background border border-[var(--border-bg)] rounded-xl pl-8 pr-4 py-3 text-sm text-white focus:outline-none focus:border-brand transition" />
+                    className="input pl-8" />
                 </div>
               </div>
               <div>
                 <label className="block text-xs font-semibold text-gray-400 mb-2 uppercase tracking-wide">Delivery Time</label>
                 <select value={deliveryTime} onChange={e => setDeliveryTime(e.target.value)}
-                  className="w-full bg-background border border-[var(--border-bg)] rounded-xl px-4 py-3 text-sm text-white focus:outline-none focus:border-brand transition">
+                  className="select">
                   <option value="15">15 minutes</option>
                   <option value="30">30 minutes</option>
                   <option value="60">1 hour</option>
@@ -908,14 +980,14 @@ export default function SellPage() {
           {/* Listing preview summary */}
           <div className="bg-[var(--card-bg)] border border-[var(--border-bg)] rounded-2xl p-5 space-y-3">
             <h3 className="text-sm font-bold text-white flex items-center gap-2"><Package className="w-4 h-4 text-brand" /> Listing Preview</h3>
-            <div className="text-sm space-y-2 divide-y divide-borderBg">
+            <div className="text-sm space-y-2 divide-y divide-[var(--border-bg)]">
               {[
                 { label: 'Game', value: gameName },
                 { label: 'Category', value: CATEGORIES.find(c => c.value === category)?.label },
                 { label: 'Title', value: title || '—' },
                 { label: 'Platform / Region', value: `${platform} · ${region}` },
-                ...(category === 'account' && (rank || level || loginMethod)
-                  ? [{ label: 'Account', value: [rank, level && `Lvl ${level}`, loginMethod].filter(Boolean).join(', ') }]
+                ...(category === 'account' && (rank || level || loginMethod || playerId)
+                  ? [{ label: 'Account', value: [rank, level && `Lvl ${level}`, loginMethod, playerId && `ID ${playerId}`].filter(Boolean).join(', ') }]
                   : []),
                 { label: 'Delivery', value: `${deliveryTime} min` },
               ].map(({ label, value }) => (
@@ -948,20 +1020,20 @@ export default function SellPage() {
             </div>
           )}
 
-          <div className="bg-violet-900/15 border border-violet-500/20 rounded-xl p-4 flex gap-3 text-xs text-gray-400">
-            <Info className="w-4 h-4 text-violet-400 flex-shrink-0 mt-0.5" />
+          <div className="glass-brand rounded-xl p-4 flex gap-3 text-xs text-gray-400">
+            <Info className="w-4 h-4 text-brand flex-shrink-0 mt-0.5" />
             <p>Your listing goes to <span className="font-semibold text-white">Pending Review</span>. Our team approves it within 24 hours. You'll get a notification when it's live.</p>
           </div>
 
           <div className="flex justify-between">
             <button onClick={() => setListStep(3)}
-              className="flex items-center gap-2 px-6 py-3 border border-[var(--border-bg)] hover:border-brand/40 rounded-xl text-gray-300 hover:text-white transition">
+              className="btn-secondary">
               <ChevronLeft className="w-4 h-4" /> Back
             </button>
             <button
               onClick={handleCreateListing}
               disabled={submitting || !title.trim() || !description.trim() || !price || parseFloat(price) < 0.5}
-              className="flex items-center gap-2 bg-brand hover:bg-brand-dark px-8 py-3 rounded-xl font-bold text-white transition disabled:opacity-50 shadow-lg shadow-brand/20"
+              className="btn-primary !px-8 disabled:opacity-50 shadow-lg shadow-brand/20"
             >
               {submitting
                 ? <><Loader2 className="w-4 h-4 animate-spin" /> Submitting…</>

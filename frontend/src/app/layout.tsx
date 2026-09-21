@@ -7,6 +7,7 @@ import NavigationWrapper from "@/components/NavigationWrapper";
 import AppLoader from "@/components/AppLoader";
 import InstallPrompt from "@/components/InstallPrompt";
 import ActiveOrderBanner from "@/components/ActiveOrderBanner";
+import { GAME_LIST, GAME_CONFIG } from "@/lib/games";
 
 // ─── next/font: loaded at build-time, no render-blocking external request ────
 const inter = Inter({
@@ -158,44 +159,17 @@ export default function RootLayout({
     name: "Game Categories on Piyrox Market",
     description: "Browse game accounts and boosting services by game on Piyrox Market",
     url: SITE_URL,
-    numberOfItems: 5,
-    itemListElement: [
-      {
+    numberOfItems: GAME_LIST.length,
+    itemListElement: GAME_LIST.map((g, i) => {
+      const cfg = GAME_CONFIG[g.name];
+      return {
         "@type": "ListItem",
-        position: 1,
-        name: "Free Fire Accounts & Services",
-        url: `${SITE_URL}/games/free-fire`,
-        description: "Buy and sell Free Fire accounts, Diamonds top-ups and rank boosting.",
-      },
-      {
-        "@type": "ListItem",
-        position: 2,
-        name: "PUBG Mobile Accounts & Services",
-        url: `${SITE_URL}/games/pubg-mobile`,
-        description: "Buy and sell PUBG Mobile accounts, UC top-ups and Conqueror boosting.",
-      },
-      {
-        "@type": "ListItem",
-        position: 3,
-        name: "COD Mobile Accounts & Services",
-        url: `${SITE_URL}/games/cod-mobile`,
-        description: "Buy and sell COD Mobile accounts, COD Points top-ups and rank boosting.",
-      },
-      {
-        "@type": "ListItem",
-        position: 4,
-        name: "Blood Strike Accounts & Services",
-        url: `${SITE_URL}/games/blood-strike`,
-        description: "Buy and sell Blood Strike accounts and Gold top-ups.",
-      },
-      {
-        "@type": "ListItem",
-        position: 5,
-        name: "eFootball Accounts & Services",
-        url: `${SITE_URL}/games/efootball`,
-        description: "Buy and sell eFootball accounts and Coin top-ups.",
-      },
-    ],
+        position: i + 1,
+        name: `${g.name} Accounts & Services`,
+        url: `${SITE_URL}/games/${g.slug}`,
+        description: `Buy and sell ${g.name} accounts, ${cfg?.currency.plural ?? "currency"} top-ups and rank boosting.`,
+      };
+    }),
   };
 
   return (

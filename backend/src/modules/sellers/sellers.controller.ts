@@ -10,6 +10,7 @@ import {
   Logger,
   HttpCode,
   HttpStatus,
+  BadRequestException,
 } from '@nestjs/common'
 import { SellersService } from './sellers.service'
 import { JwtAuthGuard } from '@/common/guards/jwt-auth.guard'
@@ -100,6 +101,100 @@ export class SellersController {
       return ApiResponseDto.ok(sellers, 'Top sellers retrieved')
     } catch (error) {
       this.logger.error('Error fetching top sellers:', error)
+      throw error
+    }
+  }
+
+  /** Public profile for the /sellers/:username page (resolves id, slug or store name). */
+  @Get('profile/:username')
+  async getPublicProfile(@Param('username') username: string) {
+    try {
+      const profile = await this.sellersService.getPublicProfile(username)
+      return ApiResponseDto.ok(profile, 'Seller profile retrieved')
+    } catch (error) {
+      this.logger.error('Error fetching public seller profile:', error)
+      throw error
+    }
+  }
+
+  /** Public storefront — only for verified sellers on store-enabled tiers. */
+  @Get(':id/store')
+  async getPublicStore(@Param('id') identifier: string) {
+    try {
+      const store = await this.sellersService.getPublicStore(identifier)
+      return ApiResponseDto.ok(store, 'Store retrieved')
+    } catch (error) {
+      this.logger.error('Error fetching public store:', error)
+      throw error
+    }
+  }
+
+  /** Report a seller — creates a support ticket routed to the admin queue. */
+  @Post(':id/report')
+  @UseGuards(JwtAuthGuard)
+  async reportSeller(
+    @Param('id') sellerId: string,
+    @CurrentUserId() userId: string,
+    @Body() body: { reason: string; details?: string },
+  ) {
+    try {
+      if (!body?.reason) {
+        throw new ForbiddenException('A reason is required')
+      }
+      const result = await this.sellersService.reportSeller(sellerId, userId, body.reason, body.details)
+      return ApiResponseDto.ok(result, 'Report submitted')
+    } catch (error) {
+      this.logger.error('Error reporting seller:', error)
+      throw error
+    }
+  }
+
+  /** Public subscription plans (Seller Pro / Premium). */
+  @Get('subscription/plans')
+  async getSubscriptionPlans() {
+    try {
+      const plans = this.sellersService.getPlans()
+      return ApiResponseDto.ok(plans, 'Subscription plans retrieved')
+    } catch (error) {
+      this.logger.error('Error fetching subscription plans:', error)
+      throw error
+    }
+  }
+
+  /** Current subscription state for the authenticated seller. */
+  @Get('subscription/me')
+  @UseGuards(JwtAuthGuard)
+  async getMySubscription(@CurrentUserId() userId: string) {
+    try {
+      const state = await this.sellersService.getMySubscription(userId)
+      return ApiResponseDto.ok(state, 'Subscription retrieved')
+    } catch (error) {
+      this.logger.error('Error fetching subscription:', error)
+      throw error
+    }
+  }
+
+  /** Start a Seller Pro / Premium checkout (redirects to payment provider). */
+  @Post('subscription/checkout')
+  @UseGuards(JwtAuthGuard)
+  async createSubscription(
+    @CurrentUserId() userId: string,
+    @Body() body: { plan?: string; planId?: string; provider?: string; callbackUrl?: string },
+  ) {
+    try {
+      const planId = body.plan ?? body.planId
+      if (!planId) {
+        throw new BadRequestException('plan is required')
+      }
+      const result = await this.sellersService.createSubscription(
+        userId,
+        planId,
+        body.provider || 'PAYMENT_IO',
+        body.callbackUrl,
+      )
+      return ApiResponseDto.ok(result, 'Subscription checkout started')
+    } catch (error) {
+      this.logger.error('Error creating subscription:', error)
       throw error
     }
   }
