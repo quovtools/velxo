@@ -459,8 +459,18 @@ export class AiToolsService {
           })
 
           const sellerIds = grouped.map((g) => g.sellerId!).filter(Boolean)
-          const sellers = sellerIds.length
-            ? await this.prisma.sellers.findMany({
+          type SellerRow = {
+            id: string
+            storeName: string
+            isVerified: boolean
+            isSuspended: boolean
+            sellerLevel: string
+            averageRating: number
+            deliverySuccessRate: number
+            user: { email: string } | null
+          }
+          const sellers: SellerRow[] = sellerIds.length
+            ? (await this.prisma.sellers.findMany({
                 where: { id: { in: sellerIds } },
                 select: {
                   id: true,
@@ -472,9 +482,9 @@ export class AiToolsService {
                   deliverySuccessRate: true,
                   user: { select: { email: true } },
                 },
-              })
+              })) as unknown as SellerRow[]
             : []
-          const byId = new Map(sellers.map((s) => [s.id, s]))
+          const byId = new Map<string, SellerRow>(sellers.map((s) => [s.id, s]))
 
           return {
             ok: true,

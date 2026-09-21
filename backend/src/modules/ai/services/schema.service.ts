@@ -109,7 +109,7 @@ export class SchemaService {
       const columns: TableColumn[] = []
       for (const field of model.fields) {
         if (field.kind === 'object') continue // relations are joins, not columns
-        const isList = field.isList === true || field.isList === 'true'
+        const isList = field.isList === true || (field.isList as unknown) === 'true'
         columns.push({
           name: field.dbName || field.name,
           type: field.type,

@@ -173,11 +173,11 @@ export class ValuationService {
   // ─── Comparables ───────────────────────────────────────────────────────────
 
   private async findComparables(input: ValuationRequest): Promise<ComparableRow[]> {
-    const base = {
+    const base: any = {
       price: { gt: 0 },
       status: { in: ['ACTIVE', 'SOLD'] as any },
       gameName: { equals: input.gameName, mode: 'insensitive' as const },
-      seller: { deletedAt: null },
+      seller: { is: { deletedAt: null } },
     }
 
     const tight: any = { ...base }

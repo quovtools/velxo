@@ -17,7 +17,7 @@ import { CurrentUserId, CurrentUserRole } from '@/common/decorators/current-user
 import { ApiResponseDto } from '@/common/dto/api-response.dto'
 import { SupportTicketCategory, Role } from '@prisma/client'
 
-const STAFF_ROLES = [Role.MODERATOR, Role.ADMIN, Role.SUPER_ADMIN]
+const STAFF_ROLES: Role[] = [Role.MODERATOR, Role.ADMIN, Role.SUPER_ADMIN]
 
 /** Maps the caller's actual account role to the ticket-message author role —
  *  clients must never be trusted to self-report AGENT/ADMIN. */

@@ -187,7 +187,7 @@ export class RewardsService {
         imageUrl: dto.imageUrl,
         isActive: dto.isActive ?? true,
         sortOrder: dto.sortOrder ?? 0,
-        metadata: dto.metadata,
+        metadata: dto.metadata as any,
       },
     })
   }
@@ -222,7 +222,7 @@ export class RewardsService {
         ...(dto.imageUrl !== undefined ? { imageUrl: dto.imageUrl } : {}),
         ...(dto.isActive !== undefined ? { isActive: dto.isActive } : {}),
         ...(dto.sortOrder !== undefined ? { sortOrder: dto.sortOrder } : {}),
-        ...(dto.metadata !== undefined ? { metadata: dto.metadata } : {}),
+        ...(dto.metadata !== undefined ? { metadata: dto.metadata as any } : {}),
       },
     })
   }
