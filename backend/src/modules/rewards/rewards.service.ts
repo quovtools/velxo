@@ -223,7 +223,7 @@ export class RewardsService {
         ...(dto.isActive !== undefined ? { isActive: dto.isActive } : {}),
         ...(dto.sortOrder !== undefined ? { sortOrder: dto.sortOrder } : {}),
         ...(dto.metadata !== undefined ? { metadata: dto.metadata as any } : {}),
-      },
+      } as any,
     })
   }
 

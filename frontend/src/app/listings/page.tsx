@@ -84,8 +84,8 @@ function ListingsContent() {
     try {
       const res = await fetch(`${API}/listings?${params}`);
       const data = res.ok ? await res.json() : {};
-      setListings(data.data || data.listings || []);
-      setTotal(data.total || 0);
+      setListings(data.data?.listings || data.listings || []);
+      setTotal(data.data?.total || data.total || 0);
       setPage(p);
     } catch { setListings([]); }
     finally { setLoading(false); }

@@ -17,7 +17,8 @@ import { CurrentUserId, CurrentUserRole } from '@/common/decorators/current-user
 import { ApiResponseDto } from '@/common/dto/api-response.dto'
 import { SupportTicketCategory, Role } from '@prisma/client'
 
-const STAFF_ROLES: Role[] = [Role.MODERATOR, Role.ADMIN, Role.SUPER_ADMIN]
+const STAFF_ROLES = [Role.MODERATOR, Role.ADMIN, Role.SUPER_ADMIN] as const
+const isStaffRole = (role: Role) => (STAFF_ROLES as readonly Role[]).includes(role)
 
 /** Maps the caller's actual account role to the ticket-message author role —
  *  clients must never be trusted to self-report AGENT/ADMIN. */
@@ -92,7 +93,7 @@ export class SupportController {
     @CurrentUserRole() userRole: Role,
   ) {
     try {
-      const isStaff = STAFF_ROLES.includes(userRole)
+      const isStaff = isStaffRole(userRole)
       const ticket = await this.supportService.getTicketById(ticketId, isStaff ? undefined : userId)
       return ApiResponseDto.ok(ticket, 'Ticket retrieved')
     } catch (error) {
@@ -169,8 +170,8 @@ export class SupportController {
     @Body('message') message: string,
   ) {
     try {
+      const isStaff = isStaffRole(userRole)
       const authorRole = toAuthorRole(userRole)
-      const isStaff = STAFF_ROLES.includes(userRole)
       // Non-staff can only reply to their own tickets; staff can reply to any.
       await this.supportService.getTicketById(ticketId, isStaff ? undefined : userId)
       const ticket = await this.supportService.addTicketMessage(
@@ -195,7 +196,7 @@ export class SupportController {
     @CurrentUserRole() userRole: Role,
   ) {
     try {
-      const isStaff = STAFF_ROLES.includes(userRole)
+      const isStaff = isStaffRole(userRole)
       const messages = await this.supportService.getTicketMessages(ticketId, isStaff ? undefined : userId)
       return ApiResponseDto.ok(messages, 'Ticket messages retrieved')
     } catch (error) {
