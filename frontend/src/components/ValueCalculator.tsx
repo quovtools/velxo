@@ -244,7 +244,7 @@ export default function ValueCalculator({
           <p className="text-sm font-bold text-white leading-none">AI Value Estimate</p>
           <p className="text-[11px] text-gray-500 mt-0.5 leading-none">
             {result
-              ? `Based on ${result.stats.count} comparable ${result.gameName ?? gameName} listing${result.stats.count !== 1 ? 's' : ''}`
+              ? `Based on ${result.stats.count} comparable ${gameName} listing${result.stats.count !== 1 ? 's' : ''}`
               : `What is this ${gameName} account worth?`}
           </p>
         </div>
