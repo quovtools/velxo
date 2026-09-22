@@ -38,6 +38,7 @@ import { LiveChatModule } from './modules/live-chat/live-chat.module'
 import { CurrencyModule } from './modules/currency/currency.module'
 import { SearchModule } from './modules/search/search.module'
 import { StatsModule } from './modules/stats/stats.module'
+import { AiModule } from './modules/ai/ai.module'
 import { AllExceptionsFilter } from './common/filters/all-exceptions.filter'
 
 @Module({
@@ -92,6 +93,7 @@ import { AllExceptionsFilter } from './common/filters/all-exceptions.filter'
     CurrencyModule,
     SearchModule,
     StatsModule,
+    AiModule,
   ],
   providers: [
     {

@@ -17,6 +17,7 @@ import {
   Store, BadgeCheck, Layers, ArrowRight,
   MessageCircle, Image, Video, X, Upload, Play,
 } from 'lucide-react';
+import ValueCalculator from '@/components/ValueCalculator';
 
 /* ─────────────────────────── Constants ──────────────────────────────── */
 const GAMES = [...GAME_NAMES, 'Other'];
@@ -976,6 +977,20 @@ export default function SellPage() {
               </div>
             </div>
           </StepCard>
+
+          {/* AI value estimate — helps the seller price correctly */}
+          {category === 'account' && (
+            <ValueCalculator
+              gameName={gameName}
+              rank={rank || undefined}
+              level={level ? parseInt(level) : undefined}
+              platform={platform || undefined}
+              region={region || undefined}
+              loginMethod={loginMethod || undefined}
+              askingPrice={price ? parseFloat(price) : undefined}
+              onApplyPrice={(estimated) => setPrice(String(estimated))}
+            />
+          )}
 
           {/* Listing preview summary */}
           <div className="bg-[var(--card-bg)] border border-[var(--border-bg)] rounded-2xl p-5 space-y-3">

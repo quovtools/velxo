@@ -15,6 +15,7 @@ import SellerLevelBadge from '@/components/SellerLevelBadge';
 import ListingCard from '@/components/ListingCard';
 import { useCurrency } from '@/lib/useCurrency';
 import GameListingTemplate from '@/components/GameListingTemplate';
+import ValueCalculator from '@/components/ValueCalculator';
 
 interface Listing {
   id: string;
@@ -364,6 +365,18 @@ export default function ListingDetailsContent({ id, initialData }: { id: string;
               ))}
             </div>
           </div>
+
+          {/* AI value calculator — lets buyers see what this account is worth */}
+          <ValueCalculator
+            gameName={listing.gameName}
+            rank={listing.rank || undefined}
+            level={listing.level || undefined}
+            platform={listing.platform || undefined}
+            region={listing.region || undefined}
+            loginMethod={listing.loginMethod || undefined}
+            askingPrice={Number(listing.price)}
+            compact
+          />
         </div>
       </div>
 

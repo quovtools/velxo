@@ -8,7 +8,7 @@ import {
   LogOut, Menu, X, Megaphone, UserCheck, Users, Store, ShoppingBag,
   CreditCard, LifeBuoy, FolderTree, Gamepad2, FileText, History, Package,
   Upload, Crown, MessageSquareMore, ScrollText, ChevronRight, ChevronDown,
-  Bell, Globe, TrendingUp, Slash, Flame,
+  Bell, Globe, TrendingUp, Slash, Flame, Sparkles,
 } from 'lucide-react';
 import { api } from '@/lib/api';
 import { Spinner } from '@/components/admin/ui';
@@ -22,6 +22,7 @@ const NAV = [
     items: [
       { href: '/admin',           label: 'Dashboard',  icon: LayoutDashboard, exact: true },
       { href: '/admin/analytics', label: 'Analytics',  icon: BarChart3 },
+      { href: '/admin/ai',        label: 'AI Assistant', icon: Sparkles },
     ],
   },
   {
