@@ -143,6 +143,7 @@ body {
   animation: marqueeScroll 32s linear infinite;
 }
 .marquee-wrap:hover .marquee-track { animation-play-state: paused; }
+.marquee-track-slow { animation-duration: 55s; }
 
 /* ── Safe area ── */
 .safe-area-pb { padding-bottom: env(safe-area-inset-bottom, 0px); }

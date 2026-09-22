@@ -1,12 +1,15 @@
-﻿import type { Metadata } from 'next';
+import type { Metadata } from 'next';
 import Link from 'next/link';
 import Image from 'next/image';
 import {
   ShieldCheck, ArrowRight, Gamepad2, Zap, BadgeCheck, Users,
-  ChevronRight, Star, Lock, DollarSign, Send, Check, Award,
-  TrendingUp, Flame, MessageSquare,
+  Star, Lock, DollarSign, Send, Check, MessageSquare,
+  Twitter, Instagram, Youtube, Twitch, Store, Headphones,
 } from 'lucide-react';
 import { GAME_LIST } from '@/lib/games';
+import GameSlideshow from '@/components/GameSlideshow';
+import GameIcon from '@/components/GameIcon';
+import { FeaturedListingsRow, TopupsRow, GigsRow } from './home-rows';
 
 const SITE_URL = 'https://app.piyrox.shop';
 
@@ -29,8 +32,7 @@ export const metadata: Metadata = {
   },
 };
 
-/* ── Static game list for the grid ── */
-const GAMES = GAME_LIST.map((g) => ({ name: g.name, slug: g.slug, color: g.color }));
+const GAMES = GAME_LIST.map((g) => ({ name: g.name, slug: g.slug }));
 
 /* ── Testimonials ── */
 const TESTIMONIALS = [
@@ -72,7 +74,7 @@ const STATS = [
   { value: '4.9★', label: 'Avg. Seller Rating' },
 ];
 
-/* ── How it works steps ── */
+/* ── How escrow works steps ── */
 const HOW_IT_WORKS = [
   {
     icon: Gamepad2,
@@ -83,8 +85,8 @@ const HOW_IT_WORKS = [
   {
     icon: Lock,
     step: '02',
-    title: 'Pay via Escrow',
-    desc: 'Your payment is held securely by Piyrox. The seller is notified but cannot access funds yet.',
+    title: 'Pay into Escrow',
+    desc: 'Your payment is held securely by Piyrox Trust-Trade. The seller is notified but cannot access funds yet.',
   },
   {
     icon: Send,
@@ -100,172 +102,167 @@ const HOW_IT_WORKS = [
   },
 ];
 
-/* ── Features ── */
-const FEATURES = [
+/* ── Seller benefits ── */
+const SELLER_BENEFITS = [
   {
     icon: ShieldCheck,
-    title: 'Trust-Trade Escrow',
-    desc: 'Every transaction is escrow-protected. Funds are held until the buyer confirms delivery. Zero risk of scams.',
+    title: 'Escrow-Protected Payouts',
+    desc: 'Buyer funds are locked in escrow before you deliver. Complete the order and your payout is released — no chargeback scams.',
   },
   {
     icon: BadgeCheck,
-    title: 'Verified Sellers',
-    desc: 'Sellers go through identity verification. View ratings, reviews and completed orders before buying.',
-  },
-  {
-    icon: Zap,
-    title: 'Instant Delivery',
-    desc: 'Most sellers deliver within hours. Real-time order tracking so you always know the status.',
-  },
-  {
-    icon: Users,
-    title: 'Dispute Resolution',
-    desc: 'Run into a problem? Our team mediates disputes and ensures fair outcomes for both parties.',
-  },
-  {
-    icon: TrendingUp,
-    title: 'Account Valuation',
-    desc: 'Not sure what your account is worth? Use our valuation tool to get a data-driven market estimate.',
+    title: 'Verified Seller Badge',
+    desc: 'Pass KYC once and earn the verified badge. Build reputation with ratings, seller levels and a public storefront.',
   },
   {
     icon: DollarSign,
-    title: 'Low Fees',
-    desc: 'Competitive seller fees starting from 5%. Transparent pricing — no hidden charges.',
+    title: 'Low 5% Fees',
+    desc: 'Keep more of every sale. Transparent flat pricing with no listing fees and no hidden charges.',
   },
 ];
+
+/* ── Payment methods ── */
+const PAYMENTS = ['MTN MoMo', 'Airtel Money', 'M-Pesa', 'Vodafone Cash', 'Orange Money', 'Visa', 'Mastercard'];
+
+/* ── Social links ── */
+const SOCIALS = [
+  { label: 'X (Twitter)', href: '#', icon: Twitter },
+  { label: 'Instagram', href: '#', icon: Instagram },
+  { label: 'YouTube', href: '#', icon: Youtube },
+  { label: 'Twitch', href: '#', icon: Twitch },
+];
+
+function SectionHeader({
+  title, subtitle, seeMoreHref, seeMoreLabel = 'See More',
+}: { title: string; subtitle?: string; seeMoreHref?: string; seeMoreLabel?: string }) {
+  return (
+    <div className="flex items-end justify-between gap-4 mb-6">
+      <div>
+        <h2 className="text-2xl md:text-3xl font-black text-white">{title}</h2>
+        {subtitle && <p className="text-sm text-gray-500 mt-1">{subtitle}</p>}
+      </div>
+      {seeMoreHref && (
+        <Link
+          href={seeMoreHref}
+          className="flex-shrink-0 inline-flex items-center gap-1.5 bg-white/5 hover:bg-brand/10 border border-white/10 hover:border-brand/30 text-brand text-xs font-bold px-4 py-2 rounded-xl transition"
+        >
+          {seeMoreLabel} <ArrowRight className="w-3.5 h-3.5" />
+        </Link>
+      )}
+    </div>
+  );
+}
 
 export default function HomePage() {
   return (
     <div className="relative overflow-hidden">
-      {/* ── Hero ──────────────────────────────────────────────────── */}
-      <section className="relative min-h-[620px] flex items-center -mx-4 sm:-mx-6 lg:-mx-8 px-4 sm:px-6 lg:px-8 mb-16 overflow-hidden">
-        {/* Background layers */}
+      {/* ── Hero + Image Slider ─────────────────────────────────── */}
+      <section className="relative -mx-4 sm:-mx-6 lg:-mx-8 px-4 sm:px-6 lg:px-8 pt-12 pb-16 overflow-hidden">
         <div className="absolute inset-0 bg-gradient-to-br from-black via-zinc-950 to-black" />
         <div className="absolute inset-0 bg-[radial-gradient(ellipse_80%_60%_at_50%_-10%,rgba(212,160,23,0.15),transparent)]" />
-        <div className="absolute inset-0 bg-[linear-gradient(to_right,rgba(128,128,128,0.03)_1px,transparent_1px),linear-gradient(to_bottom,rgba(128,128,128,0.03)_1px,transparent_1px)] bg-[size:44px_44px]" />
-        {/* Glow orbs */}
         <div className="absolute -top-32 -left-32 w-96 h-96 bg-brand/6 rounded-full blur-3xl pointer-events-none" />
         <div className="absolute -bottom-32 right-0 w-80 h-80 bg-brand/4 rounded-full blur-3xl pointer-events-none" />
 
-        <div className="relative z-10 w-full py-20 md:py-28">
-          <div className="max-w-3xl">
-            {/* Badges */}
-            <div className="flex flex-wrap items-center gap-2 mb-6">
-              <span className="inline-flex items-center gap-1.5 bg-brand/10 border border-brand/30 text-brand text-xs font-semibold px-3 py-1 rounded-full">
-                <ShieldCheck className="w-3.5 h-3.5" /> Escrow Protected
-              </span>
-              <span className="inline-flex items-center gap-1.5 bg-white/5 border border-white/10 text-gray-400 text-xs font-medium px-3 py-1 rounded-full">
-                <Flame className="w-3 h-3 text-orange-400" /> Africa&apos;s #1 Gaming Marketplace
-              </span>
-            </div>
+        <div className="relative z-10 max-w-7xl mx-auto">
+          <div className="grid lg:grid-cols-2 gap-8 lg:gap-12 items-center mb-10">
+            <div>
+              <div className="flex flex-wrap items-center gap-2 mb-5">
+                <span className="inline-flex items-center gap-1.5 bg-brand/10 border border-brand/30 text-brand text-xs font-semibold px-3 py-1 rounded-full">
+                  <ShieldCheck className="w-3.5 h-3.5" /> Trust-Trade Escrow
+                </span>
+                <span className="inline-flex items-center gap-1.5 bg-white/5 border border-white/10 text-gray-400 text-xs font-medium px-3 py-1 rounded-full">
+                  <Zap className="w-3 h-3 text-orange-400" /> Africa&apos;s #1 Gaming Marketplace
+                </span>
+              </div>
 
-            {/* Headline */}
-            <h1 className="text-4xl sm:text-5xl lg:text-6xl font-black text-white leading-[1.05] tracking-tight mb-5">
-              Buy, Sell &amp; Trade<br />
-              <span className="text-brand">Gaming Accounts</span><br />
-              Without the Risk.
-            </h1>
+              <h1 className="text-3xl sm:text-4xl lg:text-5xl font-black text-white leading-[1.08] tracking-tight mb-4">
+                Buy, Sell &amp; Trade<br />
+                <span className="text-brand">Gaming Accounts</span><br />
+                Without the Risk.
+              </h1>
 
-            <p className="text-base md:text-lg text-gray-400 mb-8 max-w-xl leading-relaxed">
-              Piyrox is Africa&apos;s trusted marketplace for gaming accounts, top-ups and boosting services.
-              Every trade is backed by our Trust-Trade escrow — your money is safe until you confirm delivery.
-            </p>
+              <p className="text-sm md:text-base text-gray-400 mb-7 max-w-lg leading-relaxed">
+                Accounts, top-ups and boosting for every major game — every trade held in
+                escrow until you confirm delivery.
+              </p>
 
-            {/* CTAs */}
-            <div className="flex flex-wrap gap-3 mb-10">
-              <Link
-                href="/marketplace"
-                className="inline-flex items-center gap-2 bg-brand hover:bg-brand-light text-black font-bold px-8 py-3.5 rounded-xl transition shadow-lg shadow-brand/25 text-sm"
-              >
-                Browse Marketplace <ArrowRight className="w-4 h-4" />
-              </Link>
-              <Link
-                href="/sell"
-                className="inline-flex items-center gap-2 bg-white/5 hover:bg-white/10 border border-white/15 hover:border-brand/30 text-white font-semibold px-8 py-3.5 rounded-xl transition text-sm"
-              >
-                Start Selling
-              </Link>
-            </div>
-
-            {/* Quick links */}
-            <div className="flex flex-wrap gap-2">
-              {[
-                { label: '🎮 Free Fire', href: '/games/free-fire' },
-                { label: '🔫 PUBG Mobile', href: '/games/pubg-mobile' },
-                { label: '💥 COD Mobile', href: '/games/cod-mobile' },
-                { label: '⚡ Boosting', href: '/boosting' },
-                { label: '💎 Top-Ups', href: '/topups' },
-              ].map((f) => (
+              <div className="flex flex-wrap gap-3">
                 <Link
-                  key={f.label}
-                  href={f.href}
-                  className="bg-white/5 hover:bg-brand/10 border border-white/10 hover:border-brand/30 text-gray-400 hover:text-brand text-xs font-medium px-3 py-1.5 rounded-lg transition"
+                  href="/marketplace"
+                  className="inline-flex items-center gap-2 bg-brand hover:bg-brand-light text-black font-bold px-7 py-3 rounded-xl transition shadow-lg shadow-brand/25 text-sm"
                 >
-                  {f.label}
+                  Browse Marketplace <ArrowRight className="w-4 h-4" />
                 </Link>
-              ))}
+                <Link
+                  href="/sell"
+                  className="inline-flex items-center gap-2 bg-white/5 hover:bg-white/10 border border-white/15 hover:border-brand/30 text-white font-semibold px-7 py-3 rounded-xl transition text-sm"
+                >
+                  Start Selling
+                </Link>
+              </div>
             </div>
+
+            <GameSlideshow />
           </div>
         </div>
       </section>
 
-      {/* ── Stats Bar ────────────────────────────────────────────── */}
-      <section className="-mx-4 sm:-mx-6 lg:-mx-8 px-4 sm:px-6 lg:px-8 py-6 bg-black border-y border-[var(--border-bg)] mb-16">
-        <div className="grid grid-cols-2 sm:grid-cols-4 gap-6 max-w-3xl mx-auto">
-          {STATS.map((s) => (
-            <div key={s.label} className="text-center">
-              <div className="text-2xl font-black text-brand">{s.value}</div>
-              <div className="text-xs text-gray-500 mt-0.5">{s.label}</div>
-            </div>
-          ))}
-        </div>
-      </section>
-
-      {/* ── Games Grid ───────────────────────────────────────────── */}
-      <section className="mb-16">
-        <div className="flex items-center justify-between mb-6">
-          <div>
-            <h2 className="text-2xl md:text-3xl font-black text-white">Browse by Game</h2>
-            <p className="text-sm text-gray-500 mt-1">Accounts, top-ups and boosting for every game</p>
-          </div>
-          <Link href="/games" className="flex items-center gap-1 text-brand text-sm font-semibold hover:text-brand-light transition">
-            All Games <ChevronRight className="w-4 h-4" />
-          </Link>
-        </div>
-        <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 gap-3 md:gap-4">
-          {GAMES.map((game) => {
-            const color = game.color ?? '#888888';
-            return (
+      {/* ── Game Marquee ────────────────────────────────────────── */}
+      <section className="-mx-4 sm:-mx-6 lg:-mx-8 border-y border-[var(--border-bg)] bg-black/60 mb-16">
+        <div className="marquee-wrap overflow-hidden py-4">
+          <div className="marquee-track marquee-track-slow">
+            {[...GAMES, ...GAMES].map((g, i) => (
               <Link
-                key={game.slug}
-                href={`/games/${game.slug}`}
-                className="relative rounded-2xl overflow-hidden border border-[var(--border-bg)] hover:border-brand/50 transition-all duration-300 hover:shadow-lg hover:shadow-brand/10 hover:-translate-y-1 group aspect-video flex items-end"
-                style={{ background: `linear-gradient(135deg, ${color}28, #000)` }}
+                key={`${g.slug}-${i}`}
+                href={`/games/${g.slug}`}
+                className="mx-3 flex-shrink-0 inline-flex items-center gap-2.5 bg-white/[0.03] hover:bg-brand/10 border border-white/8 hover:border-brand/30 rounded-2xl pl-2 pr-5 py-2 transition group"
               >
-                <div className="absolute inset-0 flex items-center justify-center opacity-20 group-hover:opacity-30 transition">
-                  <Gamepad2 className="w-10 h-10 text-white" />
-                </div>
-                <div className="absolute inset-0 bg-gradient-to-t from-black/90 via-black/30 to-transparent" />
-                <div className="relative z-10 w-full px-3 pb-3">
-                  <span className="block text-xs font-extrabold text-white group-hover:text-brand transition leading-tight">{game.name}</span>
-                  <span className="flex items-center gap-1 text-[10px] text-gray-400 mt-0.5">
-                    View listings <ArrowRight className="w-2.5 h-2.5" />
-                  </span>
-                </div>
+                <GameIcon game={g.name} className="w-8 h-8" />
+                <span className="text-xs font-bold text-gray-300 group-hover:text-brand transition">{g.name}</span>
               </Link>
-            );
-          })}
+            ))}
+          </div>
         </div>
       </section>
 
-      {/* ── How It Works ─────────────────────────────────────────── */}
+      {/* ── Featured / Trending Listings ────────────────────────── */}
+      <section className="mb-16">
+        <SectionHeader
+          title="Featured & Trending"
+          subtitle="Hand-picked marketplace listings, escrow protected"
+          seeMoreHref="/marketplace"
+        />
+        <FeaturedListingsRow />
+      </section>
+
+      {/* ── Top-Ups ─────────────────────────────────────────────── */}
+      <section className="mb-16">
+        <SectionHeader
+          title="Instant Top-Ups"
+          subtitle="Official game currency delivered to your player ID"
+          seeMoreHref="/topups"
+        />
+        <TopupsRow />
+      </section>
+
+      {/* ── Gigs ────────────────────────────────────────────────── */}
+      <section className="mb-16">
+        <SectionHeader
+          title="Boosting & Gigs"
+          subtitle="Rank up with verified pro players"
+          seeMoreHref="/boosting"
+        />
+        <GigsRow />
+      </section>
+
+      {/* ── How Piyrox Escrow Works ─────────────────────────────── */}
       <section className="-mx-4 sm:-mx-6 lg:-mx-8 px-4 sm:px-6 lg:px-8 py-16 bg-black border-y border-[var(--border-bg)] mb-16">
         <div className="max-w-5xl mx-auto">
           <div className="text-center mb-10">
             <span className="inline-flex items-center gap-1.5 bg-brand/10 border border-brand/25 text-brand text-xs font-semibold px-3 py-1 rounded-full mb-4">
-              Simple &amp; Secure
+              <Lock className="w-3.5 h-3.5" /> Simple &amp; Secure
             </span>
-            <h2 className="text-2xl md:text-3xl font-black text-white mb-3">How Piyrox Works</h2>
+            <h2 className="text-2xl md:text-3xl font-black text-white mb-3">How Piyrox Escrow Works</h2>
             <p className="text-gray-400 text-sm max-w-md mx-auto">
               We built escrow into every transaction. Here&apos;s how a safe trade works.
             </p>
@@ -278,7 +275,7 @@ export default function HomePage() {
                 <div key={step.step} className="relative bg-white/[0.02] border border-white/8 rounded-2xl p-6 group hover:border-brand/25 transition">
                   {i < HOW_IT_WORKS.length - 1 && (
                     <div className="hidden lg:block absolute top-10 -right-5 z-10">
-                      <ChevronRight className="w-4 h-4 text-gray-700" />
+                      <ArrowRight className="w-4 h-4 text-gray-700" />
                     </div>
                   )}
                   <div className="w-10 h-10 rounded-xl bg-brand/10 flex items-center justify-center mb-4 group-hover:bg-brand/15 transition">
@@ -294,123 +291,163 @@ export default function HomePage() {
 
           <div className="text-center mt-8">
             <Link href="/escrow" className="inline-flex items-center gap-1.5 text-brand text-sm font-semibold hover:text-brand-light transition">
-              Learn more about Trust-Trade Escrow <ChevronRight className="w-4 h-4" />
+              Learn more about Trust-Trade Escrow <ArrowRight className="w-4 h-4" />
             </Link>
           </div>
         </div>
       </section>
 
-      {/* ── Features Grid ────────────────────────────────────────── */}
+      {/* ── Seller / Trust Section ──────────────────────────────── */}
       <section className="mb-16">
         <div className="text-center mb-8">
-          <h2 className="text-2xl md:text-3xl font-black text-white mb-2">Built for Gamers</h2>
+          <span className="inline-flex items-center gap-1.5 bg-brand/10 border border-brand/25 text-brand text-xs font-semibold px-3 py-1 rounded-full mb-4">
+            <Users className="w-3.5 h-3.5" /> Trusted by Sellers &amp; Buyers
+          </span>
+          <h2 className="text-2xl md:text-3xl font-black text-white mb-2">Why Gamers Trust Piyrox</h2>
           <p className="text-gray-400 text-sm max-w-sm mx-auto">
-            Everything you need to trade gaming assets safely, quickly and confidently.
+            Built for safe trading across Africa — whether you&apos;re selling your first account or your hundredth.
           </p>
         </div>
-        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
-          {FEATURES.map((f) => {
-            const Icon = f.icon;
+
+        <div className="grid grid-cols-2 sm:grid-cols-4 gap-4 mb-8">
+          {STATS.map((s) => (
+            <div key={s.label} className="text-center bg-black/40 border border-[var(--border-bg)] rounded-2xl py-5">
+              <div className="text-2xl font-black text-brand">{s.value}</div>
+              <div className="text-xs text-gray-500 mt-0.5">{s.label}</div>
+            </div>
+          ))}
+        </div>
+
+        <div className="grid grid-cols-1 sm:grid-cols-3 gap-4 mb-12">
+          {SELLER_BENEFITS.map((b) => {
+            const Icon = b.icon;
             return (
-              <div key={f.title} className="bg-[var(--card-bg)] border border-[var(--border-bg)] hover:border-brand/25 rounded-2xl p-6 transition group">
+              <div key={b.title} className="bg-[var(--card-bg)] border border-[var(--border-bg)] hover:border-brand/25 rounded-2xl p-6 transition group">
                 <div className="w-10 h-10 rounded-xl bg-brand/10 flex items-center justify-center mb-4 group-hover:bg-brand/15 transition">
                   <Icon className="w-5 h-5 text-brand" />
                 </div>
-                <h3 className="font-bold text-sm text-white mb-1.5">{f.title}</h3>
-                <p className="text-xs text-gray-500 leading-relaxed">{f.desc}</p>
+                <h3 className="font-bold text-sm text-white mb-1.5">{b.title}</h3>
+                <p className="text-xs text-gray-500 leading-relaxed">{b.desc}</p>
               </div>
             );
           })}
         </div>
-      </section>
 
-      {/* ── Testimonials ─────────────────────────────────────────── */}
-      <section className="-mx-4 sm:-mx-6 lg:-mx-8 px-4 sm:px-6 lg:px-8 py-16 bg-black border-y border-[var(--border-bg)] mb-16">
-        <div className="max-w-5xl mx-auto">
-          <div className="text-center mb-10">
-            <span className="inline-flex items-center gap-1.5 bg-brand/10 border border-brand/25 text-brand text-xs font-semibold px-3 py-1 rounded-full mb-4">
-              <MessageSquare className="w-3.5 h-3.5" /> Trusted by Gamers
-            </span>
-            <h2 className="text-2xl md:text-3xl font-black text-white mb-2">What Players Are Saying</h2>
-            <p className="text-gray-400 text-sm max-w-sm mx-auto">Real reviews from verified buyers and sellers across Africa.</p>
-          </div>
-
-          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
-            {TESTIMONIALS.map((t) => (
-              <div key={t.name} className="bg-white/[0.02] border border-white/8 hover:border-brand/20 rounded-2xl p-5 flex flex-col gap-3 transition">
-                <div className="flex items-center gap-0.5">
-                  {Array.from({ length: t.rating }).map((_, i) => (
-                    <Star key={i} className="w-3.5 h-3.5 fill-brand text-brand" />
-                  ))}
-                </div>
-                <p className="text-xs text-gray-400 leading-relaxed flex-1">&ldquo;{t.text}&rdquo;</p>
-                <div className="border-t border-white/5 pt-3 flex items-center justify-between">
-                  <div>
-                    <div className="text-xs font-bold text-white">{t.name}</div>
-                    <div className="text-[10px] text-gray-600">{t.location}</div>
-                  </div>
-                  <span className="text-[9px] font-bold bg-brand/10 text-brand border border-brand/20 px-2 py-0.5 rounded-full">{t.game}</span>
-                </div>
+        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
+          {TESTIMONIALS.map((t) => (
+            <div key={t.name} className="bg-white/[0.02] border border-white/8 hover:border-brand/20 rounded-2xl p-5 flex flex-col gap-3 transition">
+              <div className="flex items-center gap-0.5">
+                {Array.from({ length: t.rating }).map((_, i) => (
+                  <Star key={i} className="w-3.5 h-3.5 fill-brand text-brand" />
+                ))}
               </div>
-            ))}
-          </div>
+              <p className="text-xs text-gray-400 leading-relaxed flex-1">&ldquo;{t.text}&rdquo;</p>
+              <div className="border-t border-white/5 pt-3 flex items-center justify-between">
+                <div>
+                  <div className="text-xs font-bold text-white">{t.name}</div>
+                  <div className="text-[10px] text-gray-600">{t.location}</div>
+                </div>
+                <span className="text-[9px] font-bold bg-brand/10 text-brand border border-brand/20 px-2 py-0.5 rounded-full">{t.game}</span>
+              </div>
+            </div>
+          ))}
         </div>
       </section>
 
-      {/* ── CTA ──────────────────────────────────────────────────── */}
+      {/* ── Sell on Piyrox CTA ──────────────────────────────────── */}
       <section className="mb-16">
-        <div className="relative rounded-2xl overflow-hidden border border-brand/20 bg-gradient-to-br from-brand/8 via-black to-black p-8 md:p-14 text-center">
+        <div className="relative rounded-2xl overflow-hidden border border-brand/20 bg-gradient-to-br from-brand/8 via-black to-black p-8 md:p-14">
           <div className="absolute inset-0 bg-[radial-gradient(ellipse_60%_70%_at_50%_100%,rgba(212,160,23,0.08),transparent)]" />
-          <div className="relative z-10">
-            <span className="inline-flex items-center gap-1.5 bg-brand/10 border border-brand/25 text-brand text-xs font-semibold px-3 py-1 rounded-full mb-5">
-              Get Started Today
-            </span>
-            <h2 className="text-2xl md:text-4xl font-black text-white mb-4 leading-tight">
-              Ready to buy or sell<br />gaming assets safely?
-            </h2>
-            <p className="text-gray-400 text-sm md:text-base mb-8 max-w-md mx-auto leading-relaxed">
-              Join thousands of gamers across Africa who trade safely on Piyrox every day.
-              Your first trade is just a few clicks away.
-            </p>
-            <div className="flex flex-col sm:flex-row gap-3 justify-center">
-              <Link
-                href="/marketplace"
-                className="inline-flex items-center justify-center gap-2 bg-brand hover:bg-brand-light text-black font-bold px-10 py-4 rounded-xl transition shadow-lg shadow-brand/25"
-              >
-                Browse Marketplace <ArrowRight className="w-4 h-4" />
-              </Link>
-              <Link
-                href="/sell"
-                className="inline-flex items-center justify-center gap-2 bg-white/5 hover:bg-white/10 border border-white/15 hover:border-brand/30 text-white font-semibold px-10 py-4 rounded-xl transition"
-              >
-                Start Selling
-              </Link>
+          <div className="relative z-10 grid lg:grid-cols-2 gap-8 items-center">
+            <div>
+              <span className="inline-flex items-center gap-1.5 bg-brand/10 border border-brand/25 text-brand text-xs font-semibold px-3 py-1 rounded-full mb-5">
+                <Store className="w-3.5 h-3.5" /> Sell on Piyrox
+              </span>
+              <h2 className="text-2xl md:text-4xl font-black text-white mb-4 leading-tight">
+                Turn your accounts &amp;<br />skills into income.
+              </h2>
+              <p className="text-gray-400 text-sm md:text-base mb-8 max-w-md leading-relaxed">
+                List in minutes, sell with escrow protection, and get paid to mobile money.
+                Thousands of buyers are waiting.
+              </p>
+              <div className="flex flex-col sm:flex-row gap-3">
+                <Link
+                  href="/sell"
+                  className="inline-flex items-center justify-center gap-2 bg-brand hover:bg-brand-light text-black font-bold px-9 py-4 rounded-xl transition shadow-lg shadow-brand/25"
+                >
+                  Start Selling <ArrowRight className="w-4 h-4" />
+                </Link>
+                <Link
+                  href="/marketplace"
+                  className="inline-flex items-center justify-center gap-2 bg-white/5 hover:bg-white/10 border border-white/15 hover:border-brand/30 text-white font-semibold px-9 py-4 rounded-xl transition"
+                >
+                  Browse Marketplace
+                </Link>
+              </div>
+            </div>
+            <div className="grid grid-cols-1 gap-3">
+              {[
+                { icon: ShieldCheck, text: 'Funds locked in escrow before delivery — payout guaranteed' },
+                { icon: BadgeCheck, text: 'Free storefront with verified badge and seller levels' },
+                { icon: DollarSign, text: 'Flat 5% fee — no listing costs, no hidden charges' },
+                { icon: Headphones, text: 'Dispute mediation team on every order' },
+              ].map((f) => {
+                const Icon = f.icon;
+                return (
+                  <div key={f.text} className="flex items-center gap-3 bg-white/[0.03] border border-white/8 rounded-xl px-4 py-3.5">
+                    <Icon className="w-5 h-5 text-brand flex-shrink-0" />
+                    <p className="text-xs text-gray-300 font-medium">{f.text}</p>
+                  </div>
+                );
+              })}
             </div>
           </div>
         </div>
       </section>
 
-      {/* ── Footer ───────────────────────────────────────────────── */}
+      {/* ── Footer ──────────────────────────────────────────────── */}
       <footer className="-mx-4 sm:-mx-6 lg:-mx-8 px-4 sm:px-6 lg:px-8 pt-12 pb-24 sm:pb-12 bg-black border-t border-[var(--border-bg)]">
         <div className="max-w-7xl mx-auto">
           <div className="grid grid-cols-2 md:grid-cols-4 gap-8 mb-10">
-            {/* Brand */}
+            {/* Brand + Payment methods */}
             <div className="col-span-2 md:col-span-1">
               <div className="flex items-center gap-2 mb-3">
                 <Image src="/logo-new.png" alt="Piyrox" width={28} height={28} className="rounded-lg object-contain" />
                 <span className="text-lg font-black tracking-widest text-white">PIYROX</span>
               </div>
-              <p className="text-xs text-gray-500 leading-relaxed mb-3">
-                Gaming marketplace with escrow protection. Buy and sell gaming accounts, top-ups and services safely.
+              <p className="text-xs text-gray-500 leading-relaxed mb-5">
+                Africa&apos;s escrow-protected gaming marketplace. Buy and sell accounts, top-ups and services safely.
               </p>
-              <p className="text-[10px] text-gray-600 font-medium tracking-wider uppercase">Play · Trade · Earn</p>
+              <h4 className="text-[10px] font-bold text-gray-400 uppercase tracking-wider mb-2.5">Payment Methods</h4>
+              <div className="flex flex-wrap gap-1.5">
+                {PAYMENTS.map((p) => (
+                  <span key={p} className="text-[10px] font-semibold text-gray-400 bg-white/5 border border-white/10 px-2 py-1 rounded-md">
+                    {p}
+                  </span>
+                ))}
+              </div>
             </div>
 
-            {/* Marketplace */}
+            {/* Supported games */}
             <div>
-              <h4 className="text-xs font-bold text-white uppercase tracking-wider mb-4">Marketplace</h4>
+              <h4 className="text-xs font-bold text-white uppercase tracking-wider mb-4">Supported Games</h4>
               <ul className="space-y-2.5">
-                {[['Browse Listings', '/listings'], ['Marketplace', '/marketplace'], ['Games', '/games'], ['Boosting', '/boosting'], ['Top-Ups', '/topups'], ['Sell', '/sell']].map(([label, href]) => (
+                {GAMES.map((g) => (
+                  <li key={g.slug}>
+                    <Link href={`/games/${g.slug}`} className="text-xs text-gray-500 hover:text-brand transition">{g.name}</Link>
+                  </li>
+                ))}
+                <li>
+                  <Link href="/games" className="text-xs font-semibold text-brand hover:text-brand-light transition">All Games →</Link>
+                </li>
+              </ul>
+            </div>
+
+            {/* Useful links */}
+            <div>
+              <h4 className="text-xs font-bold text-white uppercase tracking-wider mb-4">Useful Links</h4>
+              <ul className="space-y-2.5">
+                {[['Marketplace', '/marketplace'], ['Top-Ups', '/topups'], ['Boosting', '/boosting'], ['Sell', '/sell'], ['Wallet', '/wallet'], ['About', '/about'], ['Support', '/support'], ['Blog', '/blog'], ['Terms', '/terms'], ['Privacy', '/privacy']].map(([label, href]) => (
                   <li key={label}>
                     <Link href={href} className="text-xs text-gray-500 hover:text-brand transition">{label}</Link>
                   </li>
@@ -418,37 +455,35 @@ export default function HomePage() {
               </ul>
             </div>
 
-            {/* Company */}
+            {/* Social */}
             <div>
-              <h4 className="text-xs font-bold text-white uppercase tracking-wider mb-4">Company</h4>
-              <ul className="space-y-2.5">
-                {[['About', '/about'], ['Support', '/support'], ['Pricing', '/pricing'], ['Affiliate', '/affiliate'], ['Blog', '/blog']].map(([label, href]) => (
-                  <li key={label}>
-                    <Link href={href} className="text-xs text-gray-500 hover:text-brand transition">{label}</Link>
-                  </li>
-                ))}
-              </ul>
-            </div>
-
-            {/* Legal */}
-            <div>
-              <h4 className="text-xs font-bold text-white uppercase tracking-wider mb-4">Legal</h4>
-              <ul className="space-y-2.5">
-                {[['Terms of Service', '/terms'], ['Privacy Policy', '/privacy'], ['Refund Policy', '/refund'], ['Escrow', '/escrow'], ['Docs', '/docs']].map(([label, href]) => (
-                  <li key={label}>
-                    <Link href={href} className="text-xs text-gray-500 hover:text-brand transition">{label}</Link>
-                  </li>
-                ))}
-              </ul>
+              <h4 className="text-xs font-bold text-white uppercase tracking-wider mb-4">Follow Us</h4>
+              <div className="flex flex-wrap gap-2 mb-5">
+                {SOCIALS.map((s) => {
+                  const Icon = s.icon;
+                  return (
+                    <a
+                      key={s.label}
+                      href={s.href}
+                      aria-label={s.label}
+                      title={s.label}
+                      className="w-9 h-9 rounded-xl bg-white/5 border border-white/10 hover:bg-brand/15 hover:border-brand/30 flex items-center justify-center text-gray-400 hover:text-brand transition"
+                    >
+                      <Icon className="w-4 h-4" />
+                    </a>
+                  );
+                })}
+              </div>
+              <div className="flex items-center gap-2 bg-white/[0.03] border border-white/8 rounded-xl px-3 py-2.5">
+                <ShieldCheck className="w-4 h-4 text-brand flex-shrink-0" />
+                <span className="text-[10px] text-gray-400 leading-snug">Trust-Trade Escrow on every transaction</span>
+              </div>
             </div>
           </div>
 
           <div className="flex flex-col sm:flex-row items-center justify-between pt-6 border-t border-[var(--border-bg)] gap-3">
             <p className="text-[11px] text-gray-600">© {new Date().getFullYear()} Piyrox. All rights reserved.</p>
-            <div className="flex items-center gap-2">
-              <ShieldCheck className="w-3.5 h-3.5 text-brand" />
-              <span className="text-[11px] text-gray-500">Trust-Trade Escrow on every transaction</span>
-            </div>
+            <p className="text-[10px] text-gray-600 font-medium tracking-wider uppercase">Play · Trade · Earn</p>
           </div>
         </div>
       </footer>
