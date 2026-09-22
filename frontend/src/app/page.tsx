@@ -3,7 +3,7 @@ import Link from 'next/link';
 import Image from 'next/image';
 import {
   ShieldCheck, ArrowRight, Gamepad2, Zap, BadgeCheck, Users,
-  Star, Lock, DollarSign, Send, Check, MessageSquare,
+  Star, Lock, DollarSign, Send, Check,
   Twitter, Instagram, Youtube, Twitch, Store, Headphones,
 } from 'lucide-react';
 import { GAME_LIST } from '@/lib/games';
@@ -64,14 +64,6 @@ const TESTIMONIALS = [
     rating: 5,
     game: 'Free Fire',
   },
-];
-
-/* ── Stats ── */
-const STATS = [
-  { value: '10,000+', label: 'Listings' },
-  { value: '5,000+', label: 'Verified Sellers' },
-  { value: '50,000+', label: 'Trades Completed' },
-  { value: '4.9★', label: 'Avg. Seller Rating' },
 ];
 
 /* ── How escrow works steps ── */
@@ -156,55 +148,9 @@ function SectionHeader({
 export default function HomePage() {
   return (
     <div className="relative overflow-hidden">
-      {/* ── Hero + Image Slider ─────────────────────────────────── */}
-      <section className="relative -mx-4 sm:-mx-6 lg:-mx-8 px-4 sm:px-6 lg:px-8 pt-12 pb-16 overflow-hidden">
-        <div className="absolute inset-0 bg-gradient-to-br from-black via-zinc-950 to-black" />
-        <div className="absolute inset-0 bg-[radial-gradient(ellipse_80%_60%_at_50%_-10%,rgba(212,160,23,0.15),transparent)]" />
-        <div className="absolute -top-32 -left-32 w-96 h-96 bg-brand/6 rounded-full blur-3xl pointer-events-none" />
-        <div className="absolute -bottom-32 right-0 w-80 h-80 bg-brand/4 rounded-full blur-3xl pointer-events-none" />
-
-        <div className="relative z-10 max-w-7xl mx-auto">
-          <div className="grid lg:grid-cols-2 gap-8 lg:gap-12 items-center mb-10">
-            <div>
-              <div className="flex flex-wrap items-center gap-2 mb-5">
-                <span className="inline-flex items-center gap-1.5 bg-brand/10 border border-brand/30 text-brand text-xs font-semibold px-3 py-1 rounded-full">
-                  <ShieldCheck className="w-3.5 h-3.5" /> Trust-Trade Escrow
-                </span>
-                <span className="inline-flex items-center gap-1.5 bg-white/5 border border-white/10 text-gray-400 text-xs font-medium px-3 py-1 rounded-full">
-                  <Zap className="w-3 h-3 text-orange-400" /> Africa&apos;s #1 Gaming Marketplace
-                </span>
-              </div>
-
-              <h1 className="text-3xl sm:text-4xl lg:text-5xl font-black text-white leading-[1.08] tracking-tight mb-4">
-                Buy, Sell &amp; Trade<br />
-                <span className="text-brand">Gaming Accounts</span><br />
-                Without the Risk.
-              </h1>
-
-              <p className="text-sm md:text-base text-gray-400 mb-7 max-w-lg leading-relaxed">
-                Accounts, top-ups and boosting for every major game — every trade held in
-                escrow until you confirm delivery.
-              </p>
-
-              <div className="flex flex-wrap gap-3">
-                <Link
-                  href="/marketplace"
-                  className="inline-flex items-center gap-2 bg-brand hover:bg-brand-light text-black font-bold px-7 py-3 rounded-xl transition shadow-lg shadow-brand/25 text-sm"
-                >
-                  Browse Marketplace <ArrowRight className="w-4 h-4" />
-                </Link>
-                <Link
-                  href="/sell"
-                  className="inline-flex items-center gap-2 bg-white/5 hover:bg-white/10 border border-white/15 hover:border-brand/30 text-white font-semibold px-7 py-3 rounded-xl transition text-sm"
-                >
-                  Start Selling
-                </Link>
-              </div>
-            </div>
-
-            <GameSlideshow />
-          </div>
-        </div>
+      {/* ── Hero Slideshow ──────────────────────────────────────── */}
+      <section className="-mx-4 sm:-mx-6 lg:-mx-8 mb-0 overflow-hidden">
+        <GameSlideshow />
       </section>
 
       {/* ── Game Marquee ────────────────────────────────────────── */}
@@ -307,15 +253,6 @@ export default function HomePage() {
           <p className="text-gray-400 text-sm max-w-sm mx-auto">
             Built for safe trading across Africa — whether you&apos;re selling your first account or your hundredth.
           </p>
-        </div>
-
-        <div className="grid grid-cols-2 sm:grid-cols-4 gap-4 mb-8">
-          {STATS.map((s) => (
-            <div key={s.label} className="text-center bg-black/40 border border-[var(--border-bg)] rounded-2xl py-5">
-              <div className="text-2xl font-black text-brand">{s.value}</div>
-              <div className="text-xs text-gray-500 mt-0.5">{s.label}</div>
-            </div>
-          ))}
         </div>
 
         <div className="grid grid-cols-1 sm:grid-cols-3 gap-4 mb-12">

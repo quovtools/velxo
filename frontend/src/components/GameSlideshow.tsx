@@ -1,8 +1,10 @@
 'use client';
 
-import React, { useState, useEffect, useCallback } from 'react';
+import React, { useState, useEffect, useCallback, useRef } from 'react';
 import Link from 'next/link';
-import { ChevronLeft, ChevronRight, ShieldCheck } from 'lucide-react';
+import {
+  ChevronLeft, ChevronRight, ShieldCheck, ArrowRight, Zap,
+} from 'lucide-react';
 import { GAME_LIST, GAME_CONFIG } from '@/lib/games';
 
 interface Slide {
@@ -14,16 +16,12 @@ interface Slide {
   badge?: string;
   isActive: boolean;
   sortOrder: number;
-  /** Optional game logo + colour used when imageUrl is empty (fallback slides). */
   logo?: string;
   color?: string;
 }
 
 const SLIDE_BADGES = ['Most Popular', 'Top Seller', 'New Listings', 'Trending', 'Hot Deals'];
 
-// Fallback slides are derived from the canonical game list so every supported
-// game (Free Fire, COD Mobile, PUBG Mobile, eFootball, Blood Strike) is
-// represented with its real logo — no hardcoded 3-game subset.
 const FALLBACK_SLIDES: Slide[] = GAME_LIST.map((g, i) => {
   const cfg = GAME_CONFIG[g.name];
   return {
@@ -40,18 +38,134 @@ const FALLBACK_SLIDES: Slide[] = GAME_LIST.map((g, i) => {
   };
 });
 
-  const GRADIENT_FALLBACKS = [
-    'from-brand/80 via-brand-dark/60 to-background',
-    'from-brand-accent/80 via-brand/60 to-background',
-    'from-brand-light/80 via-brand/60 to-background',
-    'from-brand-dark/80 via-brand/60 to-background',
-    'from-brand-accent/80 via-brand-light/60 to-background',
-  ];
+const GRADIENT_FALLBACKS = [
+  'from-amber-600/70 via-brand/40 to-black',
+  'from-orange-600/70 via-brand/40 to-black',
+  'from-yellow-600/70 via-amber-800/40 to-black',
+  'from-brand/70 via-amber-700/40 to-black',
+  'from-amber-700/70 via-orange-900/40 to-black',
+];
+
+/** The hero text "slide" that is always prepended as slide index 0 */
+function HeroSlide() {
+  return (
+    <div className="absolute inset-0 flex flex-col justify-center px-6 sm:px-12 lg:px-20">
+      {/* background */}
+      <div className="absolute inset-0 bg-gradient-to-br from-black via-zinc-950 to-black" />
+      <div className="absolute inset-0 bg-[radial-gradient(ellipse_80%_60%_at_50%_-10%,rgba(212,160,23,0.18),transparent)]" />
+      <div className="absolute -top-24 -left-24 w-72 h-72 bg-brand/8 rounded-full blur-3xl pointer-events-none" />
+      <div className="absolute bottom-0 right-0 w-64 h-64 bg-brand/5 rounded-full blur-3xl pointer-events-none" />
+
+      <div className="relative z-10 max-w-2xl">
+        <div className="flex flex-wrap items-center gap-2 mb-5">
+          <span className="inline-flex items-center gap-1.5 bg-brand/10 border border-brand/30 text-brand text-xs font-semibold px-3 py-1.5 rounded-full">
+            <ShieldCheck className="w-3.5 h-3.5" /> Trust-Trade Escrow
+          </span>
+          <span className="inline-flex items-center gap-1.5 bg-white/5 border border-white/10 text-gray-400 text-xs font-medium px-3 py-1.5 rounded-full">
+            <Zap className="w-3 h-3 text-orange-400" /> Africa&apos;s #1 Gaming Marketplace
+          </span>
+        </div>
+
+        <h1 className="text-4xl sm:text-5xl lg:text-6xl font-black text-white leading-[1.05] tracking-tight mb-4">
+          Buy, Sell &amp; Trade<br />
+          <span className="text-brand">Gaming Accounts</span><br />
+          Without the Risk.
+        </h1>
+
+        <p className="text-sm md:text-base text-gray-400 mb-8 max-w-lg leading-relaxed">
+          Accounts, top-ups and boosting for every major game — every trade held in
+          escrow until you confirm delivery.
+        </p>
+
+        <div className="flex flex-wrap gap-3">
+          <Link
+            href="/marketplace"
+            className="inline-flex items-center gap-2 bg-brand hover:bg-amber-400 text-black font-bold px-7 py-3 rounded-xl transition shadow-lg shadow-brand/30 text-sm"
+          >
+            Browse Marketplace <ArrowRight className="w-4 h-4" />
+          </Link>
+          <Link
+            href="/sell"
+            className="inline-flex items-center gap-2 bg-white/5 hover:bg-white/10 border border-white/15 hover:border-brand/30 text-white font-semibold px-7 py-3 rounded-xl transition text-sm"
+          >
+            Start Selling
+          </Link>
+        </div>
+      </div>
+    </div>
+  );
+}
+
+/** A single fetched/fallback slide panel */
+function GameSlidePannel({ slide, gradient }: { slide: Slide; gradient: string }) {
+  return (
+    <div className="absolute inset-0">
+      {slide.imageUrl ? (
+        <div
+          className="absolute inset-0 bg-cover bg-center"
+          style={{ backgroundImage: `url(${slide.imageUrl})` }}
+        />
+      ) : (
+        <div className={`absolute inset-0 bg-gradient-to-br ${gradient}`}>
+          {slide.logo && (
+            // eslint-disable-next-line @next/next/no-img-element
+            <img
+              src={slide.logo}
+              alt=""
+              aria-hidden="true"
+              className="absolute right-8 sm:right-16 top-1/2 -translate-y-1/2 w-32 h-32 sm:w-48 sm:h-48 lg:w-64 lg:h-64 object-contain opacity-20 drop-shadow-2xl pointer-events-none select-none"
+              draggable={false}
+            />
+          )}
+        </div>
+      )}
+
+      {/* overlay */}
+      <div className="absolute inset-0 bg-gradient-to-r from-black/80 via-black/50 to-black/20" />
+
+      {/* content */}
+      <div className="relative h-full flex flex-col justify-end px-6 sm:px-12 lg:px-20 pb-16 sm:pb-20">
+        {slide.badge && (
+          <span className="inline-flex items-center gap-1.5 bg-brand/20 border border-brand/30 text-brand text-xs font-bold px-3 py-1 rounded-full mb-4 w-fit backdrop-blur-sm">
+            {slide.badge}
+          </span>
+        )}
+        <h2 className="text-3xl sm:text-4xl lg:text-5xl font-extrabold text-white leading-tight max-w-2xl mb-3">
+          {slide.title}
+        </h2>
+        {slide.subtitle && (
+          <p className="text-sm sm:text-base text-gray-300 max-w-lg mb-6 line-clamp-2 leading-relaxed">
+            {slide.subtitle}
+          </p>
+        )}
+        <div className="flex items-center gap-4">
+          {slide.linkHref && (
+            <Link
+              href={slide.linkHref}
+              className="inline-flex items-center gap-2 bg-brand hover:bg-amber-400 text-black font-bold px-6 py-3 rounded-xl transition shadow-lg shadow-brand/25 text-sm"
+            >
+              Browse Listings <ArrowRight className="w-4 h-4" />
+            </Link>
+          )}
+          <div className="flex items-center gap-1.5 text-xs text-gray-400">
+            <ShieldCheck className="w-3.5 h-3.5 text-emerald-400" />
+            <span>Escrow Protected</span>
+          </div>
+        </div>
+      </div>
+    </div>
+  );
+}
 
 export default function GameSlideshow() {
-  const [slides, setSlides] = useState<Slide[]>([]);
+  const [uploadedSlides, setUploadedSlides] = useState<Slide[]>([]);
   const [current, setCurrent] = useState(0);
-  const [isAnimating, setIsAnimating] = useState(false);
+  const [animating, setAnimating] = useState(false);
+  const [direction, setDirection] = useState<'left' | 'right'>('right');
+  const timerRef = useRef<ReturnType<typeof setInterval> | null>(null);
+
+  // total slides = hero (index 0) + uploaded/fallback slides
+  const totalCount = 1 + uploadedSlides.length;
 
   useEffect(() => {
     async function fetchSlides() {
@@ -61,118 +175,91 @@ export default function GameSlideshow() {
         if (res.ok) {
           const data = await res.json();
           const active = (data.data || []).filter((s: Slide) => s.isActive);
-          setSlides(active.length > 0 ? active : FALLBACK_SLIDES);
+          setUploadedSlides(active.length > 0 ? active : FALLBACK_SLIDES);
         } else {
-          setSlides(FALLBACK_SLIDES);
+          setUploadedSlides(FALLBACK_SLIDES);
         }
       } catch {
-        setSlides(FALLBACK_SLIDES);
+        setUploadedSlides(FALLBACK_SLIDES);
       }
     }
     fetchSlides();
   }, []);
 
-  const goTo = useCallback((index: number) => {
-    if (isAnimating || slides.length === 0) return;
-    setIsAnimating(true);
+  const goTo = useCallback((index: number, dir: 'left' | 'right' = 'right') => {
+    if (animating) return;
+    setDirection(dir);
+    setAnimating(true);
     setCurrent(index);
-    setTimeout(() => setIsAnimating(false), 400);
-  }, [isAnimating, slides.length]);
-
-  const prev = useCallback(() => {
-    goTo(current === 0 ? slides.length - 1 : current - 1);
-  }, [current, slides.length, goTo]);
+    setTimeout(() => setAnimating(false), 500);
+  }, [animating]);
 
   const next = useCallback(() => {
-    goTo(current === slides.length - 1 ? 0 : current + 1);
-  }, [current, slides.length, goTo]);
+    goTo(current === totalCount - 1 ? 0 : current + 1, 'right');
+  }, [current, totalCount, goTo]);
 
-  // Auto-advance
+  const prev = useCallback(() => {
+    goTo(current === 0 ? totalCount - 1 : current - 1, 'left');
+  }, [current, totalCount, goTo]);
+
+  // auto-advance
   useEffect(() => {
-    if (slides.length <= 1) return;
-    const timer = setInterval(next, 5000);
-    return () => clearInterval(timer);
-  }, [next, slides.length]);
-
-  if (slides.length === 0) return null;
-
-  const slide = slides[current];
-  const gradient = GRADIENT_FALLBACKS[current % GRADIENT_FALLBACKS.length];
+    if (totalCount <= 1) return;
+    if (timerRef.current) clearInterval(timerRef.current);
+    timerRef.current = setInterval(next, 5500);
+    return () => { if (timerRef.current) clearInterval(timerRef.current); };
+  }, [next, totalCount]);
 
   return (
-    <div className="relative rounded-3xl overflow-hidden border border-borderBg h-[280px] sm:h-[360px] md:h-[420px] group">
-      {/* Background image or gradient */}
-      {slide.imageUrl ? (
-        <div
-          className="absolute inset-0 bg-cover bg-center transition-opacity duration-500"
-          style={{ backgroundImage: `url(${slide.imageUrl})` }}
-        />
-      ) : (
-        <div className={`absolute inset-0 bg-gradient-to-r ${gradient}`}>
-          {slide.logo && (
-            // eslint-disable-next-line @next/next/no-img-element
-            <img
-              src={slide.logo}
-              alt=""
-              aria-hidden="true"
-              className="absolute right-6 sm:right-10 top-1/2 -translate-y-1/2 w-28 h-28 sm:w-40 sm:h-40 object-contain opacity-25 drop-shadow-2xl pointer-events-none"
-              draggable={false}
-            />
-          )}
-        </div>
-      )}
-
-      {/* Dark overlay for readability */}
-      <div className="absolute inset-0 bg-gradient-to-r from-black/70 via-black/40 to-transparent" />
-
-      {/* Content */}
+    <div className="relative w-full h-[480px] sm:h-[560px] lg:h-[640px] overflow-hidden group">
+      {/* ── Slides ── */}
+      {/* Slide 0: Hero CTA */}
       <div
-        className={`relative h-full flex flex-col justify-end p-6 sm:p-8 md:p-12 transition-all duration-[400ms] ${
-          isAnimating ? 'opacity-0 translate-y-2' : 'opacity-100 translate-y-0'
+        className={`absolute inset-0 transition-all duration-500 ease-in-out ${
+          current === 0
+            ? 'opacity-100 translate-x-0 z-10'
+            : direction === 'right'
+            ? 'opacity-0 -translate-x-16 z-0 pointer-events-none'
+            : 'opacity-0 translate-x-16 z-0 pointer-events-none'
         }`}
       >
-        {slide.badge && (
-          <span className="inline-flex items-center gap-1.5 bg-brand/20 border border-brand/30 text-brand-light text-xs font-bold px-3 py-1 rounded-full mb-3 w-fit backdrop-blur-sm">
-            {slide.badge}
-          </span>
-        )}
-        <h2 className="text-2xl sm:text-3xl md:text-4xl font-extrabold text-white leading-tight max-w-xl mb-2">
-          {slide.title}
-        </h2>
-        {slide.subtitle && (
-          <p className="text-sm sm:text-base text-gray-300 max-w-lg mb-4 line-clamp-2">
-            {slide.subtitle}
-          </p>
-        )}
-        <div className="flex items-center gap-3">
-          {slide.linkHref && (
-            <Link
-              href={slide.linkHref}
-              className="bg-brand hover:bg-brand-dark px-5 py-2.5 rounded-xl text-sm font-bold transition text-white shadow-lg shadow-brand/20"
-            >
-              Browse Listings
-            </Link>
-          )}
-          <div className="flex items-center gap-1.5 text-xs text-gray-400">
-            <ShieldCheck className="w-3.5 h-3.5 text-emerald-400" />
-            <span>Escrow Protected</span>
-          </div>
-        </div>
+        <HeroSlide />
       </div>
 
-      {/* Prev / Next arrows */}
-      {slides.length > 1 && (
+      {/* Slides 1+: uploaded / fallback */}
+      {uploadedSlides.map((slide, i) => {
+        const slideIndex = i + 1;
+        const isActive = current === slideIndex;
+        const gradient = GRADIENT_FALLBACKS[i % GRADIENT_FALLBACKS.length];
+        return (
+          <div
+            key={slide.id}
+            className={`absolute inset-0 transition-all duration-500 ease-in-out ${
+              isActive
+                ? 'opacity-100 translate-x-0 z-10'
+                : direction === 'right'
+                ? 'opacity-0 -translate-x-16 z-0 pointer-events-none'
+                : 'opacity-0 translate-x-16 z-0 pointer-events-none'
+            }`}
+          >
+            <GameSlidePannel slide={slide} gradient={gradient} />
+          </div>
+        );
+      })}
+
+      {/* ── Prev / Next ── */}
+      {totalCount > 1 && (
         <>
           <button
             onClick={prev}
-            className="absolute left-3 top-1/2 -translate-y-1/2 w-9 h-9 rounded-full bg-black/40 hover:bg-black/60 backdrop-blur-sm flex items-center justify-center text-white transition opacity-0 group-hover:opacity-100"
+            className="absolute left-4 top-1/2 -translate-y-1/2 z-20 w-10 h-10 rounded-full bg-black/50 hover:bg-black/80 backdrop-blur-sm border border-white/10 hover:border-brand/40 flex items-center justify-center text-white transition opacity-0 group-hover:opacity-100 shadow-lg"
             aria-label="Previous slide"
           >
             <ChevronLeft className="w-5 h-5" />
           </button>
           <button
             onClick={next}
-            className="absolute right-3 top-1/2 -translate-y-1/2 w-9 h-9 rounded-full bg-black/40 hover:bg-black/60 backdrop-blur-sm flex items-center justify-center text-white transition opacity-0 group-hover:opacity-100"
+            className="absolute right-4 top-1/2 -translate-y-1/2 z-20 w-10 h-10 rounded-full bg-black/50 hover:bg-black/80 backdrop-blur-sm border border-white/10 hover:border-brand/40 flex items-center justify-center text-white transition opacity-0 group-hover:opacity-100 shadow-lg"
             aria-label="Next slide"
           >
             <ChevronRight className="w-5 h-5" />
@@ -180,21 +267,28 @@ export default function GameSlideshow() {
         </>
       )}
 
-      {/* Dot indicators */}
-      {slides.length > 1 && (
-        <div className="absolute bottom-4 right-6 flex items-center gap-1.5">
-          {slides.map((_, i) => (
+      {/* ── Dot indicators ── */}
+      {totalCount > 1 && (
+        <div className="absolute bottom-5 left-1/2 -translate-x-1/2 z-20 flex items-center gap-2">
+          {Array.from({ length: totalCount }).map((_, i) => (
             <button
               key={i}
-              onClick={() => goTo(i)}
-              className={`rounded-full transition-all ${
-                i === current ? 'w-6 h-2 bg-brand' : 'w-2 h-2 bg-white/30 hover:bg-white/60'
+              onClick={() => goTo(i, i > current ? 'right' : 'left')}
+              aria-label={`Slide ${i + 1}`}
+              className={`rounded-full transition-all duration-300 ${
+                i === current
+                  ? 'w-8 h-2.5 bg-brand shadow-lg shadow-brand/40'
+                  : 'w-2.5 h-2.5 bg-white/25 hover:bg-white/50'
               }`}
-              aria-label={`Go to slide ${i + 1}`}
             />
           ))}
         </div>
       )}
+
+      {/* slide counter top-right */}
+      <div className="absolute top-5 right-5 z-20 text-[11px] font-bold text-white/40 tabular-nums select-none">
+        {String(current + 1).padStart(2, '0')} / {String(totalCount).padStart(2, '0')}
+      </div>
     </div>
   );
 }
