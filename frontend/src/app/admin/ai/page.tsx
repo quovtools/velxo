@@ -1,17 +1,22 @@
 'use client';
 
-import React, { useCallback, useEffect, useRef, useState } from 'react';
+import React, {
+  useCallback, useEffect, useRef, useState, useTransition,
+} from 'react';
+import Link from 'next/link';
 import {
-  Sparkles, Send, Square, Plus, Trash2, MessageSquare, Wrench,
-  Check, X, AlertTriangle, RefreshCw, ShieldAlert, Loader2, ChevronDown,
+  Sparkles, Send, Square, Plus, Trash2, MessageSquare,
+  Wrench, Check, X, AlertTriangle, Loader2, ChevronLeft,
+  ChevronRight, ShieldAlert, RefreshCw, Database, BarChart3,
+  Terminal, Copy, CheckCheck, ArrowLeft, Menu,
 } from 'lucide-react';
 import { api } from '@/lib/api';
-import { Spinner } from '@/components/admin/ui';
 import { MarkdownLite } from '@/components/admin/markdown-lite';
 
-const API_BASE_URL = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:3001/api/v1';
+const API_BASE = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:3001/api/v1';
+const PASSWORD_KEY = 'piyrox_admin_password';
 
-// ─── Types ───────────────────────────────────────────────────────────────────
+// ─── Types ────────────────────────────────────────────────────────────────────
 
 interface ToolEvent {
   id: string;
@@ -29,11 +34,20 @@ interface PendingCard {
   resultSummary?: string;
 }
 
+interface SqlResult {
+  columns: string[];
+  rows: Record<string, any>[];
+  rowCount: number;
+  capped: boolean;
+  executedSql?: string;
+}
+
 interface ChatMessage {
   id: string;
   role: 'user' | 'assistant';
   content: string;
   tools?: ToolEvent[];
+  sqlResults?: SqlResult[];
   pending?: PendingCard[];
   usage?: { promptTokens: number; completionTokens: number };
   model?: string;
@@ -48,41 +62,286 @@ interface ConversationSummary {
   messageCount: number;
 }
 
-let localIdCounter = 0;
-const localId = () => `local-${++localIdCounter}`;
+let _uid = 0;
+const uid = () => `m-${++_uid}-${Date.now()}`;
 
 const SUGGESTIONS = [
-  'How did sales perform this week compared to last week?',
-  'Which games have the highest buyer demand right now?',
-  'Flag any suspicious seller or listing activity in the last 24 hours',
-  "What's the refund and dispute rate this month, and what's driving it?",
+  'What are the platform KPIs right now?',
+  'Show revenue for the past 7 days vs the 7 before that.',
+  'Any fraud signals or suspicious users in the last 48 hours?',
+  'What games have the highest buyer demand but low supply?',
+  'List the 5 oldest pending moderation items.',
+  'How many open disputes are over $50?',
 ];
 
-// ─── Component ───────────────────────────────────────────────────────────────
+// ─── Tool icon helper ─────────────────────────────────────────────────────────
+function toolIcon(name: string) {
+  if (name.includes('sql'))      return <Database className="w-3 h-3" />;
+  if (name.includes('revenue') || name.includes('analytics')) return <BarChart3 className="w-3 h-3" />;
+  return <Terminal className="w-3 h-3" />;
+}
 
-export default function AdminAiPage() {
-  const [status, setStatus]         = useState<{ enabled: boolean; primaryModel?: string; toolCount?: number } | null>(null);
+// ─── SQL result table ─────────────────────────────────────────────────────────
+function SqlTable({ result }: { result: SqlResult }) {
+  const [expanded, setExpanded] = useState(false);
+  const preview = expanded ? result.rows : result.rows.slice(0, 6);
+
+  return (
+    <div className="mt-2 rounded-xl border border-white/8 overflow-hidden text-[11px]">
+      <div className="flex items-center justify-between px-3 py-2 bg-white/[0.03] border-b border-white/6">
+        <div className="flex items-center gap-2 text-gray-400">
+          <Database className="w-3 h-3 text-violet-400" />
+          <span className="font-semibold">{result.rowCount} row{result.rowCount !== 1 ? 's' : ''}</span>
+          {result.capped && <span className="text-amber-400/80">(capped)</span>}
+        </div>
+        {result.executedSql && (
+          <span className="text-gray-600 font-mono truncate max-w-[260px]" title={result.executedSql}>
+            {result.executedSql.slice(0, 60)}{result.executedSql.length > 60 ? '…' : ''}
+          </span>
+        )}
+      </div>
+      {result.columns.length > 0 && result.rows.length > 0 && (
+        <div className="overflow-x-auto">
+          <table className="w-full">
+            <thead>
+              <tr className="border-b border-white/5">
+                {result.columns.map(col => (
+                  <th key={col} className="px-3 py-1.5 text-left font-semibold text-gray-500 whitespace-nowrap">
+                    {col}
+                  </th>
+                ))}
+              </tr>
+            </thead>
+            <tbody className="divide-y divide-white/[0.04]">
+              {preview.map((row, i) => (
+                <tr key={i} className="hover:bg-white/[0.02] transition-colors">
+                  {result.columns.map(col => (
+                    <td key={col} className="px-3 py-1.5 text-gray-300 whitespace-nowrap max-w-[200px] truncate"
+                      title={String(row[col] ?? '')}>
+                      {row[col] === null || row[col] === undefined
+                        ? <span className="text-gray-700 italic">null</span>
+                        : String(row[col])}
+                    </td>
+                  ))}
+                </tr>
+              ))}
+            </tbody>
+          </table>
+        </div>
+      )}
+      {result.rows.length > 6 && (
+        <button onClick={() => setExpanded(e => !e)}
+          className="w-full text-center py-1.5 text-[10px] text-gray-600 hover:text-gray-400
+            hover:bg-white/[0.02] transition border-t border-white/5">
+          {expanded ? '▲ Show less' : `▼ Show all ${result.rowCount} rows`}
+        </button>
+      )}
+    </div>
+  );
+}
+
+// ─── Copy button ──────────────────────────────────────────────────────────────
+function CopyBtn({ text }: { text: string }) {
+  const [copied, setCopied] = useState(false);
+  return (
+    <button
+      onClick={() => { navigator.clipboard.writeText(text).then(() => { setCopied(true); setTimeout(() => setCopied(false), 1500); }); }}
+      className="p-1 text-gray-600 hover:text-gray-300 transition rounded"
+      title="Copy">
+      {copied ? <CheckCheck className="w-3.5 h-3.5 text-emerald-400" /> : <Copy className="w-3.5 h-3.5" />}
+    </button>
+  );
+}
+
+// ─── Message bubble ───────────────────────────────────────────────────────────
+function MessageBubble({
+  msg, onConfirm, confirming,
+}: {
+  msg: ChatMessage;
+  onConfirm: (actionId: string, decision: 'confirm' | 'cancel') => void;
+  confirming: string | null;
+}) {
+  if (msg.role === 'user') {
+    return (
+      <div className="flex justify-end mb-6">
+        <div className="max-w-[75%] sm:max-w-[65%] bg-violet-600 text-white rounded-2xl
+          rounded-br-sm px-4 py-3 text-[13px] leading-relaxed whitespace-pre-wrap break-words shadow-lg shadow-violet-500/15">
+          {msg.content}
+        </div>
+      </div>
+    );
+  }
+
+  // Assistant
+  return (
+    <div className="flex justify-start mb-6 gap-3">
+      {/* Avatar */}
+      <div className="w-7 h-7 rounded-xl bg-violet-600/20 border border-violet-500/25
+        flex items-center justify-center flex-shrink-0 mt-0.5">
+        <Sparkles className="w-3.5 h-3.5 text-violet-400" />
+      </div>
+
+      <div className="flex-1 min-w-0 space-y-2">
+        {/* Tool chips */}
+        {(msg.tools ?? []).map(tool => (
+          <div key={tool.id}
+            className={`inline-flex items-center gap-1.5 text-[11px] font-semibold px-2.5 py-1
+              rounded-lg border mr-1.5 mb-0.5
+              ${tool.state === 'running'
+                ? 'border-violet-500/30 bg-violet-500/8 text-violet-300'
+                : tool.state === 'failed'
+                  ? 'border-red-500/25 bg-red-500/6 text-red-400'
+                  : 'border-emerald-500/20 bg-emerald-500/6 text-emerald-400'}`}>
+            {tool.state === 'running'
+              ? <Loader2 className="w-3 h-3 animate-spin" />
+              : toolIcon(tool.name)}
+            <span className="font-mono">{tool.name}</span>
+            {tool.summary && tool.state !== 'running' && (
+              <span className="text-gray-500 font-sans non-mono ml-0.5 truncate max-w-[140px]"
+                title={tool.summary}>
+                — {tool.summary}
+              </span>
+            )}
+          </div>
+        ))}
+
+        {/* SQL result tables */}
+        {(msg.sqlResults ?? []).map((r, i) => (
+          <SqlTable key={i} result={r} />
+        ))}
+
+        {/* Main content */}
+        {(msg.content || msg.streaming) && (
+          <div className="bg-[#111118] border border-white/8 rounded-2xl rounded-tl-sm px-4 py-3.5
+            shadow-sm relative group">
+            {/* Copy button */}
+            {msg.content && !msg.streaming && (
+              <div className="absolute top-2.5 right-2.5 opacity-0 group-hover:opacity-100 transition">
+                <CopyBtn text={msg.content} />
+              </div>
+            )}
+
+            {msg.content ? (
+              <MarkdownLite content={msg.content} />
+            ) : (
+              /* Thinking dots */
+              <span className="flex items-center gap-1.5 text-[12px] text-gray-600">
+                <span className="w-1.5 h-1.5 rounded-full bg-violet-400 animate-pulse" />
+                <span className="w-1.5 h-1.5 rounded-full bg-violet-400 animate-pulse [animation-delay:150ms]" />
+                <span className="w-1.5 h-1.5 rounded-full bg-violet-400 animate-pulse [animation-delay:300ms]" />
+                <span className="ml-1">Thinking…</span>
+              </span>
+            )}
+
+            {/* Streaming cursor */}
+            {msg.streaming && msg.content && (
+              <span className="inline-block w-1.5 h-3.5 bg-violet-400/70 ml-0.5
+                animate-pulse rounded-sm align-text-bottom" />
+            )}
+
+            {/* Token / model footer */}
+            {(msg.model || msg.usage) && !msg.streaming && (
+              <p className="mt-2.5 pt-2 border-t border-white/5 text-[10px] text-gray-700
+                flex items-center gap-2">
+                {msg.model && <span className="font-mono">{msg.model.split('/').pop()}</span>}
+                {msg.usage && (
+                  <span>{msg.usage.promptTokens + msg.usage.completionTokens} tokens</span>
+                )}
+              </p>
+            )}
+          </div>
+        )}
+
+        {/* Confirmation cards */}
+        {(msg.pending ?? []).map(card => {
+          const busy = confirming === card.actionId;
+          const resolved = !!card.resolution;
+          return (
+            <div key={card.actionId}
+              className={`rounded-2xl border overflow-hidden
+                ${card.resolution === 'CONFIRMED'
+                  ? 'border-emerald-500/20 bg-emerald-500/4'
+                  : card.resolution === 'CANCELLED'
+                    ? 'border-white/6 bg-white/[0.015]'
+                    : 'border-amber-500/25 bg-amber-500/5'}`}>
+              <div className="flex items-start gap-3 px-4 py-3">
+                <ShieldAlert className={`w-4 h-4 mt-0.5 flex-shrink-0
+                  ${resolved ? 'text-gray-600' : 'text-amber-400'}`} />
+                <div className="flex-1 min-w-0">
+                  <p className={`text-[12px] font-bold leading-none mb-1
+                    ${card.resolution === 'CONFIRMED'
+                      ? 'text-emerald-400'
+                      : card.resolution === 'CANCELLED'
+                        ? 'text-gray-500'
+                        : 'text-amber-300'}`}>
+                    {card.resolution === 'CONFIRMED' ? 'Action executed'
+                      : card.resolution === 'CANCELLED' ? 'Action cancelled'
+                      : 'Confirmation required'}
+                  </p>
+                  <p className="text-[12px] text-gray-300 leading-relaxed break-words">{card.summary}</p>
+                  {card.resultSummary && (
+                    <p className="mt-1.5 text-[11px] text-emerald-400/80 break-words">{card.resultSummary}</p>
+                  )}
+                </div>
+              </div>
+              {!resolved && (
+                <div className="flex gap-2 px-4 pb-3.5">
+                  <button onClick={() => onConfirm(card.actionId, 'confirm')}
+                    disabled={busy}
+                    className="flex items-center justify-center gap-1.5 flex-1 bg-emerald-600
+                      hover:bg-emerald-500 disabled:opacity-50 text-white text-[12px]
+                      font-bold py-2 rounded-xl transition active:scale-95 touch-manipulation">
+                    {busy ? <Loader2 className="w-3.5 h-3.5 animate-spin" /> : <Check className="w-3.5 h-3.5" />}
+                    {busy ? 'Executing…' : 'Confirm'}
+                  </button>
+                  <button onClick={() => onConfirm(card.actionId, 'cancel')}
+                    disabled={busy}
+                    className="flex items-center justify-center gap-1.5 flex-1
+                      bg-white/5 hover:bg-white/8 border border-white/10 disabled:opacity-50
+                      text-gray-300 text-[12px] font-bold py-2 rounded-xl transition touch-manipulation">
+                    <X className="w-3.5 h-3.5" /> Cancel
+                  </button>
+                </div>
+              )}
+            </div>
+          );
+        })}
+      </div>
+    </div>
+  );
+}
+
+// ─── Main component ────────────────────────────────────────────────────────────
+export default function AiCopilotPage() {
+  // Status
+  const [status, setStatus]           = useState<{ enabled: boolean; primaryModel?: string; toolCount?: number } | null>(null);
   const [statusLoading, setStatusLoading] = useState(true);
-  const [conversations, setConversations]       = useState<ConversationSummary[]>([]);
-  const [conversationId, setConversationId]     = useState<string | null>(null);
-  const [messages, setMessages]                 = useState<ChatMessage[]>([]);
-  const [input, setInput]                       = useState('');
-  const [streaming, setStreaming]               = useState(false);
-  const [error, setError]                       = useState('');
-  const [confirmingId, setConfirmingId]         = useState<string | null>(null);
-  const [convOpen, setConvOpen]                 = useState(false);
 
-  const abortRef      = useRef<AbortController | null>(null);
-  const scrollRef     = useRef<HTMLDivElement | null>(null);
+  // Conversations list
+  const [convs, setConvs]             = useState<ConversationSummary[]>([]);
+  const [sidebarOpen, setSidebarOpen] = useState(false);  // mobile
+
+  // Active chat
+  const [convId, setConvId]           = useState<string | null>(null);
+  const [messages, setMessages]       = useState<ChatMessage[]>([]);
+  const [input, setInput]             = useState('');
+  const [streaming, setStreaming]     = useState(false);
+  const [error, setError]             = useState('');
+  const [confirmingId, setConfirmingId] = useState<string | null>(null);
+  const [, startTransition]           = useTransition();
+
+  const abortRef       = useRef<AbortController | null>(null);
   const assistantIdRef = useRef<string | null>(null);
+  const scrollRef      = useRef<HTMLDivElement | null>(null);
+  const inputRef       = useRef<HTMLTextAreaElement | null>(null);
+  const bottomRef      = useRef<HTMLDivElement | null>(null);
 
-  // ─── Data loading ──────────────────────────────────────────────────────────
-
+  // ── Load status + conversation list ─────────────────────────────────────────
   const loadStatus = useCallback(async () => {
     try {
       const res: any = await api.get('/ai/admin/status');
-      const data = res?.data ?? res;
-      setStatus({ enabled: Boolean(data?.aiEnabled), primaryModel: data?.primaryModel, toolCount: data?.toolCount });
+      const d = res?.data ?? res;
+      setStatus({ enabled: Boolean(d?.aiEnabled), primaryModel: d?.primaryModel, toolCount: d?.toolCount });
     } catch {
       setStatus({ enabled: false });
     } finally {
@@ -90,27 +349,31 @@ export default function AdminAiPage() {
     }
   }, []);
 
-  const loadConversations = useCallback(async () => {
+  const loadConvs = useCallback(async () => {
     try {
       const res: any = await api.get('/ai/admin/conversations');
-      const data = res?.data ?? res;
-      setConversations(Array.isArray(data) ? data : []);
+      const d = res?.data ?? res;
+      setConvs(Array.isArray(d) ? d : []);
     } catch { /* sidebar is non-critical */ }
   }, []);
 
   useEffect(() => {
     loadStatus();
-    loadConversations();
-  }, [loadStatus, loadConversations]);
+    loadConvs();
+  }, [loadStatus, loadConvs]);
 
-  // ─── History ───────────────────────────────────────────────────────────────
+  // ── Auto-scroll to bottom when messages update ───────────────────────────────
+  useEffect(() => {
+    bottomRef.current?.scrollIntoView({ behavior: 'smooth' });
+  }, [messages]);
 
-  const openConversation = useCallback(async (id: string) => {
+  // ── Load existing conversation ───────────────────────────────────────────────
+  const openConv = useCallback(async (id: string) => {
     if (streaming) return;
     setError('');
-    setConversationId(id);
-    setConvOpen(false);
+    setConvId(id);
     setMessages([]);
+    setSidebarOpen(false);
     try {
       const res: any = await api.get(`/ai/admin/conversations/${id}`);
       const conv = res?.data ?? res;
@@ -119,158 +382,187 @@ export default function AdminAiPage() {
         if (row.role === 'user') {
           mapped.push({ id: row.id, role: 'user', content: row.content });
         } else if (row.role === 'assistant') {
-          const msg: ChatMessage = { id: row.id, role: 'assistant', content: row.content || '', model: row.model };
+          const msg: ChatMessage = {
+            id: row.id, role: 'assistant', content: row.content || '', model: row.model,
+          };
           const calls = Array.isArray(row.toolCalls) ? row.toolCalls : [];
           if (calls.length) {
             msg.tools = calls.map((c: any) => ({
-              id: c?.id ?? localId(),
-              name: c?.function?.name ?? 'tool',
-              state: 'done',
+              id: c?.id ?? uid(), name: c?.function?.name ?? 'tool', state: 'done',
             }));
           }
           mapped.push(msg);
         } else if (row.role === 'tool' && mapped.length) {
-          // Attach tool results to the nearest assistant message
-          const target = [...mapped].reverse().find((m) => m.role === 'assistant');
+          const target = [...mapped].reverse().find(m => m.role === 'assistant');
           if (target) {
             let parsed: any = null;
-            try { parsed = JSON.parse(row.content); } catch { parsed = null; }
+            try { parsed = JSON.parse(row.content); } catch {}
+            // Attach inline SQL table if this is a sql result
+            if (parsed?.data?.columns && Array.isArray(parsed.data.rows)) {
+              target.sqlResults = [...(target.sqlResults ?? []), {
+                columns: parsed.data.columns,
+                rows: parsed.data.rows,
+                rowCount: parsed.data.rowCount ?? parsed.data.rows.length,
+                capped: parsed.data.capped ?? false,
+                executedSql: parsed.data.executedSql,
+              }];
+            }
             const chip: ToolEvent = {
               id: row.id,
               name: row.toolName ?? 'tool',
               state: parsed?.ok === false ? 'failed' : 'done',
               summary: parsed?.status === 'awaiting_confirmation'
                 ? 'Awaiting confirmation'
-                : parsed?.summary ?? '',
+                : (parsed?.summary ?? ''),
             };
             target.tools = [...(target.tools ?? []), chip];
           }
         }
       }
-      // Live pending actions → render as confirmation cards
+      // Pending actions still needing confirmation
       const pending: PendingCard[] = (conv?.pendingActions ?? []).map((a: any) => ({
-        actionId: a.actionId,
-        toolName: a.toolName,
-        summary: a.summary,
-        args: a.args,
+        actionId: a.actionId, toolName: a.toolName, summary: a.summary, args: a.args,
       }));
       if (pending.length) {
         const last = mapped[mapped.length - 1];
         if (last?.role === 'assistant') last.pending = pending;
-        else mapped.push({ id: localId(), role: 'assistant', content: '', pending });
+        else mapped.push({ id: uid(), role: 'assistant', content: '', pending });
       }
       setMessages(mapped);
     } catch (err: any) {
-      setError(err?.message || 'Could not load this conversation.');
+      setError(err?.message || 'Could not load conversation.');
     }
   }, [streaming]);
 
-  const startNewChat = () => {
+  const newChat = () => {
     if (streaming) return;
-    setConversationId(null);
+    setConvId(null);
     setMessages([]);
     setError('');
-    setConvOpen(false);
+    setSidebarOpen(false);
+    setTimeout(() => inputRef.current?.focus(), 50);
   };
 
-  const deleteConversation = async (id: string) => {
-    if (!window.confirm('Delete this conversation permanently?')) return;
+  const deleteConv = async (id: string, e: React.MouseEvent) => {
+    e.stopPropagation();
+    if (!confirm('Delete this conversation?')) return;
     try {
       await api.delete(`/ai/admin/conversations/${id}`);
-      setConversations((prev) => prev.filter((c) => c.id !== id));
-      if (conversationId === id) startNewChat();
+      setConvs(prev => prev.filter(c => c.id !== id));
+      if (convId === id) newChat();
     } catch (err: any) {
-      setError(err?.message || 'Could not delete the conversation.');
+      setError(err?.message || 'Could not delete.');
     }
   };
 
-  // ─── Streaming ─────────────────────────────────────────────────────────────
-
-  const updateAssistant = (fn: (msg: ChatMessage) => ChatMessage) => {
+  // ── Streaming ────────────────────────────────────────────────────────────────
+  const updateAssistant = useCallback((fn: (m: ChatMessage) => ChatMessage) => {
     const id = assistantIdRef.current;
     if (!id) return;
-    setMessages((prev) => prev.map((m) => (m.id === id ? fn(m) : m)));
-  };
+    setMessages(prev => prev.map(m => m.id === id ? fn(m) : m));
+  }, []);
 
-  const runStream = useCallback(async (body: { conversationId?: string; message?: string; resume?: boolean }) => {
+  const runStream = useCallback(async (body: {
+    conversationId?: string; message?: string; resume?: boolean;
+  }) => {
     setError('');
     setStreaming(true);
 
-    assistantIdRef.current = localId();
-    const assistantMsg: ChatMessage = { id: assistantIdRef.current, role: 'assistant', content: '', streaming: true };
-    setMessages((prev) => [...prev, assistantMsg]);
+    const aid = uid();
+    assistantIdRef.current = aid;
+    setMessages(prev => [...prev, { id: aid, role: 'assistant', content: '', streaming: true }]);
 
-    const controller = new AbortController();
-    abortRef.current = controller;
+    const ctrl = new AbortController();
+    abortRef.current = ctrl;
+    let gotConvId = false;
 
-    let receivedConversation = false;
     try {
-      const password = typeof window !== 'undefined' ? sessionStorage.getItem('piyrox_admin_password') : null;
-      const res = await fetch(`${API_BASE_URL}/ai/admin/chat`, {
+      const password = typeof window !== 'undefined'
+        ? sessionStorage.getItem(PASSWORD_KEY) : null;
+
+      const res = await fetch(`${API_BASE}/ai/admin/chat`, {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
           ...(password ? { 'x-admin-password': password } : {}),
         },
         body: JSON.stringify(body),
-        signal: controller.signal,
+        signal: ctrl.signal,
       });
 
       if (!res.ok || !res.body) {
-        const text = await res.text().catch(() => '');
-        let message = 'The assistant is unavailable right now.';
-        try {
-          message = JSON.parse(text)?.message ?? message;
-        } catch { /* non-JSON body */ }
-        throw new Error(message);
+        const txt = await res.text().catch(() => '');
+        let msg = 'The assistant is unavailable right now.';
+        try { msg = JSON.parse(txt)?.message ?? msg; } catch {}
+        throw new Error(msg);
       }
 
-      const reader = res.body.getReader();
+      const reader  = res.body.getReader();
       const decoder = new TextDecoder();
       let buf = '';
 
-      const handleEvent = (event: any) => {
-        switch (event?.event) {
+      const handle = (ev: any) => {
+        switch (ev?.event) {
           case 'delta':
-            updateAssistant((m) => ({ ...m, content: m.content + (event.content ?? '') }));
+            updateAssistant(m => ({ ...m, content: m.content + (ev.content ?? '') }));
             break;
           case 'tool_call':
-            updateAssistant((m) => ({
+            updateAssistant(m => ({
               ...m,
-              tools: [...(m.tools ?? []), { id: event.id, name: event.name, state: 'running' }],
+              tools: [...(m.tools ?? []), { id: ev.id, name: ev.name, state: 'running' }],
             }));
             break;
           case 'tool_result':
-            updateAssistant((m) => ({
-              ...m,
-              tools: (m.tools ?? []).map((t) =>
-                t.id === event.id || t.name === event.name
-                  ? { ...t, state: event.ok === false ? 'failed' : 'done', summary: event.summary }
-                  : t,
-              ),
-            }));
+            updateAssistant(m => {
+              // Attach SQL table when the tool is run_sql_query
+              let sqlResults = m.sqlResults ?? [];
+              if (
+                ev.name === 'run_sql_query' &&
+                ev.ok !== false &&
+                ev.data?.columns && Array.isArray(ev.data?.rows)
+              ) {
+                sqlResults = [...sqlResults, {
+                  columns: ev.data.columns,
+                  rows: ev.data.rows,
+                  rowCount: ev.data.rowCount ?? ev.data.rows.length,
+                  capped: ev.data.capped ?? false,
+                  executedSql: ev.data.executedSql,
+                }];
+              }
+              return {
+                ...m,
+                sqlResults,
+                tools: (m.tools ?? []).map(t =>
+                  t.id === ev.id || t.name === ev.name
+                    ? { ...t, state: ev.ok === false ? 'failed' : 'done', summary: ev.summary }
+                    : t,
+                ),
+              };
+            });
             break;
           case 'confirmation_required':
-            updateAssistant((m) => ({
+            updateAssistant(m => ({
               ...m,
-              pending: [...(m.pending ?? []), ...(event.actions ?? [])],
+              pending: [...(m.pending ?? []), ...(ev.actions ?? [])],
             }));
             break;
           case 'usage':
-            updateAssistant((m) => ({
+            updateAssistant(m => ({
               ...m,
-              usage: { promptTokens: event.promptTokens ?? 0, completionTokens: event.completionTokens ?? 0 },
+              usage: { promptTokens: ev.promptTokens ?? 0, completionTokens: ev.completionTokens ?? 0 },
             }));
             break;
           case 'done':
-            if (event.conversationId) {
-              receivedConversation = true;
-              setConversationId(event.conversationId);
+            if (ev.conversationId) {
+              gotConvId = true;
+              setConvId(ev.conversationId);
             }
-            if (event.message) updateAssistant((m) => ({ ...m, content: m.content + `\n\n*${event.message}*` }));
+            if (ev.message) {
+              updateAssistant(m => ({ ...m, content: m.content + `\n\n*${ev.message}*` }));
+            }
             break;
           case 'error':
-            setError(event.message || 'The assistant hit an unexpected error.');
+            setError(ev.message || 'The assistant hit an unexpected error.');
             break;
         }
       };
@@ -279,17 +571,14 @@ export default function AdminAiPage() {
         const { done, value } = await reader.read();
         if (done) break;
         buf += decoder.decode(value, { stream: true });
-
         let sep: number;
         while ((sep = buf.indexOf('\n\n')) !== -1) {
           const block = buf.slice(0, sep);
           buf = buf.slice(sep + 2);
           for (const line of block.split('\n')) {
-            const trimmed = line.trim();
-            if (!trimmed.startsWith('data:')) continue;
-            try {
-              handleEvent(JSON.parse(trimmed.slice(5).trim()));
-            } catch { /* skip malformed frame */ }
+            const t = line.trim();
+            if (!t.startsWith('data:')) continue;
+            try { handle(JSON.parse(t.slice(5).trim())); } catch {}
           }
         }
       }
@@ -298,57 +587,46 @@ export default function AdminAiPage() {
         setError(err?.message || 'Lost connection to the assistant.');
       }
     } finally {
-      updateAssistant((m) => ({ ...m, streaming: false }));
+      updateAssistant(m => ({ ...m, streaming: false }));
       setStreaming(false);
       abortRef.current = null;
-      if (receivedConversation || body.conversationId) loadConversations();
+      if (gotConvId || body.conversationId) loadConvs();
     }
-  }, [loadConversations]);
+  }, [updateAssistant, loadConvs]);
 
   const send = async (text?: string) => {
-    const message = (text ?? input).trim();
-    if (!message || streaming) return;
+    const msg = (text ?? input).trim();
+    if (!msg || streaming) return;
     setInput('');
-    setMessages((prev) => [...prev, { id: localId(), role: 'user', content: message }]);
-    await runStream({ conversationId: conversationId ?? undefined, message });
+    setMessages(prev => [...prev, { id: uid(), role: 'user', content: msg }]);
+    await runStream({ conversationId: convId ?? undefined, message: msg });
   };
 
-  const stop = () => {
-    abortRef.current?.abort();
-  };
+  const stop = () => abortRef.current?.abort();
 
-  // ─── Confirmation gate ─────────────────────────────────────────────────────
-
+  // ── Confirmation ─────────────────────────────────────────────────────────────
   const resolveAction = async (actionId: string, decision: 'confirm' | 'cancel') => {
     if (streaming || confirmingId) return;
     setConfirmingId(actionId);
     setError('');
     try {
       const res: any = await api.post('/ai/admin/confirm', {
-        actionId,
-        decision,
-        conversationId: conversationId ?? undefined,
+        actionId, decision, conversationId: convId ?? undefined,
       });
       const result = res?.data ?? res;
-
-      setMessages((prev) =>
-        prev.map((m) => ({
-          ...m,
-          pending: (m.pending ?? []).map((card) =>
-            card.actionId === actionId
-              ? {
-                  ...card,
-                  resolution: result?.ok === false || result?.status === 'CANCELLED' ? 'CANCELLED' : 'CONFIRMED',
-                  resultSummary: result?.summary,
-                }
-              : card,
-          ),
-        })),
-      );
-
-      if (decision === 'confirm' && conversationId) {
-        // Let the model summarise what actually happened
-        await runStream({ conversationId, resume: true });
+      setMessages(prev => prev.map(m => ({
+        ...m,
+        pending: (m.pending ?? []).map(c =>
+          c.actionId === actionId ? {
+            ...c,
+            resolution: result?.ok === false || result?.status === 'CANCELLED'
+              ? 'CANCELLED' : 'CONFIRMED',
+            resultSummary: result?.summary,
+          } : c,
+        ),
+      })));
+      if (decision === 'confirm' && convId) {
+        await runStream({ conversationId: convId, resume: true });
       }
     } catch (err: any) {
       setError(err?.message || 'Could not process the confirmation.');
@@ -357,265 +635,268 @@ export default function AdminAiPage() {
     }
   };
 
-  // ─── Auto scroll ───────────────────────────────────────────────────────────
+  // ── Auto-resize textarea ─────────────────────────────────────────────────────
+  const handleInput = (e: React.ChangeEvent<HTMLTextAreaElement>) => {
+    setInput(e.target.value);
+    e.target.style.height = 'auto';
+    e.target.style.height = Math.min(e.target.scrollHeight, 160) + 'px';
+  };
 
-  useEffect(() => {
-    const el = scrollRef.current;
-    if (el) el.scrollTop = el.scrollHeight;
-  }, [messages, streaming]);
+  const handleKeyDown = (e: React.KeyboardEvent<HTMLTextAreaElement>) => {
+    if (e.key === 'Enter' && !e.shiftKey) { e.preventDefault(); send(); }
+  };
 
-  // ─── Render ────────────────────────────────────────────────────────────────
+  const disabled = statusLoading || !status?.enabled;
 
-  const disabled = statusLoading || status?.enabled === false;
-
-  return (
-    <div className="flex flex-col xl:flex-row gap-4 h-[calc(100vh-140px)] min-h-[540px]">
-      {/* Conversations sidebar */}
-      <aside className={`${convOpen ? 'flex' : 'hidden'} xl:flex xl:w-64 flex-shrink-0 flex-col bg-[#111118] border border-white/8 rounded-2xl overflow-hidden`}>
-        <div className="flex items-center gap-2 p-3 border-b border-white/6">
-          <button onClick={startNewChat} disabled={streaming}
-            className="flex-1 flex items-center justify-center gap-1.5 bg-violet-600 hover:bg-violet-500 disabled:opacity-50 text-white text-[12px] font-semibold py-2 rounded-xl transition">
-            <Plus className="w-3.5 h-3.5" /> New chat
-          </button>
-          <button onClick={() => setConvOpen(false)} className="xl:hidden p-2 text-gray-500 hover:text-white transition">
-            <X className="w-4 h-4" />
-          </button>
+  // ── Conversation sidebar ──────────────────────────────────────────────────────
+  const SidebarInner = (
+    <div className="flex flex-col h-full">
+      {/* Header */}
+      <div className="flex items-center gap-2 p-3 border-b border-white/6 flex-shrink-0">
+        <div className="w-7 h-7 rounded-lg bg-violet-600/20 border border-violet-500/25
+          flex items-center justify-center flex-shrink-0">
+          <Sparkles className="w-3.5 h-3.5 text-violet-400" />
         </div>
-        <div className="flex-1 overflow-y-auto p-2 space-y-1 scrollbar-thin scrollbar-track-transparent scrollbar-thumb-white/6">
-          {conversations.length === 0 && (
-            <p className="text-[11px] text-gray-600 px-2 py-4 text-center leading-relaxed">
-              No conversations yet.<br />Ask your first question to get started.
-            </p>
-          )}
-          {conversations.map((conv) => (
-            <div key={conv.id}
-              className={`group flex items-center gap-1 rounded-xl transition ${conversationId === conv.id ? 'bg-violet-600/15 border border-violet-500/25' : 'hover:bg-white/4 border border-transparent'}`}>
-              <button onClick={() => openConversation(conv.id)}
-                className="flex-1 flex items-center gap-2 px-2.5 py-2 text-left min-w-0">
-                <MessageSquare className={`w-3.5 h-3.5 flex-shrink-0 ${conversationId === conv.id ? 'text-violet-400' : 'text-gray-600'}`} />
-                <span className="truncate text-[12px] text-gray-300">{conv.title || 'Untitled'}</span>
-              </button>
-              <button onClick={() => deleteConversation(conv.id)}
-                className="p-1.5 mr-1 text-gray-700 hover:text-red-400 opacity-0 group-hover:opacity-100 transition">
+        <span className="text-[13px] font-black text-white flex-1">Piyrox Copilot</span>
+        <button onClick={newChat} disabled={streaming}
+          className="flex items-center gap-1 bg-violet-600 hover:bg-violet-500
+            disabled:opacity-40 text-white text-[11px] font-bold px-2.5 py-1.5
+            rounded-lg transition touch-manipulation"
+          title="New chat">
+          <Plus className="w-3 h-3" /> New
+        </button>
+      </div>
+
+      {/* Conversation list */}
+      <div className="flex-1 overflow-y-auto py-2 scrollbar-thin
+        scrollbar-track-transparent scrollbar-thumb-white/6">
+        {convs.length === 0 ? (
+          <p className="text-[11px] text-gray-600 text-center py-8 px-4 leading-relaxed">
+            No conversations yet.<br />Ask your first question to get started.
+          </p>
+        ) : (
+          convs.map(c => (
+            <div key={c.id}
+              className={`group mx-2 mb-0.5 flex items-center rounded-xl transition cursor-pointer
+                ${convId === c.id
+                  ? 'bg-violet-600/12 border border-violet-500/20'
+                  : 'hover:bg-white/[0.04] border border-transparent'}`}
+              onClick={() => openConv(c.id)}>
+              <div className="flex items-center gap-2 px-3 py-2.5 flex-1 min-w-0">
+                <MessageSquare className={`w-3.5 h-3.5 flex-shrink-0
+                  ${convId === c.id ? 'text-violet-400' : 'text-gray-600'}`} />
+                <div className="min-w-0">
+                  <p className="text-[12px] text-gray-200 truncate leading-none mb-0.5">
+                    {c.title || 'Untitled'}
+                  </p>
+                  <p className="text-[10px] text-gray-600 leading-none">
+                    {c.messageCount} msg{c.messageCount !== 1 ? 's' : ''} ·{' '}
+                    {new Date(c.updatedAt).toLocaleDateString()}
+                  </p>
+                </div>
+              </div>
+              <button onClick={e => deleteConv(c.id, e)}
+                className="mr-2 p-1.5 text-gray-700 hover:text-red-400
+                  opacity-0 group-hover:opacity-100 transition rounded-lg touch-manipulation"
+                title="Delete">
                 <Trash2 className="w-3.5 h-3.5" />
               </button>
             </div>
-          ))}
-        </div>
-        <div className="p-3 border-t border-white/6">
-          <p className="text-[10px] text-gray-600 leading-relaxed">
-            {status?.primaryModel
-              ? `Model: ${status.primaryModel}`
-              : 'Model: —'}
-            {status?.toolCount ? ` · ${status.toolCount} tools` : ''}
-          </p>
-        </div>
-      </aside>
+          ))
+        )}
+      </div>
 
-      {/* Chat area */}
-      <section className="flex-1 flex flex-col bg-[#111118] border border-white/8 rounded-2xl overflow-hidden min-w-0">
-        {/* Header */}
-        <div className="flex items-center gap-3 px-4 py-3 border-b border-white/6">
-          <button onClick={() => setConvOpen(true)} className="xl:hidden p-1.5 text-gray-500 hover:text-white transition rounded-lg">
-            <ChevronDown className="w-4 h-4 rotate-90" />
+      {/* Footer */}
+      <div className="p-3 border-t border-white/6 flex-shrink-0 space-y-1">
+        {status && (
+          <p className="text-[10px] text-gray-700 px-1">
+            {status.primaryModel
+              ? `${status.primaryModel.split('/').pop()} · ${status.toolCount ?? 0} tools`
+              : 'AI not configured'}
+          </p>
+        )}
+        <Link href="/admin"
+          className="flex items-center gap-2 px-2.5 py-2 rounded-xl text-[12px]
+            text-gray-500 hover:text-gray-300 hover:bg-white/[0.04] transition">
+          <ArrowLeft className="w-3.5 h-3.5" /> Back to Admin
+        </Link>
+      </div>
+    </div>
+  );
+
+  // ── Render ────────────────────────────────────────────────────────────────────
+  return (
+    <div className="flex h-full w-full overflow-hidden">
+      {/* ── Desktop sidebar ─────────────────────────────────── */}
+      <div className="hidden md:flex md:w-64 md:flex-shrink-0 bg-[#0d0d14] border-r border-white/6 flex-col">
+        {SidebarInner}
+      </div>
+
+      {/* ── Mobile sidebar overlay ───────────────────────────── */}
+      {sidebarOpen && (
+        <>
+          <div className="fixed inset-0 z-40 bg-black/70 backdrop-blur-sm md:hidden"
+            onClick={() => setSidebarOpen(false)} />
+          <div className="fixed inset-y-0 left-0 z-50 w-72 bg-[#0d0d14] border-r border-white/6
+            flex flex-col md:hidden animate-[slideInLeft_0.22s_ease-out]">
+            {SidebarInner}
+          </div>
+        </>
+      )}
+
+      {/* ── Chat column ─────────────────────────────────────── */}
+      <div className="flex-1 flex flex-col min-w-0 min-h-0">
+
+        {/* Top bar (mobile only) */}
+        <div className="md:hidden flex items-center gap-2 px-3 py-2.5
+          border-b border-white/6 bg-[#0d0d14] flex-shrink-0">
+          <button onClick={() => setSidebarOpen(true)}
+            className="p-1.5 text-gray-500 hover:text-white hover:bg-white/8
+              rounded-lg transition touch-manipulation">
+            <Menu className="w-4 h-4" />
           </button>
-          <div className="w-8 h-8 bg-gradient-to-br from-violet-600 to-violet-800 rounded-xl flex items-center justify-center ring-1 ring-violet-500/30 shadow-sm shadow-violet-500/25 flex-shrink-0">
-            <Sparkles className="w-4 h-4 text-white" />
+          <div className="flex items-center gap-1.5 flex-1 min-w-0">
+            <Sparkles className="w-3.5 h-3.5 text-violet-400 flex-shrink-0" />
+            <span className="text-sm font-bold text-white truncate">
+              {convId
+                ? (convs.find(c => c.id === convId)?.title || 'Conversation')
+                : 'New Chat'}
+            </span>
           </div>
-          <div className="min-w-0">
-            <h1 className="text-[14px] font-bold text-white leading-tight">Piyrox Copilot</h1>
-            <p className="text-[11px] text-gray-600">Analytics, moderation & finance assistant — connected to live data</p>
+          <button onClick={newChat} disabled={streaming}
+            className="flex items-center gap-1 bg-violet-600 hover:bg-violet-500
+              disabled:opacity-40 text-white text-[11px] font-bold px-2.5 py-1.5
+              rounded-lg transition touch-manipulation">
+            <Plus className="w-3 h-3" />
+          </button>
+        </div>
+
+        {/* Status / error banners */}
+        {!statusLoading && !status?.enabled && (
+          <div className="flex items-start gap-2.5 px-4 py-3 bg-amber-500/6
+            border-b border-amber-500/20 text-[12px] text-amber-300/90 flex-shrink-0">
+            <AlertTriangle className="w-4 h-4 flex-shrink-0 mt-0.5" />
+            <p>
+              AI assistant is not configured — set{' '}
+              <code className="font-mono bg-amber-500/10 px-1 rounded">OPENROUTER_API_KEY</code>{' '}
+              in your backend environment and restart the server.
+            </p>
           </div>
-          <div className="ml-auto flex items-center gap-2">
-            {status?.enabled && (
-              <span className="hidden sm:flex items-center gap-1.5 text-[10px] font-semibold text-emerald-400 bg-emerald-500/8 border border-emerald-500/20 px-2 py-1 rounded-full">
-                <span className="w-1.5 h-1.5 rounded-full bg-emerald-400 animate-pulse" /> Online
-              </span>
-            )}
-            <button onClick={() => { loadStatus(); loadConversations(); }}
-              className="p-1.5 text-gray-600 hover:text-white transition rounded-lg" title="Refresh">
-              <RefreshCw className="w-3.5 h-3.5" />
+        )}
+        {error && (
+          <div className="flex items-center gap-2.5 px-4 py-2.5 bg-red-500/6
+            border-b border-red-500/20 text-[12px] text-red-300 flex-shrink-0">
+            <AlertTriangle className="w-4 h-4 flex-shrink-0" />
+            <p className="flex-1">{error}</p>
+            <button onClick={() => setError('')}
+              className="text-red-400/60 hover:text-red-300 touch-manipulation">
+              <X className="w-3.5 h-3.5" />
             </button>
           </div>
+        )}
+
+        {/* ── Messages ─────────────────────────────────────── */}
+        <div ref={scrollRef}
+          className="flex-1 overflow-y-auto px-4 md:px-8 lg:px-16 xl:px-24 py-6
+            scrollbar-thin scrollbar-track-transparent scrollbar-thumb-white/6">
+          <div className="max-w-3xl mx-auto">
+
+            {messages.length === 0 ? (
+              /* ── Empty state ── */
+              <div className="flex flex-col items-center justify-center min-h-[60vh] text-center">
+                <div className="w-16 h-16 rounded-2xl bg-violet-600/10 border border-violet-500/20
+                  flex items-center justify-center mb-5">
+                  <Sparkles className="w-8 h-8 text-violet-400" />
+                </div>
+                <h2 className="text-xl font-black text-white mb-2">Piyrox Copilot</h2>
+                <p className="text-[13px] text-gray-500 max-w-sm leading-relaxed mb-8">
+                  Connected to live data — ask about revenue, sellers, fraud signals,
+                  or give direct moderation commands.
+                </p>
+                <div className="grid grid-cols-1 sm:grid-cols-2 gap-2 w-full max-w-xl">
+                  {SUGGESTIONS.map(s => (
+                    <button key={s}
+                      onClick={() => !disabled && send(s)}
+                      disabled={disabled}
+                      className="text-left text-[12px] text-gray-400 bg-[#0d0d14]
+                        border border-white/8 hover:border-violet-500/30 hover:text-gray-200
+                        rounded-xl px-3.5 py-3 transition disabled:opacity-30
+                        disabled:cursor-not-allowed active:scale-[0.98] touch-manipulation">
+                      {s}
+                    </button>
+                  ))}
+                </div>
+              </div>
+            ) : (
+              messages.map(msg => (
+                <MessageBubble
+                  key={msg.id}
+                  msg={msg}
+                  onConfirm={resolveAction}
+                  confirming={confirmingId}
+                />
+              ))
+            )}
+
+            <div ref={bottomRef} />
+          </div>
         </div>
 
-        {/* Disabled banner */}
-        {statusLoading && (
-          <div className="flex items-center gap-2 px-4 py-2.5 bg-white/2 border-b border-white/6 text-[12px] text-gray-500">
-            <Spinner className="w-3.5 h-3.5" /> Checking AI configuration…
-          </div>
-        )}
-        {!statusLoading && status?.enabled === false && (
-          <div className="flex items-start gap-2 px-4 py-3 bg-amber-500/6 border-b border-amber-500/20 text-[12px] text-amber-300/90">
-            <ShieldAlert className="w-4 h-4 flex-shrink-0 mt-0.5" />
-            <div>
-              <p className="font-semibold text-amber-300">AI assistant is not configured</p>
-              <p className="mt-0.5 text-amber-300/70">
-                Set <code className="font-mono bg-amber-500/10 px-1 rounded">OPENROUTER_API_KEY</code> in the backend
-                environment (Railway / backend .env), then restart the server. See <code className="font-mono bg-amber-500/10 px-1 rounded">backend/.env.example</code> for all AI variables.
-              </p>
-            </div>
-          </div>
-        )}
+        {/* ── Input area ───────────────────────────────────── */}
+        <div className="flex-shrink-0 border-t border-white/6 bg-[#0a0a0f] px-4 md:px-8
+          lg:px-16 xl:px-24 py-3"
+          style={{ paddingBottom: 'max(env(safe-area-inset-bottom, 0px), 12px)' }}>
+          <div className="max-w-3xl mx-auto">
+            <div className="flex items-end gap-2 bg-[#111118] border border-white/10
+              focus-within:border-violet-500/50 focus-within:ring-1
+              focus-within:ring-violet-500/15 rounded-2xl px-4 py-3 transition">
+              <textarea
+                ref={inputRef}
+                value={input}
+                onChange={handleInput}
+                onKeyDown={handleKeyDown}
+                rows={1}
+                maxLength={4000}
+                disabled={disabled}
+                placeholder={
+                  statusLoading
+                    ? 'Loading…'
+                    : !status?.enabled
+                      ? 'AI assistant is offline'
+                      : 'Ask anything — revenue, fraud, moderation… (Shift+Enter for new line)'
+                }
+                className="flex-1 bg-transparent text-[13px] text-white placeholder-gray-700
+                  focus:outline-none resize-none max-h-40 leading-relaxed
+                  disabled:cursor-not-allowed"
+                style={{ height: 'auto' }}
+              />
 
-        {error && (
-          <div className="flex items-start gap-2 px-4 py-2.5 bg-red-500/6 border-b border-red-500/20 text-[12px] text-red-300">
-            <AlertTriangle className="w-4 h-4 flex-shrink-0 mt-0.5" />
-            <p className="flex-1">{error}</p>
-            <button onClick={() => setError('')} className="text-red-400/60 hover:text-red-300"><X className="w-3.5 h-3.5" /></button>
-          </div>
-        )}
-
-        {/* Messages */}
-        <div ref={scrollRef} className="flex-1 overflow-y-auto px-4 py-5 space-y-5 scrollbar-thin scrollbar-track-transparent scrollbar-thumb-white/6">
-          {messages.length === 0 && (
-            <div className="h-full flex flex-col items-center justify-center text-center px-6">
-              <div className="w-14 h-14 bg-violet-600/10 border border-violet-500/20 rounded-2xl flex items-center justify-center mb-4">
-                <Sparkles className="w-7 h-7 text-violet-400" />
-              </div>
-              <h2 className="text-lg font-bold text-white">Ask anything about your marketplace</h2>
-              <p className="text-[13px] text-gray-500 mt-1.5 max-w-md leading-relaxed">
-                Revenue analysis, seller performance, fraud signals, demand trends — or give direct commands
-                like <span className="text-gray-300">“refund order ABC123”</span> (sensitive actions always ask for confirmation).
-              </p>
-              <div className="grid sm:grid-cols-2 gap-2 mt-6 w-full max-w-xl">
-                {SUGGESTIONS.map((s) => (
-                  <button key={s} onClick={() => !disabled && send(s)} disabled={disabled}
-                    className="text-left text-[12px] text-gray-400 bg-[#0a0a0f] border border-white/8 hover:border-violet-500/40 hover:text-gray-200 rounded-xl px-3.5 py-3 transition disabled:opacity-40 disabled:hover:border-white/8 disabled:hover:text-gray-400">
-                    {s}
-                  </button>
-                ))}
-              </div>
-            </div>
-          )}
-
-          {messages.map((msg) => (
-            <div key={msg.id} className={`flex ${msg.role === 'user' ? 'justify-end' : 'justify-start'}`}>
-              {msg.role === 'user' ? (
-                <div className="max-w-[80%] bg-violet-600 text-white rounded-2xl rounded-br-md px-4 py-2.5 text-[13px] leading-relaxed whitespace-pre-wrap break-words">
-                  {msg.content}
-                </div>
+              {streaming ? (
+                <button onClick={stop}
+                  className="flex items-center gap-1.5 flex-shrink-0 bg-red-500/15
+                    border border-red-500/25 text-red-400 text-[12px] font-bold
+                    px-3 py-2 rounded-xl hover:bg-red-500/25 transition touch-manipulation">
+                  <Square className="w-3.5 h-3.5" /> Stop
+                </button>
               ) : (
-                <div className="w-full max-w-[88%] space-y-2.5">
-                  {/* Tool chips */}
-                  {(msg.tools ?? []).map((tool) => (
-                    <div key={tool.id} className="flex items-center gap-2 text-[11px] text-gray-500">
-                      <span className={`flex items-center gap-1.5 border rounded-lg px-2 py-1 font-medium
-                        ${tool.state === 'running' ? 'border-violet-500/30 bg-violet-500/8 text-violet-300'
-                          : tool.state === 'failed' ? 'border-red-500/25 bg-red-500/6 text-red-400'
-                          : 'border-emerald-500/25 bg-emerald-500/6 text-emerald-400'}`}>
-                        {tool.state === 'running'
-                          ? <Loader2 className="w-3 h-3 animate-spin" />
-                          : <Wrench className="w-3 h-3" />}
-                        {tool.name}
-                      </span>
-                      {tool.summary && (
-                        <span className="truncate text-gray-600" title={tool.summary}>{tool.summary}</span>
-                      )}
-                    </div>
-                  ))}
-
-                  {/* Content */}
-                  {(msg.content || msg.streaming) && (
-                    <div className="bg-[#0a0a0f] border border-white/8 rounded-2xl rounded-bl-md px-4 py-3">
-                      {msg.content
-                        ? <MarkdownLite content={msg.content} />
-                        : <span className="flex items-center gap-1.5 text-[12px] text-gray-600">
-                            <span className="w-1.5 h-1.5 rounded-full bg-violet-400 animate-pulse" />
-                            <span className="w-1.5 h-1.5 rounded-full bg-violet-400 animate-pulse [animation-delay:150ms]" />
-                            <span className="w-1.5 h-1.5 rounded-full bg-violet-400 animate-pulse [animation-delay:300ms]" />
-                            thinking…
-                          </span>}
-                      {msg.streaming && msg.content && (
-                        <span className="inline-block w-1.5 h-3.5 bg-violet-400/80 ml-0.5 animate-pulse rounded-sm" />
-                      )}
-                      {(msg.usage || msg.model) && !msg.streaming && (
-                        <p className="mt-2 pt-2 border-t border-white/5 text-[10px] text-gray-700">
-                          {msg.model ?? ''}{msg.usage ? `${msg.model ? ' · ' : ''}${msg.usage.promptTokens + msg.usage.completionTokens} tokens` : ''}
-                        </p>
-                      )}
-                    </div>
-                  )}
-
-                  {/* Confirmation cards */}
-                  {(msg.pending ?? []).map((card) => {
-                    const busy = confirmingId === card.actionId;
-                    return (
-                      <div key={card.actionId} className={`border rounded-2xl overflow-hidden
-                        ${card.resolution === 'CONFIRMED' ? 'border-emerald-500/25 bg-emerald-500/4'
-                          : card.resolution === 'CANCELLED' ? 'border-white/8 bg-white/2'
-                          : 'border-amber-500/30 bg-amber-500/6'}`}>
-                        <div className="flex items-start gap-2.5 px-4 py-3">
-                          <ShieldAlert className={`w-4 h-4 mt-0.5 flex-shrink-0
-                            ${card.resolution ? 'text-gray-600' : 'text-amber-400'}`} />
-                          <div className="flex-1 min-w-0">
-                            <p className={`text-[12px] font-bold ${card.resolution ? 'text-gray-500' : 'text-amber-300'}`}>
-                              {card.resolution === 'CONFIRMED' ? 'Action executed'
-                                : card.resolution === 'CANCELLED' ? 'Action cancelled'
-                                : 'Confirmation required'}
-                            </p>
-                            <p className="mt-1 text-[12px] text-gray-300 leading-relaxed break-words">{card.summary}</p>
-                            {card.resultSummary && (
-                              <p className="mt-1 text-[11px] text-emerald-400/80 break-words">{card.resultSummary}</p>
-                            )}
-                          </div>
-                        </div>
-                        {!card.resolution && (
-                          <div className="flex gap-2 px-4 pb-3">
-                            <button onClick={() => resolveAction(card.actionId, 'confirm')} disabled={busy || streaming}
-                              className="flex items-center gap-1.5 flex-1 justify-center bg-emerald-600 hover:bg-emerald-500 disabled:opacity-50 text-white text-[12px] font-semibold py-2 rounded-xl transition">
-                              {busy ? <Spinner className="w-3.5 h-3.5" /> : <Check className="w-3.5 h-3.5" />}
-                              {busy ? 'Executing…' : 'Confirm & run'}
-                            </button>
-                            <button onClick={() => resolveAction(card.actionId, 'cancel')} disabled={busy || streaming}
-                              className="flex items-center gap-1.5 flex-1 justify-center bg-white/5 hover:bg-white/10 border border-white/10 disabled:opacity-50 text-gray-300 text-[12px] font-semibold py-2 rounded-xl transition">
-                              <X className="w-3.5 h-3.5" /> Cancel
-                            </button>
-                          </div>
-                        )}
-                      </div>
-                    );
-                  })}
-                </div>
+                <button onClick={() => send()}
+                  disabled={disabled || !input.trim()}
+                  className="flex-shrink-0 w-9 h-9 flex items-center justify-center
+                    bg-violet-600 hover:bg-violet-500 disabled:opacity-30
+                    disabled:hover:bg-violet-600 text-white rounded-xl transition
+                    touch-manipulation active:scale-95">
+                  <Send className="w-4 h-4" />
+                </button>
               )}
             </div>
-          ))}
-        </div>
 
-        {/* Input */}
-        <div className="border-t border-white/6 p-3">
-          <form onSubmit={(e) => { e.preventDefault(); send(); }}
-            className="flex items-end gap-2 bg-[#0a0a0f] border border-white/10 focus-within:border-violet-500/50 focus-within:ring-1 focus-within:ring-violet-500/15 rounded-2xl px-3.5 py-2.5 transition">
-            <textarea
-              value={input}
-              onChange={(e) => setInput(e.target.value)}
-              onKeyDown={(e) => {
-                if (e.key === 'Enter' && !e.shiftKey) { e.preventDefault(); send(); }
-              }}
-              rows={1}
-              maxLength={4000}
-              disabled={disabled}
-              placeholder={disabled ? 'AI assistant is offline — configure OPENROUTER_API_KEY' : 'Ask about revenue, sellers, fraud… (Shift+Enter for a new line)'}
-              className="flex-1 bg-transparent text-[13px] text-white placeholder-gray-700 focus:outline-none resize-none max-h-32 disabled:cursor-not-allowed"
-              style={{ height: 'auto' }}
-            />
-            {streaming ? (
-              <button type="button" onClick={stop}
-                className="flex items-center gap-1.5 bg-red-500/15 border border-red-500/30 text-red-400 text-[12px] font-semibold px-3.5 py-2 rounded-xl hover:bg-red-500/25 transition">
-                <Square className="w-3.5 h-3.5" /> Stop
-              </button>
-            ) : (
-              <button type="submit" disabled={disabled || !input.trim()}
-                className="flex items-center justify-center bg-violet-600 hover:bg-violet-500 disabled:opacity-40 disabled:hover:bg-violet-600 text-white w-9 h-9 rounded-xl transition flex-shrink-0">
-                <Send className="w-4 h-4" />
-              </button>
-            )}
-          </form>
-          <p className="mt-1.5 px-1 text-[10px] text-gray-700">
-            Copilot can read all tables and run moderation actions. Money-moving or destructive actions always require your confirmation.
-          </p>
+            <p className="mt-1.5 text-[10px] text-gray-700 text-center">
+              Copilot reads all tables and can run moderation actions.
+              Destructive actions always ask for confirmation first.
+            </p>
+          </div>
         </div>
-      </section>
+      </div>
     </div>
   );
 }

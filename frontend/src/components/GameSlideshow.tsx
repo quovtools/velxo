@@ -101,10 +101,14 @@ function GameSlidePannel({ slide, gradient }: { slide: Slide; gradient: string }
   return (
     <div className="absolute inset-0">
       {slide.imageUrl ? (
-        <div
-          className="absolute inset-0 bg-cover bg-center"
-          style={{ backgroundImage: `url(${slide.imageUrl})` }}
-        />
+        <div className="absolute inset-0 bg-black">
+          {/* eslint-disable-next-line @next/next/no-img-element */}
+          <img
+            src={slide.imageUrl}
+            alt=""
+            className="w-full h-full object-contain"
+          />
+        </div>
       ) : (
         <div className={`absolute inset-0 bg-gradient-to-br ${gradient}`}>
           {slide.logo && (
